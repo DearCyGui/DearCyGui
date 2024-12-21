@@ -1,0 +1,21 @@
+.idea/
+.vs/
+.vscode/
+out/
+cmake-build-debug/
+cmake-build-release/
+cmake-build-local/
+output/
+dist/
+.DS_Store
+__pycache__/
+lib_location.txt
+version_number.txt
+dearpygui.egg-info/
+build/
+# Ignore only subdirectories
+sandbox/*/
+src/CMakeFiles/
+thirdparty/CMakeFiles/
+thirdparty/Makefile
+thirdparty/cmake_install.cmake

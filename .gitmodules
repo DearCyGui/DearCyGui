@@ -1,0 +1,14 @@
+[submodule "thirdparty/imgui"]
+	path = thirdparty/imgui
+	url = https://github.com/ocornut/imgui
+	branch = docking
+[submodule "thirdparty/implot"]
+	path = thirdparty/implot
+	url = https://github.com/axeldavy/implot
+	branch = master
+[submodule "thirdparty/freetype"]
+	path = thirdparty/freetype
+	url = https://gitlab.freedesktop.org/freetype/freetype
+[submodule "thirdparty/SDL"]
+	path = thirdparty/SDL
+	url = https://github.com/libsdl-org/SDL

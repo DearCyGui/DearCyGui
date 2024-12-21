@@ -1,0 +1,14 @@
+recursive-include dearcygui/backends/ *.h
+recursive-include thirdparty/freetype/ *
+recursive-include thirdparty/gl3w/ *.h
+recursive-include thirdparty/imgui/ *
+recursive-include thirdparty/imnodes/ *
+recursive-include thirdparty/implot/ *
+recursive-include thirdparty/latin-modern-roman/ *
+recursive-include thirdparty/SDL/ *
+recursive-include dearcygui/ *.pyx
+recursive-include dearcygui/ *.pxd
+recursive-include dearcygui/ *.py
+recursive-include dearcygui/ *.typed
+recursive-include dearcygui/docs/ *.md
+include dearcygui/imgui_config.h
