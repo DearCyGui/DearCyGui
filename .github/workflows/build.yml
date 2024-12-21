@@ -3,6 +3,9 @@ name: Build and Upload Wheels
 on:
   release:
     types: [created]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build_wheels:
