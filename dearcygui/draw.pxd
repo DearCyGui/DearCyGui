@@ -29,6 +29,16 @@ cdef class DrawingScale(drawingItem):
 cdef class DrawSplitBatch(drawingItem):
     cdef void draw(self, void*) noexcept nogil
 
+cdef class DrawArc(drawingItem):
+    cdef double[2] _center
+    cdef double[2] _radius
+    cdef float _start_angle
+    cdef float _end_angle
+    cdef float _rotation
+    cdef float _thickness
+    cdef unsigned int _color # imgui.ImU32
+    cdef unsigned int _fill # imgui.ImU32
+
 cdef class DrawArrow(drawingItem):
     cdef double[2] _start
     cdef double[2] _end

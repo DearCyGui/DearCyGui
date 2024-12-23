@@ -443,6 +443,220 @@ cdef class DrawSplitBatch(drawingItem):
 Draw items
 """
 
+cdef class DrawArc(drawingItem):
+    """
+    Draws an arc in coordinate space.
+    
+    The arc is defined using SVG-like parameters for compatibility with SVG paths.
+    
+    Properties
+    ----------
+    center : tuple (x, y)
+        Center point coordinates of the arc in coordinate space
+    
+    radius : tuple (rx, ry)
+        Radii in x and y directions. Controls the ellipse shape:
+        - Equal values (rx=ry) create circular arcs
+        - Different values create elliptical arcs
+    
+    start_angle : float
+        Starting angle in radians (0 = right, π/2 = down, π = left, 3π/2 = up)
+    
+    end_angle : float
+        Ending angle in radians. Arc is drawn counter-clockwise from start to end
+    
+    rotation : float
+        Rotation of the entire arc around its center point in radians
+    
+    color : outline color
+    
+    fill : fill color
+    
+    thickness : float
+        Line thickness in pixels for the arc outline
+        
+    Examples
+    --------
+    # Create a quarter circle
+    arc = DrawArc(context,
+                 center=(0, 0),
+                 radius=(100, 100),
+                 start_angle=0,
+                 end_angle=π/2,
+                 rotation=0,
+                 color=(255,255,255,255),
+                 fill_color=(255,0,0,128),
+                 thickness=2.0)
+    
+    # Create an elliptical arc
+    arc = DrawArc(context,
+                 center=(0, 0),
+                 radius=(200, 100),
+                 start_angle=0,
+                 end_angle=π,
+                 rotation=π/4,
+                 color=(255,255,255,255),
+                 fill_color=(0,0,0,0),
+                 thickness=1.0)
+    """
+    
+    def __cinit__(self):
+        self._center = [0., 0.]
+        self._radius = [0., 0.]
+        self._start_angle = 0.
+        self._end_angle = 0.
+        self._rotation = 0.
+        self._fill = 0
+        self._color = 4294967295 # 0xffffffff, white
+        self._thickness = 1.0
+
+    @property
+    def center(self):
+        """Center point"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return Coord.build(self._center)
+    @center.setter
+    def center(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        read_coord(self._center, value)
+        
+    @property
+    def radius(self):
+        """X and Y radii"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return Coord.build(self._radius)
+
+    @radius.setter
+    def radius(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        read_coord(self._radius, value)
+
+    @property
+    def fill(self):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef float[4] fill
+        unparse_color(fill, self._fill)
+        return list(fill)
+
+    @fill.setter
+    def fill(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._fill = parse_color(value)
+
+    @property
+    def thickness(self):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._thickness
+
+    @thickness.setter
+    def thickness(self, float value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._thickness = value
+
+    @property
+    def color(self):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef float[4] color
+        unparse_color(color, self._color)
+        return list(color)
+
+    @color.setter
+    def color(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._color = parse_color(value)
+
+    @property
+    def start_angle(self):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._start_angle
+
+    @start_angle.setter
+    def start_angle(self, float value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._start_angle = value
+
+    @property
+    def end_angle(self):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._end_angle
+
+    @end_angle.setter
+    def end_angle(self, float value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._end_angle = value
+
+    @property
+    def rotation(self):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._rotation
+
+    @rotation.setter
+    def rotation(self, float value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._rotation = value
+
+
+    cdef void draw(self, void* drawlist) noexcept nogil:
+        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        if not(self._show):
+            return
+
+        cdef float thickness = self._thickness
+        thickness *= self.context.viewport.thickness_multiplier
+        if thickness > 0:
+            thickness *= self.context.viewport.size_multiplier
+        thickness = abs(thickness)
+
+        cdef float[2] center
+        self.context.viewport.coordinate_to_screen(center, self._center)
+        
+        # Convert coordinates to screen space
+        cdef float scale = self.context.viewport.size_multiplier
+        cdef imgui.ImVec2 radius = imgui.ImVec2(self._radius[0] * scale, self._radius[1] * scale)
+        # For convert filling, angles must be increasing
+        cdef float start_angle = self._start_angle
+        cdef float end_angle = self._end_angle
+        if start_angle > end_angle:
+            swap(start_angle, end_angle)
+        
+        # Draw filled arc if fill color has alpha
+        if self._fill & imgui.IM_COL32_A_MASK != 0:
+            (<imgui.ImDrawList*>drawlist).PathEllipticalArcTo(
+                imgui.ImVec2(center[0], center[1]),
+                radius,
+                self._rotation,
+                start_angle,
+                end_angle,
+                0)
+            (<imgui.ImDrawList*>drawlist).PathFillConvex(self._fill)
+
+        # Draw outline
+        if self._color & imgui.IM_COL32_A_MASK != 0:
+            (<imgui.ImDrawList*>drawlist).PathEllipticalArcTo(
+                imgui.ImVec2(center[0], center[1]),
+                radius,
+                self._rotation,
+                start_angle,
+                end_angle,
+                0)
+            (<imgui.ImDrawList*>drawlist).PathStroke(self._color, False, thickness)
+
 cdef class DrawArrow(drawingItem):
     """
     Draws an arrow in coordinate space.
