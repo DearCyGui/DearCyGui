@@ -909,7 +909,7 @@ cdef class DrawBezierCubic(drawingItem):
         cdef imgui.ImVec2 ip2 = imgui.ImVec2(p2[0], p2[1])
         cdef imgui.ImVec2 ip3 = imgui.ImVec2(p3[0], p3[1])
         cdef imgui.ImVec2 ip4 = imgui.ImVec2(p4[0], p4[1])
-        (<imgui.ImDrawList*>drawlist).AddBezierCubic(ip1, ip2, ip3, ip4, <imgui.ImU32>self._color, self._thickness, self._segments)
+        (<imgui.ImDrawList*>drawlist).AddBezierCubic(ip1, ip2, ip3, ip4, <imgui.ImU32>self._color, thickness, self._segments)
 
 cdef class DrawBezierQuadratic(drawingItem):
     """
@@ -1015,7 +1015,7 @@ cdef class DrawBezierQuadratic(drawingItem):
         cdef imgui.ImVec2 ip1 = imgui.ImVec2(p1[0], p1[1])
         cdef imgui.ImVec2 ip2 = imgui.ImVec2(p2[0], p2[1])
         cdef imgui.ImVec2 ip3 = imgui.ImVec2(p3[0], p3[1])
-        (<imgui.ImDrawList*>drawlist).AddBezierQuadratic(ip1, ip2, ip3, <imgui.ImU32>self._color, self._thickness, self._segments)
+        (<imgui.ImDrawList*>drawlist).AddBezierQuadratic(ip1, ip2, ip3, <imgui.ImU32>self._color, thickness, self._segments)
 
 cdef class DrawCircle(drawingItem):
     """
