@@ -26,7 +26,7 @@ from libc.string cimport memset, memcpy
 # Thus it is the only one allowed to make calls to it
 
 from dearcygui.wrapper cimport *
-from dearcygui.backends.backend cimport SDLViewport, platformViewport
+from dearcygui.backends.backend cimport SDLViewport, platformViewport, GLContext
 # We use unique_lock rather than lock_guard as
 # the latter doesn't support nullary constructor
 # which causes trouble to cython
@@ -41,7 +41,7 @@ from libc.math cimport M_PI, INFINITY
 from libc.stdint cimport uintptr_t
 cimport dearcygui.backends.time as ctime
 
-from .c_types cimport unique_lock, recursive_mutex, defer_lock_t
+from .c_types cimport unique_lock, recursive_mutex, mutex, defer_lock_t
 from .imgui_types cimport *
 from .types cimport *
 from .types import ChildType, Key, KeyMod, KeyOrMod
@@ -88,21 +88,9 @@ cdef class BackendRenderingContext:
     Object used to create contexts
     with object sharing with the internal context.
     """
-    cdef void* rendering_context
-    cdef void* rendering_display
     cdef Context context
     def __init__(self):
         raise ValueError("Cannot create a BackendRenderingContext directly. Use the context object.")
-    def __cinit__(self):
-        self.rendering_context = NULL
-
-    @property
-    def display(self):
-        return <uintptr_t>self.rendering_display
-
-    @property
-    def context(self):
-        return <uintptr_t>self.rendering_context
 
     @property
     def name(self):
@@ -111,13 +99,9 @@ cdef class BackendRenderingContext:
     def __enter__(self):
         # TODO: check thread safety
         (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
-        self.rendering_context = (<platformViewport*>self.context.viewport._platform).getUploadContext()
-        self.rendering_display = (<platformViewport*>self.context.viewport._platform).getUploadDisplay()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.rendering_context = NULL
-        self.rendering_display = NULL
         (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
 
     @staticmethod
@@ -126,6 +110,61 @@ cdef class BackendRenderingContext:
         rendering_context.context = context
         return rendering_context
 
+cdef class SharedGLContext:
+    """
+    Object used to create shared OpenGL contexts
+    with the internal context.
+    """
+    cdef GLContext* gl_context
+    cdef Context context
+    cdef mutex mutex
+    def __init__(self):
+        raise ValueError("Cannot create a SharedGLContext directly.")
+    def __cinit__(self):
+        self.gl_context = NULL
+
+    def __dealloc__(self):
+        if self.gl_context != NULL:
+            del self.gl_context
+
+    def make_current(self):
+        """ Make the attached context current.
+        Only one thread can make the context current at a time.
+        release() has to be called after make_current()
+        """
+        assert(self.gl_context != NULL)
+        self.mutex.lock()
+        self.gl_context.makeCurrent()
+
+    def release(self):
+        assert(self.gl_context != NULL)
+        """ Release the attached context """
+        self.gl_context.release()
+        self.mutex.unlock()
+
+    def destroy(self):
+        """ Destroy the attached context """
+        if self.gl_context != NULL:
+            del self.gl_context
+            self.gl_context = NULL
+
+    def __enter__(self):
+        assert(self.gl_context != NULL)
+        self.mutex.lock()
+        self.gl_context.makeCurrent()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        assert(self.gl_context != NULL)
+        self.gl_context.release()
+        self.mutex.unlock()
+
+    @staticmethod
+    cdef SharedGLContext from_context(Context context, GLContext* gl_context):
+        cdef SharedGLContext shared_context = SharedGLContext.__new__(SharedGLContext)
+        shared_context.context = context
+        shared_context.gl_context = gl_context
+        return shared_context
 
 cdef void lock_gil_friendly_block(unique_lock[recursive_mutex] &m) noexcept:
     """
@@ -352,6 +391,23 @@ cdef class Context:
         pointer on the context.
         """
         return self._item_deletion_callback
+
+    def create_new_shared_gl_context(self, int major, int minor):
+        """
+        Create a new shared OpenGL context with the current context.
+
+        Parameters:
+        major : int
+            Major version of the OpenGL context.
+        minor : int
+            Minor version of the OpenGL context.
+
+        Returns:
+            SharedGLContext instance
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.imgui_mutex)
+        return SharedGLContext.from_context(self, (<platformViewport*>self.viewport._platform).createSharedContext(major, minor))
 
     cdef void queue_callback_noarg(self, Callback callback, baseItem parent_item, baseItem target_item) noexcept nogil:
         """

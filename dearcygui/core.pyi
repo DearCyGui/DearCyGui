@@ -13920,6 +13920,23 @@ Main class managing the DearCyGui items and imgui context.
     - ImGui/ImPlot/ImNodes contexts are managed to support multiple contexts
     
     """
+    def create_new_shared_gl_context(self, major, minor):
+        """
+        Create a new shared OpenGL context with the current context.
+
+        Parameters:
+        major : int
+            Major version of the OpenGL context.
+        minor : int
+            Minor version of the OpenGL context.
+
+        Returns:
+            SharedGLContext instance
+        
+        """
+        ...
+
+
     def fetch_parent_queue_back(self):
         """
         Retrieve the last item from the potential parent list.
@@ -14217,6 +14234,16 @@ Main class managing the DearCyGui items and imgui context.
     def item_unused_configure_args_callback(self):
         """
         Callback called during item creation before configuration.
+        
+        """
+        ...
+
+
+    @property
+    def rendering_context(self) -> BackendRenderingContext:
+        """
+        Readonly attribute: rendering context for the backend.
+        Used to create contexts with object sharing.
         
         """
         ...

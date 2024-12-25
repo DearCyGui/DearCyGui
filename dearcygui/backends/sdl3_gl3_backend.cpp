@@ -293,7 +293,6 @@ SDLViewport* SDLViewport::create(render_fun render,
         return nullptr;
     // All our uploads have no holes
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    viewport->eglDisplay = SDL_EGL_GetCurrentDisplay();
     SDL_GL_MakeCurrent(viewport->uploadWindowHandle, NULL);
     auto primary_display = SDL_GetPrimaryDisplay();
     viewport->dpiScale = SDL_GetDisplayContentScale(primary_display);
@@ -677,16 +676,6 @@ void SDLViewport::makeUploadContextCurrent() {
     SDL_GL_MakeCurrent(uploadWindowHandle, uploadGLContext);
 }
 
-void *SDLViewport::getUploadContext() {
-    // Assumes it is called after makeUploadContextCurrent
-    return SDL_GL_GetCurrentContext();
-}
-
-void *SDLViewport::getUploadDisplay() {
-    // Assumes it is called after makeUploadContextCurrent
-    return eglDisplay;
-}
-
 void SDLViewport::releaseUploadContext() {
     glFlush();
     SDL_GL_MakeCurrent(uploadWindowHandle, NULL);
@@ -710,4 +699,68 @@ bool SDLViewport::downloadBackBuffer(void* data, int size) {
     SDL_GL_MakeCurrent(windowHandle, NULL);
     renderContextLock.unlock();
     return error == GL_NO_ERROR;
+}
+
+class SDLGLContext : public GLContext {
+public:
+    SDLGLContext(SDL_Window* w, SDL_GLContext c) 
+        : window(w), context(c) {}
+    
+    ~SDLGLContext() override {
+        if (context) {
+            SDL_GL_DestroyContext(context);
+        }
+        if (window) {
+            SDL_DestroyWindow(window); 
+        }
+    }
+
+    void makeCurrent() override {
+        SDL_GL_MakeCurrent(window, context);
+    }
+
+    void release() override {
+        SDL_GL_MakeCurrent(window, nullptr);
+    }
+
+private:
+    SDL_Window* window;
+    SDL_GLContext context;
+};
+
+GLContext* SDLViewport::createSharedContext(int major, int minor) {
+    // Lock to ensure the current context remains valid during setup
+    uploadContextLock.lock();
+
+    // Make upload context current for sharing
+    SDL_GL_MakeCurrent(uploadWindowHandle, uploadGLContext);
+
+    // Create temporary hidden window for the new context
+    SDL_Window* tempWindow = SDL_CreateWindow("DearCyGui shared context", 
+        640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_UTILITY);
+    if (!tempWindow) {
+        SDL_GL_MakeCurrent(uploadWindowHandle, NULL);
+        uploadContextLock.unlock();
+        return nullptr;
+    }
+
+    // Set context attributes
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+
+    // Create the shared context
+    SDL_GLContext sharedContext = SDL_GL_CreateContext(tempWindow);
+    // Restore original context
+    SDL_GL_MakeCurrent(uploadWindowHandle, NULL);
+    uploadContextLock.unlock();
+
+    if (!sharedContext) {
+        SDL_DestroyWindow(tempWindow);
+        return nullptr;
+    }
+
+    return new SDLGLContext(tempWindow, sharedContext);
 }

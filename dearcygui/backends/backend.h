@@ -11,6 +11,17 @@ typedef void (*render_fun)(void*);
 typedef void (*on_drop_fun)(void*, int, const char*);
 
 
+// A class to wrap a GL context, make it current, release it.
+class GLContext
+{
+public:
+    GLContext() = default;
+    virtual ~GLContext() = default;
+
+    virtual void makeCurrent() = 0;
+    virtual void release() = 0;
+};
+
 class platformViewport
 {
 public:
@@ -28,9 +39,8 @@ public:
     virtual void toggleFullScreen() = 0;
     virtual void wakeRendering() = 0;
     virtual void makeUploadContextCurrent() = 0;
-    virtual void* getUploadContext() = 0;
-    virtual void* getUploadDisplay() = 0;
     virtual void releaseUploadContext() = 0;
+    virtual GLContext* createSharedContext(int major, int minor) = 0;
 
 	// makeUploadContextCurrent must be called before any texture
 	// operations are performed, and releaseUploadContext must be
@@ -100,6 +110,7 @@ protected:
     static bool fastActivityCheck();
 };
 
+
 class SDLViewport : public platformViewport 
 {
 public:
@@ -114,9 +125,8 @@ public:
     virtual void toggleFullScreen() override;
     virtual void wakeRendering() override;
     virtual void makeUploadContextCurrent() override;
-    virtual void* getUploadContext() override;
-    virtual void* getUploadDisplay() override;
     virtual void releaseUploadContext() override;
+    virtual GLContext* createSharedContext(int major, int minor) override;
 
     virtual void* allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
                                   unsigned dynamic, unsigned type, unsigned filtering_mode) override;
@@ -140,7 +150,6 @@ private:
     SDL_Window* uploadWindowHandle = nullptr;
     SDL_GLContext glContext = nullptr;
     SDL_GLContext uploadGLContext = nullptr;
-    SDL_EGLDisplay eglDisplay;
     std::mutex renderContextLock;
     std::mutex uploadContextLock;
     bool hasOpenGL3Init = false;

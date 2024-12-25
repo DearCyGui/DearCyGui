@@ -2,6 +2,9 @@ from libcpp.atomic cimport atomic
 from libcpp.string cimport string
 
 cdef extern from "backend.h" nogil:
+    cdef cppclass GLContext:
+        void makeCurrent()
+        void release()
 
     ctypedef void (*on_resize_fun)(void*)
     ctypedef void (*on_close_fun)(void*)  
@@ -21,9 +24,8 @@ cdef extern from "backend.h" nogil:
         void toggleFullScreen()
         void wakeRendering()
         void makeUploadContextCurrent()
-        void* getUploadContext()
-        void* getUploadDisplay()
         void releaseUploadContext()
+        GLContext *createSharedContext(int, int)
 
         # Texture methods
         void* allocateTexture(unsigned, unsigned, unsigned, unsigned, unsigned, unsigned)
@@ -72,12 +74,13 @@ cdef extern from "backend.h" nogil:
         bint sizeChangeRequested
 
         # Protected members
-        string windowTitle
         string iconSmall
         string iconLarge
+        string windowTitle
         render_fun renderCallback
         on_resize_fun resizeCallback
         on_close_fun closeCallback
+        on_drop_fun dropCallback
         void* callbackData
 
     cdef cppclass SDLViewport(platformViewport):
