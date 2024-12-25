@@ -38,6 +38,7 @@ from libcpp.cmath cimport round as cround
 from libcpp.set cimport set as cpp_set
 from libcpp.vector cimport vector
 from libc.math cimport M_PI, INFINITY
+from libc.stdint cimport uintptr_t
 cimport dearcygui.backends.time as ctime
 
 from .c_types cimport unique_lock, recursive_mutex, defer_lock_t
@@ -53,6 +54,7 @@ cnp.import_array()
 import time as python_time
 import threading
 import weakref
+
 
 
 """
@@ -79,6 +81,50 @@ cdef inline void ensure_correct_im_context(Context context) noexcept nogil:
     ensure_correct_imgui_context(context)
     ensure_correct_implot_context(context)
     ensure_correct_imnodes_context(context)
+
+
+cdef class BackendRenderingContext:
+    """
+    Object used to create contexts
+    with object sharing with the internal context.
+    """
+    cdef void* rendering_context
+    cdef void* rendering_display
+    cdef Context context
+    def __init__(self):
+        raise ValueError("Cannot create a BackendRenderingContext directly. Use the context object.")
+    def __cinit__(self):
+        self.rendering_context = NULL
+
+    @property
+    def display(self):
+        return <uintptr_t>self.rendering_display
+
+    @property
+    def context(self):
+        return <uintptr_t>self.rendering_context
+
+    @property
+    def name(self):
+        return "GL" # For now only GL is supported
+
+    def __enter__(self):
+        # TODO: check thread safety
+        (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
+        self.rendering_context = (<platformViewport*>self.context.viewport._platform).getUploadContext()
+        self.rendering_display = (<platformViewport*>self.context.viewport._platform).getUploadDisplay()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.rendering_context = NULL
+        self.rendering_display = NULL
+        (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+
+    @staticmethod
+    cdef BackendRenderingContext from_context(Context context):
+        cdef BackendRenderingContext rendering_context = BackendRenderingContext.__new__(BackendRenderingContext)
+        rendering_context.context = context
+        return rendering_context
 
 
 cdef void lock_gil_friendly_block(unique_lock[recursive_mutex] &m) noexcept:
@@ -273,6 +319,14 @@ cdef class Context:
         Readonly attribute: root item from where rendering starts.
         """
         return self.viewport
+
+    @property
+    def rendering_context(self) -> BackendRenderingContext:
+        """
+        Readonly attribute: rendering context for the backend.
+        Used to create contexts with object sharing.
+        """
+        return BackendRenderingContext.from_context(self)
 
     @property
     def item_creation_callback(self):
@@ -3709,7 +3763,7 @@ cdef extern from * nogil:
         const ImGuiID id = window->GetID(uuid);
         ImGui::KeepAliveID(id);
 
-        bool hovered, pressed, held;
+        bool hovered, pressed;
         bool mouse_down = false;
         bool mouse_clicked = false;
         hovered = ImGui::IsMouseHoveringRect(bb.Min, bb.Max);
@@ -3730,7 +3784,7 @@ cdef extern from * nogil:
             return false;
         }
 
-        button_mask >> 1;
+        button_mask >>= 1;
 
         // Retrieve for each registered button the toplevel
         // status.
@@ -6401,8 +6455,6 @@ cdef class AxisTag(baseItem):
 Textures
 """
 
-
-
 cdef class Texture(baseItem):
     """
     Represents a texture that can be used in the UI.
@@ -6490,6 +6542,13 @@ cdef class Texture(baseItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         return self.num_chans
+
+    @property
+    def texture_id(self):
+        """ Internal texture ID used by the rendering backend
+        for the current allocation. May change if set_value is
+        called, and is released when the Texture is freed."""
+        return <uintptr_t>self.allocated_texture
 
     def set_value(self, value):
         """

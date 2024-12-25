@@ -293,6 +293,7 @@ SDLViewport* SDLViewport::create(render_fun render,
         return nullptr;
     // All our uploads have no holes
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    viewport->eglDisplay = SDL_EGL_GetCurrentDisplay();
     SDL_GL_MakeCurrent(viewport->uploadWindowHandle, NULL);
     auto primary_display = SDL_GetPrimaryDisplay();
     viewport->dpiScale = SDL_GetDisplayContentScale(primary_display);
@@ -674,6 +675,16 @@ void SDLViewport::wakeRendering() {
 void SDLViewport::makeUploadContextCurrent() {
     uploadContextLock.lock();
     SDL_GL_MakeCurrent(uploadWindowHandle, uploadGLContext);
+}
+
+void *SDLViewport::getUploadContext() {
+    // Assumes it is called after makeUploadContextCurrent
+    return SDL_GL_GetCurrentContext();
+}
+
+void *SDLViewport::getUploadDisplay() {
+    // Assumes it is called after makeUploadContextCurrent
+    return eglDisplay;
 }
 
 void SDLViewport::releaseUploadContext() {

@@ -2087,16 +2087,29 @@ cdef class DrawPolyline(drawingItem):
         self.context.viewport.coordinate_to_screen(p, self._points[0].p)
         ip1 = imgui.ImVec2(p[0], p[1])
         ip1_ = ip1
-        # imgui requires clockwise order + convexity for correct AA of AddPolyline
-        # Thus we only call AddLine
+        # imgui has artifacts for PolyLine when thickness is small.
+        # in that case use AddLine
+        # For big thickness, use AddPolyline
         cdef int i
-        for i in range(1, <int>self._points.size()):
-            self.context.viewport.coordinate_to_screen(p, self._points[i].p)
-            ip2 = imgui.ImVec2(p[0], p[1])
-            (<imgui.ImDrawList*>drawlist).AddLine(ip1, ip2, <imgui.ImU32>self._color, thickness)
-            ip1 = ip2
-        if self._closed and self._points.size() > 2:
-            (<imgui.ImDrawList*>drawlist).AddLine(ip1_, ip2, <imgui.ImU32>self._color, thickness)
+        cdef vector[imgui.ImVec2] ipoints
+        if thickness < 2.:
+            for i in range(1, <int>self._points.size()):
+                self.context.viewport.coordinate_to_screen(p, self._points[i].p)
+                ip2 = imgui.ImVec2(p[0], p[1])
+                (<imgui.ImDrawList*>drawlist).AddLine(ip1, ip2, <imgui.ImU32>self._color, thickness)
+                ip1 = ip2
+            if self._closed and self._points.size() > 2:
+                (<imgui.ImDrawList*>drawlist).AddLine(ip1_, ip2, <imgui.ImU32>self._color, thickness)
+        else:
+            ipoints.reserve(self._points.size())
+            ipoints.push_back(ip1_)
+            for i in range(1, <int>self._points.size()):
+                self.context.viewport.coordinate_to_screen(p, self._points[i].p)
+                ip2 = imgui.ImVec2(p[0], p[1])
+                ipoints.push_back(ip2)
+            if self._closed:
+                ipoints.push_back(ip1_)
+            (<imgui.ImDrawList*>drawlist).AddPolyline(ipoints.data(), <int>ipoints.size(), <imgui.ImU32>self._color, self._closed, thickness)
 
 
 cdef inline bint is_counter_clockwise(imgui.ImVec2 p1,

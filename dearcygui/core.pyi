@@ -83721,6 +83721,16 @@ class Texture(baseItem):
 
 
     @property
+    def texture_id(self) -> int:
+        """
+ Internal texture ID used by the rendering backend
+        for the current allocation. May change if set_value is
+        called, and is released when the Texture is freed.
+        """
+        ...
+
+
+    @property
     def user_data(self):
         """
         User data of any type.

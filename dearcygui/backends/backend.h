@@ -28,6 +28,8 @@ public:
     virtual void toggleFullScreen() = 0;
     virtual void wakeRendering() = 0;
     virtual void makeUploadContextCurrent() = 0;
+    virtual void* getUploadContext() = 0;
+    virtual void* getUploadDisplay() = 0;
     virtual void releaseUploadContext() = 0;
 
 	// makeUploadContextCurrent must be called before any texture
@@ -112,6 +114,8 @@ public:
     virtual void toggleFullScreen() override;
     virtual void wakeRendering() override;
     virtual void makeUploadContextCurrent() override;
+    virtual void* getUploadContext() override;
+    virtual void* getUploadDisplay() override;
     virtual void releaseUploadContext() override;
 
     virtual void* allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
@@ -136,6 +140,7 @@ private:
     SDL_Window* uploadWindowHandle = nullptr;
     SDL_GLContext glContext = nullptr;
     SDL_GLContext uploadGLContext = nullptr;
+    SDL_EGLDisplay eglDisplay;
     std::mutex renderContextLock;
     std::mutex uploadContextLock;
     bool hasOpenGL3Init = false;

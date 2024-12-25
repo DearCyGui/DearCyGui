@@ -21,6 +21,8 @@ cdef extern from "backend.h" nogil:
         void toggleFullScreen()
         void wakeRendering()
         void makeUploadContextCurrent()
+        void* getUploadContext()
+        void* getUploadDisplay()
         void releaseUploadContext()
 
         # Texture methods
