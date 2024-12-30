@@ -18,7 +18,6 @@
 #include <mutex>
 
 static std::unordered_map<GLuint, GLuint> PBO_ids;
-static std::unordered_set<GLuint> Allocated_ids;
 
 bool platformViewport::fastActivityCheck() {
     ImGuiContext& g = *GImGui;
@@ -75,7 +74,7 @@ void SDLViewport::preparePresentFrame() {
     renderContextLock.unlock();
 }
 
-// Move texture management implementations into SDLViewport static methods
+
 void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
                                  unsigned dynamic, unsigned type, unsigned filtering_mode) {
     // Making the sure the context is current
@@ -84,9 +83,33 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
     // here is commented out code to do it.
     //makeUploadContextCurrent();
     GLuint image_texture;
-    GLuint pboid;
-    unsigned type_size = (type == 1) ? 1 : 4;
-    (void)type_size;
+    unsigned gl_format = GL_RGBA;
+    unsigned gl_internal_format = GL_RGBA8;
+    unsigned gl_type = GL_FLOAT;
+
+    switch (num_chans) {
+    case 4:
+        gl_format = GL_RGBA;
+        gl_internal_format = type == 1 ? GL_RGBA8 : GL_RGBA32F;
+        break;
+    case 3:
+        gl_format = GL_RGB; 
+        gl_internal_format = type == 1 ? GL_RGB8 : GL_RGB32F;
+        break;
+    case 2:
+        gl_format = GL_RG;
+        gl_internal_format = type == 1 ? GL_RG8 : GL_RG32F;
+        break;
+    case 1:
+    default:
+        gl_format = GL_RED;
+        gl_internal_format = type == 1 ? GL_R8 : GL_R32F;
+        break;
+    }
+
+    if (type == 1) {
+        gl_type = GL_UNSIGNED_BYTE;
+    }
 
     glGenTextures(1, &image_texture);
     if (glGetError() != GL_NO_ERROR) {
@@ -116,30 +139,24 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
         }
     }
 
-    glGenBuffers(1, &pboid);
+    // Use immutable texture storage if available (for performance)
+    if (has_texture_storage) {
+        glTexStorage2D(GL_TEXTURE_2D, 1, gl_internal_format, width, height);
+    } else {
+        glTexImage2D(GL_TEXTURE_2D, 0, gl_internal_format, width, height, 0, gl_format, gl_type, NULL);
+    }
+
     if (glGetError() != GL_NO_ERROR) {
         glDeleteTextures(1, &image_texture);
         //releaseUploadContext();
         return NULL;
     }
-    PBO_ids[image_texture] = pboid;
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboid);
-    if (glGetError() != GL_NO_ERROR) {
-        freeTexture((void*)(size_t)(GLuint)image_texture);
-        //releaseUploadContext();
-        return NULL;
-    }
-    // Allocate a PBO with the texture
-    // Doing glBufferData only here gives significant speed gains
-    // Note we could be sharing PBOs between textures,
-    // Here we simplify buffer management (no offset and alignment
-    // management) but double memory usage.
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * num_chans * type_size, 0, GL_STREAM_DRAW);
 
-    // Unbind texture and PBO
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    // Unbind texture
     glBindTexture(GL_TEXTURE_2D, 0);
+    glFlush();
     //releaseUploadContext();
+
     return (void*)(size_t)(GLuint)image_texture;
 }
 
@@ -153,21 +170,28 @@ void SDLViewport::freeTexture(void* texture) {
         glDeleteBuffers(1, &pboid);
         PBO_ids.erase(out_srv);
     }
-    if (Allocated_ids.find(out_srv) != Allocated_ids.end())
-        Allocated_ids.erase(out_srv);
 
     glDeleteTextures(1, &out_srv);
     //releaseUploadContext();
 }
 
-bool SDLViewport::updateDynamicTexture(void* texture, unsigned width, unsigned height,
-                                    unsigned num_chans, unsigned type, void* data,
-                                    unsigned src_stride) {
-    //makeUploadContextCurrent();
+// Note: updateDynamicTexture and updateStaticTexture
+// take width/height/num_chans/type as parameters,
+// but they have to be the same as the ones used
+// when allocating the texture. Similarly
+// if the texture was created with the dynamic
+// flag updateDynamicTexture must be used, else
+// updateStaticTexture.
+// The parameters are given here for convenience,
+// to avoid creating an item to store this information.
+bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
+                                unsigned num_chans, unsigned type, void* data,
+                                unsigned src_stride, bool dynamic) {
     auto textureId = (GLuint)(size_t)texture;
     unsigned gl_format = GL_RGBA;
     unsigned gl_type = GL_FLOAT;
     unsigned type_size = 4;
+    GLuint pboid;
     GLubyte* ptr;
 
     switch (num_chans)
@@ -192,10 +216,37 @@ bool SDLViewport::updateDynamicTexture(void* texture, unsigned width, unsigned h
         type_size = 1;
     }
 
-    // bind PBO to update pixel values
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO_ids[textureId]);
-    if (glGetError() != GL_NO_ERROR)
-        goto error;
+    if(PBO_ids.count(textureId) == 0) {
+        // No PBO yet created for this texture
+        // We delay PBO creation to now in case
+        // The user wants to manipulate the texture
+        // using sharing with other APIs, in which
+        // case this path might never be called,
+        // and the PBO skipped.
+        glGenBuffers(1, &pboid);
+        if (glGetError() != GL_NO_ERROR)
+            goto error;
+
+        PBO_ids[textureId] = pboid;
+
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboid);
+        if (glGetError() != GL_NO_ERROR)
+            goto error;
+
+        // Use persistent buffer if available for dynamic textures
+        if (dynamic && has_buffer_storage) {
+            GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+            glBufferStorage(GL_PIXEL_UNPACK_BUFFER, width * height * num_chans * type_size, 
+                            NULL, flags);
+        } else {
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * num_chans * type_size,
+                         NULL, dynamic ? GL_STREAM_DRAW : GL_STATIC_DRAW);
+        }
+    } else {
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO_ids[textureId]);
+        if (glGetError() != GL_NO_ERROR)
+            goto error;
+    }
 
     // Request access to the buffer
     // We get significant speed gains compared to using glBufferData/glMapBuffer
@@ -215,48 +266,41 @@ bool SDLViewport::updateDynamicTexture(void* texture, unsigned width, unsigned h
             }
         }
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
+
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        // Upload the content of the buffer to the whole texture area
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, gl_format, gl_type, NULL);
     } else
         goto error;
 
-    // bind the texture
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    if (glGetError() != GL_NO_ERROR)
-        goto error;
-
-    // copy pixels from PBO to texture object
-    if (Allocated_ids.find(textureId) == Allocated_ids.end()) {
-        glTexImage2D(GL_TEXTURE_2D, 0, gl_format, width, height, 0, gl_format, gl_type, NULL);
-        Allocated_ids.insert(textureId);
-    } else {
-        // Reuse previous allocation. Slightly faster.
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, gl_format, gl_type, NULL);
-    }
-
-    if (glGetError() != GL_NO_ERROR)
-        goto error;
-
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-    if (glGetError() != GL_NO_ERROR)
-        goto error;
-
-    // Unbind the texture
     glBindTexture(GL_TEXTURE_2D, 0);
     if (glGetError() != GL_NO_ERROR)
         goto error;
 
+    glFlush();
     //releaseUploadContext();
+
     return true;
 error:
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     //releaseUploadContext();
     // We don't free the texture as it might be used
     // for rendering in another thread, but maybe we should ?
     return false;
 }
 
+bool SDLViewport::updateDynamicTexture(void* texture, unsigned width, unsigned height,
+                                    unsigned num_chans, unsigned type, void* data,
+                                    unsigned src_stride) {
+    return updateTexture(texture, width, height, num_chans, type, data, src_stride, true);
+}
+
 bool SDLViewport::updateStaticTexture(void* texture, unsigned width, unsigned height,
                                    unsigned num_chans, unsigned type, void* data,
                                    unsigned src_stride) {
-    return updateDynamicTexture(texture, width, height, num_chans, type, data, src_stride);
+    return updateTexture(texture, width, height, num_chans, type, data, src_stride, false);
 }
 
 SDLViewport* SDLViewport::create(render_fun render,
@@ -291,6 +335,9 @@ SDLViewport* SDLViewport::create(render_fun render,
         return nullptr;
     if (gl3wInit() != GL3W_OK)
         return nullptr;
+    // Check for important extensions 
+    viewport->has_texture_storage = SDL_GL_ExtensionSupported("GL_ARB_texture_storage");
+    viewport->has_buffer_storage = SDL_GL_ExtensionSupported("GL_ARB_buffer_storage");
     // All our uploads have no holes
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     SDL_GL_MakeCurrent(viewport->uploadWindowHandle, NULL);

@@ -156,5 +156,13 @@ private:
     bool hasSDL3Init = false;
     bool hasResized = false;
 
+    // GL extension support flags
+    bool has_texture_storage = false;
+    bool has_buffer_storage = false;
+
     void preparePresentFrame();
+    bool updateTexture(void* texture,
+                       unsigned width, unsigned height,
+                       unsigned num_chans, unsigned type, void* data, 
+                       unsigned src_stride, bool dynamic);
 };
