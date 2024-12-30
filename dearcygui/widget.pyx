@@ -4962,7 +4962,52 @@ cdef class ColorButton(uiItem):
         if value:
             self._flags |= imgui.ImGuiColorEditFlags_NoBorder
 
-    # TODO: there are more options, which can be user toggled.
+    @property
+    def alpha_preview(self):
+        """
+        Writable attribute: Show preview with either full alpha or checker pattern
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
+            return "half" 
+        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaPreview) != 0:
+            return "full"
+        return "none"
+
+    @alpha_preview.setter
+    def alpha_preview(self, str value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
+        if value == "half":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreviewHalf
+        elif value == "full":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreview
+        elif value != "none":
+            raise ValueError("alpha_preview must be 'none', 'full' or 'half'")
+
+    @property
+    def data_type(self):
+        """
+        Writable attribute: Data type: float vs uint8
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return "uint8" if (self._flags & imgui.ImGuiColorEditFlags_Uint8) != 0 else "float" 
+
+    @data_type.setter
+    def data_type(self, str value):  
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_Float | imgui.ImGuiColorEditFlags_Uint8)
+        if value == "uint8":
+            self._flags |= imgui.ImGuiColorEditFlags_Uint8
+        elif value == "float":
+            self._flags |= imgui.ImGuiColorEditFlags_Float
+        else:
+            raise ValueError("data_type must be 'uint8' or 'float'")
+
 
     cdef bint draw_item(self) noexcept nogil:
         cdef bint activated
@@ -5123,7 +5168,135 @@ cdef class ColorEdit(uiItem):
         if value:
             self._flags |= imgui.ImGuiColorEditFlags_NoDragDrop
 
-    # TODO: there are more options, which can be user toggled.
+    @property
+    def alpha_bar(self):
+        """
+        Writable attribute: Show vertical alpha bar/gradient
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiColorEditFlags_AlphaBar) != 0
+
+    @alpha_bar.setter 
+    def alpha_bar(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiColorEditFlags_AlphaBar
+        if value:
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaBar
+
+    @property
+    def alpha_preview(self):
+        """
+        Writable attribute: Show preview with either full alpha or checker pattern
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
+            return "half" 
+        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaPreview) != 0:
+            return "full"
+        return "none"
+
+    @alpha_preview.setter
+    def alpha_preview(self, str value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
+        if value == "half":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreviewHalf
+        elif value == "full":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreview
+        elif value != "none":
+            raise ValueError("alpha_preview must be 'none', 'full' or 'half'")
+
+    @property
+    def display_mode(self):
+        """
+        Writable attribute: Color display mode: RGB/HSV/Hex
+        """  
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if (self._flags & imgui.ImGuiColorEditFlags_DisplayRGB) != 0:
+            return "rgb"
+        elif (self._flags & imgui.ImGuiColorEditFlags_DisplayHSV) != 0: 
+            return "hsv"
+        elif (self._flags & imgui.ImGuiColorEditFlags_DisplayHex) != 0:
+            return "hex"
+        return "rgb" # Default in imgui
+
+    @display_mode.setter 
+    def display_mode(self, str value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_DisplayRGB | imgui.ImGuiColorEditFlags_DisplayHSV | imgui.ImGuiColorEditFlags_DisplayHex)
+        if value == "rgb":
+            self._flags |= imgui.ImGuiColorEditFlags_DisplayRGB
+        elif value == "hsv":
+            self._flags |= imgui.ImGuiColorEditFlags_DisplayHSV
+        elif value == "hex":  
+            self._flags |= imgui.ImGuiColorEditFlags_DisplayHex
+        else:
+            raise ValueError("display_mode must be 'rgb', 'hsv' or 'hex'")
+
+    @property
+    def input_mode(self):
+        """
+        Writable attribute: Color input mode: RGB/HSV
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return "hsv" if (self._flags & imgui.ImGuiColorEditFlags_InputHSV) != 0 else "rgb"
+
+    @input_mode.setter
+    def input_mode(self, str value):
+        cdef unique_lock[recursive_mutex] m  
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_InputRGB | imgui.ImGuiColorEditFlags_InputHSV)
+        if value == "rgb":
+            self._flags |= imgui.ImGuiColorEditFlags_InputRGB
+        elif value == "hsv":
+            self._flags |= imgui.ImGuiColorEditFlags_InputHSV
+        else:
+            raise ValueError("input_mode must be 'rgb' or 'hsv'")
+
+    @property
+    def data_type(self):
+        """
+        Writable attribute: Data type: float vs uint8
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return "uint8" if (self._flags & imgui.ImGuiColorEditFlags_Uint8) != 0 else "float" 
+
+    @data_type.setter
+    def data_type(self, str value):  
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_Float | imgui.ImGuiColorEditFlags_Uint8)
+        if value == "uint8":
+            self._flags |= imgui.ImGuiColorEditFlags_Uint8
+        elif value == "float":
+            self._flags |= imgui.ImGuiColorEditFlags_Float
+        else:
+            raise ValueError("data_type must be 'uint8' or 'float'")
+
+    @property
+    def hdr(self):
+        """
+        Writable attribute: Support HDR colors (multiplier can go beyond 1.0f and values can go above 1.0)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiColorEditFlags_HDR) != 0
+
+    @hdr.setter
+    def hdr(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiColorEditFlags_HDR
+        if value:
+            self._flags |= imgui.ImGuiColorEditFlags_HDR
 
     cdef bint draw_item(self) noexcept nogil:
         cdef bint activated
@@ -5136,7 +5309,6 @@ cdef class ColorEdit(uiItem):
         col = ImVec4Vec4(imgui.ImVec4(color[0], color[1], color[2], color[3]))
         SharedColor.setF4(<SharedColor>self._value, col)
         return activated
-
 
 cdef class ColorPicker(uiItem):
     def __cinit__(self):
@@ -5237,13 +5409,13 @@ cdef class ColorPicker(uiItem):
     @property
     def no_side_preview(self):
         """
-        Writable attribute: disable bigger color preview on right side of the picker, use small color square preview instead.
+        Writable attribute: disable bigger color preview on right side of the picker
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoSidePreview) != 0
 
-    @no_side_preview.setter
+    @no_side_preview.setter  
     def no_side_preview(self, bint value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5251,7 +5423,139 @@ cdef class ColorPicker(uiItem):
         if value:
             self._flags |= imgui.ImGuiColorEditFlags_NoSidePreview
 
-    # TODO: there are more options, which can be user toggled.
+    @property
+    def picker_mode(self):
+        """
+        Writable attribute: Color picker mode: bar vs wheel
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)  
+        return "wheel" if (self._flags & imgui.ImGuiColorEditFlags_PickerHueWheel) != 0 else "bar"
+
+    @picker_mode.setter
+    def picker_mode(self, str value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_PickerHueBar | imgui.ImGuiColorEditFlags_PickerHueWheel)
+        if value == "bar":
+            self._flags |= imgui.ImGuiColorEditFlags_PickerHueBar
+        elif value == "wheel":
+            self._flags |= imgui.ImGuiColorEditFlags_PickerHueWheel
+        else:
+            raise ValueError("picker_mode must be 'bar' or 'wheel'")
+
+    @property
+    def alpha_bar(self):
+        """
+        Writable attribute: Show vertical alpha bar/gradient
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiColorEditFlags_AlphaBar) != 0
+
+    @alpha_bar.setter 
+    def alpha_bar(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiColorEditFlags_AlphaBar
+        if value:
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaBar
+
+    @property
+    def alpha_preview(self):
+        """
+        Writable attribute: Show preview with either full alpha or checker pattern
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
+            return "half" 
+        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaPreview) != 0:
+            return "full"
+        return "none"
+
+    @alpha_preview.setter
+    def alpha_preview(self, str value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
+        if value == "half":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreviewHalf
+        elif value == "full":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreview
+        elif value != "none":
+            raise ValueError("alpha_preview must be 'none', 'full' or 'half'")
+
+    @property
+    def display_mode(self):
+        """
+        Writable attribute: Color display mode: RGB/HSV/Hex
+        """  
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if (self._flags & imgui.ImGuiColorEditFlags_DisplayRGB) != 0:
+            return "rgb"
+        elif (self._flags & imgui.ImGuiColorEditFlags_DisplayHSV) != 0: 
+            return "hsv"
+        elif (self._flags & imgui.ImGuiColorEditFlags_DisplayHex) != 0:
+            return "hex"
+        return "rgb" # Default in imgui
+
+    @display_mode.setter 
+    def display_mode(self, str value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_DisplayRGB | imgui.ImGuiColorEditFlags_DisplayHSV | imgui.ImGuiColorEditFlags_DisplayHex)
+        if value == "rgb":
+            self._flags |= imgui.ImGuiColorEditFlags_DisplayRGB
+        elif value == "hsv":
+            self._flags |= imgui.ImGuiColorEditFlags_DisplayHSV
+        elif value == "hex":  
+            self._flags |= imgui.ImGuiColorEditFlags_DisplayHex
+        else:
+            raise ValueError("display_mode must be 'rgb', 'hsv' or 'hex'")
+
+    @property
+    def input_mode(self):
+        """
+        Writable attribute: Color input mode: RGB/HSV
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return "hsv" if (self._flags & imgui.ImGuiColorEditFlags_InputHSV) != 0 else "rgb"
+
+    @input_mode.setter
+    def input_mode(self, str value):
+        cdef unique_lock[recursive_mutex] m  
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_InputRGB | imgui.ImGuiColorEditFlags_InputHSV)
+        if value == "rgb":
+            self._flags |= imgui.ImGuiColorEditFlags_InputRGB
+        elif value == "hsv":
+            self._flags |= imgui.ImGuiColorEditFlags_InputHSV
+        else:
+            raise ValueError("input_mode must be 'rgb' or 'hsv'")
+
+    @property
+    def data_type(self):
+        """
+        Writable attribute: Data type: float vs uint8
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return "uint8" if (self._flags & imgui.ImGuiColorEditFlags_Uint8) != 0 else "float" 
+
+    @data_type.setter
+    def data_type(self, str value):  
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_Float | imgui.ImGuiColorEditFlags_Uint8)
+        if value == "uint8":
+            self._flags |= imgui.ImGuiColorEditFlags_Uint8
+        elif value == "float":
+            self._flags |= imgui.ImGuiColorEditFlags_Float
+        else:
+            raise ValueError("data_type must be 'uint8' or 'float'")
 
     cdef bint draw_item(self) noexcept nogil:
         cdef bint activated
