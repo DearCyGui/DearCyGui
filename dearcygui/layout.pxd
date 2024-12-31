@@ -21,6 +21,7 @@ cdef class HorizontalLayout(Layout):
     cdef bint _no_wrap
     cdef float _wrap_x
     cdef float __compute_items_size(self, int&) noexcept nogil
+    cdef void __update_layout_manual(self) noexcept nogil
     cdef void __update_layout(self) noexcept nogil
     cdef bint draw_item(self) noexcept nogil
 

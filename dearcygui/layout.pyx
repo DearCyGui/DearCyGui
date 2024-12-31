@@ -324,7 +324,62 @@ cdef class HorizontalLayout(Layout):
                 self._force_update = True
         return size
 
+    cdef void __update_layout_manual(self) noexcept nogil:
+        """Position items at manually specified x positions"""
+        # assumes children are locked and > 0
+        cdef float available_width = self.state.cur.content_region_size.x
+        cdef float pos_start = 0.
+        cdef int i = 0
+        cdef PyObject *child = <PyObject*>self.last_widgets_child
+        cdef bint pos_change = False
+
+        # Get back to first child
+        while (<uiItem>child).prev_sibling is not None:
+            child = <PyObject*>((<uiItem>child).prev_sibling)
+
+        # Position each item at specified x coordinate
+        while (<uiItem>child) is not None:
+            # Get position from positions list or default to 0
+            if not(self._positions.empty()):
+                pos_start = self._positions[min(i, <int>self._positions.size()-1)]
+
+            # Convert relative (0-1) or negative positions
+            if pos_start > 0.:
+                if pos_start < 1.:
+                    pos_start *= available_width
+                    pos_start = floor(pos_start)
+            elif pos_start < 0:
+                if pos_start > -1.:
+                    pos_start *= available_width 
+                    pos_start += available_width
+                    pos_start = floor(pos_start)
+                else:
+                    pos_start += available_width
+
+            # Set item position and ensure it stays within bounds
+            pos_start = max(0, pos_start)
+            (<uiItem>child).state.cur.pos_to_parent.x = pos_start
+            pos_change |= (<uiItem>child).state.cur.pos_to_parent.x != (<uiItem>child).state.prev.pos_to_parent.x
+            (<uiItem>child).pos_policy[0] = Positioning.REL_PARENT
+            (<uiItem>child).pos_policy[1] = Positioning.DEFAULT
+            (<uiItem>child).no_newline = True
+
+            child = <PyObject*>(<uiItem>child).next_sibling
+            i += 1
+
+        # Ensure last item allows newline
+        if self.last_widgets_child is not None:
+            self.last_widgets_child.no_newline = False
+
+        # Force update if positions changed
+        if pos_change:
+            self._force_update = True
+            self.context.viewport.redraw_needed = True
+
     cdef void __update_layout(self) noexcept nogil:
+        if self._alignment_mode == Alignment.MANUAL:
+            self.__update_layout_manual()
+            return
         # Assumes all children are locked
         cdef PyObject *child = <PyObject*>self.last_widgets_child
         cdef float end_x = self.state.cur.content_region_size.x
