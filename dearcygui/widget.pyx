@@ -5821,6 +5821,9 @@ cdef class SharedDouble4(SharedValue):
 cdef class SharedFloatVect(SharedValue):
     def __init__(self, Context context, value):
         self._value = value
+    def __cinit__(self):
+        self._value_np = np.zeros([1], dtype=np.float32)
+        self._value = self._value_np
     @property
     def value(self):
         cdef unique_lock[recursive_mutex] m
