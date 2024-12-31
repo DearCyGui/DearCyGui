@@ -3579,7 +3579,7 @@ cdef class Menu(uiItem):
                 swap_Vec2(pos_w, self.context.viewport.window_pos)
                 swap_Vec2(pos_p, self.context.viewport.parent_pos)
                 parent_size_backup = self.context.viewport.parent_size
-                self.context.viewport.parent_size = self.state.cur.rect_size
+                self.context.viewport.parent_size = self.state.cur.rect_size # TODO: probably incorrect
                 draw_ui_children(self)
                 self.context.viewport.window_pos = pos_w
                 self.context.viewport.parent_pos = pos_p
@@ -4339,12 +4339,16 @@ cdef class TreeNode(uiItem):
             self.state.cur.open = False
             self.propagate_hidden_state_to_children_with_handlers()
         cdef Vec2 pos_p, parent_size_backup
+        cdef float dx, dy
         if open_and_visible:
             if self.last_widgets_child is not None:
                 pos_p = ImVec2Vec2(imgui.GetCursorScreenPos())
+                dx = pos_p.x - self.context.viewport.parent_pos.x
+                dy = pos_p.y - self.context.viewport.parent_pos.y
                 swap_Vec2(pos_p, self.context.viewport.parent_pos)
                 parent_size_backup = self.context.viewport.parent_size
-                self.context.viewport.parent_size = self.state.cur.rect_size
+                self.context.viewport.parent_size.x = parent_size_backup.x - dx
+                self.context.viewport.parent_size.y = parent_size_backup.y - dy
                 draw_ui_children(self)
                 self.context.viewport.parent_pos = pos_p
                 self.context.viewport.parent_size = parent_size_backup
@@ -4481,12 +4485,16 @@ cdef class CollapsingHeader(uiItem):
             self.state.cur.open = False
             self.propagate_hidden_state_to_children_with_handlers()
         cdef Vec2 pos_p, parent_size_backup
+        cdef float dx, dy
         if open_and_visible:
             if self.last_widgets_child is not None:
                 pos_p = ImVec2Vec2(imgui.GetCursorScreenPos())
+                dx = pos_p.x - self.context.viewport.parent_pos.x
+                dy = pos_p.y - self.context.viewport.parent_pos.y
                 swap_Vec2(pos_p, self.context.viewport.parent_pos)
                 parent_size_backup = self.context.viewport.parent_size
-                self.context.viewport.parent_size = self.state.cur.rect_size
+                self.context.viewport.parent_size.x = parent_size_backup.x - dx
+                self.context.viewport.parent_size.y = parent_size_backup.y - dy
                 draw_ui_children(self)
                 self.context.viewport.parent_pos = pos_p
                 self.context.viewport.parent_size = parent_size_backup
