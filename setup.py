@@ -18,18 +18,18 @@ def version_number():
     return wip_version
 
 def get_platform():
-
     platforms = {
-        'linux' : 'Linux',
-        'linux1' : 'Linux',
-        'linux2' : 'Linux',
-        'darwin' : 'OS X',
+        'linux': 'Linux',
+        'linux1': 'Linux', 
+        'linux2': 'Linux',
+        'darwin': 'OS X'
     }
+    if sys.platform == 'darwin':
+        return 'OS X'
     if "win" in sys.platform:
         return "Windows"
     if sys.platform not in platforms:
         return sys.platform
-    
     return platforms[sys.platform]
 
 def build_SDL3():
@@ -126,10 +126,20 @@ def setup_package():
         compile_args += ["-DNDEBUG", "-fwrapv", "-O3", "-DUNIX", "-DLINUX", "-g1"]
         libraries = ["crypt", "pthread", "dl", "util", "m", "GL"]
     elif get_platform() == "OS X":
-        compile_args += ["-fobjc-arc", "-fno-common", "-dynamic", "-DNDEBUG",\
-                         "-fwrapv" ,"-O3", "-DAPPLE"]
-        libraries = ["Cocoa", "IOKit", "CoreFoundation", "CoreVideo", "OpenGL"]
-        linking_args += ["-framework", "Cocoa", "-framework", "IOKit", "-framework", "CoreFoundation", "-framework", "CoreVideo", "-framework", "OpenGL"]
+        compile_args += [
+            "-fobjc-arc", "-fno-common", "-dynamic", "-DNDEBUG",
+            "-fwrapv", "-O3", "-DAPPLE", "-arch", "x86_64"
+        ]
+        libraries = []
+        # Link against MacOS frameworks
+        linking_args += [
+            "-framework", "Cocoa",
+            "-framework", "IOKit", 
+            "-framework", "CoreFoundation",
+            "-framework", "CoreVideo",
+            "-framework", "OpenGL",
+            "-arch", "x86_64"
+        ]
     elif get_platform() == "Windows":
         compile_args += ["/O2", "/DNDEBUG", "/D_WINDOWS", "/D_UNICODE", "/DWIN32_LEAN_AND_MEAN"]
         libraries = ["user32", "gdi32", "shell32", "advapi32", "ole32", "oleaut32", "uuid", "opengl32", \
