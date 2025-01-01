@@ -7,6 +7,15 @@ from libcpp.vector cimport vector
 from libcpp.cmath cimport atan, atan2, sin, cos, sqrt, trunc, floor, round as cround
 from libc.math cimport M_PI, INFINITY
 
+cdef void t_draw_line(Context context, void* drawlist,
+                    float x1, float y1, float x2, float y2,
+                    unsigned int color, float thickness) noexcept nogil:
+    # Create imgui.ImVec2 points
+    cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
+    cdef imgui.ImVec2 ip2 = imgui.ImVec2(x2, y2) 
+
+    (<imgui.ImDrawList*>drawlist).AddLine(ip1, ip2, color, thickness)
+
 cdef void draw_line(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
                     unsigned int color, float thickness) noexcept nogil:
@@ -20,29 +29,15 @@ cdef void draw_line(Context context, void* drawlist,
     (context.viewport).coordinate_to_screen(p1, pos1)
     (context.viewport).coordinate_to_screen(p2, pos2)
 
+    t_draw_line(context, drawlist, p1[0], p1[1], p2[0], p2[1], color, thickness)
+
+cdef void t_draw_rect(Context context, void* drawlist,
+                      float x1, float y1, float x2, float y2,
+                      unsigned int color, unsigned int fill_color,
+                      float thickness, float rounding) noexcept nogil:
     # Create imgui.ImVec2 points
-    cdef imgui.ImVec2 ip1 = imgui.ImVec2(p1[0], p1[1])
-    cdef imgui.ImVec2 ip2 = imgui.ImVec2(p2[0], p2[1]) 
-
-    (<imgui.ImDrawList*>drawlist).AddLine(ip1, ip2, color, thickness)
-
-cdef void draw_rect(Context context, void* drawlist,
-                    double x1, double y1, double x2, double y2,
-                    unsigned int color, unsigned int fill_color,
-                    float thickness, float rounding) noexcept nogil:
-    # Transform coordinates
-    cdef float[2] pmin, pmax
-    cdef double[2] pos1, pos2
-    pos1[0] = x1
-    pos1[1] = y1
-    pos2[0] = x2
-    pos2[1] = y2
-    (context.viewport).coordinate_to_screen(pmin, pos1)
-    (context.viewport).coordinate_to_screen(pmax, pos2)
-
-    # Create imgui.ImVec2 points
-    cdef imgui.ImVec2 ipmin = imgui.ImVec2(pmin[0], pmin[1])
-    cdef imgui.ImVec2 ipmax = imgui.ImVec2(pmax[0], pmax[1])
+    cdef imgui.ImVec2 ipmin = imgui.ImVec2(x1, y1)
+    cdef imgui.ImVec2 ipmax = imgui.ImVec2(x2, y2)
 
     # Handle coordinate order
     if ipmin.x > ipmax.x:
@@ -64,12 +59,12 @@ cdef void draw_rect(Context context, void* drawlist,
                         imgui.ImDrawFlags_RoundCornersAll,
                         thickness)
 
-cdef void draw_rect_multicolor(Context context, void* drawlist,
-                              double x1, double y1, double x2, double y2,
-                              unsigned int col_up_left, unsigned int col_up_right, 
-                              unsigned int col_bot_right, unsigned int col_bot_left) noexcept nogil:
+cdef void draw_rect(Context context, void* drawlist,
+                    double x1, double y1, double x2, double y2,
+                    unsigned int color, unsigned int fill_color,
+                    float thickness, float rounding) noexcept nogil:
     # Transform coordinates
-    cdef float[2] pmin, pmax  
+    cdef float[2] pmin, pmax
     cdef double[2] pos1, pos2
     pos1[0] = x1
     pos1[1] = y1
@@ -78,8 +73,16 @@ cdef void draw_rect_multicolor(Context context, void* drawlist,
     (context.viewport).coordinate_to_screen(pmin, pos1)
     (context.viewport).coordinate_to_screen(pmax, pos2)
 
-    cdef imgui.ImVec2 ipmin = imgui.ImVec2(pmin[0], pmin[1])
-    cdef imgui.ImVec2 ipmax = imgui.ImVec2(pmax[0], pmax[1])
+    t_draw_rect(context, drawlist, pmin[0], pmin[1], pmax[0], pmax[1],
+                color, fill_color, thickness, rounding)
+
+cdef void t_draw_rect_multicolor(Context context, void* drawlist,
+                                 float x1, float y1, float x2, float y2,
+                                 unsigned int col_up_left, unsigned int col_up_right, 
+                                 unsigned int col_bot_right, unsigned int col_bot_left) noexcept nogil:
+
+    cdef imgui.ImVec2 ipmin = imgui.ImVec2(x1, y1)
+    cdef imgui.ImVec2 ipmax = imgui.ImVec2(x2, y2)
 
     # Handle coordinate order 
     if ipmin.x > ipmax.x:
@@ -98,6 +101,47 @@ cdef void draw_rect_multicolor(Context context, void* drawlist,
                                     col_bot_right,
                                     col_bot_left)
 
+cdef void draw_rect_multicolor(Context context, void* drawlist,
+                               double x1, double y1, double x2, double y2,
+                               unsigned int col_up_left, unsigned int col_up_right, 
+                               unsigned int col_bot_right, unsigned int col_bot_left) noexcept nogil:
+    # Transform coordinates
+    cdef float[2] pmin, pmax  
+    cdef double[2] pos1, pos2
+    pos1[0] = x1
+    pos1[1] = y1
+    pos2[0] = x2
+    pos2[1] = y2
+    (context.viewport).coordinate_to_screen(pmin, pos1)
+    (context.viewport).coordinate_to_screen(pmax, pos2)
+
+    t_draw_rect_multicolor(context, drawlist, pmin[0], pmin[1], pmax[0], pmax[1],
+                           col_up_left, col_up_right, col_bot_right, col_bot_left)
+
+cdef void t_draw_triangle(Context context, void* drawlist,
+                          float x1, float y1, float x2, float y2, float x3, float y3,
+                          unsigned int color, unsigned int fill_color,
+                          float thickness) noexcept nogil:
+    # Create imgui.ImVec2 points
+    cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
+    cdef imgui.ImVec2 ip2 = imgui.ImVec2(x2, y2)
+    cdef imgui.ImVec2 ip3 = imgui.ImVec2(x3, y3)
+
+    # Check ordering
+    cdef bint ccw = (ip2.x - ip1.x) * (ip3.y - ip1.y) - (ip2.y - ip1.y) * (ip3.x - ip1.x) > 0
+
+    # ImGui requires clockwise order for correct AA
+    if ccw:
+        if fill_color & imgui.IM_COL32_A_MASK != 0:
+            (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ip1, ip3, ip2, fill_color)
+        if color & imgui.IM_COL32_A_MASK != 0:
+            (<imgui.ImDrawList*>drawlist).AddTriangle(ip1, ip3, ip2, color, thickness)
+    else:
+        if fill_color & imgui.IM_COL32_A_MASK != 0:
+            (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ip1, ip2, ip3, fill_color)
+        if color & imgui.IM_COL32_A_MASK != 0:
+            (<imgui.ImDrawList*>drawlist).AddTriangle(ip1, ip2, ip3, color, thickness)
+
 cdef void draw_triangle(Context context, void* drawlist,
                        double x1, double y1, double x2, double y2, double x3, double y3,
                        unsigned int color, unsigned int fill_color,
@@ -115,50 +159,68 @@ cdef void draw_triangle(Context context, void* drawlist,
     (context.viewport).coordinate_to_screen(p2, pos2)
     (context.viewport).coordinate_to_screen(p3, pos3)
 
-    cdef imgui.ImVec2 ip1 = imgui.ImVec2(p1[0], p1[1])
-    cdef imgui.ImVec2 ip2 = imgui.ImVec2(p2[0], p2[1])
-    cdef imgui.ImVec2 ip3 = imgui.ImVec2(p3[0], p3[1])
+    t_draw_triangle(context, drawlist, p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
+                    color, fill_color, thickness)
 
-    # Check ordering
-    cdef bint ccw = (ip2.x - ip1.x) * (ip3.y - ip1.y) - (ip2.y - ip1.y) * (ip3.x - ip1.x) > 0
+cdef void t_draw_textured_triangle(Context context, void* drawlist,
+                                  void* texture,
+                                  float x1, float y1, float x2, float y2, float x3, float y3,
+                                  float u1, float v1, float u2, float v2, float u3, float v3,
+                                  unsigned int tint_color) noexcept nogil:
+    if tint_color == 0:
+        return
+    # Create imgui.ImVec2 points
+    cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
+    cdef imgui.ImVec2 ip2 = imgui.ImVec2(x2, y2)
+    cdef imgui.ImVec2 ip3 = imgui.ImVec2(x3, y3)
+    
+    cdef imgui.ImVec2 uv1 = imgui.ImVec2(u1, v1)
+    cdef imgui.ImVec2 uv2 = imgui.ImVec2(u2, v2)
+    cdef imgui.ImVec2 uv3 = imgui.ImVec2(u3, v3)
 
-    # ImGui requires clockwise order for correct AA
-    if ccw:
-        if fill_color & imgui.IM_COL32_A_MASK != 0:
-            (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ip1, ip3, ip2, fill_color)
-        if color & imgui.IM_COL32_A_MASK != 0:
-            (<imgui.ImDrawList*>drawlist).AddTriangle(ip1, ip3, ip2, color, thickness)
-    else:
-        if fill_color & imgui.IM_COL32_A_MASK != 0:
-            (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ip1, ip2, ip3, fill_color)
-        if color & imgui.IM_COL32_A_MASK != 0:
-            (<imgui.ImDrawList*>drawlist).AddTriangle(ip1, ip2, ip3, color, thickness)
+    (<imgui.ImDrawList*>drawlist).PushTextureID(<imgui.ImTextureID>texture)
 
-cdef void draw_quad(Context context, void* drawlist,
-                    double x1, double y1, double x2, double y2,
-                    double x3, double y3, double x4, double y4, 
-                    unsigned int color, unsigned int fill_color,
-                    float thickness) noexcept nogil:
+    # Draw triangle with the texture.
+    # Note AA will not be available this way.
+    (<imgui.ImDrawList*>drawlist).PrimReserve(3, 3)
+    (<imgui.ImDrawList*>drawlist).PrimVtx(ip1, uv1, tint_color)
+    (<imgui.ImDrawList*>drawlist).PrimVtx(ip2, uv2, tint_color)
+    (<imgui.ImDrawList*>drawlist).PrimVtx(ip3, uv3, tint_color)
+
+    (<imgui.ImDrawList*>drawlist).PopTextureID()
+
+cdef void draw_textured_triangle(Context context, void* drawlist,
+                                void* texture,
+                                double x1, double y1, double x2, double y2, double x3, double y3,
+                                float u1, float v1, float u2, float v2, float u3, float v3,
+                                unsigned int tint_color) noexcept nogil:
     # Transform coordinates
-    cdef float[2] p1, p2, p3, p4
-    cdef double[2] pos1, pos2, pos3, pos4
+    cdef float[2] p1, p2, p3
+    cdef double[2] pos1, pos2, pos3
     pos1[0] = x1
     pos1[1] = y1
     pos2[0] = x2
     pos2[1] = y2
     pos3[0] = x3
     pos3[1] = y3
-    pos4[0] = x4
-    pos4[1] = y4
     (context.viewport).coordinate_to_screen(p1, pos1)
     (context.viewport).coordinate_to_screen(p2, pos2)
     (context.viewport).coordinate_to_screen(p3, pos3)
-    (context.viewport).coordinate_to_screen(p4, pos4)
 
-    cdef imgui.ImVec2 ip1 = imgui.ImVec2(p1[0], p1[1])
-    cdef imgui.ImVec2 ip2 = imgui.ImVec2(p2[0], p2[1])
-    cdef imgui.ImVec2 ip3 = imgui.ImVec2(p3[0], p3[1])
-    cdef imgui.ImVec2 ip4 = imgui.ImVec2(p4[0], p4[1])
+    t_draw_textured_triangle(context, drawlist, texture,
+                             p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
+                             u1, v1, u2, v2, u3, v3, tint_color)
+
+cdef void t_draw_quad(Context context, void* drawlist,
+                    float x1, float y1, float x2, float y2,
+                    float x3, float y3, float x4, float y4, 
+                    unsigned int color, unsigned int fill_color,
+                    float thickness) noexcept nogil:
+    # Create imgui.ImVec2 points
+    cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
+    cdef imgui.ImVec2 ip2 = imgui.ImVec2(x2, y2)
+    cdef imgui.ImVec2 ip3 = imgui.ImVec2(x3, y3)
+    cdef imgui.ImVec2 ip4 = imgui.ImVec2(x4, y4)
     cdef bint ccw
 
     # Draw filled triangles
@@ -181,6 +243,43 @@ cdef void draw_quad(Context context, void* drawlist,
     (<imgui.ImDrawList*>drawlist).AddLine(ip3, ip4, color, thickness)
     (<imgui.ImDrawList*>drawlist).AddLine(ip4, ip1, color, thickness)
 
+cdef void draw_quad(Context context, void* drawlist,
+                    double x1, double y1, double x2, double y2,
+                    double x3, double y3, double x4, double y4, 
+                    unsigned int color, unsigned int fill_color,
+                    float thickness) noexcept nogil:
+    # Transform coordinates
+    cdef float[2] p1, p2, p3, p4
+    cdef double[2] pos1, pos2, pos3, pos4
+    pos1[0] = x1
+    pos1[1] = y1
+    pos2[0] = x2
+    pos2[1] = y2
+    pos3[0] = x3
+    pos3[1] = y3
+    pos4[0] = x4
+    pos4[1] = y4
+    (context.viewport).coordinate_to_screen(p1, pos1)
+    (context.viewport).coordinate_to_screen(p2, pos2)
+    (context.viewport).coordinate_to_screen(p3, pos3)
+    (context.viewport).coordinate_to_screen(p4, pos4)
+
+    t_draw_quad(context, drawlist, p1[0], p1[1], p2[0], p2[1], p3[0], p3[1], p4[0], p4[1],
+                color, fill_color, thickness)
+
+cdef void t_draw_circle(Context context, void* drawlist,
+                      float x, float y, float radius,
+                      unsigned int color, unsigned int fill_color,
+                      float thickness, int num_segments) noexcept nogil:
+    # Create imgui.ImVec2 point
+    cdef imgui.ImVec2 icenter = imgui.ImVec2(x, y)
+    radius = abs(radius)
+    
+    if fill_color & imgui.IM_COL32_A_MASK != 0:
+        (<imgui.ImDrawList*>drawlist).AddCircleFilled(icenter, radius, fill_color, num_segments)
+    
+    (<imgui.ImDrawList*>drawlist).AddCircle(icenter, radius, color, num_segments, thickness)
+
 cdef void draw_circle(Context context, void* drawlist,
                       double x, double y, double radius,
                       unsigned int color, unsigned int fill_color,
@@ -190,18 +289,32 @@ cdef void draw_circle(Context context, void* drawlist,
     cdef double[2] pos
     pos[0] = x
     pos[1] = y
-    radius = abs(radius)
     (context.viewport).coordinate_to_screen(center, pos)
 
-    cdef imgui.ImVec2 icenter = imgui.ImVec2(center[0], center[1])
-    
-    if fill_color & imgui.IM_COL32_A_MASK != 0:
-        (<imgui.ImDrawList*>drawlist).AddCircleFilled(icenter, radius, fill_color, num_segments)
-    
-    (<imgui.ImDrawList*>drawlist).AddCircle(icenter, radius, color, num_segments, thickness)
+    t_draw_circle(context, drawlist, center[0], center[1], radius, color, fill_color, thickness, num_segments)
 
-cdef void* get_window_drawlist() noexcept nogil:
-    return <void*>imgui.GetWindowDrawList()
+cdef void t_draw_image_quad(Context context, void* drawlist,
+                         void* texture,
+                         float x1, float y1, float x2, float y2,
+                         float x3, float y3, float x4, float y4,
+                         float u1, float v1, float u2, float v2,
+                         float u3, float v3, float u4, float v4,
+                         unsigned int tint_color) noexcept nogil:
+    # Create imgui.ImVec2 points
+    cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
+    cdef imgui.ImVec2 ip2 = imgui.ImVec2(x2, y2)
+    cdef imgui.ImVec2 ip3 = imgui.ImVec2(x3, y3)
+    cdef imgui.ImVec2 ip4 = imgui.ImVec2(x4, y4)
+    
+    cdef imgui.ImVec2 uv1 = imgui.ImVec2(u1, v1)
+    cdef imgui.ImVec2 uv2 = imgui.ImVec2(u2, v2)
+    cdef imgui.ImVec2 uv3 = imgui.ImVec2(u3, v3)
+    cdef imgui.ImVec2 uv4 = imgui.ImVec2(u4, v4)
+
+    (<imgui.ImDrawList*>drawlist).AddImageQuad(<imgui.ImTextureID>texture,
+                                              ip1, ip2, ip3, ip4,
+                                              uv1, uv2, uv3, uv4,
+                                              tint_color)
 
 cdef void draw_image_quad(Context context, void* drawlist,
                          void* texture,
@@ -226,70 +339,38 @@ cdef void draw_image_quad(Context context, void* drawlist,
     (context.viewport).coordinate_to_screen(p3, pos3)
     (context.viewport).coordinate_to_screen(p4, pos4)
 
-    cdef imgui.ImVec2 ip1 = imgui.ImVec2(p1[0], p1[1])
-    cdef imgui.ImVec2 ip2 = imgui.ImVec2(p2[0], p2[1])
-    cdef imgui.ImVec2 ip3 = imgui.ImVec2(p3[0], p3[1])
-    cdef imgui.ImVec2 ip4 = imgui.ImVec2(p4[0], p4[1])
-    
-    cdef imgui.ImVec2 uv1 = imgui.ImVec2(u1, v1)
-    cdef imgui.ImVec2 uv2 = imgui.ImVec2(u2, v2)
-    cdef imgui.ImVec2 uv3 = imgui.ImVec2(u3, v3)
-    cdef imgui.ImVec2 uv4 = imgui.ImVec2(u4, v4)
+    t_draw_image_quad(context, drawlist, texture, p1[0], p1[1],
+                      p2[0], p2[1], p3[0], p3[1], p4[0], p4[1],
+                      u1, v1, u2, v2, u3, v3, u4, v4, tint_color)
 
-    (<imgui.ImDrawList*>drawlist).AddImageQuad(<imgui.ImTextureID>texture,
-                                              ip1, ip2, ip3, ip4,
-                                              uv1, uv2, uv3, uv4,
-                                              tint_color)
-
-cdef Vec2 get_cursor_pos() noexcept nogil:
-    """
-    Get the current cursor position in the current window.
-    Useful when drawing on top of subclassed UI items.
-    To properly transform the coordinates, swap this
-    with viewport's parent_pos before drawing,
-    and restore parent_pos afterward.
-    """
-    cdef imgui.ImVec2 pos = imgui.GetCursorScreenPos()
-    cdef Vec2 result
-    result.x = pos.x
-    result.y = pos.y
-    return result
-
-cdef void draw_regular_polygon(Context context, void* drawlist,
-                             double centerx, double centery,
-                             double radius, double direction,  
-                             int num_points,
-                             unsigned int color, unsigned int fill_color,
-                             float thickness) noexcept nogil:
+cdef void t_draw_regular_polygon(Context context, void* drawlist,
+                                 float centerx, float centery,
+                                 float radius, float direction,  
+                                 int num_points,
+                                 unsigned int color, unsigned int fill_color,
+                                 float thickness) noexcept nogil:
 
     if num_points <= 1:
         # Draw circle instead
-        draw_circle(context, drawlist, centerx, centery, radius,
+        t_draw_circle(context, drawlist, centerx, centery, radius,
                    color, fill_color, thickness, 0)
         return
 
-    cdef float[2] center
-    cdef double[2] pos
-    pos[0] = centerx 
-    pos[1] = centery
-    (context.viewport).coordinate_to_screen(center, pos)
-
-    radius = abs(radius)
-
-    # Generate points on circle
-    cdef imgui.ImVec2 icenter = imgui.ImVec2(center[0], center[1])
+    cdef imgui.ImVec2 icenter = imgui.ImVec2(centerx, centery)
     cdef vector[imgui.ImVec2] points
     points.reserve(num_points)
+
+    radius = abs(radius)
     
-    cdef double angle
-    cdef double angle_step = 2.0 * M_PI / num_points
+    cdef float angle
+    cdef float angle_step = 2.0 * M_PI / num_points
     cdef float px, py
     cdef int i
     
     for i in range(num_points):
         angle = -direction + i * angle_step  # Negative direction for y-up coords
-        px = center[0] + radius * cos(angle)
-        py = center[1] + radius * sin(angle)
+        px = centerx + radius * cos(angle)
+        py = centery + radius * sin(angle)
         points.push_back(imgui.ImVec2(px, py))
 
     if num_points == 2:
@@ -313,25 +394,41 @@ cdef void draw_regular_polygon(Context context, void* drawlist,
             imgui.ImDrawFlags_Closed,
             thickness)
 
-cdef void draw_star(Context context, void* drawlist,
-                    double centerx, double centery, 
-                    double radius, double inner_radius,
-                    double direction, int num_points,
-                    unsigned int color, unsigned int fill_color,
-                    float thickness) noexcept nogil:
+cdef void draw_regular_polygon(Context context, void* drawlist,
+                             double centerx, double centery,
+                             double radius, double direction,  
+                             int num_points,
+                             unsigned int color, unsigned int fill_color,
+                             float thickness) noexcept nogil:
 
-    if num_points < 3:
-        # Draw circle instead for degenerate cases
+    if num_points <= 1:
+        # Draw circle instead
         draw_circle(context, drawlist, centerx, centery, radius,
                    color, fill_color, thickness, 0)
         return
 
-    # Transform center coordinates
     cdef float[2] center
     cdef double[2] pos
-    pos[0] = centerx
+    pos[0] = centerx 
     pos[1] = centery
     (context.viewport).coordinate_to_screen(center, pos)
+
+    t_draw_regular_polygon(context, drawlist, center[0], center[1],
+                           radius, direction, num_points, color,
+                           fill_color, thickness)
+
+cdef void t_draw_star(Context context, void* drawlist,
+                      float centerx, float centery, 
+                      float radius, float inner_radius,
+                      float direction, int num_points,
+                      unsigned int color, unsigned int fill_color,
+                      float thickness) noexcept nogil:
+
+    if num_points < 3:
+        # Draw circle instead for degenerate cases
+        t_draw_circle(context, drawlist, centerx, centery, radius,
+                      color, fill_color, thickness, 0)
+        return
     
     radius = abs(radius)
     inner_radius = min(radius, abs(inner_radius))
@@ -353,15 +450,15 @@ cdef void draw_star(Context context, void* drawlist,
         if i % 2 == 0:
             # Outer point
             angle = -direction + i * angle_step
-            px = center[0] + radius * cos(angle) 
-            py = center[1] + radius * sin(angle)
+            px = centerx + radius * cos(angle) 
+            py = centery + radius * sin(angle)
             pt = imgui.ImVec2(px, py)
             outer_points.push_back(pt)
         else:
             # Inner point on circle
             angle = -direction + i * angle_step
-            px = center[0] + inner_radius * cos(angle)
-            py = center[1] + inner_radius * sin(angle)
+            px = centerx + inner_radius * cos(angle)
+            py = centery + inner_radius * sin(angle)
             pt = imgui.ImVec2(px, py)
             inner_points.push_back(pt)
 
@@ -371,7 +468,7 @@ cdef void draw_star(Context context, void* drawlist,
                 (<imgui.ImDrawList*>drawlist).AddLine(outer_points[i], outer_points[i+num_points//2], <imgui.ImU32>color, thickness)
         else:
             for i in range(num_points):
-                (<imgui.ImDrawList*>drawlist).AddLine(outer_points[i], imgui.ImVec2(center[0], center[1]), <imgui.ImU32>color, thickness)
+                (<imgui.ImDrawList*>drawlist).AddLine(outer_points[i], imgui.ImVec2(centerx, centery), <imgui.ImU32>color, thickness)
         return
 
     if fill_color & imgui.IM_COL32_A_MASK != 0:
@@ -397,20 +494,37 @@ cdef void draw_star(Context context, void* drawlist,
     (<imgui.ImDrawList*>drawlist).AddLine(outer_points[num_points-1], inner_points[num_points-1], <imgui.ImU32>color, thickness)
     (<imgui.ImDrawList*>drawlist).AddLine(outer_points[num_points-1], inner_points[0], <imgui.ImU32>color, thickness)
 
-cdef void draw_text(Context context, void* drawlist,
-                    double x, double y,
-                    const char* text,
-                    unsigned int color,
-                    void* font, float size) noexcept nogil:
-    # Transform coordinates
-    cdef float[2] pos
-    cdef double[2] coord
-    coord[0] = x
-    coord[1] = y
-    (context.viewport).coordinate_to_screen(pos, coord)
-    
+
+cdef void draw_star(Context context, void* drawlist,
+                    double centerx, double centery, 
+                    double radius, double inner_radius,
+                    double direction, int num_points,
+                    unsigned int color, unsigned int fill_color,
+                    float thickness) noexcept nogil:
+
+    if num_points < 3:
+        # Draw circle instead for degenerate cases
+        draw_circle(context, drawlist, centerx, centery, radius,
+                   color, fill_color, thickness, 0)
+        return
+
+    # Transform center coordinates
+    cdef float[2] center
+    cdef double[2] pos
+    pos[0] = centerx
+    pos[1] = centery
+    (context.viewport).coordinate_to_screen(center, pos)
+
+    t_draw_star(context, drawlist, center[0], center[1], radius, inner_radius,
+                direction, num_points, color, fill_color, thickness)
+
+cdef void t_draw_text(Context context, void* drawlist,
+                      float x, float y,
+                      const char* text,
+                      unsigned int color,
+                      void* font, float size) noexcept nogil:    
     # Create ImVec2 point
-    cdef imgui.ImVec2 ipos = imgui.ImVec2(pos[0], pos[1])
+    cdef imgui.ImVec2 ipos = imgui.ImVec2(x, y)
     
     # Push font if provided
     if font != NULL:
@@ -426,27 +540,25 @@ cdef void draw_text(Context context, void* drawlist,
     if font != NULL:
         imgui.PopFont()
 
-cdef void draw_text_quad(Context context, void* drawlist,
-                         double x1, double y1, double x2, double y2,  
-                         double x3, double y3, double x4, double y4,
+cdef void draw_text(Context context, void* drawlist,
+                    double x, double y,
+                    const char* text,
+                    unsigned int color,
+                    void* font, float size) noexcept nogil:
+    # Transform coordinates
+    cdef float[2] pos
+    cdef double[2] coord
+    coord[0] = x
+    coord[1] = y
+    (context.viewport).coordinate_to_screen(pos, coord)
+    
+    t_draw_text(context, drawlist, pos[0], pos[1], text, color, font, size)
+
+cdef void t_draw_text_quad(Context context, void* drawlist,
+                         float x1, float y1, float x2, float y2,  
+                         float x3, float y3, float x4, float y4,
                          const char* text, unsigned int color,
                          void* font, bint preserve_ratio) noexcept nogil:
-    # Transform coordinates
-    cdef float[2] p1, p2, p3, p4
-    cdef double[2] pos1, pos2, pos3, pos4
-    pos1[0] = x1
-    pos1[1] = y1
-    pos2[0] = x2
-    pos2[1] = y2
-    pos3[0] = x3
-    pos3[1] = y3
-    pos4[0] = x4
-    pos4[1] = y4
-    (context.viewport).coordinate_to_screen(p1, pos1)
-    (context.viewport).coordinate_to_screen(p2, pos2)
-    (context.viewport).coordinate_to_screen(p3, pos3)
-    (context.viewport).coordinate_to_screen(p4, pos4)
-
     # Get draw list for low-level operations
     cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist
     
@@ -466,8 +578,8 @@ cdef void draw_text_quad(Context context, void* drawlist,
         return
 
     # Calculate normalized direction vectors for quad
-    cdef float quad_w = sqrt((p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1]))
-    cdef float quad_h = sqrt((p4[0] - p1[0]) * (p4[0] - p1[0]) + (p4[1] - p1[1]) * (p4[1] - p1[1]))
+    cdef float quad_w = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
+    cdef float quad_h = sqrt((x4 - x1) * (x4 - x1) + (y4 - y1) * (y4 - y1))
     
     # Skip if quad is too small
     if quad_w < 1.0 or quad_h < 1.0:
@@ -475,10 +587,10 @@ cdef void draw_text_quad(Context context, void* drawlist,
             imgui.PopFont()
         return
 
-    cdef float dir_x = (p2[0] - p1[0]) / quad_w
-    cdef float dir_y = (p2[1] - p1[1]) / quad_w
-    cdef float up_x = (p4[0] - p1[0]) / quad_h  
-    cdef float up_y = (p4[1] - p1[1]) / quad_h
+    cdef float dir_x = (x2 - x1) / quad_w
+    cdef float dir_y = (y2 - y1) / quad_w
+    cdef float up_x = (x4 - x1) / quad_h  
+    cdef float up_y = (y4 - y1) / quad_h
 
     # Calculate scale 
     cdef float scale_x = quad_w / total_w
@@ -486,8 +598,8 @@ cdef void draw_text_quad(Context context, void* drawlist,
     cdef float scale = min(scale_x, scale_y) if preserve_ratio else 1.0
     
     # Calculate starting position to center text in quad
-    cdef float start_x = p1[0]
-    cdef float start_y = p1[1]
+    cdef float start_x = x1
+    cdef float start_y = y1
     if preserve_ratio:
         start_x += (quad_w - total_w * scale) * 0.5 * dir_x + (quad_h - total_h * scale) * 0.5 * up_x
         start_y += (quad_w - total_w * scale) * 0.5 * dir_y + (quad_h - total_h * scale) * 0.5 * up_y
@@ -569,6 +681,48 @@ cdef void draw_text_quad(Context context, void* drawlist,
     if font != NULL:
         imgui.PopFont()
 
+cdef void draw_text_quad(Context context, void* drawlist,
+                         double x1, double y1, double x2, double y2,  
+                         double x3, double y3, double x4, double y4,
+                         const char* text, unsigned int color,
+                         void* font, bint preserve_ratio) noexcept nogil:
+    # Transform coordinates
+    cdef float[2] p1, p2, p3, p4
+    cdef double[2] pos1, pos2, pos3, pos4
+    pos1[0] = x1
+    pos1[1] = y1
+    pos2[0] = x2
+    pos2[1] = y2
+    pos3[0] = x3
+    pos3[1] = y3
+    pos4[0] = x4
+    pos4[1] = y4
+    (context.viewport).coordinate_to_screen(p1, pos1)
+    (context.viewport).coordinate_to_screen(p2, pos2)
+    (context.viewport).coordinate_to_screen(p3, pos3)
+    (context.viewport).coordinate_to_screen(p4, pos4)
+
+    t_draw_text_quad(context, drawlist, pos1[0], pos1[1],
+                     pos2[0], pos2[1], pos3[0], pos3[1],
+                     pos4[0], pos4[1], text, color, font,
+                     preserve_ratio)
+
+cdef void* get_window_drawlist() noexcept nogil:
+    return <void*>imgui.GetWindowDrawList()
+
+cdef Vec2 get_cursor_pos() noexcept nogil:
+    """
+    Get the current cursor position in the current window.
+    Useful when drawing on top of subclassed UI items.
+    To properly transform the coordinates, swap this
+    with viewport's parent_pos before drawing,
+    and restore parent_pos afterward.
+    """
+    cdef imgui.ImVec2 pos = imgui.GetCursorScreenPos()
+    cdef Vec2 result
+    result.x = pos.x
+    result.y = pos.y
+    return result
 
 cdef void push_theme_color(ThemeCol idx, float r, float g, float b, float a) noexcept nogil:
     imgui.PushStyleColor(idx, imgui.ImVec4(r, g, b, a))

@@ -32,6 +32,11 @@ from libcpp cimport bool
 import scipy
 import scipy.spatial
 
+cdef inline bint is_counter_clockwise(imgui.ImVec2 p1,
+                                      imgui.ImVec2 p2,
+                                      imgui.ImVec2 p3) noexcept nogil:
+    cdef float det = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x)
+    return det > 0.
 
 cdef class ViewportDrawList(drawingItem):
     """
@@ -1766,7 +1771,17 @@ cdef class DrawImage(drawingItem):
         cdef imgui.ImVec2 iuv2 = imgui.ImVec2(self._uv2[0], self._uv2[1])
         cdef imgui.ImVec2 iuv3 = imgui.ImVec2(self._uv3[0], self._uv3[1])
         cdef imgui.ImVec2 iuv4 = imgui.ImVec2(self._uv4[0], self._uv4[1])
+
+        # TODO: should be ensure clockwise order for ImageQuad ?
+
         if self._rounding != 0.:
+            # AddImageRounded requires ip1.x < ip3.x and ip1.y < ip3.y
+            if ip1.x > ip3.x:
+                ip1.x, ip3.x = ip3.x, ip1.x
+                iuv1.x, iuv3.x = iuv3.x, iuv1.x
+            if ip1.y > ip3.y:
+                ip1.y, ip3.y = ip3.y, ip1.y
+                iuv1.y, iuv3.y = iuv3.y, iuv1.y
             # TODO: we could allow to control what is rounded.
             (<imgui.ImDrawList*>drawlist).AddImageRounded(<imgui.ImTextureID>self._texture.allocated_texture, \
             ip1, ip3, iuv1, iuv3, <imgui.ImU32>self._color_multiplier, self._rounding, imgui.ImDrawFlags_RoundCornersAll)
@@ -2110,13 +2125,6 @@ cdef class DrawPolyline(drawingItem):
             if self._closed:
                 ipoints.push_back(ip1_)
             (<imgui.ImDrawList*>drawlist).AddPolyline(ipoints.data(), <int>ipoints.size(), <imgui.ImU32>self._color, self._closed, thickness)
-
-
-cdef inline bint is_counter_clockwise(imgui.ImVec2 p1,
-                                      imgui.ImVec2 p2,
-                                      imgui.ImVec2 p3) noexcept nogil:
-    cdef float det = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x)
-    return det > 0.
 
 
 cdef class DrawPolygon(drawingItem):

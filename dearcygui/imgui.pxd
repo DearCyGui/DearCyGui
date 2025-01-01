@@ -120,6 +120,32 @@ cdef void draw_triangle(Context context, void* drawlist,
         thickness: Outline thickness in pixels
 """
 
+cdef void draw_textured_triangle(Context context, void* drawlist,
+                                 void *texture,
+                                 double x1, double y1,
+                                 double x2, double y2,
+                                 double x3, double y3,
+                                 float u1, float v1,
+                                 float u2, float v2,
+                                 float u3, float v3,
+                                 unsigned int color_factor) noexcept nogil
+"""
+    Draw a triangle extracted from a texture.
+
+    Args:
+        context: The DearCyGui context
+        drawlist: ImDrawList to render into
+        x1, y1: First point coordinates in coordinate space
+        x2, y2: Second point coordinates in coordinate space  
+        x3, y3: Third point coordinates in coordinate space
+        u1, v1: Texture coordinates for first point (0-1 range)
+        u2, v2: Texture coordinates for second point
+        u3, v3: Texture coordinates for third point
+        color_factor: Color to multiply texture samples with (32-bit RGBA)
+
+    A neutral value for color_factor is 0xFFFFFFFF (unsigned integer: 4294967295)
+"""
+
 cdef void draw_quad(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
                     double x3, double y3, double x4, double y4,
@@ -161,35 +187,13 @@ cdef void draw_circle(Context context, void* drawlist,
                      0 for auto-calculated based on radius
 """
 
-# When subclassing drawingItem and Draw* items, the drawlist
-# is passed to the draw method. This is a helper to get the
-# drawlist for the current window if subclassing uiItem.
-cdef void* get_window_drawlist() noexcept nogil
-"""
-    Get the ImDrawList for the current window.
-    
-    Used by draw items that want to render into the current window.
-    
-    Returns:
-        ImDrawList* for the current window
-"""
-
-cdef Vec2 get_cursor_pos() noexcept nogil
-"""
-    Get the current cursor position in the current window.
-    Useful when drawing on top of subclassed UI items.
-    To properly transform the coordinates, swap this
-    with viewports's parent_pos before drawing,
-    and restore parent_pos afterward.
-"""
-
 cdef void draw_image_quad(Context context, void* drawlist,
                          void* texture,
                          double x1, double y1, double x2, double y2,
                          double x3, double y3, double x4, double y4,
                          float u1, float v1, float u2, float v2,
                          float u3, float v3, float u4, float v4,
-                         unsigned int tint_color) noexcept nogil
+                         unsigned int color_factor) noexcept nogil
 """
     Draw a textured quad with custom UV coordinates.
 
@@ -205,7 +209,9 @@ cdef void draw_image_quad(Context context, void* drawlist,
         u2,v2: Texture coordinates for second point
         u3,v3: Texture coordinates for third point  
         u4,v4: Texture coordinates for fourth point
-        tint_color: Color to multiply texture samples with (32-bit RGBA)
+        color_factor: Color to multiply texture samples with (32-bit RGBA)
+
+    A neutral value for color_factor is 0xFFFFFFFF (unsigned integer: 4294967295)
 """
 
 
@@ -292,6 +298,81 @@ cdef void draw_text_quad(Context context, void* drawlist,
         
     The text is rendered as if it was an image filling a quad shape.
     The quad vertices control the deformation/orientation of the text.
+"""
+
+# t_draw* variants: Same as above, except all coordinates are in
+# 'screen' coordinates instead (top left of the viewport = (0, 0))
+# This corresponds to the result of viewport's coordinate_to_screen.
+# draw* functions include the transform, while t_draw* functions
+# don't. (The t_ prefix is because the coordinates must be transformed)
+
+cdef void t_draw_line(Context, void*, float, float, float, float,
+                      unsigned int, float) noexcept nogil
+
+cdef void t_draw_rect(Context, void*, float, float, float, float,
+                      unsigned int, unsigned int, float, float) noexcept nogil
+
+cdef void t_draw_rect_multicolor(Context, void*, float, float, float, float,
+                                 unsigned int, unsigned int, unsigned int, unsigned int) noexcept nogil
+
+cdef void t_draw_triangle(Context, void*, float, float, float, float, float, float,
+                          unsigned int, unsigned int, float) noexcept nogil
+
+cdef void t_draw_textured_triangle(Context, void*, void *, 
+                                   float, float, float, float,
+                                   float, float, float, float,
+                                   float, float, float, float,
+                                   unsigned int) noexcept nogil
+
+cdef void t_draw_quad(Context, void*, float, float, float, float,
+                      float, float, float, float,
+                      unsigned int, unsigned int, float) noexcept nogil
+
+cdef void t_draw_circle(Context, void*, float, float, float,
+                        unsigned int, unsigned int, float, int) noexcept nogil
+
+cdef void t_draw_image_quad(Context, void*, void*,
+                            float, float, float, float,
+                            float, float, float, float,
+                            float, float, float, float,
+                            float, float, float, float,
+                            unsigned int) noexcept nogil
+
+cdef void t_draw_regular_polygon(Context, void*, float, float,
+                                 float, float, int,
+                                 unsigned int, unsigned int, float) noexcept nogil
+
+cdef void t_draw_star(Context, void*, float, float, float, float,
+                      float, int, unsigned int, unsigned int, float) noexcept nogil
+
+cdef void t_draw_text(Context, void*, float, float,
+                      const char*, unsigned int, void*, float) noexcept nogil
+
+cdef void t_draw_text_quad(Context, void*, float, float, float, float,
+                           float, float, float, float,
+                           const char*, unsigned int, void*, bint) noexcept nogil
+
+
+# When subclassing drawingItem and Draw* items, the drawlist
+# is passed to the draw method. This is a helper to get the
+# drawlist for the current window if subclassing uiItem.
+cdef void* get_window_drawlist() noexcept nogil
+"""
+    Get the ImDrawList for the current window.
+    
+    Used by draw items that want to render into the current window.
+    
+    Returns:
+        ImDrawList* for the current window
+"""
+
+cdef Vec2 get_cursor_pos() noexcept nogil
+"""
+    Get the current cursor position in the current window.
+    Useful when drawing on top of subclassed UI items.
+    To properly transform the coordinates, swap this
+    with viewports's parent_pos before drawing,
+    and restore parent_pos afterward.
 """
 
 # Theme color indices
