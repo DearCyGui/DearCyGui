@@ -6422,6 +6422,35 @@ cdef class plotElement(baseItem):
 
     cdef void draw(self) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+
+        # Check the axes are enabled
+        if not(self._show) or \
+           not(self.context.viewport.enabled_axes[self._axes[0]]) or \
+           not(self.context.viewport.enabled_axes[self._axes[1]]):
+            self.propagate_hidden_state_to_children_with_handlers()
+            return
+
+        # push theme
+
+        self.context.viewport.push_pending_theme_actions(
+            ThemeEnablers.ANY,
+            ThemeCategories.t_plot
+        )
+
+        if self._theme is not None:
+            self._theme.push()
+
+        implot.SetAxes(self._axes[0], self._axes[1])
+
+        self.draw_element()
+
+        # pop theme, font
+        if self._theme is not None:
+            self._theme.pop()
+
+        self.context.viewport.pop_applied_pending_theme_actions()
+
+    cdef void draw_element(self) noexcept nogil:
         return
 
 

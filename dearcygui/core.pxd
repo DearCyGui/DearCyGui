@@ -646,6 +646,7 @@ cdef class plotElement(baseItem):
     cdef int[2] _axes
     cdef baseTheme _theme
     cdef void draw(self) noexcept nogil
+    cdef void draw_element(self) noexcept nogil
 
 
 # We don't define draw() for this class as

@@ -3239,7 +3239,11 @@ cdef class PlotBarGroups(plotElementWithLegend):
     @property
     def values(self):
         """
-        A row-major array with item_count rows and group_count columns.
+        A row-major array with item_count columns and group_size rows.
+        Basically a 2D array where
+        - array.shape[0] = number of groups (=labels)
+        - array.shape[1] = number of items
+
         Each row represents one label/plotline/color.
 
         By default, will try to use the passed array
@@ -3302,7 +3306,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
     @property 
     def group_size(self):
         """
-        Size of each group.
+        Portion of the reserved width used for the bars of each group.
         Default is 0.67
         """
         cdef unique_lock[recursive_mutex] m
