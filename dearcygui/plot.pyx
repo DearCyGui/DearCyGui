@@ -3642,6 +3642,131 @@ cdef class PlotDigital(plotElementXY):
                                       cnp.PyArray_STRIDE(self._X, 0))
 
 
+cdef class PlotErrorBars(plotElementXY):
+    """
+    Plots vertical or horizontal error bars for X,Y data points.
+    Each error bar can have a different positive/negative error value.
+    """
+    def __cinit__(self):
+        self._pos = np.zeros(shape=(1,), dtype=np.float64)
+        self._neg = None  # Optional negative errors
+
+    @property
+    def positives(self):
+        """Positive error values array.
+
+        If negatives is set to None,
+        the error bars will be symmetrical around the Y value.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pos
+
+    @positives.setter
+    def positives(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
+        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
+           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
+            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
+            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
+            self._pos = array
+        else:
+            self._pos = np.ascontiguousarray(array, dtype=np.float64)
+
+    @property
+    def negatives(self):
+        """Negative error values array.
+        
+        If set to None, the error bars will be symmetrical.
+        (This is equivalent to negatives=positives)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._neg
+
+    @negatives.setter
+    def negatives(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value is None:
+            self._neg = None
+            return
+        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
+        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
+           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
+            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
+            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
+            self._neg = array
+        else:
+            self._neg = np.ascontiguousarray(array, dtype=np.float64)
+
+    @property
+    def horizontal(self):
+        """
+        Error bars will be rendered horizontally on the current y-axis
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotErrorBarsFlags_Horizontal) != 0
+
+    @horizontal.setter
+    def horizontal(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~implot.ImPlotErrorBarsFlags_Horizontal
+        if value:
+            self._flags |= implot.ImPlotErrorBarsFlags_Horizontal
+
+    cdef void draw_element(self) noexcept nogil:
+        self.check_arrays()
+        cdef int size = min(self._X.shape[0],
+                            self._Y.shape[0],
+                            self._pos.shape[0])
+        if self._neg is not None:
+            size = min(size, self._neg.shape[0])
+        if size == 0:
+            return
+        cdef const void* neg
+        if self._neg is not None:
+            neg = cnp.PyArray_DATA(self._neg)
+        else:
+            neg = cnp.PyArray_DATA(self._pos)
+
+        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
+            implot.PlotErrorBars[int](self._imgui_label.c_str(),
+                                      <const int*>cnp.PyArray_DATA(self._X),
+                                      <const int*>cnp.PyArray_DATA(self._Y),
+                                      <const int*>neg,
+                                      <const int*>cnp.PyArray_DATA(self._pos),
+                                      size,
+                                      self._flags,
+                                      0,
+                                      cnp.PyArray_STRIDE(self._X, 0))
+        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+            implot.PlotErrorBars[float](self._imgui_label.c_str(),
+                                        <const float*>cnp.PyArray_DATA(self._X),
+                                        <const float*>cnp.PyArray_DATA(self._Y),
+                                        <const float*>neg,
+                                        <const float*>cnp.PyArray_DATA(self._pos),
+                                        size,
+                                        self._flags,
+                                        0,
+                                        cnp.PyArray_STRIDE(self._X, 0))
+            
+        else:
+            implot.PlotErrorBars[double](self._imgui_label.c_str(),
+                                         <const double*>cnp.PyArray_DATA(self._X),
+                                         <const double*>cnp.PyArray_DATA(self._Y),
+                                         <const double*>neg,
+                                         <const double*>cnp.PyArray_DATA(self._pos),
+                                         size,
+                                         self._flags,
+                                         0,
+                                         cnp.PyArray_STRIDE(self._X, 0))
+
+
 cdef class PlotAnnotation(plotElement):
     """
     Adds an annotation to the plot.

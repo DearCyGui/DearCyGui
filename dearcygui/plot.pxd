@@ -150,6 +150,11 @@ cdef class PlotPieChart(plotElementWithLegend):
 cdef class PlotDigital(plotElementXY):
     cdef void draw_element(self) noexcept nogil
 
+cdef class PlotErrorBars(plotElementXY):
+    cdef cnp.ndarray _pos
+    cdef cnp.ndarray _neg
+    cdef void draw_element(self) noexcept nogil
+
 cdef class PlotAnnotation(plotElement):
     cdef string _text
     cdef double _x
