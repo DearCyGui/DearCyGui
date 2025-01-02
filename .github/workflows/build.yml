@@ -79,9 +79,8 @@ jobs:
         mkdir -p dist_root
         find dist -name "*.whl" -exec mv {} dist_root/ \;
 
-    - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+    - name: Upload combined artifacts 
+      uses: actions/upload-artifact@v3
       with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
-        packages-dir: dist_root/
+        name: all-wheels
+        path: dist_root/*.whl
