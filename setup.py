@@ -42,7 +42,8 @@ def build_SDL3():
         '-DSDL_TESTS=OFF',
         '-DSDL_TEST_LIBRARY=OFF',
         '-DSDL_DISABLE_INSTALL=ON',
-        '-DSDL_DISABLE_INSTALL_DOCS=OON',
+        '-DSDL_DISABLE_INSTALL_DOCS=ON',
+        "-DSDL_JOYSTICK=OFF -DSDL_HAPTIC=OFF", # without fails to compile on github windows
         '-DCMAKE_POSITION_INDEPENDENT_CODE=ON'
     ]
     command = 'cmake -S thirdparty/SDL/ -B build_SDL ' + ' '.join(cmake_config_args)
