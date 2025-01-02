@@ -128,7 +128,7 @@ def setup_package():
     elif get_platform() == "OS X":
         compile_args += [
             "-fobjc-arc", "-fno-common", "-dynamic", "-DNDEBUG",
-            "-fwrapv", "-O3", "-DAPPLE", "-arch", "x86_64"
+            "-fwrapv", "-O3", "-DAPPLE", "-arch", "x86_64", "-std=c++14"
         ]
         libraries = []
         # Link against MacOS frameworks
