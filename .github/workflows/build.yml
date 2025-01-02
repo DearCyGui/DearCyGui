@@ -53,10 +53,6 @@ jobs:
       run: |
         choco install cmake
         choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
-        # Install Windows Gaming SDK
-        nuget install Microsoft.Windows.Gaming.GDK -Version 1.2.1 -OutputDirectory packages
-        # Set environment variable for SDL to find Gaming SDK
-        echo "WindowsGamingSDK=$(pwd)\packages\Microsoft.Windows.Gaming.GDK.1.2.1" >> $GITHUB_ENV
 
 
     - name: Build wheels
