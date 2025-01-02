@@ -3233,6 +3233,11 @@ cdef class Viewport(baseItem):
         if self._theme is not None: # maybe apply in render_frame instead ?
             self._theme.push()
         self.redraw_needed = False
+        cdef int i
+        for i in range(5):
+            self.context.prev_last_id_button_catch[i] = \
+                self.context.cur_last_id_button_catch[i]
+            self.context.cur_last_id_button_catch[i] = 0
         self.shifts = [0., 0.]
         self.scales = [1., 1.]
         self.in_plot = False
@@ -3803,8 +3808,8 @@ cdef extern from * nogil:
                              ImGuiID prev_last_id_button_catch[5],
                              ImGuiID cur_last_id_button_catch[5],
                              int button_mask,
-                             bool catch_hover,
-                             bool retain_hovership,
+                             bool catch_ui_hover,
+                             bool first_hovered_wins,
                              bool catch_active,
                              bool *out_hovered,
                              bool *out_held)
@@ -3842,11 +3847,9 @@ cdef extern from * nogil:
 
         button_mask >>= 1;
 
-        // Retrieve for each registered button the toplevel
-        // status.
+        // Check if we are toplevel
         for (i=0; i<5; i++) {
             if (button_mask & (1 << i)) {
-                cur_last_id_button_catch[i] = id;
                 if (prev_last_id_button_catch[i] == id) {
                     toplevel = true;
                     break;
@@ -3854,30 +3857,30 @@ cdef extern from * nogil:
             }
         }
 
-        // Prevent over IDs to be toplevel
-        if (hovered && retain_hovership) {
-            for (i=0; i<5; i++) {
-                if (button_mask & (1 << i)) {
-                    prev_last_id_button_catch[i] = id;
+        // Set status for next frame
+        // if first_hovered_wins is False, only the top
+        // item will be hovered.
+        // Else we will retain the hovered state
+        for (i=0; i<5; i++) {
+            if (button_mask & (1 << i)) {
+                if (!first_hovered_wins ||
+                    prev_last_id_button_catch[i] == id ||
+                    prev_last_id_button_catch[i] == 0) {
+                    cur_last_id_button_catch[i] = id;
                 }
-            }
-            toplevel = true;
-            if (g.HoveredIdPreviousFrame == id)
-                ImGui::SetHoveredID(id);
-        }
-
-        // Another item is hovered.
-        if (g.HoveredId != 0 && g.HoveredId != id) {
-            if (catch_hover && toplevel) {
-                // We are toplevel for at least
-                // one registered button.
-                ImGui::SetHoveredID(id);
             }
         }
 
         hovered = hovered && toplevel;
 
-        if (hovered && g.HoveredId == 0)
+        // Maintain UI hover status (needed for HoveredWindow)
+        if (hovered && g.HoveredIdPreviousFrame == id)
+            ImGui::SetHoveredID(id);
+        // Catch hover if we requested to
+        else if (hovered && catch_ui_hover)
+            ImGui::SetHoveredID(id);
+        // No other UI item hovered rendered before
+        else if (hovered && (g.HoveredId == id || g.HoveredId == 0))
             ImGui::SetHoveredID(id);
 
         if (g.ActiveId != 0 && g.ActiveId != id && !catch_active) {
@@ -3948,14 +3951,25 @@ cdef bint button_area(Context context,
                       Vec2 pos,
                       Vec2 size,
                       int button_mask,
-                      bint catch_hover,
-                      bint retain_hovership,
+                      bint catch_ui_hover,
+                      bint first_hovered_wins,
                       bint catch_active,
                       bool *out_hovered,
                       bool *out_held) noexcept nogil:
     """
     Register a button area and check its status.
     Must be called in draw() everytime the item is rendered.
+
+    The button area behaves a bit different to normal
+    buttons and is not intended to create custom UI buttons,
+    but to create interactable areas in drawings and plots.
+
+    To enable various "items" to be overlapping and reacting
+    to different buttons, button_area takes a button_mask indicating
+    to which mouse button the area reacts to.
+    The hovered state is individual to each button (and separate
+    to the hovered state of UI items).
+    However the active state is similar to UI items and shared with them.
 
     Context: the context instance
     uuid: Must be unique (for example the item uuid for which the button is registered).
@@ -3968,27 +3982,31 @@ cdef bint button_area(Context context,
         pressed and held will only react to mouse buttons in button_mask.
         If a button is not in button_mask, it allows another overlapped
         button to take the active state.
-    catch_hover:
+    catch_ui_hover:
         If True, when hovered and top level for at least one button,
-        will catch the hover state even if another item is hovered.
+        will catch the UI hover (there is a single uiItem hovered at
+        a time) state even if another (uiItem) item is hovered.
         For instance if you are overlapping a plot, the plot
-        will be considered hovered if catch_hover=False, and
-        not hovered if catch_hover=True. This does not affect
+        will be considered hovered if catch_ui_hover=False, and
+        not hovered if catch_ui_hover=True. This does not affect
         other items using this function, as it allows several
         items to be hovered at the same time if they register
         different button masks.
-    retain_hovership:
-        If True, when hovered for at least one button the previous frame,
-        will retain the hovered state.
-        Other items with similar button_mask will not considered
-        themselves top-level even if submitted after during rendering,
-        and thus will not be hovered.
+        It is usually set to True to disable plot panning.
+        If set to False, the UI hover state might still be registered
+        if the button is hovered and no other item is hovered.
+    first_hovered_wins:
         if False, only the top-level item will be hovered in case of overlap,
         no matter which item was hovered the previous frame.
+        If True, the first item hovered (for a given button)
+        will retain the hovered state as long as it is hovered.
         In general you want to set this to True, unless you have
         small buttons completly included in other large buttons,
         in which can you want to set this to False to be able
         to access the small buttons.
+        Note this is a collaborative setting. If all items
+        but one have first_hovered_wins set to True, the
+        one with False will steal the hovered state when hovered.
     catch_active:
         Usually one want in case of overlapping items to retain the
         active state on the first item that registers the active state.
@@ -4024,7 +4042,7 @@ cdef bint button_area(Context context,
     Use cases:
     - Simple hover test: button_mask = 0
     - Many buttons of similar sizes with overlapping and equal priority:
-        retain_hovership = True, catch_hover = True, catch_active = False
+        first_hovered_wins = True, catch_ui_hover = True, catch_active = False
     - Creating a button in front of the mouse to catch the click:
         catch_active = True
 
@@ -4037,8 +4055,8 @@ cdef bint button_area(Context context,
                                context.prev_last_id_button_catch,
                                context.cur_last_id_button_catch,
                                button_mask,
-                               catch_hover,
-                               retain_hovership,
+                               catch_ui_hover,
+                               first_hovered_wins,
                                catch_active,
                                out_hovered,
                                out_held)

@@ -843,6 +843,7 @@ cdef class PlotAxisConfig(baseItem):
         # We use SetupAxisLinks to get the min/max update
         # right away during EndPlot(), rather than the
         # next frame
+        # TODO: fix incompatibility with subplot axis link
         implot.SetupAxisLinks(axis, &self._min, &self._max)
 
         implot.SetupAxisScale(axis, <int>self._scale)
@@ -1624,8 +1625,6 @@ cdef class Plot(uiItem):
             raise ValueError("Invalid location. Must be a LegendLocation")
 
     cdef bint draw_item(self) noexcept nogil:
-        cdef int i
-        cdef Vec2 rect_size
         cdef bint visible
         implot.GetStyle().UseLocalTime = self._use_local_time
         implot.GetStyle().UseISO8601 = self._use_ISO8601
@@ -1652,8 +1651,8 @@ cdef class Plot(uiItem):
                                    Vec2ImVec2(self.scaled_requested_size()),
                                    self._flags)
         # BeginPlot created the imgui Item
-        self.state.cur.rect_size = ImVec2Vec2(imgui.GetItemRectSize())
         if visible:
+            self.state.cur.rect_size = ImVec2Vec2(imgui.GetItemRectSize())
             self.state.cur.rendered = True
             
             # Setup mouse position text

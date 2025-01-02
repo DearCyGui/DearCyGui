@@ -3245,7 +3245,6 @@ cdef class Image(uiItem):
         lock_gil_friendly(m, self.mutex)
         if not(isinstance(value, Texture)):
             raise TypeError("texture must be a Texture")
-        # TODO: MV_ATLAS_UUID
         self._texture = value
     @property
     def uv(self):
@@ -3330,7 +3329,6 @@ cdef class ImageButton(uiItem):
         lock_gil_friendly(m, self.mutex)
         if not(isinstance(value, Texture)):
             raise TypeError("texture must be a Texture")
-        # TODO: MV_ATLAS_UUID
         self._texture = value
     @property
     def frame_padding(self):
@@ -3952,12 +3950,17 @@ cdef class Tab(uiItem):
             self._show_update_requested = True
         self.update_current_state()
         cdef Vec2 pos_p, parent_size_backup
+        cdef float dx, dy
         if menu_open:
             if self.last_widgets_child is not None:
                 pos_p = ImVec2Vec2(imgui.GetCursorScreenPos())
+                dx = pos_p.x - self.context.viewport.parent_pos.x
+                dy = pos_p.y - self.context.viewport.parent_pos.y
                 swap_Vec2(pos_p, self.context.viewport.parent_pos)
                 parent_size_backup = self.context.viewport.parent_size
-                self.context.viewport.parent_size = self.state.cur.rect_size # unsure
+                # TODO: is there a frame border on the right to subtract ?
+                self.context.viewport.parent_size.x = parent_size_backup.x - dx
+                self.context.viewport.parent_size.y = parent_size_backup.y - dy
                 draw_ui_children(self)
                 self.context.viewport.parent_pos = pos_p
                 self.context.viewport.parent_size = parent_size_backup

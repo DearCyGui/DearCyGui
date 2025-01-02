@@ -80,6 +80,20 @@ cpdef enum class Alignment:
     JUSTIFIED=3,
     MANUAL=4
 
+# Marker specification, with values matching ImPlot
+cpdef enum class PlotMarker:
+    NONE=-1, # No marker
+    CIRCLE=0, # Circle marker
+    SQUARE=1, # Square marker
+    DIAMOND=2, # Diamond marker
+    UP=3, # An upward-pointing triangle marker
+    DOWN=4, # A downward-pointing triangle marker
+    LEFT=5, # A left-pointing triangle marker
+    RIGHT=6, # A right-pointing triangle marker
+    CROSS=7, # A cross marker
+    PLUS=8, # A plus marker
+    ASTERISK=9 # An asterisk marker
+
 cdef enum theme_types:
     t_color,
     t_style

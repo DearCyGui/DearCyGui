@@ -30,10 +30,10 @@ cpdef enum class Axis:
 
 cpdef enum class LegendLocation:
     CENTER=implot.ImPlotLocation_Center
-    NORTH=implot.ImPlotLocation_Center
-    SOUTH=implot.ImPlotLocation_Center
-    WEST=implot.ImPlotLocation_Center
-    EAST=implot.ImPlotLocation_Center
+    NORTH=implot.ImPlotLocation_North
+    SOUTH=implot.ImPlotLocation_South
+    WEST=implot.ImPlotLocation_West
+    EAST=implot.ImPlotLocation_East
     NORTHWEST=implot.ImPlotLocation_NorthWest
     NORTHEAST=implot.ImPlotLocation_NorthEast
     SOUTHWEST=implot.ImPlotLocation_SouthWest
