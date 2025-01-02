@@ -114,7 +114,7 @@ def setup_package():
         "dearcygui/backends/imgui_impl_sdl3.cpp",
         "thirdparty/imgui/backends/imgui_impl_opengl3.cpp",
         "thirdparty/imgui/misc/freetype/imgui_freetype.cpp",
-        "thirdparty/gl3w/GL/gl3w.c"
+        "thirdparty/gl3w/GL/gl3w.cpp"
     ]
 
     compile_args = ["-D_CRT_SECURE_NO_WARNINGS",
