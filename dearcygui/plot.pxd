@@ -145,6 +145,7 @@ cdef class PlotPieChart(plotElementWithLegend):
     cdef double _y
     cdef double _radius
     cdef double _angle
+    cdef string _label_format
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotDigital(plotElementXY):
@@ -164,3 +165,33 @@ cdef class PlotAnnotation(plotElement):
     cdef bint _clamp
     cdef void draw_element(self) noexcept nogil
 
+cdef class PlotHistogram(plotElementX):
+    cdef int _bins
+    cdef double _bar_scale
+    cdef double _range_min
+    cdef double _range_max
+    cdef bint _has_range
+    cdef void draw_element(self) noexcept nogil
+
+cdef class PlotHistogram2D(plotElementXY):
+    cdef int _x_bins
+    cdef int _y_bins 
+    cdef double _range_min_x
+    cdef double _range_max_x
+    cdef double _range_min_y
+    cdef double _range_max_y
+    cdef bint _has_range_x
+    cdef bint _has_range_y
+    cdef void draw_element(self) noexcept nogil
+
+cdef class PlotHeatmap(plotElementWithLegend):
+    cdef cnp.ndarray _values
+    cdef int _rows
+    cdef int _cols
+    cdef double _scale_min
+    cdef double _scale_max
+    cdef bint _auto_scale
+    cdef string _label_format
+    cdef double[2] _bounds_min
+    cdef double[2] _bounds_max
+    cdef void draw_element(self) noexcept nogil

@@ -3415,6 +3415,7 @@ cdef class PlotPieChart(plotElementWithLegend):
         self._y = 0.0
         self._radius = 1.0
         self._angle = 90.0
+        self._label_format = b"%.1f"  # Add default format string
         self._labels = vector[string]()
         self._labels.push_back(b"Slice 0")
 
@@ -3560,6 +3561,19 @@ cdef class PlotPieChart(plotElementWithLegend):
         if value:
             self._flags |= implot.ImPlotPieChartFlags_IgnoreHidden
 
+    @property
+    def label_format(self):
+        """Format string for slice value labels. Set to empty string to disable labels."""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return str(self._label_format, encoding='utf-8')
+
+    @label_format.setter
+    def label_format(self, str value not None):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._label_format = bytes(value, 'utf-8')
+
     cdef void draw_element(self) noexcept nogil:
         if self._values.shape[0] == 0:
             return
@@ -3578,7 +3592,7 @@ cdef class PlotPieChart(plotElementWithLegend):
                                     self._x,
                                     self._y,
                                     self._radius,
-                                    "%.1f",
+                                    self._label_format.c_str(),
                                     self._angle,
                                     self._flags)
         elif cnp.PyArray_TYPE(self._values) == cnp.NPY_FLOAT:
@@ -3587,8 +3601,8 @@ cdef class PlotPieChart(plotElementWithLegend):
                                       <int>self._values.shape[0],
                                       self._x,
                                       self._y,
-                                      self._radius,
-                                      "%.1f",
+                                      self._radius, 
+                                      self._label_format.c_str(),
                                       self._angle,
                                       self._flags)
         else:
@@ -3598,7 +3612,7 @@ cdef class PlotPieChart(plotElementWithLegend):
                                        self._x,
                                        self._y,
                                        self._radius,
-                                       "%.1f",
+                                       self._label_format.c_str(),
                                        self._angle,
                                        self._flags)
 
@@ -3880,3 +3894,550 @@ cdef class PlotAnnotation(plotElement):
                           self._clamp,
                           format_str,
                           self._text.c_str())
+
+cdef class PlotHistogram(plotElementX):
+    """
+    Plots a histogram from X,Y data points. Several binning options are available.
+    """
+    def __cinit__(self):
+        self._bins = -1  # Default to sqrt
+        self._bar_scale = 1.0
+        self._range_min = 0.0
+        self._range_max = 0.0
+        self._has_range = False
+
+    @property
+    def bins(self):
+        """Number of bins or binning method:
+        - Positive integer for explicit bin count
+        - -1 for sqrt(n) bins [default]
+        - -2 for Sturges formula: k = log2(n) + 1
+        - -3 for Rice rule: k = 2 * cuberoot(n)
+        - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._bins
+
+    @bins.setter 
+    def bins(self, int value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value < -4:
+            raise ValueError("Invalid bins value")
+        self._bins = value
+
+    @property
+    def bar_scale(self):
+        """Scale factor for each bar. Default is 1.0"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._bar_scale
+
+    @bar_scale.setter
+    def bar_scale(self, double value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._bar_scale = value
+
+    @property 
+    def range(self):
+        """Optional (min,max) range for binning. Values outside this range are ignored.
+        Returns None if no range set."""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if self._has_range:
+            return (self._range_min, self._range_max)
+        return None
+
+    @range.setter
+    def range(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value is None:
+            self._has_range = False
+            return
+        if not hasattr(value, '__len__') or len(value) != 2:
+            raise ValueError("Range must be None or (min,max) tuple")
+        self._range_min = float(value[0])
+        self._range_max = float(value[1])
+        self._has_range = True
+
+    @property
+    def horizontal(self):
+        """Histogram bars will be rendered horizontally"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotHistogramFlags_Horizontal) != 0
+
+    @horizontal.setter
+    def horizontal(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~implot.ImPlotHistogramFlags_Horizontal
+        if value:
+            self._flags |= implot.ImPlotHistogramFlags_Horizontal
+
+    @property
+    def cumulative(self):
+        """Each bin contains its count plus all previous bins"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotHistogramFlags_Cumulative) != 0
+
+    @cumulative.setter
+    def cumulative(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~implot.ImPlotHistogramFlags_Cumulative
+        if value:
+            self._flags |= implot.ImPlotHistogramFlags_Cumulative
+
+    @property
+    def density(self):
+        """Normalize counts to form a probability density"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotHistogramFlags_Density) != 0
+
+    @density.setter
+    def density(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~implot.ImPlotHistogramFlags_Density
+        if value:
+            self._flags |= implot.ImPlotHistogramFlags_Density
+
+    @property
+    def no_outliers(self):
+        """Exclude values outside of range from contributing to count/density"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotHistogramFlags_NoOutliers) != 0
+
+    @no_outliers.setter
+    def no_outliers(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~implot.ImPlotHistogramFlags_NoOutliers
+        if value:
+            self._flags |= implot.ImPlotHistogramFlags_NoOutliers
+
+    cdef void draw_element(self) noexcept nogil:
+        self.check_arrays()
+        cdef int size = self._X.shape[0]
+        if size == 0:
+            return
+
+        # Set up range if specified
+        cdef implot.ImPlotRange hist_range
+        if self._has_range:
+            hist_range.Min = self._range_min 
+            hist_range.Max = self._range_max
+        else:
+            # (0, 0) means unspecified
+            hist_range.Min = 0
+            hist_range.Max = 0
+
+        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
+            implot.PlotHistogram[int](self._imgui_label.c_str(), 
+                                     <const int*>cnp.PyArray_DATA(self._X),
+                                     size,
+                                     self._bins,
+                                     self._bar_scale,
+                                     hist_range,
+                                     self._flags)
+        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+            implot.PlotHistogram[float](self._imgui_label.c_str(),
+                                       <const float*>cnp.PyArray_DATA(self._X), 
+                                       size,
+                                       self._bins,
+                                       self._bar_scale,
+                                       hist_range,
+                                       self._flags)
+        else:
+            implot.PlotHistogram[double](self._imgui_label.c_str(),
+                                        <const double*>cnp.PyArray_DATA(self._X),
+                                        size,
+                                        self._bins,
+                                        self._bar_scale, 
+                                        hist_range,
+                                        self._flags)
+
+cdef class PlotHistogram2D(plotElementXY):
+    """
+    Plots a 2D histogram as a heatmap from X,Y coordinate pairs.
+    Several binning options are available.
+    """
+    def __cinit__(self):
+        self._x_bins = -1  # Default to sqrt
+        self._y_bins = -1  # Default to sqrt
+        self._range_min_x = 0.0
+        self._range_max_x = 0.0
+        self._range_min_y = 0.0 
+        self._range_max_y = 0.0
+        self._has_range_x = False
+        self._has_range_y = False
+
+    @property
+    def x_bins(self):
+        """Number of X-axis bins or binning method:
+        - Positive integer for explicit bin count
+        - -1 for sqrt(n) bins [default]
+        - -2 for Sturges formula: k = log2(n) + 1
+        - -3 for Rice rule: k = 2 * cuberoot(n)
+        - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._x_bins
+
+    @x_bins.setter
+    def x_bins(self, int value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value < -4:
+            raise ValueError("Invalid x_bins value")
+        self._x_bins = value
+
+    @property
+    def y_bins(self):
+        """Number of Y-axis bins or binning method:
+        - Positive integer for explicit bin count
+        - -1 for sqrt(n) bins [default]
+        - -2 for Sturges formula: k = log2(n) + 1
+        - -3 for Rice rule: k = 2 * cuberoot(n)
+        - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._y_bins
+
+    @y_bins.setter
+    def y_bins(self, int value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value < -4:
+            raise ValueError("Invalid y_bins value")
+        self._y_bins = value
+
+    @property
+    def range_x(self):
+        """Optional (min,max) range for X-axis binning. Values outside this range are ignored.
+        Returns None if no range set."""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if self._has_range_x:
+            return (self._range_min_x, self._range_max_x)
+        return None
+
+    @range_x.setter
+    def range_x(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value is None:
+            self._has_range_x = False
+            return
+        if not hasattr(value, '__len__') or len(value) != 2:
+            raise ValueError("X range must be None or (min,max) tuple")
+        self._range_min_x = float(value[0])
+        self._range_max_x = float(value[1])
+        self._has_range_x = True
+
+    @property
+    def range_y(self):
+        """Optional (min,max) range for Y-axis binning. Values outside this range are ignored.
+        Returns None if no range set."""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if self._has_range_y:
+            return (self._range_min_y, self._range_max_y)
+        return None
+
+    @range_y.setter 
+    def range_y(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value is None:
+            self._has_range_y = False
+            return
+        if not hasattr(value, '__len__') or len(value) != 2:
+            raise ValueError("Y range must be None or (min,max) tuple")
+        self._range_min_y = float(value[0])
+        self._range_max_y = float(value[1])
+        self._has_range_y = True
+
+    @property
+    def density(self):
+        """Normalize counts to form a probability density"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotHistogramFlags_Density) != 0
+
+    @density.setter
+    def density(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~implot.ImPlotHistogramFlags_Density
+        if value:
+            self._flags |= implot.ImPlotHistogramFlags_Density
+
+    @property
+    def no_outliers(self):
+        """Exclude values outside of range from contributing to count/density"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotHistogramFlags_NoOutliers) != 0
+
+    @no_outliers.setter
+    def no_outliers(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~implot.ImPlotHistogramFlags_NoOutliers
+        if value:
+            self._flags |= implot.ImPlotHistogramFlags_NoOutliers
+
+    cdef void draw_element(self) noexcept nogil:
+        self.check_arrays()
+        cdef int size = min(self._X.shape[0], self._Y.shape[0])
+        if size == 0:
+            return
+
+        # Set up ranges independently
+        cdef implot.ImPlotRange hist_range_x, hist_range_y
+        if self._has_range_x:
+            hist_range_x.Min = self._range_min_x
+            hist_range_x.Max = self._range_max_x
+        else:
+            # (0, 0) means unspecified
+            hist_range_x.Min = 0
+            hist_range_x.Max = 0
+            
+        if self._has_range_y:
+            hist_range_y.Min = self._range_min_y
+            hist_range_y.Max = self._range_max_y
+        else:
+            # (0, 0) means unspecified
+            hist_range_y.Min = 0
+            hist_range_y.Max = 0
+            
+        cdef implot.ImPlotRect hist_rect
+        hist_rect.X = hist_range_x
+        hist_rect.Y = hist_range_y
+
+        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
+            implot.PlotHistogram2D[int](self._imgui_label.c_str(),
+                                        <const int*>cnp.PyArray_DATA(self._X),
+                                        <const int*>cnp.PyArray_DATA(self._Y),
+                                        size,
+                                        self._x_bins,
+                                        self._y_bins,
+                                        hist_rect,
+                                        self._flags)
+        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+            implot.PlotHistogram2D[float](self._imgui_label.c_str(),
+                                          <const float*>cnp.PyArray_DATA(self._X),
+                                          <const float*>cnp.PyArray_DATA(self._Y),
+                                          size,
+                                          self._x_bins,
+                                          self._y_bins,
+                                          hist_rect,
+                                          self._flags)
+        else:
+            implot.PlotHistogram2D[double](self._imgui_label.c_str(),
+                                           <const double*>cnp.PyArray_DATA(self._X),
+                                           <const double*>cnp.PyArray_DATA(self._Y),
+                                           size,
+                                           self._x_bins,
+                                           self._y_bins,
+                                           hist_rect,
+                                           self._flags)
+
+cdef class PlotHeatmap(plotElementWithLegend):
+    """
+    Plots a 2D heatmap. Values are expected to be in row-major order by default.
+    
+    The heatmap is rendered using a colormap whose range can be specified with
+    scale_min/scale_max. Setting both to 0 enables automatic color scaling.
+    """
+    def __cinit__(self):
+        self._values = np.zeros(shape=(1,1), dtype=np.float64)
+        self._rows = 1
+        self._cols = 1
+        self._scale_min = 0
+        self._scale_max = 0
+        self._auto_scale = True
+        self._label_format = b"%.1f"
+        self._bounds_min = [0., 0.]
+        self._bounds_max = [1., 1.]
+
+    @property
+    def values(self):
+        """2D array of values to plot.
+        
+        The array shape should be (rows, cols) for row-major order,
+        or (cols, rows) for column-major order.
+
+        By default, will try to use the passed array directly for its 
+        internal backing (no copy). Supported types for no copy are 
+        np.int32, np.float32, np.float64.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._values
+
+    @values.setter
+    def values(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef cnp.ndarray array = np.asarray(value)
+        if array.ndim != 2:
+            raise ValueError("Values must be a 2D array") 
+        # We don't support array of pointers. Must be data,
+        # with eventually a non-standard stride
+        # type must also be one of the supported types
+        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
+           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
+            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
+            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
+            self._values = np.ascontiguousarray(array)
+        else:
+            self._values = np.ascontiguousarray(array, dtype=np.float64)
+        if self.col_major:
+            self._cols = array.shape[0]
+            self._rows = array.shape[1]
+        else:
+            self._rows = array.shape[0]
+            self._cols = array.shape[1]
+
+    @property
+    def scale_min(self):
+        """Minimum value for color scaling. Set to 0 for auto-scaling."""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._scale_min
+
+    @scale_min.setter
+    def scale_min(self, double value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._scale_min = value
+        self._auto_scale = (value == 0 and self._scale_max == 0)
+
+    @property
+    def scale_max(self):
+        """Maximum value for color scaling. Set to 0 for auto-scaling."""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._scale_max
+
+    @scale_max.setter
+    def scale_max(self, double value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._scale_max = value
+        self._auto_scale = (value == 0 and self._scale_min == 0)
+
+    @property
+    def label_format(self):
+        """Format string for cell labels. Set to empty string to disable labels."""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return str(self._label_format, encoding='utf-8')
+
+    @label_format.setter
+    def label_format(self, str value not None):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._label_format = bytes(value, 'utf-8')
+
+    @property
+    def bounds_min(self):
+        """Lower-left corner coordinates of the heatmap in plot space"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._bounds_min[0], self._bounds_min[1])
+
+    @bounds_min.setter
+    def bounds_min(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if not hasattr(value, '__len__') or len(value) != 2:
+            raise ValueError("bounds_min must be a 2-tuple")
+        self._bounds_min[0] = value[0]
+        self._bounds_min[1] = value[1]
+
+    @property
+    def bounds_max(self):
+        """Upper-right corner coordinates of the heatmap in plot space"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._bounds_max[0], self._bounds_max[1])
+
+    @bounds_max.setter
+    def bounds_max(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if not hasattr(value, '__len__') or len(value) != 2:
+            raise ValueError("bounds_max must be a 2-tuple")
+        self._bounds_max[0] = value[0]
+        self._bounds_max[1] = value[1]
+
+    @property
+    def col_major(self):
+        """If True, values array is interpreted in column-major order"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotHeatmapFlags_ColMajor) != 0
+
+    @col_major.setter
+    def col_major(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~implot.ImPlotHeatmapFlags_ColMajor
+        if value:
+            self._flags |= implot.ImPlotHeatmapFlags_ColMajor
+            # Update dimensions if array exists
+            self._cols = self._values.shape[0]
+            self._rows = self._values.shape[1]
+        else:
+            self._rows = self._values.shape[0] 
+            self._cols = self._values.shape[1]
+
+    cdef void draw_element(self) noexcept nogil:
+        if self._values.shape[0] == 0 or self._values.shape[1] == 0:
+            return
+
+        if cnp.PyArray_TYPE(self._values) == cnp.NPY_INT:
+            implot.PlotHeatmap[int](self._imgui_label.c_str(),
+                                    <const int*>cnp.PyArray_DATA(self._values),
+                                    self._rows,
+                                    self._cols,
+                                    self._scale_min,
+                                    self._scale_max,
+                                    self._label_format.c_str(),
+                                    implot.ImPlotPoint(self._bounds_min[0], self._bounds_min[1]),
+                                    implot.ImPlotPoint(self._bounds_max[0], self._bounds_max[1]),
+                                    self._flags)
+        elif cnp.PyArray_TYPE(self._values) == cnp.NPY_FLOAT:
+            implot.PlotHeatmap[float](self._imgui_label.c_str(),
+                                      <const float*>cnp.PyArray_DATA(self._values),
+                                      self._rows,
+                                      self._cols,
+                                      self._scale_min,
+                                      self._scale_max,
+                                      self._label_format.c_str(),
+                                      implot.ImPlotPoint(self._bounds_min[0], self._bounds_min[1]),
+                                      implot.ImPlotPoint(self._bounds_max[0], self._bounds_max[1]),
+                                      self._flags)
+        else:
+            implot.PlotHeatmap[double](self._imgui_label.c_str(),
+                                       <const double*>cnp.PyArray_DATA(self._values),
+                                       self._rows,
+                                       self._cols,
+                                       self._scale_min,
+                                       self._scale_max,
+                                       self._label_format.c_str(),
+                                       implot.ImPlotPoint(self._bounds_min[0], self._bounds_min[1]),
+                                       implot.ImPlotPoint(self._bounds_max[0], self._bounds_max[1]),
+                                       self._flags)
