@@ -8042,9 +8042,10 @@ class CollapsingHeader(uiItem):
 
 
 class ColorButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
 
+        alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         callback: callback object or list of callback objects
@@ -8057,6 +8058,7 @@ class ColorButton(uiItem):
             to do item.callbacks += [new_callback]
         children: List of all the children of the item,
             from first rendered, to last rendered.
+        data_type: Data type: float vs uint8
         enabled: Should the object be displayed as enabled ?
             the enabled state can be used to prevent edition of editable fields,
             or to use a specific disabled element theme.
@@ -8184,8 +8186,9 @@ class ColorButton(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
+        alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         callback: callback object or list of callback objects
@@ -8198,6 +8201,7 @@ class ColorButton(uiItem):
             to do item.callbacks += [new_callback]
         children: List of all the children of the item,
             from first rendered, to last rendered.
+        data_type: Data type: float vs uint8
         enabled: Should the object be displayed as enabled ?
             the enabled state can be used to prevent edition of editable fields,
             or to use a specific disabled element theme.
@@ -8416,6 +8420,20 @@ class ColorButton(uiItem):
 
 
     @property
+    def alpha_preview(self) -> str:
+        """
+        Writable attribute: Show preview with either full alpha or checker pattern
+        
+        """
+        ...
+
+
+    @alpha_preview.setter
+    def alpha_preview(self, value : str):
+        ...
+
+
+    @property
     def callbacks(self) -> list[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
@@ -8478,6 +8496,20 @@ class ColorButton(uiItem):
         Read-only attribute: Context in which the item resides
         
         """
+        ...
+
+
+    @property
+    def data_type(self) -> str:
+        """
+        Writable attribute: Data type: float vs uint8
+        
+        """
+        ...
+
+
+    @data_type.setter
+    def data_type(self, value : str):
         ...
 
 
@@ -9260,9 +9292,11 @@ class ColorButton(uiItem):
 
 
 class ColorEdit(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
 
+        alpha_bar: Show vertical alpha bar/gradient
+        alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         callback: callback object or list of callback objects
@@ -9275,6 +9309,8 @@ class ColorEdit(uiItem):
             to do item.callbacks += [new_callback]
         children: List of all the children of the item,
             from first rendered, to last rendered.
+        data_type: Data type: float vs uint8
+        display_mode: Color display mode: RGB/HSV/Hex
         enabled: Should the object be displayed as enabled ?
             the enabled state can be used to prevent edition of editable fields,
             or to use a specific disabled element theme.
@@ -9290,6 +9326,7 @@ class ColorEdit(uiItem):
             If read returns a list of handlers. Accept
             a handler or a list of handlers as input.
             This enables to do item.handlers += [new_handler].
+        hdr: Support HDR colors (multiplier can go beyond 1.0f and values can go above 1.0)
         height: Requested height of the item.
             When it is written, it is set to a 'requested value' that is not
             entirely guaranteed to be enforced.
@@ -9307,6 +9344,7 @@ class ColorEdit(uiItem):
                   remaining area minus one pixel.
         indent: Shifts horizontally the DEFAULT
             position of the item by the requested amount of pixels.
+        input_mode: Color input mode: RGB/HSV
         label: label assigned to the item.
             Used for text fields, window titles, etc
         next_sibling: child of the parent of the item that
@@ -9406,8 +9444,10 @@ class ColorEdit(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
+        alpha_bar: Show vertical alpha bar/gradient
+        alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         callback: callback object or list of callback objects
@@ -9420,6 +9460,8 @@ class ColorEdit(uiItem):
             to do item.callbacks += [new_callback]
         children: List of all the children of the item,
             from first rendered, to last rendered.
+        data_type: Data type: float vs uint8
+        display_mode: Color display mode: RGB/HSV/Hex
         enabled: Should the object be displayed as enabled ?
             the enabled state can be used to prevent edition of editable fields,
             or to use a specific disabled element theme.
@@ -9435,6 +9477,7 @@ class ColorEdit(uiItem):
             If read returns a list of handlers. Accept
             a handler or a list of handlers as input.
             This enables to do item.handlers += [new_handler].
+        hdr: Support HDR colors (multiplier can go beyond 1.0f and values can go above 1.0)
         height: Requested height of the item.
             When it is written, it is set to a 'requested value' that is not
             entirely guaranteed to be enforced.
@@ -9452,6 +9495,7 @@ class ColorEdit(uiItem):
                   remaining area minus one pixel.
         indent: Shifts horizontally the DEFAULT
             position of the item by the requested amount of pixels.
+        input_mode: Color input mode: RGB/HSV
         label: label assigned to the item.
             Used for text fields, window titles, etc
         next_sibling: child of the parent of the item that
@@ -9642,6 +9686,34 @@ class ColorEdit(uiItem):
 
 
     @property
+    def alpha_bar(self) -> bool:
+        """
+        Writable attribute: Show vertical alpha bar/gradient
+        
+        """
+        ...
+
+
+    @alpha_bar.setter
+    def alpha_bar(self, value : bool):
+        ...
+
+
+    @property
+    def alpha_preview(self) -> str:
+        """
+        Writable attribute: Show preview with either full alpha or checker pattern
+        
+        """
+        ...
+
+
+    @alpha_preview.setter
+    def alpha_preview(self, value : str):
+        ...
+
+
+    @property
     def callbacks(self) -> list[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
@@ -9708,6 +9780,20 @@ class ColorEdit(uiItem):
 
 
     @property
+    def data_type(self) -> str:
+        """
+        Writable attribute: Data type: float vs uint8
+        
+        """
+        ...
+
+
+    @data_type.setter
+    def data_type(self, value : str):
+        ...
+
+
+    @property
     def deactivated(self) -> bool:
         """
         Readonly attribute: has the item just turned un-active
@@ -9715,6 +9801,20 @@ class ColorEdit(uiItem):
         on handlers to catch this event.
         
         """
+        ...
+
+
+    @property
+    def display_mode(self) -> str:
+        """
+        Writable attribute: Color display mode: RGB/HSV/Hex
+        
+        """
+        ...
+
+
+    @display_mode.setter
+    def display_mode(self, value : str):
         ...
 
 
@@ -9799,6 +9899,20 @@ class ColorEdit(uiItem):
 
 
     @property
+    def hdr(self) -> bool:
+        """
+        Writable attribute: Support HDR colors (multiplier can go beyond 1.0f and values can go above 1.0)
+        
+        """
+        ...
+
+
+    @hdr.setter
+    def hdr(self, value : bool):
+        ...
+
+
+    @property
     def height(self) -> float:
         """
         Writable attribute: Requested height of the item.
@@ -9861,6 +9975,20 @@ class ColorEdit(uiItem):
 
     @indent.setter
     def indent(self, value : float):
+        ...
+
+
+    @property
+    def input_mode(self) -> str:
+        """
+        Writable attribute: Color input mode: RGB/HSV
+        
+        """
+        ...
+
+
+    @input_mode.setter
+    def input_mode(self, value : str):
         ...
 
 
@@ -10542,9 +10670,11 @@ class ColorEdit(uiItem):
 
 
 class ColorPicker(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
 
+        alpha_bar: Show vertical alpha bar/gradient
+        alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         callback: callback object or list of callback objects
@@ -10557,6 +10687,8 @@ class ColorPicker(uiItem):
             to do item.callbacks += [new_callback]
         children: List of all the children of the item,
             from first rendered, to last rendered.
+        data_type: Data type: float vs uint8
+        display_mode: Color display mode: RGB/HSV/Hex
         enabled: Should the object be displayed as enabled ?
             the enabled state can be used to prevent edition of editable fields,
             or to use a specific disabled element theme.
@@ -10589,6 +10721,7 @@ class ColorPicker(uiItem):
                   remaining area minus one pixel.
         indent: Shifts horizontally the DEFAULT
             position of the item by the requested amount of pixels.
+        input_mode: Color input mode: RGB/HSV
         label: label assigned to the item.
             Used for text fields, window titles, etc
         next_sibling: child of the parent of the item that
@@ -10605,10 +10738,11 @@ class ColorPicker(uiItem):
             scale which is defined by the dpi and the
             viewport/window scale.
             If set, disables this automated scaling.
-        no_side_preview: disable bigger color preview on right side of the picker, use small color square preview instead.
+        no_side_preview: disable bigger color preview on right side of the picker
         no_small_preview: disable color square preview next to the inputs. (e.g. to show only the inputs)
         no_tooltip: disable default tooltip when hovering the preview
         parent: parent of the item in the rendering tree.
+        picker_mode: Color picker mode: bar vs wheel
         pos_policy: Positioning policy
         pos_to_default: Relative position to the item's default position.
         pos_to_parent: Relative position to the parent's position, or to
@@ -10686,8 +10820,10 @@ class ColorPicker(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
+        alpha_bar: Show vertical alpha bar/gradient
+        alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         callback: callback object or list of callback objects
@@ -10700,6 +10836,8 @@ class ColorPicker(uiItem):
             to do item.callbacks += [new_callback]
         children: List of all the children of the item,
             from first rendered, to last rendered.
+        data_type: Data type: float vs uint8
+        display_mode: Color display mode: RGB/HSV/Hex
         enabled: Should the object be displayed as enabled ?
             the enabled state can be used to prevent edition of editable fields,
             or to use a specific disabled element theme.
@@ -10732,6 +10870,7 @@ class ColorPicker(uiItem):
                   remaining area minus one pixel.
         indent: Shifts horizontally the DEFAULT
             position of the item by the requested amount of pixels.
+        input_mode: Color input mode: RGB/HSV
         label: label assigned to the item.
             Used for text fields, window titles, etc
         next_sibling: child of the parent of the item that
@@ -10748,10 +10887,11 @@ class ColorPicker(uiItem):
             scale which is defined by the dpi and the
             viewport/window scale.
             If set, disables this automated scaling.
-        no_side_preview: disable bigger color preview on right side of the picker, use small color square preview instead.
+        no_side_preview: disable bigger color preview on right side of the picker
         no_small_preview: disable color square preview next to the inputs. (e.g. to show only the inputs)
         no_tooltip: disable default tooltip when hovering the preview
         parent: parent of the item in the rendering tree.
+        picker_mode: Color picker mode: bar vs wheel
         pos_policy: Positioning policy
         pos_to_default: Relative position to the item's default position.
         pos_to_parent: Relative position to the parent's position, or to
@@ -10920,6 +11060,34 @@ class ColorPicker(uiItem):
 
 
     @property
+    def alpha_bar(self) -> bool:
+        """
+        Writable attribute: Show vertical alpha bar/gradient
+        
+        """
+        ...
+
+
+    @alpha_bar.setter
+    def alpha_bar(self, value : bool):
+        ...
+
+
+    @property
+    def alpha_preview(self) -> str:
+        """
+        Writable attribute: Show preview with either full alpha or checker pattern
+        
+        """
+        ...
+
+
+    @alpha_preview.setter
+    def alpha_preview(self, value : str):
+        ...
+
+
+    @property
     def callbacks(self) -> list[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
@@ -10986,6 +11154,20 @@ class ColorPicker(uiItem):
 
 
     @property
+    def data_type(self) -> str:
+        """
+        Writable attribute: Data type: float vs uint8
+        
+        """
+        ...
+
+
+    @data_type.setter
+    def data_type(self, value : str):
+        ...
+
+
+    @property
     def deactivated(self) -> bool:
         """
         Readonly attribute: has the item just turned un-active
@@ -10993,6 +11175,20 @@ class ColorPicker(uiItem):
         on handlers to catch this event.
         
         """
+        ...
+
+
+    @property
+    def display_mode(self) -> str:
+        """
+        Writable attribute: Color display mode: RGB/HSV/Hex
+        
+        """
+        ...
+
+
+    @display_mode.setter
+    def display_mode(self, value : str):
         ...
 
 
@@ -11139,6 +11335,20 @@ class ColorPicker(uiItem):
 
     @indent.setter
     def indent(self, value : float):
+        ...
+
+
+    @property
+    def input_mode(self) -> str:
+        """
+        Writable attribute: Color input mode: RGB/HSV
+        
+        """
+        ...
+
+
+    @input_mode.setter
+    def input_mode(self, value : str):
         ...
 
 
@@ -11301,7 +11511,7 @@ class ColorPicker(uiItem):
     @property
     def no_side_preview(self) -> bool:
         """
-        Writable attribute: disable bigger color preview on right side of the picker, use small color square preview instead.
+        Writable attribute: disable bigger color preview on right side of the picker
         
         """
         ...
@@ -11395,6 +11605,20 @@ class ColorPicker(uiItem):
         way that does not deadlock.
         
         """
+        ...
+
+
+    @property
+    def picker_mode(self) -> str:
+        """
+        Writable attribute: Color picker mode: bar vs wheel
+        
+        """
+        ...
+
+
+    @picker_mode.setter
+    def picker_mode(self, value : str):
         ...
 
 
@@ -58554,7 +58778,7 @@ class PlotBarGroups(plotElementWithLegend):
             entry in the menu.
         font: font used for the text rendered
             of this item and its subitems
-        group_size: Size of each group.
+        group_size: Portion of the reserved width used for the bars of each group.
             Default is 0.67
         horizontal: Bar groups will be rendered horizontally on the current y-axis
         ignore_fit: Writable attribute to make this element
@@ -58587,8 +58811,10 @@ class PlotBarGroups(plotElementWithLegend):
         stacked: Items in a group will be stacked on top of each other
         theme: theme for the legend and plot
         user_data: User data of any type.
-        values: A row-major array with item_count rows and group_count columns.
-            Each row represents one label/plotline/color.
+        values: A row-major array with item_count columns and group_size rows.
+            Basically a 2D array where
+            - array.shape[0] = number of groups (=labels)
+            - array.shape[1] = number of items
         """
         ...
 
@@ -58625,7 +58851,7 @@ class PlotBarGroups(plotElementWithLegend):
             entry in the menu.
         font: font used for the text rendered
             of this item and its subitems
-        group_size: Size of each group.
+        group_size: Portion of the reserved width used for the bars of each group.
             Default is 0.67
         horizontal: Bar groups will be rendered horizontally on the current y-axis
         ignore_fit: Writable attribute to make this element
@@ -58658,8 +58884,10 @@ class PlotBarGroups(plotElementWithLegend):
         stacked: Items in a group will be stacked on top of each other
         theme: theme for the legend and plot
         user_data: User data of any type.
-        values: A row-major array with item_count rows and group_count columns.
-            Each row represents one label/plotline/color.
+        values: A row-major array with item_count columns and group_size rows.
+            Basically a 2D array where
+            - array.shape[0] = number of groups (=labels)
+            - array.shape[1] = number of items
         """
         ...
 
@@ -58836,7 +59064,7 @@ class PlotBarGroups(plotElementWithLegend):
     @property
     def group_size(self) -> float:
         """
-        Size of each group.
+        Portion of the reserved width used for the bars of each group.
         Default is 0.67
         
         """
@@ -59202,7 +59430,11 @@ class PlotBarGroups(plotElementWithLegend):
     @property
     def values(self) -> ndarray:
         """
-        A row-major array with item_count rows and group_count columns.
+        A row-major array with item_count columns and group_size rows.
+        Basically a 2D array where
+        - array.shape[0] = number of groups (=labels)
+        - array.shape[1] = number of items
+
         Each row represents one label/plotline/color.
 
         By default, will try to use the passed array
@@ -60370,6 +60602,670 @@ class PlotDigital(plotElementXY):
         way that does not deadlock.
         
         """
+        ...
+
+
+    @property
+    def previous_sibling(self) -> baseItem | None:
+        """
+        Writable attribute: child of the parent of the item that
+        is rendered just before this item.
+
+        It is not possible to have siblings if you have no parent,
+        thus if you intend to attach together items outside the
+        rendering tree, there must be a toplevel parent item.
+
+        If you write to this attribute, the item will be moved
+        to be inserted just after the target item.
+        In case of failure, the item remains in a detached state.
+
+        Note that a parent can have several child queues, and thus
+        child elements are not guaranteed to be siblings of each other.
+        
+        """
+        ...
+
+
+    @previous_sibling.setter
+    def previous_sibling(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def show(self) -> bool:
+        """
+        Writable attribute: Should the object be drawn/shown ?
+        In case show is set to False, this disables any
+        callback (for example the close callback won't be called
+        if a window is hidden with show = False).
+        In the case of items that can be closed,
+        show is set to False automatically on close.
+        
+        """
+        ...
+
+
+    @show.setter
+    def show(self, value : bool):
+        ...
+
+
+    @property
+    def theme(self):
+        """
+        Writable attribute: theme for the legend and plot
+        
+        """
+        ...
+
+
+    @theme.setter
+    def theme(self, value):
+        ...
+
+
+    @property
+    def user_data(self):
+        """
+        User data of any type.
+        
+        """
+        ...
+
+
+    @user_data.setter
+    def user_data(self, value):
+        ...
+
+
+    @property
+    def uuid(self) -> int:
+        """
+        Readonly attribute: uuid is an unique identifier created
+        by the context for the item.
+        uuid can be used to access the object by name for parent=,
+        previous_sibling=, next_sibling= arguments, but it is
+        preferred to pass the objects directly. 
+        
+        """
+        ...
+
+
+class PlotErrorBars(plotElementXY):
+    """
+    Plots vertical or horizontal error bars for X,Y data points.
+    Each error bar can have a different positive/negative error value.
+    
+    """
+    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Any = ..., next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, positives : ndarray = [0.], previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+
+        X: Values on the X axis.
+        attach: Whether to attach the item to a parent. Default is None (auto)
+        axes: (X axis, Y axis)
+            used for this plot element.
+            Default is (X1, Y1)
+        before: Attach the item just before the target item. Default is None (disabled)
+        children: List of all the children of the item,
+            from first rendered, to last rendered.
+        enabled: show/hide
+            the item while still having a toggable
+            entry in the menu.
+        font: font used for the text rendered
+            of this item and its subitems
+        horizontal: Error bars will be rendered horizontally on the current y-axis
+        ignore_fit: Writable attribute to make this element
+            be ignored during plot fits
+        label: label assigned to the element
+        legend_button: Button that opens the legend entry for
+            this element.
+            Default is the right mouse button.
+        legend_handlers: bound handlers for the legend.
+            Only visible (set for the plot) and hovered (set 
+            for the legend) handlers are compatible.
+            To detect if the plot element is hovered, check
+            the hovered state of the plot.
+        negatives: Negative error values array.
+            
+            If set to None, the error bars will be symmetrical.
+            (This is equivalent to negatives=positives)
+        next_sibling: child of the parent of the item that
+            is rendered just after this item.
+        no_legend: Writable attribute to disable the legend for this plot
+            element
+        parent: parent of the item in the rendering tree.
+        positives: Positive error values array.
+        previous_sibling: child of the parent of the item that
+            is rendered just before this item.
+        show: Should the object be drawn/shown ?
+            In case show is set to False, this disables any
+            callback (for example the close callback won't be called
+            if a window is hidden with show = False).
+            In the case of items that can be closed,
+            show is set to False automatically on close.
+        theme: theme for the legend and plot
+        user_data: User data of any type.
+        """
+        ...
+
+
+    def attach_before(self, target):
+        """
+        Same as item.next_sibling = target,
+        but target must not be None
+        
+        """
+        ...
+
+
+    def attach_to_parent(self, target):
+        """
+        Same as item.parent = target, but
+        target must not be None
+        
+        """
+        ...
+
+
+    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Any = ..., next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, positives : ndarray = [0.], previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        X: Values on the X axis.
+        attach: Whether to attach the item to a parent. Default is None (auto)
+        axes: (X axis, Y axis)
+            used for this plot element.
+            Default is (X1, Y1)
+        before: Attach the item just before the target item. Default is None (disabled)
+        children: List of all the children of the item,
+            from first rendered, to last rendered.
+        enabled: show/hide
+            the item while still having a toggable
+            entry in the menu.
+        font: font used for the text rendered
+            of this item and its subitems
+        horizontal: Error bars will be rendered horizontally on the current y-axis
+        ignore_fit: Writable attribute to make this element
+            be ignored during plot fits
+        label: label assigned to the element
+        legend_button: Button that opens the legend entry for
+            this element.
+            Default is the right mouse button.
+        legend_handlers: bound handlers for the legend.
+            Only visible (set for the plot) and hovered (set 
+            for the legend) handlers are compatible.
+            To detect if the plot element is hovered, check
+            the hovered state of the plot.
+        negatives: Negative error values array.
+            
+            If set to None, the error bars will be symmetrical.
+            (This is equivalent to negatives=positives)
+        next_sibling: child of the parent of the item that
+            is rendered just after this item.
+        no_legend: Writable attribute to disable the legend for this plot
+            element
+        parent: parent of the item in the rendering tree.
+        positives: Positive error values array.
+        previous_sibling: child of the parent of the item that
+            is rendered just before this item.
+        show: Should the object be drawn/shown ?
+            In case show is set to False, this disables any
+            callback (for example the close callback won't be called
+            if a window is hidden with show = False).
+            In the case of items that can be closed,
+            show is set to False automatically on close.
+        theme: theme for the legend and plot
+        user_data: User data of any type.
+        """
+        ...
+
+
+    def delete_item(self):
+        """
+        When an item is not referenced anywhere, it might
+        not get deleted immediately, due to circular references.
+        The Python garbage collector will eventually catch
+        the circular references, but to speedup the process,
+        delete_item will recursively detach the item
+        and all elements in its subtree, as well as bound
+        items. As a result, items with no more references
+        will be freed immediately.
+        
+        """
+        ...
+
+
+    def detach_item(self):
+        """
+        Same as item.parent = None
+
+        The item states (if any) are updated
+        to indicate it is not rendered anymore,
+        and the information propagated to the
+        children.
+        
+        """
+        ...
+
+
+    def lock_mutex(self, wait=False):
+        """
+        Lock the internal item mutex.
+        **Know what you are doing**
+        Locking the mutex will prevent:
+        . Other threads from reading/writing
+          attributes or calling methods with this item,
+          editing the children/parent of the item
+        . Any rendering of this item and its children.
+          If the viewport attemps to render this item,
+          it will be blocked until the mutex is released.
+          (if the rendering thread is holding the mutex,
+           no blocking occurs)
+        This is useful if you want to edit several attributes
+        in several commands of an item or its subtree,
+        and prevent rendering or other threads from accessing
+        the item until you have finished.
+        If you plan on moving the item position in the rendering
+        tree, to avoid deadlock you must hold the mutex of a
+        parent of all the items involved in the motion (a common
+        parent of the source and target parent). This mutex has to
+        be locked before you lock any mutex of your child item
+        if this item is already in the rendering tree (to avoid
+        deadlock with the rendering thread).
+        If you are unsure and plans to move an item already
+        in the rendering tree, it is thus best to lock the viewport
+        mutex first.
+
+        Input argument:
+        . wait (default = False): if locking the mutex fails (mutex
+          held by another thread), wait it is released
+
+        Returns: True if the mutex is held, False else.
+
+        The mutex is a recursive mutex, thus you can lock it several
+        times in the same thread. Each lock has to be matched to an unlock.
+        
+        """
+        ...
+
+
+    def unlock_mutex(self):
+        """
+        Unlock a previously held mutex on this object by this thread.
+        Returns True on success, False if no lock was held by this thread.
+        
+        """
+        ...
+
+
+    def __enter__(self) -> PlotErrorBars:
+        ...
+
+
+    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
+        ...
+
+
+    @property
+    def X(self) -> ndarray:
+        """Values on the X axis.
+
+        By default, will try to use the passed array
+        directly for its internal backing (no copy).
+        Supported types for no copy are np.int32,
+        np.float32, np.float64.
+        
+        """
+        ...
+
+
+    @X.setter
+    def X(self, value : ndarray):
+        ...
+
+
+    @property
+    def Y(self) -> ndarray:
+        ...
+
+
+    @Y.setter
+    def Y(self, value : ndarray):
+        ...
+
+
+    @property
+    def axes(self) -> tuple:
+        """
+        Writable attribute: (X axis, Y axis)
+        used for this plot element.
+        Default is (X1, Y1)
+        
+        """
+        ...
+
+
+    @axes.setter
+    def axes(self, value : tuple):
+        ...
+
+
+    @property
+    def children(self) -> list[uiItem]:
+        """
+        Writable attribute: List of all the children of the item,
+        from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+        
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : list[uiItem]):
+        ...
+
+
+    @property
+    def children_types(self) -> ChildType:
+        """Returns which types of children can be attached to this item
+        """
+        ...
+
+
+    @property
+    def context(self) -> Context:
+        """
+        Read-only attribute: Context in which the item resides
+        
+        """
+        ...
+
+
+    @property
+    def enabled(self) -> bool:
+        """
+        Writable attribute: show/hide
+        the item while still having a toggable
+        entry in the menu.
+        
+        """
+        ...
+
+
+    @enabled.setter
+    def enabled(self, value : bool):
+        ...
+
+
+    @property
+    def font(self) -> Font:
+        """
+        Writable attribute: font used for the text rendered
+        of this item and its subitems
+        
+        """
+        ...
+
+
+    @font.setter
+    def font(self, value : Font):
+        ...
+
+
+    @property
+    def horizontal(self) -> bool:
+        """
+        Error bars will be rendered horizontally on the current y-axis
+        
+        """
+        ...
+
+
+    @horizontal.setter
+    def horizontal(self, value : bool):
+        ...
+
+
+    @property
+    def ignore_fit(self) -> bool:
+        """
+        Writable attribute to make this element
+        be ignored during plot fits
+        
+        """
+        ...
+
+
+    @ignore_fit.setter
+    def ignore_fit(self, value : bool):
+        ...
+
+
+    @property
+    def item_type(self) -> ChildType:
+        """Returns which type of child this item is
+        """
+        ...
+
+
+    @property
+    def label(self) -> str:
+        """
+        Writable attribute: label assigned to the element
+        
+        """
+        ...
+
+
+    @label.setter
+    def label(self, value : str):
+        ...
+
+
+    @property
+    def legend_button(self) -> MouseButton:
+        """
+        Button that opens the legend entry for
+        this element.
+        Default is the right mouse button.
+        
+        """
+        ...
+
+
+    @legend_button.setter
+    def legend_button(self, value : MouseButton):
+        ...
+
+
+    @property
+    def legend_handlers(self) -> list:
+        """
+        Writable attribute: bound handlers for the legend.
+        Only visible (set for the plot) and hovered (set 
+        for the legend) handlers are compatible.
+        To detect if the plot element is hovered, check
+        the hovered state of the plot.
+        
+        """
+        ...
+
+
+    @legend_handlers.setter
+    def legend_handlers(self, value : list):
+        ...
+
+
+    @property
+    def legend_hovered(self) -> bool:
+        """
+        Readonly attribute: Is the legend of this
+        item hovered.
+        
+        """
+        ...
+
+
+    @property
+    def mutex(self) -> wrap_mutex:
+        """
+        Context manager instance for the item mutex
+
+        Locking the mutex will prevent:
+        . Other threads from reading/writing
+          attributes or calling methods with this item,
+          editing the children/parent of the item
+        . Any rendering of this item and its children.
+          If the viewport attemps to render this item,
+          it will be blocked until the mutex is released.
+          (if the rendering thread is holding the mutex,
+           no blocking occurs)
+
+        In general, you don't need to use any mutex in your code,
+        unless you are writing a library and cannot make assumptions
+        on what the users will do, or if you know your code manipulates
+        the same objects with multiple threads.
+
+        All attribute accesses are mutex protected.
+
+        If you want to subclass and add attributes, you
+        can use this mutex to protect your new attributes.
+        Be careful not to hold the mutex if your thread
+        intends to access the attributes of a parent item.
+        In case of doubt use parents_mutex instead.
+        
+        """
+        ...
+
+
+    @property
+    def negatives(self):
+        """Negative error values array.
+        
+        If set to None, the error bars will be symmetrical.
+        (This is equivalent to negatives=positives)
+        
+        """
+        ...
+
+
+    @negatives.setter
+    def negatives(self, value):
+        ...
+
+
+    @property
+    def next_sibling(self) -> baseItem | None:
+        """
+        Writable attribute: child of the parent of the item that
+        is rendered just after this item.
+
+        It is not possible to have siblings if you have no parent,
+        thus if you intend to attach together items outside the
+        rendering tree, there must be a toplevel parent item.
+
+        If you write to this attribute, the item will be moved
+        to be inserted just before the target item.
+        In case of failure, the item remains in a detached state.
+        
+        """
+        ...
+
+
+    @next_sibling.setter
+    def next_sibling(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def no_legend(self) -> bool:
+        """
+        Writable attribute to disable the legend for this plot
+        element
+        
+        """
+        ...
+
+
+    @no_legend.setter
+    def no_legend(self, value : bool):
+        ...
+
+
+    @property
+    def parent(self) -> Plot | None:
+        """
+        Writable attribute: parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+        . Remove the item from the tree, remove all your references.
+          If the item has children or siblings, the item will not be
+          released until Python's garbage collection detects a
+          circular reference.
+        . Use delete_item to remove the item from the tree, and remove
+          all the internal references inside the item structure and
+          the item's children, thus allowing them to be removed from
+          memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+        
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : Plot | None):
+        ...
+
+
+    @property
+    def parents_mutex(self) -> wrap_this_and_parents_mutex:
+        """Context manager instance for the item mutex and all its parents
+        
+        Similar to mutex but locks not only this item, but also all
+        its current parents.
+        If you want to access parent fields, or if you are unsure,
+        lock this mutex rather than self.mutex.
+        This mutex will lock the item and all its parent in a safe
+        way that does not deadlock.
+        
+        """
+        ...
+
+
+    @property
+    def positives(self) -> ndarray:
+        """Positive error values array.
+
+        If negatives is set to None,
+        the error bars will be symmetrical around the Y value.
+        
+        """
+        ...
+
+
+    @positives.setter
+    def positives(self, value : ndarray):
         ...
 
 
@@ -71192,7 +72088,7 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class SharedFloatVect(SharedValue):
-    def __init__(self, context : Context, value : Any):
+    def __init__(self, context : Context, value : ndarray):
         """
 Initialize self.  See help(type(self)) for accurate signature.
         """
@@ -71236,12 +72132,12 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
     @property
-    def value(self):
+    def value(self) -> ndarray:
         ...
 
 
     @value.setter
-    def value(self, value):
+    def value(self, value : ndarray):
         ...
 
 
@@ -71473,7 +72369,7 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class SimplePlot(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : bytes = b'', parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : bytes = b'', parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : ndarray = [0.], width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -71617,7 +72513,7 @@ class SimplePlot(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : bytes = b'', parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : bytes = b'', parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : ndarray = [0.], width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         autoscale: Whether scale_min and scale_max should be deduced
@@ -72640,7 +73536,7 @@ class SimplePlot(uiItem):
 
 
     @property
-    def value(self):
+    def value(self) -> ndarray:
         """
         Writable attribute: main internal value for the object.
         For buttons, it is set when pressed; For text it is the
@@ -72657,7 +73553,7 @@ class SimplePlot(uiItem):
 
 
     @value.setter
-    def value(self, value):
+    def value(self, value : ndarray):
         ...
 
 
@@ -88499,7 +89395,7 @@ class ThemeStyleImNodes(baseThemeStyle):
 
 
 class ThemeStyleImPlot(baseThemeStyle):
-    def __init__(self, context : Context, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : float | None = None, MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : Any = ..., MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
         """
 
         AnnotationPadding: Text padding around annotation labels.
@@ -88569,7 +89465,7 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    def configure(self, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : float | None = None, MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def configure(self, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : Any = ..., MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
         """
         AnnotationPadding: Text padding around annotation labels.
         DigitalBitGap: Digital channels bit padding gap in pixels.
@@ -88947,18 +89843,18 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @property
-    def Marker(self) -> float | None:
+    def Marker(self):
         """
         Marker specification.
 
-        The value is an integer. Defaults to 1.
+        The value is a PlotMarker. Defaults to PlotMarker.NONE.
         
         """
         ...
 
 
     @Marker.setter
-    def Marker(self, value : float | None):
+    def Marker(self, value):
         ...
 
 
