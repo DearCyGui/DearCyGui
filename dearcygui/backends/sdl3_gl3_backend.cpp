@@ -308,7 +308,12 @@ SDLViewport* SDLViewport::create(render_fun render,
                              on_close_fun on_close,
                              on_drop_fun on_drop,
                              void* callback_data) {
+#ifdef _WIN32
+    // Gamepad support disabled for windows, see setup.py
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+#else
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
+#endif
         printf("Error: SDL_Init(): %s\n", SDL_GetError());
         return nullptr;
     }
