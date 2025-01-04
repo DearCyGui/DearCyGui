@@ -724,23 +724,23 @@ cdef Vec2 get_cursor_pos() noexcept nogil:
     result.y = pos.y
     return result
 
-cdef void push_theme_color(ThemeCol idx, float r, float g, float b, float a) noexcept nogil:
+cdef void push_theme_color(int idx, float r, float g, float b, float a) noexcept nogil:
     imgui.PushStyleColor(idx, imgui.ImVec4(r, g, b, a))
 
 cdef void pop_theme_color() noexcept nogil:
     imgui.PopStyleColor(1)
     
-cdef void push_theme_style_float(StyleVar idx, float val) noexcept nogil:
+cdef void push_theme_style_float(int idx, float val) noexcept nogil:
     imgui.PushStyleVar(idx, val)
 
-cdef void push_theme_style_vec2(StyleVar idx, float x, float y) noexcept nogil:
+cdef void push_theme_style_vec2(int idx, float x, float y) noexcept nogil:
     cdef imgui.ImVec2 val = imgui.ImVec2(x, y)
     imgui.PushStyleVar(idx, val)
     
 cdef void pop_theme_style() noexcept nogil:
     imgui.PopStyleVar(1)
 
-cdef Vec4 get_theme_color(ThemeCol idx) noexcept nogil:
+cdef Vec4 get_theme_color(int idx) noexcept nogil:
     """Retrieve the current theme color for a target idx."""
     cdef imgui.ImVec4 color = imgui.GetStyleColorVec4(idx)
     cdef Vec4 result

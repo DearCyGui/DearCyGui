@@ -4,7 +4,7 @@ are useful to do custom items in DearCyGui.
 
 It doesn't need the user to compile or link against ImGui.
 
-THESE FUNCTIONS SHOULD ONLY BE CALLED FROM draw() METHODS OF CUSTOM ITEMS.
+ALL THESE FUNCTIONS SHOULD ONLY BE CALLED FROM draw() METHODS OF CUSTOM ITEMS.
 
 Viewport Rendering Fields
 -----------------------
@@ -375,105 +375,28 @@ cdef Vec2 get_cursor_pos() noexcept nogil
     and restore parent_pos afterward.
 """
 
-# Theme color indices
-cdef enum ThemeCol:
-    Text = 0
-    TextDisabled = 1  
-    WindowBg = 2
-    ChildBg = 3
-    PopupBg = 4
-    Border = 5
-    BorderShadow = 6
-    FrameBg = 7
-    FrameBgHovered = 8
-    FrameBgActive = 9
-    TitleBg = 10
-    TitleBgActive = 11
-    TitleBgCollapsed = 12
-    MenuBarBg = 13
-    ScrollbarBg = 14
-    ScrollbarGrab = 15
-    ScrollbarGrabHovered = 16 
-    ScrollbarGrabActive = 17
-    CheckMark = 18
-    SliderGrab = 19
-    SliderGrabActive = 20
-    Button = 21
-    ButtonHovered = 22
-    ButtonActive = 23
-    Header = 24
-    HeaderHovered = 25
-    HeaderActive = 26
-    Separator = 27
-    SeparatorHovered = 28
-    SeparatorActive = 29
-    ResizeGrip = 30
-    ResizeGripHovered = 31
-    ResizeGripActive = 32
-    Tab = 33
-    TabHovered = 34
-    TabActive = 35
-    TabUnfocused = 36
-    TabUnfocusedActive = 37
-    PlotLines = 38
-    PlotLinesHovered = 39
-    PlotHistogram = 40
-    PlotHistogramHovered = 41
-    TableHeaderBg = 42
-    TableBorderStrong = 43
-    TableBorderLight = 44
-    TableRowBg = 45
-    TableRowBgAlt = 46
-    TextSelectedBg = 47
-    DragDropTarget = 48
-    NavHighlight = 49
-    NavWindowingHighlight = 50
-    
-# Style variable indices
-cdef enum StyleVar:
-    Alpha = 0
-    DisabledAlpha = 1
-    WindowPadding = 2  
-    WindowRounding = 3
-    WindowBorderSize = 4
-    WindowMinSize = 5
-    WindowTitleAlign = 6
-    ChildRounding = 7
-    ChildBorderSize = 8
-    PopupRounding = 9
-    PopupBorderSize = 10
-    FramePadding = 11
-    FrameRounding = 12
-    FrameBorderSize = 13
-    ItemSpacing = 14
-    ItemInnerSpacing = 15
-    IndentSpacing = 16
-    CellPadding = 17
-    ScrollbarSize = 18
-    ScrollbarRounding = 19
-    GrabMinSize = 20
-    GrabRounding = 21
-    TabRounding = 22
-    ButtonTextAlign = 23
-    SelectableTextAlign = 24
     
 # Theme functions
-cdef void push_theme_color(ThemeCol idx, float r, float g, float b, float a) noexcept nogil
+# The indices of must be resolved using
+# ImGuiColorIndex, etc enums which are available
+# using an import dearcygui.
+# Load these indices in your __cinit__.
+cdef void push_theme_color(int idx, float r, float g, float b, float a) noexcept nogil
 """Push a theme color onto the stack (use at start of drawing code)"""
 
 cdef void pop_theme_color() noexcept nogil
 """Pop a theme color from the stack (use at end of drawing code)"""
 
-cdef void push_theme_style_float(StyleVar idx, float val) noexcept nogil
+cdef void push_theme_style_float(int idx, float val) noexcept nogil
 """Push a float style value onto the stack"""
 
-cdef void push_theme_style_vec2(StyleVar idx, float x, float y) noexcept nogil  
+cdef void push_theme_style_vec2(int idx, float x, float y) noexcept nogil  
 """Push a Vec2 style value onto the stack"""
 
 cdef void pop_theme_style() noexcept nogil
 """Pop a style value from the stack"""
 
-cdef Vec4 get_theme_color(ThemeCol idx) noexcept nogil
+cdef Vec4 get_theme_color(int idx) noexcept nogil
 """
 Retrieve the current theme color for a target idx.
 

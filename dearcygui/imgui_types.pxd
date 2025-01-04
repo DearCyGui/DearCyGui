@@ -130,3 +130,156 @@ cdef inline Vec4 ImVec4Vec4(imgui.ImVec4 src) noexcept nogil:
     dst.w = src.w
     return dst
 
+# For extensions to be able to use the
+# theme style, it needs to retrieve the index
+# of the style from the theme.
+# The idea of these structures is not to cimport them
+# in user custom extensions, but rather they would
+# import the python version (import instead of cimport)
+# to get the indices, and store them for use.
+
+cpdef enum class ImGuiStyleIndex:
+    Alpha = imgui.ImGuiStyleVar_Alpha
+    DisabledAlpha = imgui.ImGuiStyleVar_DisabledAlpha
+    WindowPadding = imgui.ImGuiStyleVar_WindowPadding
+    WindowRounding = imgui.ImGuiStyleVar_WindowRounding
+    WindowBorderSize = imgui.ImGuiStyleVar_WindowBorderSize
+    WindowMinSize = imgui.ImGuiStyleVar_WindowMinSize
+    WindowTitleAlign = imgui.ImGuiStyleVar_WindowTitleAlign
+    ChildRounding = imgui.ImGuiStyleVar_ChildRounding
+    ChildBorderSize = imgui.ImGuiStyleVar_ChildBorderSize
+    PopupRounding = imgui.ImGuiStyleVar_PopupRounding
+    PopupBorderSize = imgui.ImGuiStyleVar_PopupBorderSize
+    FramePadding = imgui.ImGuiStyleVar_FramePadding
+    FrameRounding = imgui.ImGuiStyleVar_FrameRounding
+    FrameBorderSize = imgui.ImGuiStyleVar_FrameBorderSize
+    ItemSpacing = imgui.ImGuiStyleVar_ItemSpacing
+    ItemInnerSpacing = imgui.ImGuiStyleVar_ItemInnerSpacing
+    IndentSpacing = imgui.ImGuiStyleVar_IndentSpacing
+    CellPadding = imgui.ImGuiStyleVar_CellPadding
+    ScrollbarSize = imgui.ImGuiStyleVar_ScrollbarSize
+    ScrollbarRounding = imgui.ImGuiStyleVar_ScrollbarRounding
+    GrabMinSize = imgui.ImGuiStyleVar_GrabMinSize
+    GrabRounding = imgui.ImGuiStyleVar_GrabRounding
+    TabRounding = imgui.ImGuiStyleVar_TabRounding
+    TabBorderSize = imgui.ImGuiStyleVar_TabBorderSize
+    TabBarBorderSize = imgui.ImGuiStyleVar_TabBarBorderSize
+    TabBarOverlineSize = imgui.ImGuiStyleVar_TabBarOverlineSize
+    TableAngledHeadersAngle = imgui.ImGuiStyleVar_TableAngledHeadersAngle
+    TableAngledHeadersTextAlign = imgui.ImGuiStyleVar_TableAngledHeadersTextAlign
+    ButtonTextAlign = imgui.ImGuiStyleVar_ButtonTextAlign
+    SelectableTextAlign = imgui.ImGuiStyleVar_SelectableTextAlign
+    SeparatorTextBorderSize = imgui.ImGuiStyleVar_SeparatorTextBorderSize
+    SeparatorTextAlign = imgui.ImGuiStyleVar_SeparatorTextAlign
+    SeparatorTextPadding = imgui.ImGuiStyleVar_SeparatorTextPadding
+
+cpdef enum class ImGuiColorIndex:
+    Text = imgui.ImGuiCol_Text
+    TextDisabled = imgui.ImGuiCol_TextDisabled
+    WindowBg = imgui.ImGuiCol_WindowBg
+    ChildBg = imgui.ImGuiCol_ChildBg
+    PopupBg = imgui.ImGuiCol_PopupBg
+    Border = imgui.ImGuiCol_Border
+    BorderShadow = imgui.ImGuiCol_BorderShadow
+    FrameBg = imgui.ImGuiCol_FrameBg
+    FrameBgHovered = imgui.ImGuiCol_FrameBgHovered
+    FrameBgActive = imgui.ImGuiCol_FrameBgActive
+    TitleBg = imgui.ImGuiCol_TitleBg
+    TitleBgActive = imgui.ImGuiCol_TitleBgActive
+    TitleBgCollapsed = imgui.ImGuiCol_TitleBgCollapsed
+    MenuBarBg = imgui.ImGuiCol_MenuBarBg
+    ScrollbarBg = imgui.ImGuiCol_ScrollbarBg
+    ScrollbarGrab = imgui.ImGuiCol_ScrollbarGrab
+    ScrollbarGrabHovered = imgui.ImGuiCol_ScrollbarGrabHovered
+    ScrollbarGrabActive = imgui.ImGuiCol_ScrollbarGrabActive
+    CheckMark = imgui.ImGuiCol_CheckMark
+    SliderGrab = imgui.ImGuiCol_SliderGrab
+    SliderGrabActive = imgui.ImGuiCol_SliderGrabActive
+    Button = imgui.ImGuiCol_Button
+    ButtonHovered = imgui.ImGuiCol_ButtonHovered
+    ButtonActive = imgui.ImGuiCol_ButtonActive
+    Header = imgui.ImGuiCol_Header
+    HeaderHovered = imgui.ImGuiCol_HeaderHovered
+    HeaderActive = imgui.ImGuiCol_HeaderActive
+    Separator = imgui.ImGuiCol_Separator
+    SeparatorHovered = imgui.ImGuiCol_SeparatorHovered
+    SeparatorActive = imgui.ImGuiCol_SeparatorActive
+    ResizeGrip = imgui.ImGuiCol_ResizeGrip
+    ResizeGripHovered = imgui.ImGuiCol_ResizeGripHovered
+    ResizeGripActive = imgui.ImGuiCol_ResizeGripActive
+    TabHovered = imgui.ImGuiCol_TabHovered
+    Tab = imgui.ImGuiCol_Tab
+    TabSelected = imgui.ImGuiCol_TabSelected
+    TabSelectedOverline = imgui.ImGuiCol_TabSelectedOverline
+    TabDimmed = imgui.ImGuiCol_TabDimmed
+    TabDimmedSelected = imgui.ImGuiCol_TabDimmedSelected
+    TabDimmedSelectedOverline = imgui.ImGuiCol_TabDimmedSelectedOverline
+    PlotLines = imgui.ImGuiCol_PlotLines
+    PlotLinesHovered = imgui.ImGuiCol_PlotLinesHovered
+    PlotHistogram = imgui.ImGuiCol_PlotHistogram
+    PlotHistogramHovered = imgui.ImGuiCol_PlotHistogramHovered
+    TableHeaderBg = imgui.ImGuiCol_TableHeaderBg
+    TableBorderStrong = imgui.ImGuiCol_TableBorderStrong
+    TableBorderLight = imgui.ImGuiCol_TableBorderLight
+    TableRowBg = imgui.ImGuiCol_TableRowBg
+    TableRowBgAlt = imgui.ImGuiCol_TableRowBgAlt
+    TextLink = imgui.ImGuiCol_TextLink
+    TextSelectedBg = imgui.ImGuiCol_TextSelectedBg
+    DragDropTarget = imgui.ImGuiCol_DragDropTarget
+    NavCursor = imgui.ImGuiCol_NavCursor
+    NavWindowingHighlight = imgui.ImGuiCol_NavWindowingHighlight
+    NavWindowingDimBg = imgui.ImGuiCol_NavWindowingDimBg
+    ModalWindowDimBg = imgui.ImGuiCol_ModalWindowDimBg
+
+cpdef enum class ImPlotStyleIndex:
+    LineWeight = implot.ImPlotStyleVar_LineWeight
+    Marker = implot.ImPlotStyleVar_Marker
+    MarkerSize = implot.ImPlotStyleVar_MarkerSize
+    MarkerWeight = implot.ImPlotStyleVar_MarkerWeight
+    FillAlpha = implot.ImPlotStyleVar_FillAlpha
+    ErrorBarSize = implot.ImPlotStyleVar_ErrorBarSize
+    ErrorBarWeight = implot.ImPlotStyleVar_ErrorBarWeight
+    DigitalBitHeight = implot.ImPlotStyleVar_DigitalBitHeight
+    DigitalBitGap = implot.ImPlotStyleVar_DigitalBitGap
+    PlotBorderSize = implot.ImPlotStyleVar_PlotBorderSize
+    MinorAlpha = implot.ImPlotStyleVar_MinorAlpha
+    MajorTickLen = implot.ImPlotStyleVar_MajorTickLen
+    MinorTickLen = implot.ImPlotStyleVar_MinorTickLen
+    MajorTickSize = implot.ImPlotStyleVar_MajorTickSize
+    MinorTickSize = implot.ImPlotStyleVar_MinorTickSize
+    MajorGridSize = implot.ImPlotStyleVar_MajorGridSize
+    MinorGridSize = implot.ImPlotStyleVar_MinorGridSize
+    PlotPadding = implot.ImPlotStyleVar_PlotPadding
+    LabelPadding = implot.ImPlotStyleVar_LabelPadding
+    LegendPadding = implot.ImPlotStyleVar_LegendPadding
+    LegendInnerPadding = implot.ImPlotStyleVar_LegendInnerPadding
+    LegendSpacing = implot.ImPlotStyleVar_LegendSpacing
+    MousePosPadding = implot.ImPlotStyleVar_MousePosPadding
+    AnnotationPadding = implot.ImPlotStyleVar_AnnotationPadding
+    FitPadding = implot.ImPlotStyleVar_FitPadding
+    PlotDefaultSize = implot.ImPlotStyleVar_PlotDefaultSize
+    PlotMinSize = implot.ImPlotStyleVar_PlotMinSize
+
+cpdef enum class ImPlotColorIndex:
+    Line = implot.ImPlotCol_Line
+    Fill = implot.ImPlotCol_Fill
+    MarkerOutline = implot.ImPlotCol_MarkerOutline
+    MarkerFill = implot.ImPlotCol_MarkerFill
+    ErrorBar = implot.ImPlotCol_ErrorBar
+    FrameBg = implot.ImPlotCol_FrameBg
+    PlotBg = implot.ImPlotCol_PlotBg
+    PlotBorder = implot.ImPlotCol_PlotBorder
+    LegendBg = implot.ImPlotCol_LegendBg
+    LegendBorder = implot.ImPlotCol_LegendBorder
+    LegendText = implot.ImPlotCol_LegendText
+    TitleText = implot.ImPlotCol_TitleText
+    InlayText = implot.ImPlotCol_InlayText
+    AxisText = implot.ImPlotCol_AxisText
+    AxisGrid = implot.ImPlotCol_AxisGrid
+    AxisTick = implot.ImPlotCol_AxisTick
+    AxisBg = implot.ImPlotCol_AxisBg
+    AxisBgHovered = implot.ImPlotCol_AxisBgHovered
+    AxisBgActive = implot.ImPlotCol_AxisBgActive
+    Selection = implot.ImPlotCol_Selection
+    Crosshairs = implot.ImPlotCol_Crosshairs
+

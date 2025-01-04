@@ -371,3 +371,120 @@ class ItemInspecter(dcg.Window):
                         dcg.Text(C, value=f"{state}:")
                     with right:
                         dcg.Text(C, value=value)
+
+class StyleEditor(dcg.Window):
+    """
+    A visual tool to edit the global style of the
+    application.
+    """
+    def __init__(self, context : dcg.Context, **kwargs):
+        super().__init__(context, **kwargs)
+        self.current_theme = context.viewport.theme
+        self.main_theme = dcg.ThemeList(self.context)
+        self.imgui_color_theme = dcg.ThemeColorImGui(self.context, parent=self.main_theme)
+        self.imgui_style_theme = dcg.ThemeStyleImGui(self.context, parent=self.main_theme)
+        self.implot_color_theme = dcg.ThemeColorImPlot(self.context, parent=self.main_theme)
+        self.implot_style_theme = dcg.ThemeStyleImPlot(self.context, parent=self.main_theme)
+
+        with dcg.HorizontalLayout(context, parent=self, alignment_mode=dcg.Alignment.CENTER):
+            dcg.Button(context, label="Reset", callbacks=self.reset_values)
+            dcg.Button(context, label="Apply", callbacks=lambda: context.viewport.configure(theme=self.main_theme))
+            dcg.Button(context, label="Cancel", callbacks=lambda: context.viewport.configure(theme=self.current_theme))
+
+        with dcg.TabBar(context, label="Style Editor", parent=self):
+            with dcg.Tab(context, label="Colors"):
+                with dcg.TabBar(context, label="Category"):
+                    with dcg.Tab(context, label="ImGui"):
+                        imgui_color_names = [name for name in dir(self.imgui_color_theme) if name[0].isupper()] # Theme colors being with upper case
+                        for color_name in imgui_color_names:
+                            default_color = self.imgui_color_theme.get_default(color_name)
+                            def callback_imgui_color(s, t, d, color_name=color_name):
+                                setattr(self.imgui_color_theme, color_name, d)
+                            dcg.ColorEdit(context,
+                                          label=color_name,
+                                          value=default_color,
+                                          user_data=default_color, # for Reset
+                                          callback=callback_imgui_color
+                                          )
+                    with dcg.Tab(context, label="ImPlot"):
+                        implot_color_names = [name for name in dir(self.implot_color_theme) if name[0].isupper()]
+                        for color_name in implot_color_names:
+                            default_color = self.implot_color_theme.get_default(color_name)
+                            def callback_implot_color(s, t, d, color_name=color_name):
+                                setattr(self.implot_color_theme, color_name, d)
+                            dcg.ColorEdit(context,
+                                          label=color_name,
+                                          value=default_color,
+                                          user_data=default_color, # for Reset
+                                          callback=callback_implot_color
+                                          )
+            with dcg.Tab(context, label="Styles"):
+                with dcg.TabBar(context, label="Category"):
+                    with dcg.Tab(context, label="ImGui"):
+                        imgui_style_names = [name for name in dir(self.imgui_style_theme) if name[0].isupper()]
+                        for style_name in imgui_style_names:
+                            default_style = self.imgui_style_theme.get_default(style_name)
+                            item_type = type(default_style)
+                            if item_type is tuple:
+                                item_type = type(default_style[0])
+                                size = 2
+                            else:
+                                size = 1
+                            if item_type is float:
+                                format = "float"
+                            elif item_type is int:
+                                format = "int"
+                            else:
+                                continue # Skip unsupported types
+                            def callback_imgui_style(s, t, d, style_name=style_name):
+                                setattr(self.imgui_style_theme, style_name, d)
+
+                            dcg.Slider(context,
+                                       drag=True,
+                                       format=format,
+                                       size=size,
+                                       label=style_name,
+                                       value=default_style,
+                                       user_data=default_style, # for Reset
+                                       callback=callback_imgui_style
+                                       )
+                    with dcg.Tab(context, label="ImPlot"):
+                        implot_style_names = [name for name in dir(self.implot_style_theme) if name[0].isupper()]
+                        for style_name in implot_style_names:
+                            default_style = self.implot_style_theme.get_default(style_name)
+                            item_type = type(default_style)
+                            if item_type is tuple:
+                                item_type = type(default_style[0])
+                                size = 2
+                            else:
+                                size = 1
+                            if item_type is float:
+                                format = "float"
+                            elif item_type is int:
+                                format = "int"
+                            else:
+                                continue # Skip unsupported types
+                            def callback_implot_style(s, t, d, style_name=style_name):
+                                setattr(self.implot_style_theme, style_name, d)
+                            dcg.Slider(context,
+                                       drag=True,
+                                       format=format,
+                                       size=size,
+                                       label=style_name,
+                                       value=default_style,
+                                       user_data=default_style, # for Reset
+                                       callback=callback_implot_style
+                                       )
+
+    def _recursive_reset_values(self, item):
+        for child in item.children:
+            self._recursive_reset_values(child)
+            if isinstance(child, dcg.ColorEdit):
+                child.value = child.user_data
+            if isinstance(child, dcg.Slider):
+                child.value = child.user_data
+
+    def reset_values(self):
+        self._recursive_reset_values(self)
+                
+                
