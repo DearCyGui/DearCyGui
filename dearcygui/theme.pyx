@@ -2375,8 +2375,8 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a PlotMarker. Defaults to PlotMarker.NONE.
         """
-        cdef int value = baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int)
-        return make_PlotMarker(value)
+        value = baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int)
+        return None if value is None else make_PlotMarker(value)
 
     @Marker.setter
     def Marker(self, value):

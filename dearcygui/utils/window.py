@@ -390,6 +390,13 @@ class StyleEditor(dcg.Window):
             dcg.Button(context, label="Reset", callbacks=self.reset_values)
             dcg.Button(context, label="Apply", callbacks=lambda: context.viewport.configure(theme=self.main_theme))
             dcg.Button(context, label="Cancel", callbacks=lambda: context.viewport.configure(theme=self.current_theme))
+            self.export_button = dcg.Button(context, label="Export", callbacks=self.export_to_clipboard)
+            with dcg.Tooltip(context):
+                dcg.Text(context, value = "Export the current theme to the clipboard")
+            self.filter_defaults = dcg.Checkbox(context, label="Filter defaults", value=True)
+            with dcg.Tooltip(context):
+                dcg.Text(context, value="Include only non-default values in the export")
+                dcg.Text(context, value="Generates shorter code, but may be affected if defaults change")
 
         with dcg.TabBar(context, label="Style Editor", parent=self):
             with dcg.Tab(context, label="Colors"):
@@ -514,5 +521,114 @@ class StyleEditor(dcg.Window):
 
     def reset_values(self):
         self._recursive_reset_values(self)
-                
+
+    def export_to_text(self):
+        non_default_imgui_colors = {}
+        non_default_imgui_styles = {}
+        non_default_implot_colors = {}
+        non_default_implot_styles = {}
+        should_filter = self.filter_defaults.value
+
+        if should_filter:
+            for (name, value) in self.imgui_color_theme:
+                if value != self.imgui_color_theme.get_default(name):
+                    non_default_imgui_colors[name] = dcg.color_as_floats(value)
+            for (name, value) in self.imgui_style_theme or not(should_filter):
+                if value != self.imgui_style_theme.get_default(name):
+                    non_default_imgui_styles[name] = value
+            for (name, value) in self.implot_color_theme:
+                if value != self.implot_color_theme.get_default(name):
+                    non_default_implot_colors[name] = dcg.color_as_floats(value)
+            for (name, value) in self.implot_style_theme:
+                if value != self.implot_style_theme.get_default(name):
+                    non_default_implot_styles[name] = value
+        else:
+            imgui_color_names = [name for name in dir(self.imgui_color_theme) if name[0].isupper()]
+            for name in imgui_color_names:
+                value = getattr(self.imgui_color_theme, name, None)
+                if value is None:
+                    value = self.imgui_color_theme.get_default(name)
+                non_default_imgui_colors[name] = dcg.color_as_floats(value)
+            imgui_style_names = [name for name in dir(self.imgui_style_theme) if name[0].isupper()]
+            for name in imgui_style_names:
+                value = getattr(self.imgui_style_theme, name, None)
+                if value is None:
+                    value = self.imgui_style_theme.get_default(name)
+                non_default_imgui_styles[name] = value
+            implot_color_names = [name for name in dir(self.implot_color_theme) if name[0].isupper()]
+            for name in implot_color_names:
+                value = getattr(self.implot_color_theme, name, None)
+                if value is None:
+                    value = self.implot_color_theme.get_default(name)
+                non_default_implot_colors[name] = dcg.color_as_floats(value)
+            implot_style_names = [name for name in dir(self.implot_style_theme) if name[0].isupper()]
+            for name in implot_style_names:
+                value = getattr(self.implot_style_theme, name, None)
+                if value is None:
+                    value = self.implot_style_theme.get_default(name)
+                non_default_implot_styles[name] = value
+
+        imgui_color_str = ""
+        if len(non_default_imgui_colors) > 0:
+            string_setters = [f"{name}={value}" for (name, value) in non_default_imgui_colors.items()]
+            imgui_color_str = "    dcg.ThemeColorImGui(context,\n        " + ",\n        ".join(string_setters) + ")"
+        imgui_style_str = ""
+        if len(non_default_imgui_styles) > 0:
+            string_setters = [f"{name}={value}" for (name, value) in non_default_imgui_styles.items()]
+            imgui_style_str = "    dcg.ThemeStyleImGui(context,\n        " + ",\n        ".join(string_setters) + ")"
+        implot_color_str = ""
+        if len(non_default_implot_colors) > 0:
+            string_setters = [f"{name}={value}" for (name, value) in non_default_implot_colors.items()]
+            implot_color_str = "    dcg.ThemeColorImPlot(context,\n        " + ",\n        ".join(string_setters) + ")"
+        implot_style_str = ""
+        if len(non_default_implot_styles) > 0:
+            string_setters = [f"{name}={value}" for (name, value) in non_default_implot_styles.items()]
+            implot_style_str = "    dcg.ThemeStyleImPlot(context,\n        " + ",\n        ".join(string_setters) + ")"
+
+        # no theme
+        if sum([len(non_default_imgui_colors) > 0,
+                len(non_default_imgui_styles) > 0,
+                len(non_default_implot_colors) > 0,
+                len(non_default_implot_styles) > 0]) == 0:
+            return "theme = None"
+
+        if sum([len(non_default_imgui_colors) > 0,
+                len(non_default_imgui_styles) > 0,
+                len(non_default_implot_colors) > 0,
+                len(non_default_implot_styles) > 0]) == 1:
+            return "theme = \\\n" +\
+                imgui_color_str + imgui_style_str + \
+                implot_color_str + implot_style_str
+
+        full_text = ""
+        if len(non_default_imgui_colors) > 0:
+            full_text += "theme_imgui_color = \\\n" + imgui_color_str + "\n"
+        if len(non_default_imgui_styles) > 0:
+            full_text += "theme_imgui_style = \\\n" + imgui_style_str + "\n"
+        if len(non_default_implot_colors) > 0:
+            full_text += "theme_implot_color = \\\n" + implot_color_str + "\n"
+        if len(non_default_implot_styles) > 0:
+            full_text += "theme_implot_style = \\\n" + implot_style_str + "\n"
+
+        # combine in a theme list
+        full_text += "theme = dcg.ThemeList(context)\ntheme.children = [\n"
+        if len(non_default_imgui_colors) > 0:
+            full_text += "    theme_imgui_color,\n"
+        if len(non_default_imgui_styles) > 0:
+            full_text += "    theme_imgui_style,\n"
+        if len(non_default_implot_colors) > 0:
+            full_text += "    theme_implot_color,\n"
+        if len(non_default_implot_styles) > 0:
+            full_text += "    theme_implot_style,\n"
+        full_text += "]\n"
+        return full_text
+
+    def export_to_clipboard(self):
+        self.context.clipboard = self.export_to_text()
+        with dcg.utils.TemporaryTooltip(self.context, target=self.export_button, parent=self):
+            dcg.Text(self.context, value="Theme copied to clipboard")
+
+
+
+
                 
