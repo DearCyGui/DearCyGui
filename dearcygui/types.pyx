@@ -1088,3 +1088,6 @@ class KeyOrMod(IntFlag):
     SHIFT = imgui.ImGuiMod_Shift,
     ALT = imgui.ImGuiMod_Alt,
     SUPER = imgui.ImGuiMod_Super
+
+cdef object make_PlotMarker(int marker):
+    return PlotMarker(marker)

@@ -94,6 +94,10 @@ cpdef enum class PlotMarker:
     PLUS=8, # A plus marker
     ASTERISK=9 # An asterisk marker
 
+# needed to return an object from other cython files
+# rather that using the cdef version of PlotMarker
+cdef object make_PlotMarker(int marker)
+
 cdef enum theme_types:
     t_color,
     t_style

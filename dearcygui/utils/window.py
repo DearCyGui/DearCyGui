@@ -437,13 +437,19 @@ class StyleEditor(dcg.Window):
                             else:
                                 continue # Skip unsupported types
                             def callback_imgui_style(s, t, d, style_name=style_name):
+                                try:
+                                    # remove extra values if tuple
+                                    if len(d) > 2:
+                                        d = (d[0], d[1])
+                                except:
+                                    pass
                                 setattr(self.imgui_style_theme, style_name, d)
 
                             dcg.Slider(context,
-                                       drag=True,
                                        format=format,
                                        size=size,
                                        label=style_name,
+                                       logarithmic=True,
                                        value=default_style,
                                        user_data=default_style, # for Reset
                                        callback=callback_imgui_style
@@ -462,14 +468,31 @@ class StyleEditor(dcg.Window):
                                 format = "float"
                             elif item_type is int:
                                 format = "int"
+                            elif item_type is dcg.PlotMarker:
+                                def callback_implot_style_marker(s, t, d, style_name=style_name):
+                                    setattr(self.implot_style_theme, style_name, dcg.PlotMarker[d])
+                                dcg.Combo(context,
+                                          label=style_name,
+                                          items=[name for name in dir(dcg.PlotMarker) if name[0].isupper()],
+                                          value=default_style.name,
+                                          user_data=default_style, # for Reset
+                                          callback=callback_implot_style_marker
+                                          )
+                                continue
                             else:
                                 continue # Skip unsupported types
                             def callback_implot_style(s, t, d, style_name=style_name):
+                                try:
+                                    # remove extra values if tuple
+                                    if len(d) > 2:
+                                        d = (d[0], d[1])
+                                except:
+                                    pass
                                 setattr(self.implot_style_theme, style_name, d)
                             dcg.Slider(context,
-                                       drag=True,
                                        format=format,
                                        size=size,
+                                       logarithmic=True,
                                        label=style_name,
                                        value=default_style,
                                        user_data=default_style, # for Reset
@@ -481,8 +504,13 @@ class StyleEditor(dcg.Window):
             self._recursive_reset_values(child)
             if isinstance(child, dcg.ColorEdit):
                 child.value = child.user_data
+                child.callbacks[0](self, child, child.value)
             if isinstance(child, dcg.Slider):
                 child.value = child.user_data
+                child.callbacks[0](self, child, child.value)
+            if isinstance(child, dcg.Combo):
+                child.value = child.user_data.name
+                child.callbacks[0](self, child, child.value)
 
     def reset_values(self):
         self._recursive_reset_values(self)

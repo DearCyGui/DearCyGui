@@ -2376,13 +2376,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
         The value is a PlotMarker. Defaults to PlotMarker.NONE.
         """
         cdef int value = baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int)
-        return PlotMarker(value)
+        return make_PlotMarker(value)
 
     @Marker.setter
     def Marker(self, value):
-        if not isinstance(value, PlotMarker):
-            raise ValueError(f"Expected a PlotMarker, got {value}")
-        cdef int value_int = int(value)
+        cdef int value_int = int(make_PlotMarker(value))
         baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int, False, False, value_int)
 
     @property
