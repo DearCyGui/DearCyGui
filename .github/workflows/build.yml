@@ -18,16 +18,28 @@ jobs:
         include:
           - os: macos-latest
             python-version: '3.10'
-            target: universal2
+            target: x86_64
+          - os: macos-latest
+            python-version: '3.10'
+            target: arm64
           - os: macos-latest
             python-version: '3.11'
-            target: universal2
+            target: x86_64
+          - os: macos-latest
+            python-version: '3.11'
+            target: arm64
           - os: macos-latest
             python-version: '3.12'
-            target: universal2
+            target: x86_64
+          - os: macos-latest
+            python-version: '3.12'
+            target: arm64
           - os: macos-latest
             python-version: '3.13'
-            target: universal2
+            target: x86_64
+          - os: macos-latest
+            python-version: '3.13'
+            target: arm64
 
     steps:
     - uses: actions/checkout@v4
@@ -75,7 +87,11 @@ jobs:
         MACOSX_DEPLOYMENT_TARGET: "10.15"
       run: |
         if [ "${{ runner.os }}" = "macOS" ]; then
-          CFLAGS="-arch x86_64 -arch arm64" CXXFLAGS="-arch x86_64 -arch arm64" python -m build --wheel
+          export CMAKE_OSX_ARCHITECTURES="${{ matrix.target }}"
+          export CFLAGS="-arch ${{ matrix.target }}"
+          export CXXFLAGS="-arch ${{ matrix.target }}"
+          export LDFLAGS="-arch ${{ matrix.target }}"
+          python -m build --wheel
         else
           python -m build --wheel
         fi
