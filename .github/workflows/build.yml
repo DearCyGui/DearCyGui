@@ -82,19 +82,21 @@ jobs:
         choco install visualstudio2019-workload-nativegame
         choco install visualstudio2019-workload-universal
 
-    - name: Build wheels
+    - name: Build wheels (macOS)
+      if: runner.os == 'macOS'
       env:
         MACOSX_DEPLOYMENT_TARGET: "10.15"
-      run: |
-        if [ "${{ runner.os }}" = "macOS" ]; then
-          export CMAKE_OSX_ARCHITECTURES="${{ matrix.target }}"
-          export CFLAGS="-arch ${{ matrix.target }}"
-          export CXXFLAGS="-arch ${{ matrix.target }}"
-          export LDFLAGS="-arch ${{ matrix.target }}"
-          python -m build --wheel
-        else
-          python -m build --wheel
-        fi
+        CMAKE_OSX_ARCHITECTURES: ${{ matrix.target }}
+        CFLAGS: "-arch ${{ matrix.target }}"
+        CXXFLAGS: "-arch ${{ matrix.target }}"
+        LDFLAGS: "-arch ${{ matrix.target }}"
+      run: python -m build --wheel
+
+    - name: Build wheels (non-macOS)
+      if: runner.os != 'macOS'
+      env:
+        MACOSX_DEPLOYMENT_TARGET: "10.15"
+      run: python -m build --wheel
 
     - name: Upload wheels
       uses: actions/upload-artifact@v3
