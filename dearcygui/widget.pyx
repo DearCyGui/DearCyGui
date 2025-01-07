@@ -3681,13 +3681,13 @@ cdef class Tooltip(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._delay
+        return self._hide_on_activity
 
     @hide_on_activity.setter
-    def hide_on_activity(self, float value):
+    def hide_on_activity(self, bint value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._delay = value
+        self._hide_on_activity = value
 
     cdef bint draw_item(self) noexcept nogil: # TODO: maybe subclass draw() instead ?
         cdef float hoverDelay_backup
@@ -3705,8 +3705,9 @@ cdef class Tooltip(uiItem):
         elif self._target is not None:
             display_condition = self._secondary_handler.check_state(self._target)
 
-        if self._hide_on_activity and imgui.GetIO().MouseDelta.x != 0. and \
-           imgui.GetIO().MouseDelta.y != 0.:
+        if self._hide_on_activity and \
+           (imgui.GetIO().MouseDelta.x != 0. or \
+            imgui.GetIO().MouseDelta.y != 0.):
             display_condition = False
 
         if display_condition and delay != 0:
