@@ -4353,7 +4353,7 @@ cdef class uiItem(baseItem):
             rendered and not visible).
         """
         if self.state.cap.can_be_hovered:
-            self.state.cur.hovered = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_None)
+            self.state.cur.hovered = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_AllowWhenDisabled)
         if self.state.cap.can_be_active:
             self.state.cur.active = imgui.IsItemActive()
         if self.state.cap.can_be_clicked or self.state.cap.can_be_dragged:

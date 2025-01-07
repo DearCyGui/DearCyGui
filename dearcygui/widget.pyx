@@ -1550,9 +1550,9 @@ cdef class ListBox(uiItem):
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_listbox
         self._value = <SharedValue>(SharedStr.__new__(SharedStr, self.context))
-        self.state.cap.can_be_active = True
+        #self.state.cap.can_be_active = True
         self.state.cap.can_be_clicked = True
-        self.state.cap.can_be_deactivated_after_edited = True
+        #self.state.cap.can_be_deactivated_after_edited = True
         self.state.cap.can_be_dragged = True
         self.state.cap.can_be_edited = True
         self.state.cap.can_be_focused = True
@@ -1609,7 +1609,7 @@ cdef class ListBox(uiItem):
     cdef bint draw_item(self) noexcept nogil:
         # TODO: Merge with ComboBox
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
-        cdef bint open
+        cdef bint visible
         cdef int i
         cdef string current_value
         SharedStr.get(<SharedStr>self._value, current_value)
@@ -1621,15 +1621,8 @@ cdef class ListBox(uiItem):
         # Computation from imgui
         popup_size.y = trunc(<float>0.25 + <float>num_items) * text_height
         popup_size.y += 2. * imgui.GetStyle().FramePadding.y
-        open = imgui.BeginListBox(self._imgui_label.c_str(),
-                                  popup_size)
-
-        # Old code called update_current_state now, and updated edited state
-        # later. Looking at ImGui code there seems to be two items. One
-        # for the combo, and one for the popup that opens. The edited flag
-        # is not set, looking at imgui demo so we have to handle it manually.
-        self.state.cur.active = open # TODO move to toggled ?
-        self.update_current_state_subset()
+        visible = imgui.BeginListBox(self._imgui_label.c_str(),
+                                     popup_size)
 
         cdef bool pressed = False
         cdef bint changed = False
@@ -1639,7 +1632,12 @@ cdef class ListBox(uiItem):
         
         # TODO: there are nice ImGuiSelectableFlags to add in the future
         # TODO: use clipper
-        if open:
+        if visible:
+            # ListBox is simply a ChildWindow wrapped in a group
+            self.state.cur.hovered = imgui.IsWindowHovered(imgui.ImGuiHoveredFlags_None)
+            self.state.cur.focused = imgui.IsWindowFocused(imgui.ImGuiFocusedFlags_None)
+            self.state.cur.rect_size = ImVec2Vec2(imgui.GetWindowSize())
+            update_current_mouse_states(self.state)
             imgui.PushID(self.uuid)
             if self._enabled:
                 for i in range(<int>self._items.size()):
@@ -3619,8 +3617,6 @@ cdef class Tooltip(uiItem):
         a frame delay.
         If no target is set, the previous sibling
         is the target.
-        If the target is not the previous sibling,
-        delay will have no effect.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3635,7 +3631,8 @@ cdef class Tooltip(uiItem):
             return
         if self._secondary_handler is not None:
             self._secondary_handler.check_bind(target)
-        # TODO: Raise a warning ?
+        # We do not raise a warning to allow to bind
+        # the target before the handler
         #elif target.p_state == NULL or not(target.p_state.cap.can_be_hovered):
         #    raise TypeError(f"Unsupported target instance {target}")
         self._target = target
@@ -3665,8 +3662,7 @@ cdef class Tooltip(uiItem):
         """
         Delay in seconds with no motion before showing the tooltip
         -1: Use imgui defaults
-        Has no effect if the target is not the previous sibling,
-        or if condition_from_handler is set.
+        Defaults to 0.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3693,20 +3689,17 @@ cdef class Tooltip(uiItem):
         lock_gil_friendly(m, self.mutex)
         self._delay = value
 
-    cdef bint draw_item(self) noexcept nogil:
+    cdef bint draw_item(self) noexcept nogil: # TODO: maybe subclass draw() instead ?
         cdef float hoverDelay_backup
         cdef bint display_condition = False
+        cdef float delay = self._delay
         if self._secondary_handler is None:
-            if self._target is None:# or self._target is self._prev_sibling: # disabled as doesn't work
-                if self._delay > 0.:
-                    hoverDelay_backup = imgui.GetStyle().HoverStationaryDelay
-                    imgui.GetStyle().HoverStationaryDelay = self._delay
-                    display_condition = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_Stationary)
-                    imgui.GetStyle().HoverStationaryDelay = hoverDelay_backup
-                elif self._delay == 0:
+            if self._target is None:
+                if self._delay >= 0:
                     display_condition = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_None)
                 else:
                     display_condition = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_ForTooltip)
+                    delay = 0 # to skip handling it later
             elif self._target.p_state != NULL:
                 display_condition = self._target.p_state.cur.hovered
         elif self._target is not None:
@@ -3715,6 +3708,13 @@ cdef class Tooltip(uiItem):
         if self._hide_on_activity and imgui.GetIO().MouseDelta.x != 0. and \
            imgui.GetIO().MouseDelta.y != 0.:
             display_condition = False
+
+        if display_condition and delay != 0:
+            if delay < 0:
+                delay = imgui.GetStyle().HoverStationaryDelay
+            if not(self.state.prev.rendered) and \
+               imgui.GetCurrentContext().MouseStationaryTimer < delay:
+                display_condition = False
 
         cdef bint was_visible = self.state.cur.rendered
         cdef Vec2 pos_w, pos_p, parent_size_backup

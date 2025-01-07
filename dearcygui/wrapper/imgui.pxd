@@ -4,8 +4,8 @@
 cdef extern from "imgui.h" nogil:
     struct ImFontBuilderIO:
         pass
-    struct ImGuiContext:
-        pass
+    #struct ImGuiContext:
+    #    pass
     struct ImDrawListSharedData:
         pass
     int IMGUI_VERSION
@@ -905,8 +905,8 @@ cdef extern from "imgui.h" nogil:
         float DownDuration
         float DownDurationPrev
         float AnalogValue
-    struct ImGuiContext:
-        pass
+    #struct ImGuiContext:
+    #    pass
     cppclass ImGuiIO:
         ImGuiConfigFlags ConfigFlags
         ImGuiBackendFlags BackendFlags
@@ -1025,8 +1025,8 @@ cdef extern from "imgui.h" nogil:
         void (*SetClipboardTextFn)(void*, const char*)
         void* ClipboardUserData
         ImGuiIO()
-    struct ImGuiContext:
-        pass
+    #struct ImGuiContext:
+    #    pass
     cppclass ImGuiInputTextCallbackData:
         ImGuiContext* Ctx
         ImGuiInputTextFlags EventFlag
@@ -1133,8 +1133,8 @@ cdef extern from "imgui.h" nogil:
         void** GetVoidPtrRef(ImGuiID, void*)
         void BuildSortByKey()
         void SetAllInt(int)
-    struct ImGuiContext:
-        pass
+    #struct ImGuiContext:
+    #    pass
     cppclass ImGuiListClipper:
         ImGuiContext* Ctx
         int DisplayStart
@@ -1594,8 +1594,8 @@ cdef extern from "imgui.h" nogil:
 
 
 cdef extern from "imgui.h" namespace "ImGui" nogil:
-    struct ImGuiContext:
-        pass
+    #struct ImGuiContext:
+    #    pass
     struct ImDrawListSharedData:
         pass
     ImGuiContext* CreateContext()
@@ -2189,3 +2189,5 @@ cdef extern from "imgui_internal.h" namespace "ImGui" nogil:
 cdef extern from "imgui_internal.h" nogil:
     int ImTextCharFromUtf8(unsigned int* out_char, const char* in_text, const char* in_text_end)
     int ImFormatString(char* buf, size_t buf_size, const char* fmt, ...) 
+    struct ImGuiContext:
+        float MouseStationaryTimer
