@@ -415,6 +415,10 @@ cdef class HorizontalLayout(Layout):
                 if expected_size_next > available_width and not(self._no_wrap):
                     break
                 expected_size = expected_size_next
+                if not((<uiItem>sibling).state.cap.has_rect_size):
+                    # Items without rect size (tooltips for instance) do not count in the layout
+                    sibling = <PyObject*>(<uiItem>sibling).next_sibling
+                    continue
                 next_y = max(next_y, y + (<uiItem>sibling).state.cur.rect_size.y)
                 sibling = <PyObject*>(<uiItem>sibling).next_sibling
                 n_items_this_row += 1
@@ -451,7 +455,12 @@ cdef class HorizontalLayout(Layout):
             target_x = max(0 if row == 0 else wrap_x, target_x)
 
             expected_x = 0
-            for i in range(n_items_this_row-1):
+            i = 0
+            while i < n_items_this_row-1:
+                if not((<uiItem>sibling).state.cap.has_rect_size):
+                    # Items without rect size do not count in the layout
+                    sibling = <PyObject*>(<uiItem>sibling).next_sibling
+                    continue
                 (<uiItem>sibling).state.cur.pos_to_default.x = target_x - expected_x
                 pos_change |= (<uiItem>sibling).state.cur.pos_to_default.x != (<uiItem>sibling).state.prev.pos_to_default.x
                 (<uiItem>sibling).pos_policy[0] = Positioning.REL_DEFAULT
@@ -460,6 +469,12 @@ cdef class HorizontalLayout(Layout):
                 expected_x = target_x + self._spacing.x + (<uiItem>sibling).state.cur.rect_size.x
                 target_x = target_x + spacing_x + (<uiItem>sibling).state.cur.rect_size.x
                 sibling = <PyObject*>(<uiItem>sibling).next_sibling
+                i = i + 1
+            if i != 0:
+                while (<uiItem>sibling).next_sibling is not None and \
+                      not((<uiItem>sibling).state.cap.has_rect_size):
+                    sibling = <PyObject*>(<uiItem>sibling).next_sibling
+                    continue
             # Last item of the row
             if (self._alignment_mode == Alignment.RIGHT or \
                (self._alignment_mode == Alignment.JUSTIFIED and n_items_this_row != 1)) and \

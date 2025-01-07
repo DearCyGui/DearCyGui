@@ -1169,14 +1169,14 @@ cdef class Slider(uiItem):
         if self._size == 1:
             if target_format == 0:
                 self._value = <SharedValue>(SharedInt.__new__(SharedInt, self.context))
-            elif target_format == 0:
+            elif target_format == 1:
                 self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
             else:
                 self._value = <SharedValue>(SharedDouble.__new__(SharedDouble, self.context))
         else:
             if target_format == 0:
                 self._value = <SharedValue>(SharedInt4.__new__(SharedInt4, self.context))
-            elif target_format == 0:
+            elif target_format == 1:
                 self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
             else:
                 self._value = <SharedValue>(SharedDouble4.__new__(SharedDouble4, self.context))
@@ -1629,8 +1629,6 @@ cdef class ListBox(uiItem):
         # for the combo, and one for the popup that opens. The edited flag
         # is not set, looking at imgui demo so we have to handle it manually.
         self.state.cur.active = open # TODO move to toggled ?
-        self.state.cap.can_be_deactivated_after_edited = True
-        self.state.cap.can_be_edited = True
         self.update_current_state_subset()
 
         cdef bool pressed = False
@@ -3559,6 +3557,7 @@ cdef class Menu(uiItem):
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_active = True
         self.state.cap.has_rect_size = True
+        self.state.cap.can_be_toggled = True
 
     cdef bint draw_item(self) noexcept nogil:
         cdef bint menu_open = imgui.BeginMenu(self._imgui_label.c_str(),
@@ -3585,6 +3584,7 @@ cdef class Menu(uiItem):
             imgui.EndMenu()
         else:
             self.propagate_hidden_state_to_children_with_handlers()
+        self.state.cur.open = menu_open
         SharedBool.set(<SharedBool>self._value, menu_open)
         return self.state.cur.active and not(self.state.prev.active)
 
@@ -3593,9 +3593,17 @@ cdef class Tooltip(uiItem):
         # We should maybe restrict to menuitem ?
         self.can_have_widget_child = True
         self._theme_condition_category = ThemeCategories.t_tooltip
-        self.state.cap.can_be_active = True # TODO unsure. Maybe use open instead ?
+        # Tooltip is basically a window but with no control
+        # on anything. Cannot be hovered, and thus clicked,
+        # dragged, focused, etc.
+        # self.state.cap.can_be_toggled = True -> rendered
+        # no rect size and position as uiItem because the popup
+        # is outside the window
         self.state.cap.has_position = False
         self.state.cap.has_rect_size = False
+        # It has a content region, but it is hard to define it
+        # as all tooltips append to the same window.
+        self.state.cap.has_content_region = True
         self._delay = 0.
         self._hide_on_activity = False
         self._target = None
@@ -3727,8 +3735,8 @@ cdef class Tooltip(uiItem):
                 self.context.viewport.parent_pos = pos_p
                 self.context.viewport.parent_size = parent_size_backup
 
-            imgui.EndTooltip()
-            self.update_current_state()
+            imgui.EndTooltip() 
+            self.state.cur.rendered = True
         else:
             self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
             # NOTE: we could also set the rects. DPG does it.
@@ -3843,6 +3851,7 @@ cdef class Tab(uiItem):
         self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_active = True
+        self.state.cap.can_be_toggled = True
         self.state.cap.has_rect_size = True
         self._closable = False
         self._flags = imgui.ImGuiTabItemFlags_None
@@ -3967,6 +3976,7 @@ cdef class Tab(uiItem):
             imgui.EndTabItem()
         else:
             self.propagate_hidden_state_to_children_with_handlers()
+        self.state.cur.open = menu_open
         SharedBool.set(<SharedBool>self._value, menu_open)
         return self.state.cur.active and not(self.state.prev.active)
 
@@ -4335,9 +4345,10 @@ cdef class TreeNode(uiItem):
         cdef bint open_and_visible = imgui.TreeNodeEx(self._imgui_label.c_str(),
                                                       flags)
         self.update_current_state()
-        if self.state.cur.open and not(was_open):
+        if imgui.IsItemToggledOpen() and not(was_open):
             SharedBool.set(<SharedBool>self._value, True)
-        elif self.state.cur.rendered and was_open and not(open_and_visible): # TODO: unsure
+            self.state.cur.open = True
+        elif self.state.cur.rendered and was_open and not(open_and_visible):
             SharedBool.set(<SharedBool>self._value, False)
             self.state.cur.open = False
             self.propagate_hidden_state_to_children_with_handlers()
@@ -4481,8 +4492,9 @@ cdef class CollapsingHeader(uiItem):
         if not(self._show):
             self._show_update_requested = True
         self.update_current_state()
-        if self.state.cur.open and not(was_open):
+        if imgui.IsItemToggledOpen() and not(was_open):
             SharedBool.set(<SharedBool>self._value, True)
+            self.state.cur.open = True
         elif self.state.cur.rendered and was_open and not(open_and_visible): # TODO: unsure
             SharedBool.set(<SharedBool>self._value, False)
             self.state.cur.open = False
@@ -4566,7 +4578,6 @@ cdef class ChildWindow(uiItem):
         self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
         self.state.cap.has_content_region = True
-        #self.state.cap.can_be_toggled = True # maybe ?
         self._theme_condition_category = ThemeCategories.t_child
 
     @property

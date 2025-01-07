@@ -4339,7 +4339,18 @@ cdef class uiItem(baseItem):
 
     cdef void update_current_state(self) noexcept nogil:
         """
-        Updates the state of the last imgui object.
+        Helper to update the state of the last imgui object.
+        Are updated:
+        - hovered state
+        - active state
+        - clicked state and related (dragging, etc)
+        - deactivated after edit, though unsure if actually used
+        - edited state
+        - focused state
+        - rect size
+        - sets rendered to ItemIsVisible, which is not 100% reliable (
+            will return True if visible and rendered, but might miss
+            rendered and not visible).
         """
         if self.state.cap.can_be_hovered:
             self.state.cur.hovered = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_None)
@@ -4353,9 +4364,11 @@ cdef class uiItem(baseItem):
             self.state.cur.edited = imgui.IsItemEdited()
         if self.state.cap.can_be_focused:
             self.state.cur.focused = imgui.IsItemFocused()
-        if self.state.cap.can_be_toggled:
-            if imgui.IsItemToggledOpen():
-                self.state.cur.open = True
+        # Commented because all widgets with can_be_toggled handle
+        # the open state themselves (because see comment below)
+        #if self.state.cap.can_be_toggled:
+        #    if imgui.IsItemToggledOpen(): # Wrong because it only hits True when open moves from False to True
+        #        self.state.cur.open = True
         if self.state.cap.has_rect_size:
             self.state.cur.rect_size = ImVec2Vec2(imgui.GetItemRectSize())
         self.state.cur.rendered = imgui.IsItemVisible()
@@ -4364,8 +4377,15 @@ cdef class uiItem(baseItem):
 
     cdef void update_current_state_subset(self) noexcept nogil:
         """
-        Helper for items that manage themselves the active,
-        edited, etc states
+        Helper for items that manage themselves a part of the states.
+        Are updated:
+        - hovered state
+        - focused state
+        - clicked state and related (dragging, etc)
+        - rect size
+        - sets rendered to ItemIsVisible, which is not 100% reliable (
+            will return True if visible and rendered, but might miss
+            rendered and not visible).
         """
         if self.state.cap.can_be_hovered:
             self.state.cur.hovered = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_None)

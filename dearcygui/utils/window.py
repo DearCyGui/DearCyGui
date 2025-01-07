@@ -280,13 +280,13 @@ class ItemInspecter(dcg.Window):
                     dcg.DraggingHandler(C, button=1, callback=self.handle_item_dragging)
                     dcg.DraggedHandler(C, button=1, callback=self.handle_item_dragged)
                 dcg.HoverHandler(C)
-                dcg.KeyDownHandler(C, key=dcg.constants.mvKey_LAlt) # TODO: modifiers
+                dcg.KeyDownHandler(C, key=dcg.Key.LEFTALT) # TODO: modifiers
             # If a compatible item is hovered and the ALT key is set,
             # change the cursor to show we can drag
             with dcg.ConditionalHandler(C):
                 dcg.MouseCursorHandler(C, cursor=dcg.MouseCursor.Hand)
                 dcg.HoverHandler(C)
-                dcg.KeyDownHandler(C, key=dcg.constants.mvKey_LAlt)
+                dcg.KeyDownHandler(C, key=dcg.Key.LEFTALT)
 
         self.dragging_item = None
         self.dragging_item_original_pos = None
@@ -397,6 +397,7 @@ class StyleEditor(dcg.Window):
             with dcg.Tooltip(context):
                 dcg.Text(context, value="Include only non-default values in the export")
                 dcg.Text(context, value="Generates shorter code, but may be affected if defaults change")
+            dcg.Button(context, label="Help", callbacks=lambda: self.launch_help_window())
 
         with dcg.TabBar(context, label="Style Editor", parent=self):
             with dcg.Tab(context, label="Colors"):
@@ -628,7 +629,70 @@ class StyleEditor(dcg.Window):
         with dcg.utils.TemporaryTooltip(self.context, target=self.export_button, parent=self):
             dcg.Text(self.context, value="Theme copied to clipboard")
 
+    def launch_help_window(self):
+        """
+        Displays a modal window with generic information about what
+        a theme style and theme color is, and visual examples to show what
+        they can do.
+        """
+        C = self.context
+        with dcg.Window(C, label="Theme Editor Help", autosize=True, modal=True):
+            dcg.Text(C, value="Theme colors and styles allow customizing the appearance of UI elements.")
+            dcg.Separator(C)
+            
+            # Create a demo button with its own theme
+            demo_theme = dcg.ThemeList(C)
+            demo_colors = dcg.ThemeColorImGui(C, parent=demo_theme)
+            demo_styles = dcg.ThemeStyleImGui(C, parent=demo_theme)
 
-
-
+            # Create controls for the most relevant button properties
+            with dcg.HorizontalLayout(C):
+                with dcg.VerticalLayout(C):
+                    dcg.Text(C, value="Colors:")
+                    dcg.ColorEdit(C, label="Button Color",
+                                  value=demo_colors.get_default("Button"),
+                                  callback=lambda s,t,d: setattr(demo_colors, "Button", d))
+                    dcg.ColorEdit(C, label="Button Hovered",
+                                  value=demo_colors.get_default("ButtonHovered"),
+                                  callback=lambda s,t,d: setattr(demo_colors, "ButtonHovered", d))
+                    dcg.ColorEdit(C, label="Button Active",
+                                  value=demo_colors.get_default("ButtonActive"),
+                                  callback=lambda s,t,d: setattr(demo_colors, "ButtonActive", d))
+                    dcg.ColorEdit(C, label="Text",
+                                  value=demo_colors.get_default("Text"),
+                                  callback=lambda s,t,d: setattr(demo_colors, "Text", d))
                 
+                with dcg.VerticalLayout(C):
+                    dcg.Text(C, value="Styles:")
+                    dcg.Slider(C, label="Frame Padding",
+                               value=demo_styles.get_default("FramePadding"),
+                               size=2, format="float",
+                               callback=lambda s,t,d: setattr(demo_styles, "FramePadding", d[:2]))
+                    dcg.Slider(C, label="Frame Rounding",
+                               value=demo_styles.get_default("FrameRounding"),
+                               min_value=0, max_value=12, format="float",
+                               callback=lambda s,t,d: setattr(demo_styles, "FrameRounding", d))
+                    dcg.Slider(C, label="Frame Border",
+                               value=demo_styles.get_default("FrameBorderSize"),
+                               min_value=0, max_value=3, format="float",
+                               callback=lambda s,t,d: setattr(demo_styles, "FrameBorderSize", d))
+            
+            dcg.Separator(C)
+            
+            # Display the demo button with applied theme
+            dcg.Text(C, value="Live Preview:")
+            dcg.Button(C, indent=-1, label="Demo Button", theme=demo_theme)
+            
+            dcg.Separator(C)
+            
+            # Add descriptions
+            with dcg.VerticalLayout(C):
+                dcg.Text(C, value="Key Concepts:")
+                dcg.Text(C, bullet=True, value="Colors control the visual appearance like button colors and text")
+                dcg.Text(C, bullet=True, value="Styles control sizing, spacing, borders and other layout properties")
+                dcg.Text(C, bullet=True, value="Themes can be applied to individual items or entire windows")
+                dcg.Text(C, bullet=True, value="Child items inherit parent themes unless overridden")
+
+
+
+
