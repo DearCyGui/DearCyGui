@@ -8,38 +8,41 @@ on:
       - 'v*'
 
 jobs:
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  build_wheels_linux:
+    name: Build Linux wheels
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install cibuildwheel
+      run: python -m pip install cibuildwheel
+
+    - name: Build wheels
+      env:
+        CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64 pp310-manylinux_x86_64"
+        CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
+        CIBW_BEFORE_BUILD: "yum install -y cmake3 libXext-devel libX11-devel mesa-libGL-devel libXext-devel libX11-devel mesa-libGL-devel wayland-devel wayland-protocols-devel libxkbcommon-devel mesa-libEGL-devel mesa-libwayland-egl-devel"
+      run: python -m cibuildwheel --platform linux
+
+    - name: Upload wheels
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheels-linux
+        path: wheelhouse/*.whl
+
+  build_wheels_windows:
+    name: Build Windows wheels
+    runs-on: windows-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
-        include:
-          - os: macos-latest
-            python-version: '3.10'
-            target: x86_64
-          - os: macos-latest
-            python-version: '3.10'
-            target: arm64
-          - os: macos-latest
-            python-version: '3.11'
-            target: x86_64
-          - os: macos-latest
-            python-version: '3.11'
-            target: arm64
-          - os: macos-latest
-            python-version: '3.12'
-            target: x86_64
-          - os: macos-latest
-            python-version: '3.12'
-            target: arm64
-          - os: macos-latest
-            python-version: '3.13'
-            target: x86_64
-          - os: macos-latest
-            python-version: '3.13'
-            target: arm64
 
     steps:
     - uses: actions/checkout@v4
@@ -56,25 +59,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install setuptools wheel cython numpy build
 
-    - name: Install Linux dependencies
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          cmake \
-          build-essential \
-          libxext-dev \
-          libx11-dev \
-          libgl1-mesa-dev
-
-    - name: Install macOS dependencies
-      if: runner.os == 'macOS'
-      run: |
-        brew install cmake
-        brew install pkg-config
-
     - name: Install Windows dependencies
-      if: runner.os == 'Windows'
       run: |
         choco install cmake
         choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
@@ -82,38 +67,72 @@ jobs:
         choco install visualstudio2019-workload-nativegame
         choco install visualstudio2019-workload-universal
 
-    - name: Build wheels (macOS)
-      if: runner.os == 'macOS'
+    - name: Build wheels
+      run: python -m build --wheel
+
+    - name: Upload wheels
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheels-windows-${{ matrix.python-version }}
+        path: dist/*.whl
+
+  build_wheels_macos:
+    name: Build macOS wheels (${{ matrix.target }})
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+        target: [x86_64, arm64]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install setuptools wheel cython numpy build
+
+    - name: Install macOS dependencies
+      run: |
+        brew install cmake
+        brew install pkg-config
+
+    - name: Build wheels
       env:
-        MACOSX_DEPLOYMENT_TARGET: "10.15"
+        MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target == 'arm64' && '11.0' || '10.15' }}
         CMAKE_OSX_ARCHITECTURES: ${{ matrix.target }}
         CFLAGS: "-arch ${{ matrix.target }}"
         CXXFLAGS: "-arch ${{ matrix.target }}"
         LDFLAGS: "-arch ${{ matrix.target }}"
       run: python -m build --wheel
 
-    - name: Build wheels (non-macOS)
-      if: runner.os != 'macOS'
-      env:
-        MACOSX_DEPLOYMENT_TARGET: "10.15"
-      run: python -m build --wheel
+    - name: Fix wheel tags
+      run: |
+        if [ "${{ matrix.target }}" = "arm64" ]; then
+          for wheel in dist/*.whl; do
+            python -m wheel tags --platform-tag=macosx_11_0_arm64 --remove "$wheel"
+          done
+        else
+          for wheel in dist/*.whl; do
+            python -m wheel tags --platform-tag=macosx_10_15_x86_64 --remove "$wheel"
+          done
+        fi
 
     - name: Upload wheels
-      if: runner.os == 'macOS'
       uses: actions/upload-artifact@v3
       with:
-        name: wheels-${{ matrix.os }}-${{ matrix.target }}-${{ matrix.python-version }}
-        path: dist/*.whl
-
-    - name: Upload wheels
-      if: runner.os != 'macOS'
-      uses: actions/upload-artifact@v3
-      with:
-        name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
+        name: wheels-macos-${{ matrix.target }}-${{ matrix.python-version }}
         path: dist/*.whl
 
   publish:
-    needs: build_wheels
+    needs: [build_wheels_linux, build_wheels_windows, build_wheels_macos]
     runs-on: ubuntu-latest
     
     steps:
