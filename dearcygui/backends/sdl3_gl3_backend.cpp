@@ -66,9 +66,10 @@ void SDLViewport::preparePresentFrame() {
     desired_interval = hasVSync ? 1 : 0;
     if (desired_interval != current_interval)
         SDL_GL_SetSwapInterval(desired_interval);
+    glDrawBuffer(GL_BACK);
     glViewport(0, 0, frameWidth, frameHeight);
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_MakeCurrent(windowHandle, NULL);
     renderContextLock.unlock();
@@ -647,9 +648,6 @@ bool SDLViewport::renderFrame(bool can_skip_presenting) {
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
-    if (GImGui->CurrentWindow == nullptr)
-        return false;
-
     bool does_needs_refresh = needsRefresh.load();
     needsRefresh.store(false);
 
@@ -741,11 +739,36 @@ bool SDLViewport::downloadBackBuffer(void* data, int size) {
     
     // Read the framebuffer into the provided buffer
     // We assume RGBA8 format (4 bytes per pixel)
-    glReadBuffer(GL_BACK);
     if (size < frameWidth * frameHeight * 4)
         return false;
-    glReadPixels(0, 0, frameWidth, frameHeight, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        
+    glFlush(); // probably not needed
+    GLuint pbo;
+    glGenBuffers(1, &pbo);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+    glBufferData(GL_PIXEL_PACK_BUFFER, frameWidth * frameHeight * 4, nullptr, GL_STREAM_READ);
+
+    // Initiate async transfer to PBO
+    glReadBuffer(GL_BACK_LEFT);
+    glReadPixels(0, 0, frameWidth, frameHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    // TODO: avoid this sync in the main thread
+    // Map buffer after transfer complete
+    GLsync fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+    glDeleteSync(fence);
+
+    void* mapped = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+    if (!mapped) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        glDeleteBuffers(1, &pbo);
+        return false;
+    }
+    memcpy(data, mapped, frameWidth * frameHeight * 4);
+    glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    glDeleteBuffers(1, &pbo);
+
     // Check for errors
     GLenum error = glGetError();
     SDL_GL_MakeCurrent(windowHandle, NULL);

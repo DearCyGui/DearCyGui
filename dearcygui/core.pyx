@@ -186,6 +186,16 @@ cdef void lock_gil_friendly_block(unique_lock[recursive_mutex] &m) noexcept:
             m.unlock()
         locked = m.try_lock()
 
+cdef inline void sched_yield():
+    if os.name == 'posix':
+        # os sched is only available on posix
+        os.sched_yield()
+    else:
+        # time.sleep(0) on Windows has a
+        # similar effect to sched_yield.
+        # behaviour on non-posix is different
+        # thus why we don't use it for posix.
+        python_time.sleep(0)
 
 cdef void internal_resize_callback(void *object) noexcept nogil:
     with gil:
@@ -358,6 +368,28 @@ cdef class Context:
         Readonly attribute: root item from where rendering starts.
         """
         return self.viewport
+
+    @property
+    def queue(self) -> Executor:
+        """
+        Executor for managing thread-pooled callbacks.
+        """
+        return self._queue
+
+    @queue.setter
+    def queue(self, queue):
+        """
+        Set the Executor for managing thread-pooled callbacks.
+        """
+        if queue is self._queue:
+            return
+        # Check type
+        if not(isinstance(queue, Executor)):
+            raise TypeError("queue must be a subclass of concurrent.futures.Executor")
+        # Finish current queue
+        if self._queue is not None:
+            self._queue.shutdown(wait=True)
+        self._queue = queue
 
     @property
     def rendering_context(self) -> BackendRenderingContext:
@@ -1733,7 +1765,7 @@ cdef class baseItem:
             item_m.unlock()
             # Release the gil and give priority to other threads that might
             # hold the lock we want
-            os.sched_yield()
+            sched_yield()
             if not(locked) and self._external_lock > 0:
                 raise RuntimeError(
                     "Trying to lock parent mutex while holding a lock. "
@@ -2484,7 +2516,7 @@ class wrap_this_and_parents_mutex:
                 item.unlock_mutex()
             # release gil and give a chance to the
             # thread retaining the lock to run
-            os.sched_yield()
+            sched_yield()
     def __exit__(self, exc_type, exc_value, traceback):
         cdef int N = self.nlocked.pop()
         cdef int i
@@ -3573,8 +3605,8 @@ cdef class Viewport(baseItem):
                 if self._retrieve_framebuffer:
                     with gil:
                         framebuffer = np.empty((
-                            (<platformViewport*>self._platform).frameWidth,
                             (<platformViewport*>self._platform).frameHeight,
+                            (<platformViewport*>self._platform).frameWidth,
                             4),
                             dtype=np.uint8)
                         if (<platformViewport*>self._platform).downloadBackBuffer(cnp.PyArray_DATA(framebuffer), framebuffer.nbytes):
