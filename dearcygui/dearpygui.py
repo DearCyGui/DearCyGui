@@ -6738,6 +6738,8 @@ def delete_item(item : Union[int, str], *, children_only: bool =False, slot: int
         except KeyError:
             return # already deleted
         item.delete_item()
+    elif slot == -1:
+        CONTEXT.get(item).children = []
     else:
         for child in filter_slot(CONTEXT.get(item).children, slot):
             child.delete_item()
