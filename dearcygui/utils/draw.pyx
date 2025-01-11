@@ -440,7 +440,7 @@ cdef class DrawStream(dcg.DrawingList):
         return self._time_modulus
 
     @time_modulus.setter
-    def time_modulus(self, bint value):
+    def time_modulus(self, double value):
         cdef unique_lock[recursive_mutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         self._time_modulus = value
