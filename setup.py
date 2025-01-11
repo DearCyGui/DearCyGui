@@ -113,7 +113,7 @@ def setup_package():
         "thirdparty/imgui/imgui_widgets.cpp",
         "thirdparty/imgui/imgui_tables.cpp",
         "dearcygui/backends/imgui_impl_sdl3.cpp",
-        "thirdparty/imgui/backends/imgui_impl_opengl3.cpp",
+        "dearcygui/backends/imgui_impl_opengl3.cpp",
         "thirdparty/imgui/misc/freetype/imgui_freetype.cpp",
         "thirdparty/gl3w/GL/gl3w.cpp"
     ]
