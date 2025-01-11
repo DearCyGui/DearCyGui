@@ -7,6 +7,8 @@
 #include <imgui.h>
 #include <unordered_map>
 
+#pragma once
+
 typedef void (*on_resize_fun)(void*);
 typedef void (*on_close_fun)(void*);
 typedef void (*render_fun)(void*);
@@ -146,6 +148,7 @@ public:
                                on_drop_fun on_drop,
                                void* callback_data);
 
+    void markTextureUse(GLuint tex_id);
 private:
     SDL_Window* windowHandle = nullptr;
     SDL_Window* uploadWindowHandle = nullptr;
@@ -169,6 +172,7 @@ private:
         unsigned filter_mode;
         bool dynamic;
         GLuint pbo;
+        int last_use_frame;
         int deletion_frame; // Frame when texture was marked for deletion, -1 if active
     };
 

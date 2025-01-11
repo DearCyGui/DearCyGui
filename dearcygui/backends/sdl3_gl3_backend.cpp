@@ -68,7 +68,9 @@ void SDLViewport::preparePresentFrame() {
     glViewport(0, 0, frameWidth, frameHeight);
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_RenderDrawData(this, ImGui::GetDrawData());
+    currentFrame++; // should it be mutex protected ?
+    cleanupTextures();
     SDL_GL_MakeCurrent(windowHandle, NULL);
     renderContextLock.unlock();
 }
@@ -213,6 +215,7 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
             filtering_mode,
             dynamic != 0,
             0, // PBO will be created later if needed
+            -1, // Last use frame
             -1 // Mark as active
         };
     }
@@ -345,6 +348,10 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
         goto error;
 
     glFlush();
+    // Check if texture is on screen right now
+    // if so we need to refresh
+    if (info.last_use_frame == currentFrame)
+        needsRefresh.store(true);
     //releaseUploadContext();
 
     return true;
@@ -718,11 +725,16 @@ bool SDLViewport::renderFrame(bool can_skip_presenting) {
     // But we cannot avoid the MakeCurrent here,
     // as render_frame might be called from
     // various threads.
-    SDL_GL_MakeCurrent(windowHandle, glContext);
-    cleanupTextures();
+    //SDL_GL_MakeCurrent(windowHandle, glContext);
+    // -> moved to calling only if needed
+
     // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    SDL_GL_MakeCurrent(windowHandle, NULL);
+    if (Needs_ImGui_ImplOpenGL3_NewFrame()) {
+        SDL_GL_MakeCurrent(windowHandle, glContext);
+        ImGui_ImplOpenGL3_NewFrame();
+        SDL_GL_MakeCurrent(windowHandle, NULL);
+    }
+    
     renderContextLock.unlock();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
@@ -804,10 +816,8 @@ void SDLViewport::makeUploadContextCurrent() {
 }
 
 void SDLViewport::releaseUploadContext() {
-    glFlush();
     SDL_GL_MakeCurrent(uploadWindowHandle, NULL);
     uploadContextLock.unlock();
-    needsRefresh.store(true);
 }
 
 bool SDLViewport::downloadBackBuffer(void* data, int size) {
@@ -923,7 +933,6 @@ size_t SDLViewport::getTextureSize(unsigned width, unsigned height, unsigned num
 
 void SDLViewport::cleanupTextures() {
     std::lock_guard<std::recursive_mutex> lock(textureMutex);
-    currentFrame++;
 
     // Remove textures that have been marked for deletion for 10 * CACHE_REUSE_FRAMES frames
     for(auto it = textureInfoMap.begin(); it != textureInfoMap.end();) {
@@ -940,5 +949,13 @@ void SDLViewport::cleanupTextures() {
         } else {
             ++it;
         }
+    }
+}
+
+void SDLViewport::markTextureUse(GLuint tex_id) {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    auto it = textureInfoMap.find(tex_id);
+    if(it != textureInfoMap.end()) {
+        it->second.last_use_frame = currentFrame;
     }
 }
