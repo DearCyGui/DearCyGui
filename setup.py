@@ -182,6 +182,26 @@ def setup_package():
         )
     ]
 
+    # secondary extensions
+    extensions += [
+        Extension(
+            "dearcygui.utils.draw",
+            ["dearcygui/utils/draw.pyx"],
+            language="c++",
+            include_dirs=[np.get_include()],
+            extra_compile_args=compile_args,
+             libraries=libraries,
+            extra_link_args=linking_args),
+        Extension(
+            "dearcygui.utils.image",
+            ["dearcygui/utils/image.pyx"],
+            language="c++",
+            include_dirs=[np.get_include()],
+            extra_compile_args=compile_args,
+             libraries=libraries,
+            extra_link_args=linking_args)
+    ]
+
     shutil.copy("thirdparty/latin-modern-roman/lmsans17-regular.otf", "dearcygui/")
     shutil.copy("thirdparty/latin-modern-roman/lmromanslant17-regular.otf", "dearcygui/")
     shutil.copy("thirdparty/latin-modern-roman/lmsans10-bold.otf", "dearcygui/")
