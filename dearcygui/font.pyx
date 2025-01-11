@@ -468,7 +468,7 @@ cdef class FontTexture(baseItem):
         self._fonts_files = []
         self._fonts = []
 
-    def __delalloc__(self):
+    def __dealloc__(self):
         cdef imgui.ImFontAtlas *atlas = <imgui.ImFontAtlas*>self._atlas
         atlas.Clear() # Unsure if needed
         del atlas

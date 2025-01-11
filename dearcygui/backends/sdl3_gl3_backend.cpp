@@ -17,8 +17,6 @@
 #include <functional>
 #include <mutex>
 
-static std::unordered_map<GLuint, GLuint> PBO_ids;
-
 bool platformViewport::fastActivityCheck() {
     ImGuiContext& g = *GImGui;
 
@@ -76,14 +74,60 @@ void SDLViewport::preparePresentFrame() {
 }
 
 
+GLuint SDLViewport::findTextureInCache(unsigned width, unsigned height, unsigned num_chans,
+                                      unsigned type, unsigned filter_mode, bool dynamic) {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    // Look for reusable texture in cache
+    GLuint best_tex_id = 0;
+    int best_deletion_frame = std::numeric_limits<int>::max();
+
+    for(auto& [tex_id, info] : textureInfoMap) {
+        if(info.deletion_frame >= 0 &&
+           info.deletion_frame < (currentFrame - CACHE_REUSE_FRAMES) &&
+           info.width == width &&
+           info.height == height && 
+           info.num_chans == num_chans &&
+           info.type == type &&
+           info.dynamic == dynamic &&
+           info.filter_mode == filter_mode) {
+            // Track texture with oldest deletion frame
+            if (info.deletion_frame < best_deletion_frame) {
+                best_tex_id = tex_id;
+                best_deletion_frame = info.deletion_frame;
+            }
+        }
+    }
+
+    if (best_tex_id != 0) {
+        // Found matching cached texture
+        auto& info = textureInfoMap[best_tex_id];
+        deletedTexturesMemory -= getTextureSize(info.width, info.height, info.num_chans, info.type);
+        info.deletion_frame = -1; // Mark as active
+        return best_tex_id;
+    }
+
+    return 0;
+}
+
 void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
                                  unsigned dynamic, unsigned type, unsigned filtering_mode) {
+    // Look for a cached texture first
+    GLuint image_texture = 0;
+    {
+        std::lock_guard<std::recursive_mutex> lock(textureMutex);
+        image_texture = findTextureInCache(width, height, num_chans, type, filtering_mode, dynamic != 0);
+        if(image_texture != 0) {
+            // Found cached texture - update info
+            auto& info = textureInfoMap[image_texture];
+            return (void*)(size_t)image_texture;
+        }
+    }
+
     // Making the sure the context is current
     // is the responsibility of the caller
     // But if we were to change this,
     // here is commented out code to do it.
     //makeUploadContextCurrent();
-    GLuint image_texture;
     unsigned gl_format = GL_RGBA;
     unsigned gl_internal_format = GL_RGBA8;
     unsigned gl_type = GL_FLOAT;
@@ -158,37 +202,58 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
     glFlush();
     //releaseUploadContext();
 
-    return (void*)(size_t)(GLuint)image_texture;
+    // Add to texture info map
+    if(image_texture != 0) {
+        std::lock_guard<std::recursive_mutex> lock(textureMutex);
+        textureInfoMap[image_texture] = {
+            width,
+            height,
+            num_chans, 
+            type,
+            filtering_mode,
+            dynamic != 0,
+            0, // PBO will be created later if needed
+            -1 // Mark as active
+        };
+    }
+
+    return (void*)(size_t)image_texture;
 }
 
 void SDLViewport::freeTexture(void* texture) {
-    //makeUploadContextCurrent();
-    GLuint out_srv = (GLuint)(size_t)texture;
-    GLuint pboid;
-
-    if(PBO_ids.count(out_srv) != 0) {
-        pboid = PBO_ids[out_srv];
-        glDeleteBuffers(1, &pboid);
-        PBO_ids.erase(out_srv);
+    GLuint tex_id = (GLuint)(size_t)texture;
+    
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    auto it = textureInfoMap.find(tex_id);
+    if(it != textureInfoMap.end()) {
+        it->second.deletion_frame = currentFrame;
+        deletedTexturesMemory += getTextureSize(it->second.width, it->second.height,
+                                              it->second.num_chans, it->second.type);
+        
+        // If too much memory is in deleted textures, force a cleanup
+        if (deletedTexturesMemory > CACHE_MEMORY_THRESHOLD) {
+            cleanupTextures();
+        }
     }
-
-    glDeleteTextures(1, &out_srv);
-    //releaseUploadContext();
 }
 
-// Note: updateDynamicTexture and updateStaticTexture
-// take width/height/num_chans/type as parameters,
-// but they have to be the same as the ones used
-// when allocating the texture. Similarly
-// if the texture was created with the dynamic
-// flag updateDynamicTexture must be used, else
-// updateStaticTexture.
-// The parameters are given here for convenience,
-// to avoid creating an item to store this information.
 bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
                                 unsigned num_chans, unsigned type, void* data,
                                 unsigned src_stride, bool dynamic) {
-    auto textureId = (GLuint)(size_t)texture;
+    auto texture_id = (GLuint)(size_t)texture;
+    
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    auto it = textureInfoMap.find(texture_id);
+    if(it == textureInfoMap.end() || it->second.deletion_frame >= 0) {
+        return false;
+    }
+
+    auto& info = it->second;
+    if(info.width != width || info.height != height || 
+       info.num_chans != num_chans || info.type != type) {
+        return false;
+    }
+
     unsigned gl_format = GL_RGBA;
     unsigned gl_type = GL_FLOAT;
     unsigned type_size = 4;
@@ -217,7 +282,7 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
         type_size = 1;
     }
 
-    if(PBO_ids.count(textureId) == 0) {
+    if(info.pbo == 0) {
         // No PBO yet created for this texture
         // We delay PBO creation to now in case
         // The user wants to manipulate the texture
@@ -228,8 +293,8 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
         if (glGetError() != GL_NO_ERROR)
             goto error;
 
-        PBO_ids[textureId] = pboid;
-
+        info.pbo = pboid; // Store PBO ID in texture info
+        
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboid);
         if (glGetError() != GL_NO_ERROR)
             goto error;
@@ -244,7 +309,7 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
                          NULL, dynamic ? GL_STREAM_DRAW : GL_STATIC_DRAW);
         }
     } else {
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO_ids[textureId]);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, info.pbo);
         if (glGetError() != GL_NO_ERROR)
             goto error;
     }
@@ -268,7 +333,7 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
         }
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
 
-        glBindTexture(GL_TEXTURE_2D, textureId);
+        glBindTexture(GL_TEXTURE_2D, texture_id);
         // Upload the content of the buffer to the whole texture area
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, gl_format, gl_type, NULL);
     } else
@@ -396,8 +461,9 @@ bool SDLViewport::initialize(bool start_minimized, bool start_maximized) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    //SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_RELEASE_BEHAVIOR, SDL_GL_CONTEXT_RELEASE_BEHAVIOR_NONE);
     uploadContextLock.lock();
     // Set current to allow sharing
     SDL_GL_MakeCurrent(uploadWindowHandle, uploadGLContext);
@@ -647,8 +713,13 @@ void SDLViewport::processEvents(int timeout_ms) {
 // Update renderFrame to use member prepare_present
 bool SDLViewport::renderFrame(bool can_skip_presenting) {
     renderContextLock.lock();
+    // Note: on X11 at least, this MakeCurrent is slow
+    // when vsync is ON for some reason...
+    // But we cannot avoid the MakeCurrent here,
+    // as render_frame might be called from
+    // various threads.
     SDL_GL_MakeCurrent(windowHandle, glContext);
-
+    cleanupTextures();
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     SDL_GL_MakeCurrent(windowHandle, NULL);
@@ -700,13 +771,11 @@ bool SDLViewport::renderFrame(bool can_skip_presenting) {
         return false;
     }
 
-    preparePresentFrame();  // Updated to use member function
+    preparePresentFrame(); 
     return true;
 }
 
 void SDLViewport::present() {
-    // Move implementation from mvPresent here
-    // Replace viewport. with this->
     renderContextLock.lock();
     SDL_GL_MakeCurrent(windowHandle, glContext);
     SDL_GL_SwapWindow(windowHandle);
@@ -846,4 +915,30 @@ GLContext* SDLViewport::createSharedContext(int major, int minor) {
     }
 
     return new SDLGLContext(tempWindow, sharedContext);
+}
+
+size_t SDLViewport::getTextureSize(unsigned width, unsigned height, unsigned num_chans, unsigned type) {
+    return width * height * num_chans * (type == 1 ? 1 : 4);
+}
+
+void SDLViewport::cleanupTextures() {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    currentFrame++;
+
+    // Remove textures that have been marked for deletion for 10 * CACHE_REUSE_FRAMES frames
+    for(auto it = textureInfoMap.begin(); it != textureInfoMap.end();) {
+        if(it->second.deletion_frame >= 0 && 
+           ((currentFrame - it->second.deletion_frame) >= 10 * CACHE_REUSE_FRAMES
+            || (deletedTexturesMemory > CACHE_MEMORY_THRESHOLD))) {
+            if(it->second.pbo != 0) {
+                glDeleteBuffers(1, &it->second.pbo);
+            }
+            glDeleteTextures(1, &it->first);
+            deletedTexturesMemory -= getTextureSize(it->second.width, it->second.height, 
+                                                  it->second.num_chans, it->second.type);
+            it = textureInfoMap.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }

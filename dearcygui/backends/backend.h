@@ -3,7 +3,9 @@
 #include <vector>
 #include <string>
 #include <SDL3/SDL.h>
+#include <GL/gl3w.h>
 #include <imgui.h>
+#include <unordered_map>
 
 typedef void (*on_resize_fun)(void*);
 typedef void (*on_close_fun)(void*);
@@ -159,9 +161,32 @@ private:
     bool has_texture_storage = false;
     bool has_buffer_storage = false;
 
+    struct TextureInfo {
+        unsigned width;
+        unsigned height;
+        unsigned num_chans;
+        unsigned type;
+        unsigned filter_mode;
+        bool dynamic;
+        GLuint pbo;
+        int deletion_frame; // Frame when texture was marked for deletion, -1 if active
+    };
+
+    // Texture management 
+    static const int CACHE_REUSE_FRAMES = 3;
+    static const size_t CACHE_MEMORY_THRESHOLD = 128 * 1024 * 1024; // 128MB
+    std::recursive_mutex textureMutex;  
+    std::unordered_map<GLuint, TextureInfo> textureInfoMap;
+    size_t deletedTexturesMemory = 0;  // Track memory of textures pending deletion
+    int currentFrame = 0;
+
+    void cleanupTextures();
+    GLuint findTextureInCache(unsigned width, unsigned height, unsigned num_chans,
+                             unsigned type, unsigned filter_mode, bool dynamic);
+    size_t getTextureSize(unsigned width, unsigned height, unsigned num_chans, unsigned type);
+
     void preparePresentFrame();
-    bool updateTexture(void* texture,
-                       unsigned width, unsigned height,
-                       unsigned num_chans, unsigned type, void* data, 
-                       unsigned src_stride, bool dynamic);
+    bool updateTexture(void* texture, unsigned width, unsigned height,
+                      unsigned num_chans, unsigned type, void* data, 
+                      unsigned src_stride, bool dynamic);
 };

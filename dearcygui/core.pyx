@@ -6659,12 +6659,16 @@ cdef class Texture(baseItem):
         self._buffer_type = 0
         self._filtering_mode = 0
 
-    def __delalloc__(self):
+    def __dealloc__(self):
         cdef unique_lock[recursive_mutex] imgui_m
         # Note: textures might be referenced during imgui rendering.
-        # Thus we must wait there is no rendering to free a texture.
+        # Thus we should wait there is no rendering to free a texture.
+        # However, doing so would stall python's garbage collection,
+        # and the gil. OpenGL is fine with the texture being deleted
+        # while it is still in use (there will just be an artefact),
+        # plus we delay texture deletion for a few frames,
+        # so it should be fine.
         if self.allocated_texture != NULL:
-            lock_gil_friendly(imgui_m, self.context.imgui_mutex)
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
             (<platformViewport*>self.context.viewport._platform).freeTexture(self.allocated_texture)
             (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
