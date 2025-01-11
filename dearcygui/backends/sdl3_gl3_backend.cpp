@@ -510,9 +510,7 @@ void SDLViewport::restore() {
     SDL_RestoreWindow(windowHandle);
 }
 
-void SDLViewport::processEvents() {
-    // Move implementation from mvProcessEvents here
-    // Replace viewport. with this->
+void SDLViewport::processEvents(int timeout_ms) {
     if (positionChangeRequested)
     {
         SDL_SetWindowPosition(windowHandle, positionX, positionY);
@@ -552,14 +550,24 @@ void SDLViewport::processEvents() {
     // Activity: input activity. Needs to render to check impact
     // Needs refresh: if the content has likely changed and we must render and present
     SDL_Event event;
+    auto start_time = SDL_GetTicks();
+    int remaining_timeout = timeout_ms;
+
     while (true) {
         bool new_events = SDL_PollEvent(&event);
         if (!new_events) {
-            if (!waitForEvents)
+            if (remaining_timeout <= 0)
                 break;
             if(activityDetected.load() || needsRefresh.load())
                 break;
-            SDL_WaitEventTimeout(NULL, 1);
+            if (SDL_WaitEventTimeout(&event, remaining_timeout)) {
+                // update the timeout for next iteration
+                auto current_time = SDL_GetTicks();
+                auto elapsed = current_time - start_time;
+                // The +1 is to round up
+                remaining_timeout = timeout_ms - elapsed + 1;
+            } else
+                break; // Timeout occurred
         }
 
         ImGui_ImplSDL3_ProcessEvent(&event);

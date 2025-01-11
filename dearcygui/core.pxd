@@ -268,6 +268,8 @@ cdef class Viewport(baseItem):
     cdef double delta_swapping
     cdef double delta_frame
     ### Public read-write variables ###
+    cdef bint wait_for_input
+    cdef int next_timeout_ms # event query timeout for next frame
     # Temporary info to be accessed during rendering
     # Shouldn't be accessed outside draw()
     cdef float global_scale # Current scale factor to apply to all rendering
@@ -275,7 +277,7 @@ cdef class Viewport(baseItem):
     cdef double[2] scales # Draw*: Current multiplication factor (integrates global_scale) for all coordinates
     cdef double[2] shifts # Draw*: Current shift for all coordinates
     cdef Vec2 window_pos # Coordinates (Viewport space) of the parent window
-    cdef Vec2 parent_pos # Coordinates (Viewport space) of the direct parent
+    cdef Vec2 parent_pos # Coordinates (Viewport space) of the direct parent (skipping drawing item parents)
     cdef Vec2 parent_size # Content region size (in pixels) of the direct parent
     cdef Vec2 window_cursor # Position of the next window (Window layout specific)
     cdef bint in_plot # Current rendering occurs withing a plot
@@ -310,7 +312,8 @@ cdef class Viewport(baseItem):
     cdef void push_pending_theme_actions(self, ThemeEnablers, ThemeCategories) noexcept nogil
     cdef void push_pending_theme_actions_on_subset(self, int, int) noexcept nogil
     cdef void pop_applied_pending_theme_actions(self) noexcept nogil
-    cdef void cwake(self) noexcept nogil
+    cdef void ask_refresh_after(self, double monotonic) noexcept nogil # might refresh before, in which case you should call again
+    cdef void force_present(self) noexcept nogil
     cdef Vec2 get_size(self) noexcept nogil
     ### private methods ###
     cdef void __check_initialized(self)

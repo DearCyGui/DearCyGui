@@ -18,7 +18,7 @@ cdef extern from "backend.h" nogil:
         void maximize()
         void minimize()
         void restore()
-        void processEvents()
+        void processEvents(int)
         bint renderFrame(bint)
         void present()
         void toggleFullScreen()
@@ -44,7 +44,6 @@ cdef extern from "backend.h" nogil:
         # Rendering properties
         float[4] clearColor
         bint hasVSync
-        bint waitForEvents
         bint shouldSkipPresenting
         atomic[bint] activityDetected
         atomic[bint] needsRefresh

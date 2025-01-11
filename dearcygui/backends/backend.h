@@ -33,7 +33,7 @@ public:
     virtual void maximize() = 0;
     virtual void minimize() = 0;
     virtual void restore() = 0;
-    virtual void processEvents() = 0;
+    virtual void processEvents(int timeout_ms = 0) = 0;
     virtual bool renderFrame(bool can_skip_presenting) = 0;
     virtual void present() = 0;
     virtual void toggleFullScreen() = 0;
@@ -66,7 +66,6 @@ public:
     float clearColor[4] = { 0., 0., 0., 1. };
     bool hasModesChanged = false;
     bool hasVSync = true;
-    bool waitForEvents = false;
     bool shouldSkipPresenting = false;
     std::atomic<bool> activityDetected{true};
     std::atomic<bool> needsRefresh{true};
@@ -119,7 +118,7 @@ public:
     virtual void maximize() override;
     virtual void minimize() override;
     virtual void restore() override;
-    virtual void processEvents() override;
+    virtual void processEvents(int timeout_ms) override;
     virtual bool renderFrame(bool can_skip_presenting) override;
     virtual void present() override;
     virtual void toggleFullScreen() override;

@@ -537,6 +537,13 @@ cdef class DrawStream(dcg.DrawingList):
         # Find index to show
         cdef int index_to_show = self._get_index_to_show()
 
+        if self._last_index != index_to_show:
+            # If the children have the same number of
+            # vertices generated, the viewport cannot
+            # detect the visual changed. We help it
+            # here with this call.
+            self.context.viewport.force_present()
+
         self._last_index = index_to_show
 
         # Nothing to show
@@ -556,6 +563,13 @@ cdef class DrawStream(dcg.DrawingList):
             if other_child != child:
                 # The child was removed by the user outside clear()
                 return
+
+        cdef double current_time, time_to_expiration
+        if self._get_index_to_show() != self._last_index:
+            # We are running late
+            self.context.viewport.ask_refresh_after(0)
+        else:
+            self.context.viewport.ask_refresh_after(self._expiry_times[index_to_show].first)
 
         # Draw the child
         (<dcg.drawingItem>child).draw(draw_list)

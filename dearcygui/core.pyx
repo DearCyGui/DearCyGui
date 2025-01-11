@@ -33,7 +33,7 @@ from dearcygui.backends.backend cimport SDLViewport, platformViewport, GLContext
 from dearcygui.font import AutoFont
 
 from concurrent.futures import Executor, ThreadPoolExecutor
-from libcpp.cmath cimport floor
+from libcpp.cmath cimport floor, ceil
 from libcpp.cmath cimport round as cround
 from libcpp.set cimport set as cpp_set
 from libcpp.vector cimport vector
@@ -2577,6 +2577,7 @@ cdef class Viewport(baseItem):
         self.last_t_after_swapping = self.last_t_before_event_handling
         self.skipped_last_frame = False
         self.frame_count = 0
+        self.wait_for_input = False
         self.state.cur.rendered = True # For compatibility with RenderHandlers
         self.p_state = &self.state
         self._cursor = imgui.ImGuiMouseCursor_Arrow
@@ -3080,13 +3081,13 @@ cdef class Viewport(baseItem):
         wake() can also be used to restart rendering
         for one frame.
         """
-        return (<platformViewport*>self._platform).waitForEvents
+        return self.wait_for_input
 
     @wait_for_input.setter
     def wait_for_input(self, bint value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        (<platformViewport*>self._platform).waitForEvents = value
+        self.wait_for_input = value
 
     @property
     def shown(self) -> bool:
@@ -3583,7 +3584,11 @@ cdef class Viewport(baseItem):
             # Process input events.
             # Doesn't need imgui mutex.
             # if wait_for_input is set, can take a long time
-            (<platformViewport*>self._platform).processEvents()
+            (<platformViewport*>self._platform).processEvents(self.next_timeout_ms)
+            if self.wait_for_input:
+                self.next_timeout_ms = 5000
+            else:
+                self.next_timeout_ms = 0
             backend_m.unlock() # important to respect lock order
             # Core rendering - uses imgui and viewport
             imgui_m.lock()
@@ -3631,7 +3636,7 @@ cdef class Viewport(baseItem):
 
     def wake(self):
         """
-        In case rendering is waiting for an input (waitForInputs),
+        In case rendering is waiting for an input (wait_for_input),
         generate a fake input to force rendering.
 
         This is useful if you have updated the content asynchronously
@@ -3643,10 +3648,32 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m2, self.mutex)
         (<platformViewport*>self._platform).wakeRendering()
 
-    cdef void cwake(self) noexcept nogil:
+    cdef void ask_refresh_after(self, double monotonic) noexcept nogil:
+        """
+        Called during draw to request that a new draw should
+        occur when monotonic time is reached. The next draw might
+        still occur before the target, in which case, the function
+        should be called again.
+        """
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.context.imgui_mutex)
         cdef unique_lock[recursive_mutex] m2 = unique_lock[recursive_mutex](self.mutex)
-        (<platformViewport*>self._platform).wakeRendering()
+        cdef double current_time = ctime.monotonic_ns() * 1e-9
+        cdef double target_timeout_ms = (monotonic - current_time) * 1000.
+        self.next_timeout_ms = max(0,
+            min(self.next_timeout_ms,
+                <int>ceil(target_timeout_ms)))
+
+    cdef void force_present(self) noexcept nogil:
+        """
+        Called during draw to disable frame presentation skipping
+        for this frame. This is useful when the content of the item
+        drawn has changed, but the viewport is unable to detect it.
+        Note the frame might still skip presentation if a broken
+        visual is detected, but in which case a new frame will
+        be redrawn and presented right after.
+        """
+        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        (<platformViewport*>self._platform).needsRefresh.store(True)
 
     cdef Vec2 get_size(self) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
