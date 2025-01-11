@@ -616,7 +616,7 @@ void SDLViewport::processEvents(int timeout_ms) {
     // Activity: input activity. Needs to render to check impact
     // Needs refresh: if the content has likely changed and we must render and present
     SDL_Event event;
-    auto start_time = SDL_GetTicks();
+    auto start_time = std::chrono::high_resolution_clock::now();
     int remaining_timeout = timeout_ms;
 
     while (true) {
@@ -628,10 +628,10 @@ void SDLViewport::processEvents(int timeout_ms) {
                 break;
             if (SDL_WaitEventTimeout(&event, remaining_timeout)) {
                 // update the timeout for next iteration
-                auto current_time = SDL_GetTicks();
+                auto current_time = std::chrono::high_resolution_clock::now();
                 auto elapsed = current_time - start_time;
-                // The +1 is to round up
-                remaining_timeout = timeout_ms - elapsed + 1;
+                auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+                remaining_timeout = timeout_ms - elapsed_ms;
             } else
                 break; // Timeout occurred
         }
