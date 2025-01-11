@@ -269,7 +269,6 @@ cdef class Viewport(baseItem):
     cdef double delta_frame
     ### Public read-write variables ###
     cdef bint wait_for_input
-    cdef int next_timeout_ms # event query timeout for next frame
     # Temporary info to be accessed during rendering
     # Shouldn't be accessed outside draw()
     cdef float global_scale # Current scale factor to apply to all rendering
@@ -306,6 +305,7 @@ cdef class Viewport(baseItem):
     cdef ThemeEnablers _current_theme_activation_condition_enabled
     cdef ThemeCategories _current_theme_activation_condition_category
     cdef float _scale
+    cdef double _target_refresh_time
     ### public methods ###
     cdef void coordinate_to_screen(self, float *dst_p, double[2] src_p) noexcept nogil
     cdef void screen_to_coordinate(self, double *dst_p, float[2] src_p) noexcept nogil

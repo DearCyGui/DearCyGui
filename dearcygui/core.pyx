@@ -2578,6 +2578,7 @@ cdef class Viewport(baseItem):
         self.skipped_last_frame = False
         self.frame_count = 0
         self.wait_for_input = False
+        self._target_refresh_time = 0.
         self.state.cur.rendered = True # For compatibility with RenderHandlers
         self.p_state = &self.state
         self._cursor = imgui.ImGuiMouseCursor_Arrow
@@ -3523,6 +3524,7 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(self_m, self.mutex)
         self.__check_initialized()
         self.last_t_before_event_handling = ctime.monotonic_ns()
+        cdef double current_time_s, target_timeout_ms
         cdef bint should_present
         cdef float gs = self.global_scale
         self.global_scale = (<platformViewport*>self._platform).dpiScale * self._scale
@@ -3584,11 +3586,14 @@ cdef class Viewport(baseItem):
             # Process input events.
             # Doesn't need imgui mutex.
             # if wait_for_input is set, can take a long time
-            (<platformViewport*>self._platform).processEvents(self.next_timeout_ms)
+            current_time_s = self.last_t_before_event_handling * 1e-9
+            target_timeout_ms = (self._target_refresh_time - current_time_s) * 1000.
+            target_timeout_ms = max(0., ceil(target_timeout_ms))
+            (<platformViewport*>self._platform).processEvents(<int>target_timeout_ms)
             if self.wait_for_input:
-                self.next_timeout_ms = 5000
+                self._target_refresh_time = current_time_s + 5.
             else:
-                self.next_timeout_ms = 0
+                self._target_refresh_time = 0
             backend_m.unlock() # important to respect lock order
             # Core rendering - uses imgui and viewport
             imgui_m.lock()
@@ -3657,11 +3662,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.context.imgui_mutex)
         cdef unique_lock[recursive_mutex] m2 = unique_lock[recursive_mutex](self.mutex)
-        cdef double current_time = ctime.monotonic_ns() * 1e-9
-        cdef double target_timeout_ms = (monotonic - current_time) * 1000.
-        self.next_timeout_ms = max(0,
-            min(self.next_timeout_ms,
-                <int>ceil(target_timeout_ms)))
+        self._target_refresh_time = min(self._target_refresh_time, monotonic)
 
     cdef void force_present(self) noexcept nogil:
         """
