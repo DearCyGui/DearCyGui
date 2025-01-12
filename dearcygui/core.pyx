@@ -2583,6 +2583,7 @@ cdef class Viewport(baseItem):
         self.p_state = &self.state
         self._cursor = imgui.ImGuiMouseCursor_Arrow
         self._scale = 1.
+        self.global_scale = 1. # non-zero needed for AutoFont.
         self._platform = \
             SDLViewport.create(internal_render_callback,
                                internal_resize_callback,
