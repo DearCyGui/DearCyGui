@@ -6,6 +6,7 @@
 #include <GL/gl3w.h>
 #include <imgui.h>
 #include <unordered_map>
+#include <unordered_set>
 
 #pragma once
 
@@ -131,15 +132,101 @@ public:
     virtual void releaseUploadContext() override;
     virtual GLContext* createSharedContext(int major, int minor) override;
 
+    /**
+     * Begin exclusive write access to a texture. Must be paired with endExternalWrite.
+     * Waits for any pending read operations to complete before allowing write access.
+     * The GL context must be current before calling this function.
+     * @param tex_id OpenGL texture identifier
+     */
+    void beginExternalWrite(GLuint tex_id);
+
+    /**
+     * End exclusive write access to a texture and place a fence sync.
+     * Must be called after beginExternalWrite once write operations are complete.
+     * The GL context must be current before calling this function.
+     * @param tex_id OpenGL texture identifier
+     */
+    void endExternalWrite(GLuint tex_id);
+
+    /**
+     * Begin read access to a texture. Must be paired with endExternalRead.
+     * Waits for any pending write operations to complete before allowing read access.
+     * The GL context must be current before calling this function.
+     * @param tex_id OpenGL texture identifier
+     */
+    void beginExternalRead(GLuint tex_id);
+
+    /**
+     * End read access to a texture and place a fence sync.
+     * Must be called after beginExternalRead once read operations are complete.
+     * The GL context must be current before calling this function.
+     * @param tex_id OpenGL texture identifier
+     */
+    void endExternalRead(GLuint tex_id);
+
+    /**
+     * Mark a texture as used in the current frame.
+     * Used internally by ImGui renderer to track texture usage.
+     * @param tex_id OpenGL texture identifier
+     */
+    void markTextureUse(GLuint tex_id);
+
+    /**
+     * Allocate a new texture or reuse a cached one.
+     * The upload context must be current before calling this function.
+     * @param width Texture width in pixels
+     * @param height Texture height in pixels
+     * @param num_chans Number of color channels (1-4)
+     * @param dynamic Whether texture will be frequently updated
+     * @param type Pixel data type (1=byte, other=float)
+     * @param filtering_mode Texture filtering (0=linear, 1=nearest, 2=font)
+     * @return void* Cast of GLuint texture ID, or nullptr on failure
+     */
     virtual void* allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
                                   unsigned dynamic, unsigned type, unsigned filtering_mode) override;
+
+    /**
+     * Mark a texture for deletion and cache reuse.
+     * Thread-safe, can be called from any thread.
+     * No GL context is required as actual deletion is deferred.
+     * @param texture void* Cast of GLuint texture ID
+     */
     virtual void freeTexture(void* texture) override;
+
+    /**
+     * Update a dynamic texture with new content.
+     * The upload context must be current before calling this function.
+     * Uses PBO for efficient updates. PBO is created on first use.
+     * @param texture void* Cast of GLuint texture ID
+     * @param width Must match texture width
+     * @param height Must match texture height
+     * @param num_chans Must match texture channels
+     * @param type Must match texture type
+     * @param data Pointer to new pixel data
+     * @param src_stride Bytes per row in source data
+     * @return bool Success or failure
+     */
     virtual bool updateDynamicTexture(void* texture, unsigned width, unsigned height,
                                       unsigned num_chans, unsigned type, void* data, 
                                       unsigned src_stride) override;
+
+    /**
+     * Update a static texture with new content.
+     * The upload context must be current before calling this function.
+     * Uses PBO for efficient uploads.
+     * @param texture void* Cast of GLuint texture ID 
+     * @param width Must match texture width
+     * @param height Must match texture height
+     * @param num_chans Must match texture channels
+     * @param type Must match texture type
+     * @param data Pointer to new pixel data
+     * @param src_stride Bytes per row in source data
+     * @return bool Success or failure
+     */
     virtual bool updateStaticTexture(void* texture, unsigned width, unsigned height,
                                      unsigned num_chans, unsigned type, void* data, 
                                      unsigned src_stride) override;
+
     virtual bool downloadBackBuffer(void* data, int size) override;
 
     static SDLViewport* create(render_fun render,
@@ -148,7 +235,9 @@ public:
                                on_drop_fun on_drop,
                                void* callback_data);
 
-    void markTextureUse(GLuint tex_id);
+    void prepareTexturesForRender(const std::unordered_set<GLuint>& tex_ids);
+    void finishTextureRender(const std::unordered_set<GLuint>& tex_ids);
+
 private:
     SDL_Window* windowHandle = nullptr;
     SDL_Window* uploadWindowHandle = nullptr;
@@ -174,6 +263,10 @@ private:
         GLuint pbo;
         int last_use_frame;
         int deletion_frame; // Frame when texture was marked for deletion, -1 if active
+        GLsync write_sync = nullptr;  // Fence sync after writes (uploads/external)
+        GLsync read_sync = nullptr;   // Fence sync after reads (ImGui/external)
+        bool has_external_writers = false; // Track if external contexts are writing
+        bool has_external_readers = false; // Track if external contexts are reading
     };
 
     // Texture management 
@@ -193,4 +286,32 @@ private:
     bool updateTexture(void* texture, unsigned width, unsigned height,
                       unsigned num_chans, unsigned type, void* data, 
                       unsigned src_stride, bool dynamic);
+
+    /**
+     * Wait for all write operations on a texture to complete.
+     * Must be called with textureMutex held.
+     * @param info Reference to texture info
+     */
+    void waitTextureReadable(TextureInfo& info);
+
+    /**
+     * Wait for all read operations on a texture to complete.
+     * Must be called with textureMutex held.
+     * @param info Reference to texture info
+     */
+    void waitTextureWritable(TextureInfo& info);
+
+    /**
+     * Place a read fence sync after reading from texture.
+     * Must be called with textureMutex held.
+     * @param info Reference to texture info
+     */
+    void markTextureRead(TextureInfo& info);
+
+    /**
+     * Place a write fence sync after writing to texture.
+     * Must be called with textureMutex held.
+     * @param info Reference to texture info
+     */
+    void markTextureWritten(TextureInfo& info);
 };

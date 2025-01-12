@@ -92,6 +92,23 @@ GLuint SDLViewport::findTextureInCache(unsigned width, unsigned height, unsigned
            info.type == type &&
            info.dynamic == dynamic &&
            info.filter_mode == filter_mode) {
+            // Wait for any pending operations before reusing
+            if(info.write_sync || info.has_external_writers || 
+               info.read_sync || info.has_external_readers) {
+                waitTextureReadable(info);
+                waitTextureWritable(info);
+                
+                // Clean up sync objects
+                if(info.write_sync) {
+                    glDeleteSync(info.write_sync);
+                    info.write_sync = nullptr;
+                }
+                if(info.read_sync) {
+                    glDeleteSync(info.read_sync);
+                    info.read_sync = nullptr;
+                }
+            }
+
             // Track texture with oldest deletion frame
             if (info.deletion_frame < best_deletion_frame) {
                 best_tex_id = tex_id;
@@ -118,11 +135,8 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
     {
         std::lock_guard<std::recursive_mutex> lock(textureMutex);
         image_texture = findTextureInCache(width, height, num_chans, type, filtering_mode, dynamic != 0);
-        if(image_texture != 0) {
-            // Found cached texture - update info
-            auto& info = textureInfoMap[image_texture];
+        if (image_texture != 0)
             return (void*)(size_t)image_texture;
-        }
     }
 
     // Making the sure the context is current
@@ -204,7 +218,7 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
     glFlush();
     //releaseUploadContext();
 
-    // Add to texture info map
+    // Add to texture info map with initialized sync objects
     if(image_texture != 0) {
         std::lock_guard<std::recursive_mutex> lock(textureMutex);
         textureInfoMap[image_texture] = {
@@ -216,7 +230,11 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
             dynamic != 0,
             0, // PBO will be created later if needed
             -1, // Last use frame
-            -1 // Mark as active
+            -1, // Mark as active
+            nullptr, // write_sync
+            nullptr, // read_sync 
+            false,   // has_external_writers
+            false    // has_external_readers
         };
     }
 
@@ -241,17 +259,28 @@ void SDLViewport::freeTexture(void* texture) {
 }
 
 bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
-                                unsigned num_chans, unsigned type, void* data,
-                                unsigned src_stride, bool dynamic) {
+                              unsigned num_chans, unsigned type, void* data,
+                              unsigned src_stride, bool dynamic) {
     auto texture_id = (GLuint)(size_t)texture;
+    TextureInfo info;
+    bool valid_texture = false;
     
-    std::lock_guard<std::recursive_mutex> lock(textureMutex);
-    auto it = textureInfoMap.find(texture_id);
-    if(it == textureInfoMap.end() || it->second.deletion_frame >= 0) {
+    // Quick validation under lock
+    {
+        std::lock_guard<std::recursive_mutex> lock(textureMutex);
+        auto it = textureInfoMap.find(texture_id);
+        if(it != textureInfoMap.end() && it->second.deletion_frame < 0) {
+            // Copy texture info for validation outside lock
+            info = it->second;
+            valid_texture = true;
+        }
+    }
+
+    if(!valid_texture) {
         return false;
     }
 
-    auto& info = it->second;
+    // Validate texture parameters haven't changed
     if(info.width != width || info.height != height || 
        info.num_chans != num_chans || info.type != type) {
         return false;
@@ -260,7 +289,7 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
     unsigned gl_format = GL_RGBA;
     unsigned gl_type = GL_FLOAT;
     unsigned type_size = 4;
-    GLuint pboid;
+    GLuint pboid = 0;
     GLubyte* ptr;
 
     switch (num_chans)
@@ -286,30 +315,21 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
     }
 
     if(info.pbo == 0) {
-        // No PBO yet created for this texture
-        // We delay PBO creation to now in case
-        // The user wants to manipulate the texture
-        // using sharing with other APIs, in which
-        // case this path might never be called,
-        // and the PBO skipped.
         glGenBuffers(1, &pboid);
         if (glGetError() != GL_NO_ERROR)
             goto error;
-
-        info.pbo = pboid; // Store PBO ID in texture info
         
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboid);
         if (glGetError() != GL_NO_ERROR)
             goto error;
 
-        // Use persistent buffer if available for dynamic textures
         if (dynamic && has_buffer_storage) {
             GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
             glBufferStorage(GL_PIXEL_UNPACK_BUFFER, width * height * num_chans * type_size, 
-                            NULL, flags);
+                          NULL, flags);
         } else {
             glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * num_chans * type_size,
-                         NULL, dynamic ? GL_STREAM_DRAW : GL_STATIC_DRAW);
+                        NULL, dynamic ? GL_STREAM_DRAW : GL_STATIC_DRAW);
         }
     } else {
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, info.pbo);
@@ -317,30 +337,47 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
             goto error;
     }
 
-    // Request access to the buffer
-    // We get significant speed gains compared to using glBufferData/glMapBuffer
+    // Buffer mapping and data copy happens outside lock
     ptr = (GLubyte*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0,
-                                     width * height * num_chans * type_size,
-                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
-    if (ptr)
-    {
-        // write data directly on the mapped buffer
-        if (src_stride == (width * num_chans * type_size))
-            memcpy(ptr, data, width * height * num_chans * type_size);
-        else {
-            for (unsigned row = 0; row < height; row++) {
-                memcpy(ptr, data, width * num_chans * type_size);
-                ptr = (GLubyte*)(((unsigned char*)ptr) + width * num_chans * type_size);
-                data = (void*)(((unsigned char*)data) + src_stride);
-            }
+                                    width * height * num_chans * type_size,
+                                    GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+    if (!ptr)
+        goto error;
+
+    if (src_stride == (width * num_chans * type_size))
+        memcpy(ptr, data, width * height * num_chans * type_size);
+    else {
+        for (unsigned row = 0; row < height; row++) {
+            memcpy(ptr, data, width * num_chans * type_size);
+            ptr = (GLubyte*)(((unsigned char*)ptr) + width * num_chans * type_size);
+            data = (void*)(((unsigned char*)data) + src_stride);
         }
-        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
+    }
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
+    {
+        std::lock_guard<std::recursive_mutex> lock(textureMutex);
+        auto it = textureInfoMap.find(texture_id);
+        if(it == textureInfoMap.end() || it->second.deletion_frame >= 0) {
+            goto error;
+        }
+
+        // Store newly created PBO
+        if(pboid != 0) {
+            it->second.pbo = pboid;
+        }
+
+        waitTextureWritable(it->second);
 
         glBindTexture(GL_TEXTURE_2D, texture_id);
-        // Upload the content of the buffer to the whole texture area
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, gl_format, gl_type, NULL);
-    } else
-        goto error;
+        
+        markTextureWritten(it->second);
+
+        // Check if texture is on screen right now
+        if (it->second.last_use_frame >= currentFrame-1)
+            needsRefresh.store(true);
+    }
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -348,19 +385,14 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
         goto error;
 
     glFlush();
-    // Check if texture is on screen right now
-    // if so we need to refresh
-    if (info.last_use_frame == currentFrame)
-        needsRefresh.store(true);
-    //releaseUploadContext();
-
     return true;
+
 error:
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    //releaseUploadContext();
-    // We don't free the texture as it might be used
-    // for rendering in another thread, but maybe we should ?
+    if(pboid != 0) {
+        glDeleteBuffers(1, &pboid);
+    }
     return false;
 }
 
@@ -430,6 +462,29 @@ void SDLViewport::cleanup() {
     if (hasOpenGL3Init) {
         renderContextLock.lock();
         SDL_GL_MakeCurrent(windowHandle, glContext);
+        
+        // Clean up all GL resources properly before destroying contexts
+        {
+            std::lock_guard<std::recursive_mutex> lock(textureMutex);
+            for (auto& [tex_id, info] : textureInfoMap) {
+                // Clean up sync objects
+                if (info.write_sync) {
+                    glDeleteSync(info.write_sync);
+                }
+                if (info.read_sync) {
+                    glDeleteSync(info.read_sync);
+                }
+                // Clean up PBOs
+                if (info.pbo) {
+                    glDeleteBuffers(1, &info.pbo);
+                }
+                // Clean up textures
+                glDeleteTextures(1, &tex_id);
+            }
+            textureInfoMap.clear();
+            deletedTexturesMemory = 0;
+        }
+
         ImGui_ImplOpenGL3_Shutdown();
         SDL_GL_MakeCurrent(windowHandle, NULL);
         renderContextLock.unlock();
@@ -870,10 +925,20 @@ public:
     
     ~SDLGLContext() override {
         if (context) {
+            SDL_GL_MakeCurrent(window, context);
+            
+            // Clean up any GL resources this context created
+            // Note: Since contexts are shared, we only clean up resources
+            // that were specifically created by this context
+            
+            SDL_GL_MakeCurrent(window, nullptr);
             SDL_GL_DestroyContext(context);
+            context = nullptr;
         }
+        
         if (window) {
-            SDL_DestroyWindow(window); 
+            SDL_DestroyWindow(window);
+            window = nullptr;
         }
     }
 
@@ -934,16 +999,31 @@ size_t SDLViewport::getTextureSize(unsigned width, unsigned height, unsigned num
 void SDLViewport::cleanupTextures() {
     std::lock_guard<std::recursive_mutex> lock(textureMutex);
 
-    // Remove textures that have been marked for deletion for 10 * CACHE_REUSE_FRAMES frames
+    // Remove textures that have been marked for deletion
     for(auto it = textureInfoMap.begin(); it != textureInfoMap.end();) {
         if(it->second.deletion_frame >= 0 && 
            ((currentFrame - it->second.deletion_frame) >= 10 * CACHE_REUSE_FRAMES
             || (deletedTexturesMemory > CACHE_MEMORY_THRESHOLD))) {
+
+            // Wait for any pending operations
+            if(it->second.write_sync || it->second.read_sync) {
+                if(it->second.write_sync) {
+                    glWaitSync(it->second.write_sync, 0, GL_TIMEOUT_IGNORED);
+                    glDeleteSync(it->second.write_sync);
+                }
+                if(it->second.read_sync) {
+                    glWaitSync(it->second.read_sync, 0, GL_TIMEOUT_IGNORED);
+                    glDeleteSync(it->second.read_sync);
+                }
+            }
+            
+            // Clean up resources in reverse order of creation
             if(it->second.pbo != 0) {
                 glDeleteBuffers(1, &it->second.pbo);
             }
             glDeleteTextures(1, &it->first);
-            deletedTexturesMemory -= getTextureSize(it->second.width, it->second.height, 
+            
+            deletedTexturesMemory -= getTextureSize(it->second.width, it->second.height,
                                                   it->second.num_chans, it->second.type);
             it = textureInfoMap.erase(it);
         } else {
@@ -957,5 +1037,120 @@ void SDLViewport::markTextureUse(GLuint tex_id) {
     auto it = textureInfoMap.find(tex_id);
     if(it != textureInfoMap.end()) {
         it->second.last_use_frame = currentFrame;
+    }
+}
+
+void SDLViewport::waitTextureReadable(TextureInfo& info) {
+    // Only wait if:
+    // 1. There is a write sync fence pending AND
+    // 2. The texture has external writers OR is dynamic
+    // This optimization avoids unnecessary waits for static textures
+    // that are only written to once during initialization
+    if (info.write_sync && (info.has_external_writers || info.dynamic)) {
+        // Use glWaitSync instead of glClientWaitSync to avoid CPU stalls
+        // The GPU will not proceed until writes are complete
+        glWaitSync(info.write_sync, 0, GL_TIMEOUT_IGNORED);
+        glDeleteSync(info.write_sync);
+        info.write_sync = nullptr;
+    }
+}
+
+void SDLViewport::waitTextureWritable(TextureInfo& info) {
+    // Similar to waitTextureReadable, only wait if necessary
+    // This ensures we don't overwrite texture data that's currently being read
+    if (info.read_sync && (info.has_external_readers || info.dynamic)) {
+        glWaitSync(info.read_sync, 0, GL_TIMEOUT_IGNORED);
+        glDeleteSync(info.read_sync);
+        info.read_sync = nullptr;
+    }
+}
+
+void SDLViewport::markTextureRead(TextureInfo& info) {
+    // Clean up any existing read sync before creating a new one
+    // This is safe because we've already waited for any writes
+    if (info.read_sync) {
+        glDeleteSync(info.read_sync);
+    }
+    // Place a fence after all read commands
+    // Other threads/contexts can wait on this before writing
+    info.read_sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+}
+
+void SDLViewport::markTextureWritten(TextureInfo& info) {
+    // Same pattern as markTextureRead
+    if (info.write_sync) {
+        glDeleteSync(info.write_sync);
+    }
+    info.write_sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+}
+
+void SDLViewport::prepareTexturesForRender(const std::unordered_set<GLuint>& tex_ids) {
+    // Called before ImGui rendering to ensure all textures are ready
+    // The mutex protection is essential as uploads might be happening
+    // from another thread
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    
+    for (GLuint tex_id : tex_ids) {
+        auto it = textureInfoMap.find(tex_id);
+        if (it != textureInfoMap.end()) {
+            // Wait for any pending writes before rendering
+            waitTextureReadable(it->second);
+        }
+    }
+}
+
+void SDLViewport::finishTextureRender(const std::unordered_set<GLuint>& tex_ids) {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    
+    for (GLuint tex_id : tex_ids) {
+        auto it = textureInfoMap.find(tex_id);
+        if (it != textureInfoMap.end()) {
+            // Place read fences after rendering
+            markTextureRead(it->second);
+        }
+    }
+}
+
+void SDLViewport::beginExternalWrite(GLuint tex_id) {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    
+    auto it = textureInfoMap.find(tex_id);
+    if (it != textureInfoMap.end()) {
+        // Mark that this texture has external writers
+        // This affects the wait behavior in waitTextureReadable
+        it->second.has_external_writers = true;
+        // Wait for any pending reads to complete
+        waitTextureWritable(it->second);
+    }
+}
+
+void SDLViewport::endExternalWrite(GLuint tex_id) {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    
+    auto it = textureInfoMap.find(tex_id);
+    if (it != textureInfoMap.end()) {
+        // Place a fence after the external write operations
+        markTextureWritten(it->second);
+        it->second.has_external_writers = false;
+    }
+}
+
+void SDLViewport::beginExternalRead(GLuint tex_id) {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    
+    auto it = textureInfoMap.find(tex_id);
+    if (it != textureInfoMap.end()) {
+        it->second.has_external_readers = true;
+        waitTextureReadable(it->second);
+    }
+}
+
+void SDLViewport::endExternalRead(GLuint tex_id) {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    
+    auto it = textureInfoMap.find(tex_id);
+    if (it != textureInfoMap.end()) {
+        markTextureRead(it->second);
+        it->second.has_external_readers = false;
     }
 }

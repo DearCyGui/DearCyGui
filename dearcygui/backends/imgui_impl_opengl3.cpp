@@ -221,6 +221,8 @@
 #define GL_CALL(_CALL)      _CALL   // Call without error check
 #endif
 
+#include <unordered_set>
+
 // OpenGL Data
 struct ImGui_ImplOpenGL3_Data
 {
@@ -497,7 +499,7 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
 // OpenGL3 Render function.
 // Note that this implementation is little overcomplicated because we are saving/setting up/restoring every OpenGL state explicitly.
 // This is in order to be able to run within an OpenGL engine that doesn't do so.
-void    ImGui_ImplOpenGL3_RenderDrawData(SDLViewport* platform, ImDrawData* draw_data)
+void ImGui_ImplOpenGL3_RenderDrawData(SDLViewport* platform, ImDrawData* draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
@@ -545,6 +547,22 @@ void    ImGui_ImplOpenGL3_RenderDrawData(SDLViewport* platform, ImDrawData* draw
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_PRIMITIVE_RESTART
     GLboolean last_enable_primitive_restart = (bd->GlVersion >= 310) ? glIsEnabled(GL_PRIMITIVE_RESTART) : GL_FALSE;
 #endif
+
+    // First pass: collect unique texture IDs
+    std::unordered_set<GLuint> used_textures;
+    for (int n = 0; n < draw_data->CmdListsCount; n++) {
+        const ImDrawList* cmd_list = draw_data->CmdLists[n];
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++) {
+            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+            if (pcmd->UserCallback == nullptr) {
+                GLuint tex_id = (GLuint)(intptr_t)pcmd->GetTexID();
+                used_textures.insert(tex_id);
+            }
+        }
+    }
+
+    // Set up sync fences for all textures we'll use
+    platform->prepareTexturesForRender(used_textures);
 
     // Setup desired GL state
     // Recreate the VAO every time (this is to easily allow multiple GL contexts to be rendered to. VAO are not shared among GL contexts)
@@ -636,6 +654,9 @@ void    ImGui_ImplOpenGL3_RenderDrawData(SDLViewport* platform, ImDrawData* draw
 #ifdef IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
     GL_CALL(glDeleteVertexArrays(1, &vertex_array_object));
 #endif
+
+    // Mark textures as read after rendering
+    platform->finishTextureRender(used_textures);
 
     // Restore modified GL state
     // This "glIsProgram()" check is required because if the program is "pending deletion" at the time of binding backup, it will have been deleted by now and will cause an OpenGL error. See #6220.
