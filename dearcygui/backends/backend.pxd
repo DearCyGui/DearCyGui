@@ -35,6 +35,12 @@ cdef extern from "backend.h" nogil:
 
         bint downloadBackBuffer(void*, int)
 
+        # Texture sync methods
+        void beginExternalWrite(unsigned int)
+        void endExternalWrite(unsigned int) 
+        void beginExternalRead(unsigned int)
+        void endExternalRead(unsigned int)
+
         # Public members
         float dpiScale
         bint isFullScreen

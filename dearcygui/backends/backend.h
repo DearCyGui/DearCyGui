@@ -165,13 +165,6 @@ public:
     void endExternalRead(GLuint tex_id);
 
     /**
-     * Mark a texture as used in the current frame.
-     * Used internally by ImGui renderer to track texture usage.
-     * @param tex_id OpenGL texture identifier
-     */
-    void markTextureUse(GLuint tex_id);
-
-    /**
      * Allocate a new texture or reuse a cached one.
      * The upload context must be current before calling this function.
      * @param width Texture width in pixels
@@ -253,6 +246,12 @@ private:
     bool has_texture_storage = false;
     bool has_buffer_storage = false;
 
+    // Fence management
+    struct FenceSync {
+        GLsync sync = nullptr;
+        int refcount = 0;
+    };
+
     struct TextureInfo {
         unsigned width;
         unsigned height;
@@ -263,8 +262,8 @@ private:
         GLuint pbo;
         int last_use_frame;
         int deletion_frame; // Frame when texture was marked for deletion, -1 if active
-        GLsync write_sync = nullptr;  // Fence sync after writes (uploads/external)
-        GLsync read_sync = nullptr;   // Fence sync after reads (ImGui/external)
+        FenceSync* write_fence = nullptr;  // Shared fence after writes 
+        FenceSync* read_fence = nullptr;   // Shared fence after reads
         bool has_external_writers = false; // Track if external contexts are writing
         bool has_external_readers = false; // Track if external contexts are reading
     };
@@ -289,29 +288,35 @@ private:
 
     /**
      * Wait for all write operations on a texture to complete.
-     * Must be called with textureMutex held.
+     * Must be called with textureMutex held and context current.
      * @param info Reference to texture info
      */
     void waitTextureReadable(TextureInfo& info);
 
     /**
      * Wait for all read operations on a texture to complete.
-     * Must be called with textureMutex held.
+     * Must be called with textureMutex held and context current.
      * @param info Reference to texture info
      */
     void waitTextureWritable(TextureInfo& info);
 
     /**
      * Place a read fence sync after reading from texture.
-     * Must be called with textureMutex held.
+     * Must be called with textureMutex held and context current.
      * @param info Reference to texture info
      */
     void markTextureRead(TextureInfo& info);
 
     /**
      * Place a write fence sync after writing to texture.
-     * Must be called with textureMutex held.
+     * Must be called with textureMutex held and context current.
      * @param info Reference to texture info
      */
     void markTextureWritten(TextureInfo& info);
+
+    // Fence management methods
+    void waitOnFenceSync(FenceSync* fence);
+    void retainFenceSync(FenceSync* fence);
+    void releaseFenceSync(FenceSync* fence);
+    FenceSync* createFenceSync();
 };

@@ -68,7 +68,12 @@ void SDLViewport::preparePresentFrame() {
     glViewport(0, 0, frameWidth, frameHeight);
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(this, ImGui::GetDrawData());
+    {
+        // We hold the mutex during the call to prevent
+        // texture write before we set up the write syncs.
+        std::lock_guard<std::recursive_mutex> lock(textureMutex);
+        ImGui_ImplOpenGL3_RenderDrawData(this, ImGui::GetDrawData());
+    }
     currentFrame++; // should it be mutex protected ?
     cleanupTextures();
     SDL_GL_MakeCurrent(windowHandle, NULL);
@@ -93,20 +98,16 @@ GLuint SDLViewport::findTextureInCache(unsigned width, unsigned height, unsigned
            info.dynamic == dynamic &&
            info.filter_mode == filter_mode) {
             // Wait for any pending operations before reusing
-            if(info.write_sync || info.has_external_writers || 
-               info.read_sync || info.has_external_readers) {
+            if(info.write_fence || info.has_external_writers || 
+               info.read_fence || info.has_external_readers) {
                 waitTextureReadable(info);
                 waitTextureWritable(info);
                 
-                // Clean up sync objects
-                if(info.write_sync) {
-                    glDeleteSync(info.write_sync);
-                    info.write_sync = nullptr;
-                }
-                if(info.read_sync) {
-                    glDeleteSync(info.read_sync);
-                    info.read_sync = nullptr;
-                }
+                // Clean up fences
+                releaseFenceSync(info.write_fence);
+                releaseFenceSync(info.read_fence);
+                info.write_fence = nullptr;
+                info.read_fence = nullptr;
             }
 
             // Track texture with oldest deletion frame
@@ -458,6 +459,37 @@ SDLViewport* SDLViewport::create(render_fun render,
 
 // Implementation of SDLViewport methods
 void SDLViewport::cleanup() {
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    
+    // Must ensure main context is current for GL operations
+    SDL_GL_MakeCurrent(windowHandle, glContext);
+    
+    // Clean up texture fences and resources
+    for (auto& pair : textureInfoMap) {
+        TextureInfo& info = pair.second;
+        
+        // Clean up fences
+        if (info.write_fence) {
+            glWaitSync(info.write_fence->sync, 0, GL_TIMEOUT_IGNORED);
+            releaseFenceSync(info.write_fence);
+            info.write_fence = nullptr;
+        }
+        if (info.read_fence) {
+            glWaitSync(info.read_fence->sync, 0, GL_TIMEOUT_IGNORED);
+            releaseFenceSync(info.read_fence);
+            info.read_fence = nullptr;
+        }
+
+        // Clean up texture and PBO
+        if (info.pbo) {
+            glDeleteBuffers(1, &info.pbo);
+        }
+        glDeleteTextures(1, &pair.first);
+    }
+    textureInfoMap.clear();
+    deletedTexturesMemory = 0;
+
+    SDL_GL_MakeCurrent(windowHandle, nullptr);
     // Only cleanup if initialization was successful
     if (hasOpenGL3Init) {
         renderContextLock.lock();
@@ -468,11 +500,11 @@ void SDLViewport::cleanup() {
             std::lock_guard<std::recursive_mutex> lock(textureMutex);
             for (auto& [tex_id, info] : textureInfoMap) {
                 // Clean up sync objects
-                if (info.write_sync) {
-                    glDeleteSync(info.write_sync);
+                if (info.write_fence) {
+                    releaseFenceSync(info.write_fence);
                 }
-                if (info.read_sync) {
-                    glDeleteSync(info.read_sync);
+                if (info.read_fence) {
+                    releaseFenceSync(info.read_fence);
                 }
                 // Clean up PBOs
                 if (info.pbo) {
@@ -1006,18 +1038,20 @@ void SDLViewport::cleanupTextures() {
             || (deletedTexturesMemory > CACHE_MEMORY_THRESHOLD))) {
 
             // Wait for any pending operations
-            if(it->second.write_sync || it->second.read_sync) {
-                if(it->second.write_sync) {
-                    glWaitSync(it->second.write_sync, 0, GL_TIMEOUT_IGNORED);
-                    glDeleteSync(it->second.write_sync);
-                }
-                if(it->second.read_sync) {
-                    glWaitSync(it->second.read_sync, 0, GL_TIMEOUT_IGNORED);
-                    glDeleteSync(it->second.read_sync);
-                }
+            if (it->second.write_fence && it->second.write_fence->sync) {
+                glWaitSync(it->second.write_fence->sync, 0, GL_TIMEOUT_IGNORED);
             }
+            if (it->second.read_fence && it->second.read_fence->sync) {
+                glWaitSync(it->second.read_fence->sync, 0, GL_TIMEOUT_IGNORED);
+            }
+
+            // Clean up fences
+            releaseFenceSync(it->second.write_fence);
+            releaseFenceSync(it->second.read_fence);
+            it->second.write_fence = nullptr;
+            it->second.read_fence = nullptr;
             
-            // Clean up resources in reverse order of creation
+            // Clean up resources
             if(it->second.pbo != 0) {
                 glDeleteBuffers(1, &it->second.pbo);
             }
@@ -1032,56 +1066,34 @@ void SDLViewport::cleanupTextures() {
     }
 }
 
-void SDLViewport::markTextureUse(GLuint tex_id) {
-    std::lock_guard<std::recursive_mutex> lock(textureMutex);
-    auto it = textureInfoMap.find(tex_id);
-    if(it != textureInfoMap.end()) {
-        it->second.last_use_frame = currentFrame;
-    }
-}
-
 void SDLViewport::waitTextureReadable(TextureInfo& info) {
-    // Only wait if:
-    // 1. There is a write sync fence pending AND
-    // 2. The texture has external writers OR is dynamic
-    // This optimization avoids unnecessary waits for static textures
-    // that are only written to once during initialization
-    if (info.write_sync && (info.has_external_writers || info.dynamic)) {
-        // Use glWaitSync instead of glClientWaitSync to avoid CPU stalls
-        // The GPU will not proceed until writes are complete
-        glWaitSync(info.write_sync, 0, GL_TIMEOUT_IGNORED);
-        glDeleteSync(info.write_sync);
-        info.write_sync = nullptr;
-    }
+    if (!info.write_fence || !info.write_fence->sync) return;
+    
+    glWaitSync(info.write_fence->sync, 0, GL_TIMEOUT_IGNORED);
 }
 
 void SDLViewport::waitTextureWritable(TextureInfo& info) {
-    // Similar to waitTextureReadable, only wait if necessary
-    // This ensures we don't overwrite texture data that's currently being read
-    if (info.read_sync && (info.has_external_readers || info.dynamic)) {
-        glWaitSync(info.read_sync, 0, GL_TIMEOUT_IGNORED);
-        glDeleteSync(info.read_sync);
-        info.read_sync = nullptr;
-    }
+    if (!info.read_fence || !info.read_fence->sync) return;
+    
+    glWaitSync(info.read_fence->sync, 0, GL_TIMEOUT_IGNORED);
 }
 
 void SDLViewport::markTextureRead(TextureInfo& info) {
     // Clean up any existing read sync before creating a new one
-    // This is safe because we've already waited for any writes
-    if (info.read_sync) {
-        glDeleteSync(info.read_sync);
-    }
-    // Place a fence after all read commands
-    // Other threads/contexts can wait on this before writing
-    info.read_sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    // Note: This assumes that the previous fence will not raise
+    // after the one we are creating now...
+    releaseFenceSync(info.read_fence);
+    info.read_fence = createFenceSync();
+    if (info.read_fence)
+        info.read_fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
 
-void SDLViewport::markTextureWritten(TextureInfo& info) {
-    // Same pattern as markTextureRead
-    if (info.write_sync) {
-        glDeleteSync(info.write_sync);
-    }
-    info.write_sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+void SDLViewport::markTextureWritten(TextureInfo& info) {;
+    // Clean up old fence before assigning new one
+    releaseFenceSync(info.write_fence);
+    info.write_fence = createFenceSync();
+    if (info.write_fence)
+        info.write_fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
 
 void SDLViewport::prepareTexturesForRender(const std::unordered_set<GLuint>& tex_ids) {
@@ -1095,20 +1107,42 @@ void SDLViewport::prepareTexturesForRender(const std::unordered_set<GLuint>& tex
         if (it != textureInfoMap.end()) {
             // Wait for any pending writes before rendering
             waitTextureReadable(it->second);
+            it->second.last_use_frame = currentFrame;
         }
     }
 }
 
 void SDLViewport::finishTextureRender(const std::unordered_set<GLuint>& tex_ids) {
     std::lock_guard<std::recursive_mutex> lock(textureMutex);
-    
+
+    // Create new frame fence
+    FenceSync* currentFrameFence = nullptr;
+    currentFrameFence = createFenceSync();
+    if (!currentFrameFence) {
+        return;
+    }
+
+    // Create single fence for all textures
+    currentFrameFence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    if (!currentFrameFence->sync) {
+        // Handle sync creation failure
+        delete currentFrameFence;
+        return;
+    }
+
+    // Assign this fence to all used textures
     for (GLuint tex_id : tex_ids) {
         auto it = textureInfoMap.find(tex_id);
         if (it != textureInfoMap.end()) {
-            // Place read fences after rendering
-            markTextureRead(it->second);
+            // Clean up old read fence
+            releaseFenceSync(it->second.read_fence);
+            
+            // Share the current frame fence
+            it->second.read_fence = currentFrameFence;
+            retainFenceSync(currentFrameFence);
         }
     }
+    releaseFenceSync(currentFrameFence);
 }
 
 void SDLViewport::beginExternalWrite(GLuint tex_id) {
@@ -1116,10 +1150,7 @@ void SDLViewport::beginExternalWrite(GLuint tex_id) {
     
     auto it = textureInfoMap.find(tex_id);
     if (it != textureInfoMap.end()) {
-        // Mark that this texture has external writers
-        // This affects the wait behavior in waitTextureReadable
         it->second.has_external_writers = true;
-        // Wait for any pending reads to complete
         waitTextureWritable(it->second);
     }
 }
@@ -1129,7 +1160,6 @@ void SDLViewport::endExternalWrite(GLuint tex_id) {
     
     auto it = textureInfoMap.find(tex_id);
     if (it != textureInfoMap.end()) {
-        // Place a fence after the external write operations
         markTextureWritten(it->second);
         it->second.has_external_writers = false;
     }
@@ -1153,4 +1183,37 @@ void SDLViewport::endExternalRead(GLuint tex_id) {
         markTextureRead(it->second);
         it->second.has_external_readers = false;
     }
+}
+
+void SDLViewport::waitOnFenceSync(FenceSync* fence) {
+    if (fence && fence->sync) {
+        glWaitSync(fence->sync, 0, GL_TIMEOUT_IGNORED);
+        glFlush(); // Ensure commands are submitted to GPU
+    }
+}
+
+void SDLViewport::retainFenceSync(FenceSync* fence) {
+    if (fence) {
+        std::lock_guard<std::recursive_mutex> lock(textureMutex);
+        fence->refcount++;
+    }
+}
+
+void SDLViewport::releaseFenceSync(FenceSync* fence) {
+    if (fence) {
+        std::lock_guard<std::recursive_mutex> lock(textureMutex);
+        fence->refcount--;
+        if (fence->refcount <= 0) {
+            if (fence->sync) {
+                glDeleteSync(fence->sync);
+            }
+            delete fence;
+        }
+    }
+}
+
+SDLViewport::FenceSync* SDLViewport::createFenceSync() {
+    SDLViewport::FenceSync* fence = new SDLViewport::FenceSync();
+    fence->refcount = 1;
+    return fence;
 }
