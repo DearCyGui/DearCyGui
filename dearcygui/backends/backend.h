@@ -59,7 +59,18 @@ public:
     virtual bool updateStaticTexture(void* texture, unsigned width, unsigned height,
                                    unsigned num_chans, unsigned type, void* data, 
                                    unsigned src_stride) = 0;
-    virtual bool downloadBackBuffer(void* data, int size) = 0;
+    virtual bool downloadTexture(void* texture,
+                         int x,
+                         int y,
+                         unsigned sub_width,
+                         unsigned sub_height,
+                         unsigned num_chans,
+                         unsigned type,
+                         void* dst,
+                         unsigned dst_stride) = 0;
+
+    virtual bool backBufferToTexture(void* texture, unsigned width, unsigned height,
+                                     unsigned num_chans, unsigned type) = 0;
 
 	// Window state
     float dpiScale = 1.;
@@ -220,8 +231,6 @@ public:
                                      unsigned num_chans, unsigned type, void* data, 
                                      unsigned src_stride) override;
 
-    virtual bool downloadBackBuffer(void* data, int size) override;
-
     static SDLViewport* create(render_fun render,
                                on_resize_fun on_resize,
                                on_close_fun on_close,
@@ -230,6 +239,19 @@ public:
 
     void prepareTexturesForRender(const std::unordered_set<GLuint>& tex_ids);
     void finishTextureRender(const std::unordered_set<GLuint>& tex_ids);
+
+    bool downloadTexture(void* texture,
+                         int x,
+                         int y,
+                         unsigned sub_width,
+                         unsigned sub_height,
+                         unsigned num_chans,
+                         unsigned type,
+                         void* dst,
+                         unsigned dst_stride);
+
+    virtual bool backBufferToTexture(void* texture, unsigned width, unsigned height,
+                                     unsigned num_chans, unsigned type) override;
 
 private:
     SDL_Window* windowHandle = nullptr;

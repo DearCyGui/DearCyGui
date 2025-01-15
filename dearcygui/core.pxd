@@ -690,6 +690,7 @@ cdef class Texture(baseItem):
     cdef unsigned _buffer_type
     cdef int _filtering_mode
     cdef bint _readonly
+    cdef bint _no_realloc
     cdef void set_content(self, cnp.ndarray content)
 
 cdef class baseFont(baseItem):

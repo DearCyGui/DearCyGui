@@ -3531,6 +3531,7 @@ cdef class Viewport(baseItem):
         self.global_scale = (<platformViewport*>self._platform).dpiScale * self._scale
         cdef imgui.ImGuiStyle *style = &imgui.GetStyle()
         cdef implot.ImPlotStyle *style_p = &implot.GetStyle()
+        cdef Texture framebuffer
         # Handle scaling
         if gs != self.global_scale:
             gs = self.global_scale
@@ -3615,13 +3616,23 @@ cdef class Viewport(baseItem):
             if should_present:
                 if self._retrieve_framebuffer:
                     with gil:
-                        framebuffer = np.empty((
-                            (<platformViewport*>self._platform).frameHeight,
-                            (<platformViewport*>self._platform).frameWidth,
-                            4),
-                            dtype=np.uint8)
-                        if (<platformViewport*>self._platform).downloadBackBuffer(cnp.PyArray_DATA(framebuffer), framebuffer.nbytes):
-                            self._frame_buffer = framebuffer
+                        try:
+                            while True:
+                                framebuffer = Texture(self.context)
+                                framebuffer.allocate(width=(<platformViewport*>self._platform).frameWidth,
+                                                     height=(<platformViewport*>self._platform).frameHeight,
+                                                     num_chans=4,
+                                                     uint8=True)
+                                if not (<platformViewport*>self._platform).backBufferToTexture(framebuffer.allocated_texture,
+                                                                                               framebuffer.width,
+                                                                                               framebuffer.height,
+                                                                                               framebuffer.num_chans,
+                                                                                               framebuffer._buffer_type):
+                                    break
+                                self._frame_buffer = framebuffer
+                                break
+                        except Exception as e:
+                            print(f"Failed to retrieve framebuffer: {e}")
                 (<platformViewport*>self._platform).present()
             backend_m.unlock()
         if not(should_present) and (<platformViewport*>self._platform).hasVSync:
@@ -6653,6 +6664,8 @@ cdef class Texture(baseItem):
     def __cinit__(self):
         self._hint_dynamic = False
         self._dynamic = False
+        self._no_realloc = False
+        self._readonly = False
         self.allocated_texture = NULL
         self.width = 0
         self.height = 0
@@ -6688,6 +6701,7 @@ cdef class Texture(baseItem):
         Hint for texture placement that
         the texture will be updated very
         frequently.
+        Must be set before set_value/allocate.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6702,7 +6716,7 @@ cdef class Texture(baseItem):
         """
         Whether to use nearest neighbor interpolation
         instead of bilinear interpolation when upscaling
-        the texture. Must be set before set_value.
+        the texture. Must be set before set_value/allocate.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6737,6 +6751,67 @@ cdef class Texture(baseItem):
         for the current allocation. May change if set_value is
         called, and is released when the Texture is freed."""
         return <uintptr_t>self.allocated_texture
+
+    def allocate(self, *,
+                 int width,
+                 int height,
+                 int num_chans,
+                 bint uint8 = False,
+                 bint float32 = False,
+                 bint no_realloc = True):
+        """
+        Allocate the buffer backing. You don't need
+        to use this for normal texture usage as it is done
+        automatically by set_value.
+
+        This function is useful when needing to write to a texture
+        using external rendering tools (OpenGL, etc) and you don't
+        want to do a first set_value to initialize
+
+        Inputs:
+        - width: width of the target texture
+        - height: height of the target texture
+        - num_chans: number of channels (1, 2, 3, 4)
+        - uint8: (False by default) the texture format is unsigned bytes
+        - float32: (False by default) the texture format is float32
+        - no_realloc: (True by default) reallocations of the texture
+            will be prevented (set_value, etc), thus guaranteeing a fixed
+            allocated_texture ID.
+        uint8 or float32 must be set.
+        """
+        if self.allocated_texture != NULL and self._no_realloc:
+            raise ValueError("Texture backing cannot be reallocated")
+
+        cdef unsigned buffer_type
+        if uint8:
+            buffer_type = 1
+        elif float32:
+            buffer_type = 0
+        else:
+            raise ValueError("Invalid texture format. Float32 or uint8 must be set")
+
+        cdef bint success
+        with nogil:
+            (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
+            self.mutex.lock()
+            self.allocated_texture = \
+                (<platformViewport*>self.context.viewport._platform).allocateTexture(width,
+                                                                    height,
+                                                                    num_chans,
+                                                                    self._dynamic,
+                                                                    buffer_type,
+                                                                    self._filtering_mode)
+            (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+            success = self.allocated_texture != NULL
+            if success:
+                self.width = width
+                self.height = height
+                self.num_chans = num_chans
+                self._buffer_type = buffer_type
+            self.mutex.unlock()
+        if not(success):
+            raise MemoryError("Failed to allocate target texture")
+
 
     def set_value(self, value):
         """
@@ -6807,6 +6882,8 @@ cdef class Texture(baseItem):
         cdef bint success
         cdef unsigned buffer_type = 1 if content.dtype == np.uint8 else 0
         reuse = reuse and not(self.width != width or self.height != height or self.num_chans != num_chans or self._buffer_type != buffer_type)
+        if not(reuse) and self._no_realloc:
+            raise ValueError("Texture cannot be reallocated and upload data is not of the same size/type as the texture")
 
         with nogil:
             if self.allocated_texture != NULL and not(reuse):
@@ -6874,6 +6951,54 @@ cdef class Texture(baseItem):
             m2.unlock() # Release before we get gil again
         if not(success):
             raise MemoryError("Failed to upload target texture")
+
+    def read(self, int x0=0, int y0=0, int crop_width=0, int crop_height=0):
+        """
+        Read the texture content. The texture must be
+        allocated and have content.
+
+        Inputs:
+        - x0: x coordinate of the top left corner of the crop
+        - y0: y coordinate of the top left corner of the crop
+        - crop_width: width of the crop (0 for full width)
+        - crop_height: height of the crop (0 for full_height)
+
+        Returns:
+        - numpy array: the texture content
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef int width = self.width
+        cdef int height = self.height
+        cdef int num_chans = self.num_chans
+        cdef int buffer_type = self._buffer_type
+        cdef int crop_width_ = crop_width if crop_width > 0 else width
+        cdef int crop_height_ = crop_height if crop_height > 0 else height
+        if x0 < 0 or y0 < 0 or crop_width_ <= 0 or crop_height_ <= 0 or x0 + crop_width_ > width or y0 + crop_height_ > height:
+            raise ValueError("Invalid crop coordinates")
+        cdef cnp.ndarray array
+        cdef void *data
+        cdef bint success
+
+        # allocate array
+        if buffer_type == 1:
+            array = np.empty((crop_height_, crop_width_, num_chans), dtype=np.uint8)
+        else:
+            array = np.empty((crop_height_, crop_width_, num_chans), dtype=np.float32)
+        data = cnp.PyArray_DATA(array)
+
+        cdef int stride = cnp.PyArray_STRIDE(array, 1)
+        with nogil:
+            m.unlock()
+            (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
+            m.lock()
+            success = \
+                (<platformViewport*>self.context.viewport._platform).downloadTexture(self.allocated_texture,
+                                x0, y0, crop_width_, crop_height_, num_chans,
+                                self._buffer_type, data, stride)
+            (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+        if not(success):
+            raise ValueError("Failed to read the texture")
 
 
 cdef class baseFont(baseItem):

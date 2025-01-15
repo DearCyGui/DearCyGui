@@ -737,62 +737,100 @@ void SDLViewport::processEvents(int timeout_ms) {
             case SDL_EVENT_WINDOW_FOCUS_LOST:
             case SDL_EVENT_WINDOW_MOVED:
             case SDL_EVENT_WINDOW_SHOWN:
+                if (event.window.windowID == SDL_GetWindowID(windowHandle))
+                    activityDetected.store(true);
+                break;
             case SDL_EVENT_MOUSE_MOTION:
-                activityDetected.store(true);
+                if (event.motion.windowID == SDL_GetWindowID(windowHandle))
+                    activityDetected.store(true);
                 break;
             case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
-                isFullScreen = true;
-                needsRefresh.store(true);
+                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    isFullScreen = true;
+                    needsRefresh.store(true);
+                }
                 break;
             case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
-                isFullScreen = false;
-                needsRefresh.store(true);
+                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    isFullScreen = false;
+                    needsRefresh.store(true);
+                }
                 break;
             case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
             case SDL_EVENT_WINDOW_RESIZED:
-                hasResized = true;
-                needsRefresh.store(true);
+                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    hasResized = true;
+                    needsRefresh.store(true);
+                }
                 break;
             case SDL_EVENT_MOUSE_WHEEL:
+                if (event.wheel.windowID == SDL_GetWindowID(windowHandle))
+                    activityDetected.store(true);
+                break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
             case SDL_EVENT_MOUSE_BUTTON_UP:
+                if (event.button.windowID == SDL_GetWindowID(windowHandle))
+                    activityDetected.store(true);
+                break;
             case SDL_EVENT_TEXT_EDITING:
+                if (event.edit.windowID == SDL_GetWindowID(windowHandle))
+                    activityDetected.store(true);
+                break;
             case SDL_EVENT_TEXT_INPUT:
+                if (event.text.windowID == SDL_GetWindowID(windowHandle))
+                    activityDetected.store(true);
+                break;
             case SDL_EVENT_KEY_DOWN:
             case SDL_EVENT_KEY_UP:
+                if (event.key.windowID == SDL_GetWindowID(windowHandle))
+                    activityDetected.store(true);
+                break;
             case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
             case SDL_EVENT_WINDOW_EXPOSED:
             case SDL_EVENT_WINDOW_DESTROYED:
-                needsRefresh.store(true);
+                if (event.window.windowID == SDL_GetWindowID(windowHandle))
+                    needsRefresh.store(true);
                 break;
             case SDL_EVENT_WINDOW_MINIMIZED:
-                activityDetected.store(true);
-                isMinimized = true;
+                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    activityDetected.store(true);
+                    isMinimized = true;
+                }
                 break;
             case SDL_EVENT_WINDOW_MAXIMIZED:
-                activityDetected.store(true);
-                isMaximized = true;
+                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    activityDetected.store(true);
+                    isMaximized = true;
+                }
                 break;
             case SDL_EVENT_WINDOW_RESTORED:
-                activityDetected.store(true);
-                isMinimized = true;
-                isMaximized = true;
+                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    activityDetected.store(true);
+                    isMinimized = false;
+                    isMaximized = false;
+                }
                 break;
             case SDL_EVENT_QUIT:
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED: // && event.window.windowID == SDL_GetWindowID(handle)
-                closeCallback(callbackData);
-                activityDetected.store(true);
+                if (event.type == SDL_EVENT_QUIT || event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    closeCallback(callbackData);
+                    activityDetected.store(true);
+                }
             case SDL_EVENT_DROP_BEGIN:
-                dropCallback(callbackData, 0, nullptr);
+                if (event.drop.windowID == SDL_GetWindowID(windowHandle))
+                    dropCallback(callbackData, 0, nullptr);
                 break;
             case SDL_EVENT_DROP_FILE:
-                dropCallback(callbackData, 1, event.drop.data);
+                if (event.drop.windowID == SDL_GetWindowID(windowHandle))
+                    dropCallback(callbackData, 1, event.drop.data);
                 break;
             case SDL_EVENT_DROP_TEXT:
-                dropCallback(callbackData, 2, event.drop.data);
+                if (event.drop.windowID == SDL_GetWindowID(windowHandle))
+                    dropCallback(callbackData, 2, event.drop.data);
                 break;
             case SDL_EVENT_DROP_COMPLETE:
-                dropCallback(callbackData, 3, nullptr);
+                if (event.drop.windowID == SDL_GetWindowID(windowHandle))
+                    dropCallback(callbackData, 3, nullptr);
                 break;
             default:
                 break;
@@ -907,48 +945,6 @@ void SDLViewport::releaseUploadContext() {
     uploadContextLock.unlock();
 }
 
-bool SDLViewport::downloadBackBuffer(void* data, int size) {
-    renderContextLock.lock();
-    SDL_GL_MakeCurrent(windowHandle, glContext);
-    
-    // Read the framebuffer into the provided buffer
-    // We assume RGBA8 format (4 bytes per pixel)
-    if (size < frameWidth * frameHeight * 4)
-        return false;
-    glFlush(); // probably not needed
-    GLuint pbo;
-    glGenBuffers(1, &pbo);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
-    glBufferData(GL_PIXEL_PACK_BUFFER, frameWidth * frameHeight * 4, nullptr, GL_STREAM_READ);
-
-    // Initiate async transfer to PBO
-    glReadBuffer(GL_BACK_LEFT);
-    glReadPixels(0, 0, frameWidth, frameHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-    // TODO: avoid this sync in the main thread
-    // Map buffer after transfer complete
-    GLsync fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-    glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
-    glDeleteSync(fence);
-
-    void* mapped = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-    if (!mapped) {
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        glDeleteBuffers(1, &pbo);
-        return false;
-    }
-    memcpy(data, mapped, frameWidth * frameHeight * 4);
-    glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-    glDeleteBuffers(1, &pbo);
-
-    // Check for errors
-    GLenum error = glGetError();
-    SDL_GL_MakeCurrent(windowHandle, NULL);
-    renderContextLock.unlock();
-    return error == GL_NO_ERROR;
-}
 
 class SDLGLContext : public GLContext {
 public:
@@ -1216,4 +1212,123 @@ SDLViewport::FenceSync* SDLViewport::createFenceSync() {
     SDLViewport::FenceSync* fence = new SDLViewport::FenceSync();
     fence->refcount = 1;
     return fence;
+}
+
+bool SDLViewport::backBufferToTexture(void* texture, unsigned width, unsigned height,
+                                      unsigned num_chans, unsigned type)
+{
+    GLuint tex_id = (GLuint)(size_t)texture;
+    if (!tex_id) return false;
+
+    renderContextLock.lock();
+    SDL_GL_MakeCurrent(windowHandle, glContext);
+
+    // Create and bind a temporary FBO for writing
+    GLuint fbo = 0;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
+
+    bool success = false;
+    if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+    {
+        // Default framebuffer is 0, used as READ source
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height,
+                          GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        success = true;
+    }
+
+    // Clean up
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+    SDL_GL_MakeCurrent(windowHandle, NULL);
+    renderContextLock.unlock();
+    return success;
+}
+
+bool SDLViewport::downloadTexture(void* texture,
+                                  int x,
+                                  int y,
+                                  unsigned sub_width,
+                                  unsigned sub_height,
+                                  unsigned num_chans,
+                                  unsigned type,
+                                  void* dst,
+                                  unsigned dst_stride)
+{
+    GLuint tex_id = (GLuint)(size_t)texture;
+    if (!tex_id) return false;
+
+    // Prevent writing outside bounds
+    if (dst_stride < sub_width * num_chans * ((type == 1) ? 1 : 4)) {
+        return false;
+    }
+
+    // Check texture data matches
+    std::lock_guard<std::recursive_mutex> lock(textureMutex);
+    auto it = textureInfoMap.find(tex_id);
+    if (it == textureInfoMap.end()) {
+        return false;
+    }
+
+    // Wait for any pending writes before reading
+    waitTextureReadable(it->second);
+
+    // Bind texture to FBO
+    glBindTexture(GL_TEXTURE_2D, tex_id);
+
+    // Determine format and type
+
+    GLenum gl_format = GL_RED;
+    switch (num_chans) {
+        case 2: gl_format = GL_RG; break;
+        case 3: gl_format = GL_RGB; break;
+        case 4: gl_format = GL_RGBA; break;
+    }
+
+    GLenum gl_type = (type == 1) ? GL_UNSIGNED_BYTE : GL_FLOAT;
+
+    GLuint fbo = 0;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
+
+    bool success = false;
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+        // Align packing
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+        // Create an ephemeral pixel pack buffer
+        GLuint pbo = 0;
+        glGenBuffers(1, &pbo);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+        glBufferData(GL_PIXEL_PACK_BUFFER, sub_height * dst_stride, nullptr, GL_STREAM_READ);
+
+        glReadPixels(x, y, sub_width, sub_height, gl_format, gl_type, 0);
+        markTextureRead(it->second);
+        glFlush();
+
+        // Map buffer to CPU memory
+        void* mapped = glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, sub_height * dst_stride, GL_MAP_READ_BIT);
+        if (mapped)
+        {
+            // Copy rows from mapped buffer to dst
+            for (unsigned row = 0; row < sub_height; row++)
+            {
+                memcpy((unsigned char*)dst + row * dst_stride, (unsigned char*)mapped + row * dst_stride, sub_width * num_chans * ((type == 1) ? 1 : 4));
+            }
+            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+        }
+
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        glDeleteBuffers(1, &pbo);
+
+        success = true;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+    return success;
 }

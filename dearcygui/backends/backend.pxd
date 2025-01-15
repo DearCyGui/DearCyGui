@@ -33,7 +33,10 @@ cdef extern from "backend.h" nogil:
         bint updateDynamicTexture(void*, unsigned, unsigned, unsigned, unsigned, void*, unsigned)
         bint updateStaticTexture(void*, unsigned, unsigned, unsigned, unsigned, void*, unsigned)
 
-        bint downloadBackBuffer(void*, int)
+        bint downloadTexture(void*, int, int,
+                             unsigned, unsigned, unsigned, unsigned,
+                             void*, unsigned)
+        bint backBufferToTexture(void*, unsigned, unsigned, unsigned, unsigned)
 
         # Texture sync methods
         void beginExternalWrite(unsigned int)
