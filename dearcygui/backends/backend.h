@@ -34,14 +34,10 @@ public:
     virtual ~platformViewport() = default;
 
     virtual void cleanup() = 0;
-    virtual bool initialize(bool start_minimized, bool start_maximized) = 0;
-    virtual void maximize() = 0;
-    virtual void minimize() = 0;
-    virtual void restore() = 0;
+    virtual bool initialize() = 0;
     virtual void processEvents(int timeout_ms = 0) = 0;
     virtual bool renderFrame(bool can_skip_presenting) = 0;
     virtual void present() = 0;
-    virtual void toggleFullScreen() = 0;
     virtual void wakeRendering() = 0;
     virtual void makeUploadContextCurrent() = 0;
     virtual void releaseUploadContext() = 0;
@@ -77,6 +73,15 @@ public:
     bool isFullScreen = false;
     bool isMinimized = false;
     bool isMaximized = false;
+    bool isVisible = true;
+
+    // Window requested state changes
+    bool shouldFullscreen = false;
+    bool shouldMinimize = false;
+    bool shouldMaximize = false;
+    bool shouldRestore = false;
+    bool shouldShow = false;
+    bool shouldHide = false;
 
 	// Rendering properties
     float clearColor[4] = { 0., 0., 0., 1. };
@@ -130,14 +135,10 @@ class SDLViewport : public platformViewport
 {
 public:
     virtual void cleanup() override;
-    virtual bool initialize(bool start_minimized, bool start_maximized) override;
-    virtual void maximize() override;
-    virtual void minimize() override;
-    virtual void restore() override;
+    virtual bool initialize() override;
     virtual void processEvents(int timeout_ms) override;
     virtual bool renderFrame(bool can_skip_presenting) override;
     virtual void present() override;
-    virtual void toggleFullScreen() override;
     virtual void wakeRendering() override;
     virtual void makeUploadContextCurrent() override;
     virtual void releaseUploadContext() override;

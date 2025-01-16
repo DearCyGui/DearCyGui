@@ -14,10 +14,7 @@ cdef extern from "backend.h" nogil:
     cdef cppclass platformViewport:        
         # Virtual methods
         void cleanup()
-        bint initialize(bint, bint) 
-        void maximize()
-        void minimize()
-        void restore()
+        bint initialize() 
         void processEvents(int)
         bint renderFrame(bint)
         void present()
@@ -49,6 +46,14 @@ cdef extern from "backend.h" nogil:
         bint isFullScreen
         bint isMinimized
         bint isMaximized
+        bint isVisible
+
+        bint shouldFullscreen
+        bint shouldMinimize
+        bint shouldMaximize
+        bint shouldRestore
+        bint shouldShow
+        bint shouldHide
 
         # Rendering properties
         float[4] clearColor

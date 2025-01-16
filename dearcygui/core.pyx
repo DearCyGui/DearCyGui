@@ -2696,7 +2696,7 @@ cdef class Viewport(baseItem):
             (<platformViewport*>self._platform).cleanup()
             self._platform = NULL
 
-    def initialize(self, minimized=False, maximized=False, **kwargs):
+    def initialize(self, **kwargs):
         """
         Initialize the viewport for rendering and show it.
 
@@ -2723,7 +2723,7 @@ cdef class Viewport(baseItem):
         if self._initialized:
             raise RuntimeError("Viewport already initialized")
         ensure_correct_im_context(self.context)
-        if not (<platformViewport*>self._platform).initialize(minimized, maximized):
+        if not (<platformViewport*>self._platform).initialize():
             raise RuntimeError("Failed to initialize the viewport")
         imgui.StyleColorsDark()
         imgui.GetIO().ConfigWindowsMoveFromTitleBarOnly = True
@@ -3121,10 +3121,10 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m3, self._mutex_backend)
         ensure_correct_im_context(self.context)
         if value and not((<platformViewport*>self._platform).isFullScreen):
-            (<platformViewport*>self._platform).toggleFullScreen()
+            (<platformViewport*>self._platform).shouldFullscreen = True
         elif not(value) and ((<platformViewport*>self._platform).isFullScreen):
             # Same call
-            (<platformViewport*>self._platform).toggleFullScreen()
+            (<platformViewport*>self._platform).shouldFullscreen = True
     @property
     def minimized(self):
         cdef unique_lock[recursive_mutex] m
@@ -3141,9 +3141,9 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m3, self._mutex_backend)
         ensure_correct_im_context(self.context)
         if value and not((<platformViewport*>self._platform).isMinimized):
-            (<platformViewport*>self._platform).minimize()
+            (<platformViewport*>self._platform).shouldMinimize = True
         elif (<platformViewport*>self._platform).isMinimized:
-            (<platformViewport*>self._platform).restore()
+            (<platformViewport*>self._platform).shouldRestore = True
 
     @property
     def maximized(self):
@@ -3161,9 +3161,32 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m3, self._mutex_backend)
         ensure_correct_im_context(self.context)
         if value and not((<platformViewport*>self._platform).isMaximized):
-            (<platformViewport*>self._platform).maximize()
+            (<platformViewport*>self._platform).shouldMaximize = True
         elif (<platformViewport*>self._platform).isMaximized:
-            (<platformViewport*>self._platform).restore()
+            (<platformViewport*>self._platform).shouldRestore = True
+
+    @property
+    def visible(self):
+        """State to control whether the viewport is associated to a window.
+        If False, no window will be displayed for the viewport (offscreen rendering).
+        Defaults to True"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (<platformViewport*>self._platform).isVisible
+
+    @visible.setter
+    def visible(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[recursive_mutex] m2
+        cdef unique_lock[recursive_mutex] m3
+        lock_gil_friendly(m, self.context.imgui_mutex)
+        lock_gil_friendly(m2, self.mutex)
+        lock_gil_friendly(m3, self._mutex_backend)
+        ensure_correct_im_context(self.context)
+        if value and not((<platformViewport*>self._platform).isVisible):
+            (<platformViewport*>self._platform).shouldShow = True
+        elif (<platformViewport*>self._platform).isVisible:
+            (<platformViewport*>self._platform).shouldHide = True
 
     @property
     def wait_for_input(self):

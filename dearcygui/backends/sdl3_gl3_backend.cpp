@@ -467,6 +467,8 @@ SDLViewport* SDLViewport::create(render_fun render,
     SDL_GL_MakeCurrent(viewport->uploadWindowHandle, NULL);
     auto primary_display = SDL_GetPrimaryDisplay();
     viewport->dpiScale = SDL_GetDisplayContentScale(primary_display);
+    if (viewport->dpiScale == 0.f)
+        viewport->dpiScale = 1.0f;
     return viewport;
 }
 
@@ -548,7 +550,7 @@ void SDLViewport::cleanup() {
     SDL_Quit();
 }
 
-bool SDLViewport::initialize(bool start_minimized, bool start_maximized) {
+bool SDLViewport::initialize() {
     if (!checkSDLThread("initialize")) return false;
     const char* glsl_version = "#version 150";
 
@@ -557,9 +559,9 @@ bool SDLViewport::initialize(bool start_minimized, bool start_maximized) {
         creation_flags |= SDL_WINDOW_RESIZABLE;
     if (windowAlwaysOnTop)
         creation_flags |= SDL_WINDOW_ALWAYS_ON_TOP;
-    if (start_maximized)
+    if (shouldMaximize)
         creation_flags |= SDL_WINDOW_MAXIMIZED;
-    else if (start_minimized)
+    else if (shouldMinimize)
         creation_flags |= SDL_WINDOW_MINIMIZED;
     if (!windowDecorated)
         creation_flags |= SDL_WINDOW_BORDERLESS;
@@ -601,14 +603,23 @@ bool SDLViewport::initialize(bool start_minimized, bool start_maximized) {
     dpiScale = SDL_GetWindowDisplayScale(windowHandle);
     float logical_to_pixel_factor = SDL_GetWindowPixelDensity(windowHandle);
     float factor = dpiScale / logical_to_pixel_factor;
+    if (dpiScale == 0. || logical_to_pixel_factor == 0.) {
+        dpiScale = 1.f;
+        factor = 1.f;
+    }
     SDL_SetWindowSize(windowHandle, (int)(frameWidth * factor), (int)(frameHeight * factor));
     SDL_SetWindowMaximumSize(windowHandle, (int)(maxWidth * factor), (int)(maxHeight * factor));
     SDL_SetWindowMinimumSize(windowHandle, (int)(minWidth * factor), (int)(minHeight * factor));
-    SDL_ShowWindow(windowHandle);
+    if (!shouldHide)
+        SDL_ShowWindow(windowHandle);
 
     dpiScale = SDL_GetWindowDisplayScale(windowHandle);
     logical_to_pixel_factor = SDL_GetWindowPixelDensity(windowHandle);
     float updated_factor = dpiScale / logical_to_pixel_factor;
+    if (dpiScale == 0. || logical_to_pixel_factor == 0.) {
+        dpiScale = 1.f;
+        factor = 1.f;
+    }
     if (factor != updated_factor) {
         SDL_SetWindowSize(windowHandle, (int)(frameWidth * factor), (int)(frameHeight * factor));
         SDL_SetWindowMaximumSize(windowHandle, (int)(maxWidth * factor), (int)(maxHeight * factor));
@@ -674,18 +685,6 @@ bool SDLViewport::initialize(bool start_minimized, bool start_maximized) {
     return true;
 }
 
-void SDLViewport::maximize() {
-    SDL_MaximizeWindow(windowHandle);
-}
-
-void SDLViewport::minimize() {
-    SDL_MinimizeWindow(windowHandle);
-}
-
-void SDLViewport::restore() {
-    SDL_RestoreWindow(windowHandle);
-}
-
 void SDLViewport::processEvents(int timeout_ms) {
     if (!checkSDLThread("processEvents")) return;
     
@@ -699,6 +698,10 @@ void SDLViewport::processEvents(int timeout_ms) {
     {
         float logical_to_pixel_factor = SDL_GetWindowPixelDensity(windowHandle);
         float factor = dpiScale / logical_to_pixel_factor;
+        if (dpiScale == 0. || logical_to_pixel_factor == 0.) {
+            dpiScale = 1.f;
+            factor = 1.f;
+        }
         SDL_SetWindowMaximumSize(windowHandle, (int)(maxWidth * factor), (int)(maxHeight * factor));
         SDL_SetWindowMinimumSize(windowHandle, (int)(minWidth * factor), (int)(minHeight * factor));
         SDL_SetWindowSize(windowHandle, (int)(frameWidth * factor), (int)(frameHeight * factor));
@@ -717,6 +720,41 @@ void SDLViewport::processEvents(int timeout_ms) {
     {
         SDL_SetWindowTitle(windowHandle, windowTitle.c_str());
         titleChangeRequested = false;
+    }
+
+    if (shouldMinimize)
+    {
+        SDL_MinimizeWindow(windowHandle);
+        shouldMinimize = false;
+    }
+
+    if (shouldMaximize)
+    {
+        SDL_MaximizeWindow(windowHandle);
+        shouldMaximize = false;
+    }
+
+    if (shouldRestore)
+    {
+        SDL_RestoreWindow(windowHandle);
+        shouldRestore = false;
+    }
+
+    if (shouldShow)
+    {
+        SDL_ShowWindow(windowHandle);
+        shouldShow = false;
+    }
+
+    if (shouldHide)
+    {
+        SDL_HideWindow(windowHandle);
+        shouldHide = false;
+    }
+
+    if (shouldFullscreen)
+    {
+        SDL_SetWindowFullscreen(windowHandle, !isFullScreen);
     }
 
     // Poll and handle events (inputs, window resize, etc.)
@@ -759,7 +797,6 @@ void SDLViewport::processEvents(int timeout_ms) {
                 case SDL_EVENT_WINDOW_FOCUS_GAINED:
                 case SDL_EVENT_WINDOW_FOCUS_LOST:
                 case SDL_EVENT_WINDOW_MOVED:
-                case SDL_EVENT_WINDOW_SHOWN:
                 case SDL_EVENT_MOUSE_MOTION:
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 case SDL_EVENT_MOUSE_BUTTON_UP:
@@ -816,6 +853,13 @@ void SDLViewport::processEvents(int timeout_ms) {
                     break;
                 case SDL_EVENT_DROP_COMPLETE:
                     dropCallback(callbackData, 3, nullptr);
+                    break;
+                case SDL_EVENT_WINDOW_SHOWN:
+                    isVisible = true;
+                    activityDetected.store(true);
+                    break;
+                case SDL_EVENT_WINDOW_HIDDEN:
+                    isVisible = false;
                     break;
                 default:
                     break;
@@ -916,12 +960,10 @@ void SDLViewport::present() {
     SDL_GL_MakeCurrent(windowHandle, glContext);
     SDL_GL_SwapWindow(windowHandle);
     dpiScale = SDL_GetWindowDisplayScale(windowHandle);
+    if (dpiScale == 0.f)
+        dpiScale = 1.0f;
     SDL_GL_MakeCurrent(windowHandle, NULL);
     renderContextLock.unlock();
-}
-
-void SDLViewport::toggleFullScreen() {
-    SDL_SetWindowFullscreen(windowHandle, !isFullScreen);
 }
 
 void SDLViewport::wakeRendering() {
