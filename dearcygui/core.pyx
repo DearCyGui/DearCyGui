@@ -1164,6 +1164,98 @@ cdef class Context:
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.ResetMouseDragDelta(<int>button)
 
+    def inject_key_down(self, key : Key):
+        """
+        Inject a key down event for the next frame.
+
+        Parameters:
+        key : Key
+            Key constant.
+        """
+        cdef unique_lock[recursive_mutex] m
+        if key is None or not(isinstance(key, Key)):
+            raise TypeError(f"key must be a valid Key, not {key}")
+        cdef imgui.ImGuiKey keycode = key
+        ensure_correct_imgui_context(self)
+        lock_gil_friendly(m, self.imgui_mutex)
+        imgui.GetIO().AddKeyEvent(keycode, True)
+
+    def inject_key_up(self, key : Key):
+        """
+        Inject a key up event for the next frame.
+
+        Parameters:
+        key : Key
+            Key constant.
+        """
+        cdef unique_lock[recursive_mutex] m
+        if key is None or not(isinstance(key, Key)):
+            raise TypeError(f"key must be a valid Key, not {key}")
+        cdef imgui.ImGuiKey keycode = key
+        ensure_correct_imgui_context(self)
+        lock_gil_friendly(m, self.imgui_mutex)
+        imgui.GetIO().AddKeyEvent(keycode, False)
+
+    def inject_mouse_down(self, MouseButton button):
+        """
+        Inject a mouse down event for the next frame.
+
+        Parameters:
+        button : MouseButton
+            Mouse button constant.
+        """
+        cdef unique_lock[recursive_mutex] m
+        if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
+            raise ValueError("Invalid button")
+        ensure_correct_imgui_context(self)
+        lock_gil_friendly(m, self.imgui_mutex)
+        imgui.GetIO().AddMouseButtonEvent(<int>button, True)
+
+    def inject_mouse_up(self, MouseButton button):
+        """
+        Inject a mouse up event for the next frame.
+
+        Parameters:
+        button : MouseButton
+            Mouse button constant.
+        """
+        cdef unique_lock[recursive_mutex] m
+        if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
+            raise ValueError("Invalid button")
+        ensure_correct_imgui_context(self)
+        lock_gil_friendly(m, self.imgui_mutex)
+        imgui.GetIO().AddMouseButtonEvent(<int>button, False)
+
+    def inject_mouse_wheel(self, float wheel_x, float wheel_y):
+        """
+        Inject a mouse wheel event for the next frame.
+
+        Parameters:
+        wheel_x : float
+            Horizontal wheel movement in pixels.
+        wheel_y : float
+            Vertical wheel movement in pixels.
+        """
+        cdef unique_lock[recursive_mutex] m
+        ensure_correct_imgui_context(self)
+        lock_gil_friendly(m, self.imgui_mutex)
+        imgui.GetIO().AddMouseWheelEvent(wheel_x, wheel_y)
+
+    def inject_mouse_pos(self, float x, float y):
+        """
+        Inject a mouse position event for the next frame.
+
+        Parameters:
+        x : float
+            X position of the mouse in pixels.
+        y : float
+            Y position of the mouse in pixels.
+        """
+        cdef unique_lock[recursive_mutex] m
+        ensure_correct_imgui_context(self)
+        lock_gil_friendly(m, self.imgui_mutex)
+        imgui.GetIO().AddMousePosEvent(x, y)
+
     @property 
     def running(self):
         """Whether the context is currently running and processing frames.
@@ -3519,7 +3611,7 @@ cdef class Viewport(baseItem):
             False else (can_skip_presenting)
         """
         # to lock in this order
-        cdef unique_lock[recursive_mutex] imgui_m = unique_lock[recursive_mutex](self.context.imgui_mutex, defer_lock_t())
+        cdef unique_lock[recursive_mutex] imgui_m = unique_lock[recursive_mutex](self.context.imgui_mutex, defer_lock_t()) # TODO: probably needs to protect processEvents and GetIO
         cdef unique_lock[recursive_mutex] self_m
         cdef unique_lock[recursive_mutex] backend_m = unique_lock[recursive_mutex](self._mutex_backend, defer_lock_t())
         lock_gil_friendly(self_m, self.mutex)
