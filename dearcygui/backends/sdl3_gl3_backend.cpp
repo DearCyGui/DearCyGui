@@ -17,6 +17,10 @@
 #include <functional>
 #include <mutex>
 
+SDL_ThreadID SDLViewport::sdlMainThreadId = 0;
+std::atomic<bool> SDLViewport::sdlInitialized{false};
+std::mutex SDLViewport::sdlInitMutex;
+
 bool platformViewport::fastActivityCheck() {
     ImGuiContext& g = *GImGui;
 
@@ -414,13 +418,22 @@ SDLViewport* SDLViewport::create(render_fun render,
                              on_close_fun on_close,
                              on_drop_fun on_drop,
                              void* callback_data) {
+    std::lock_guard<std::mutex> lock(sdlInitMutex);
+    
+    // Initialize SDL in the first thread that creates a viewport
+    if (!sdlInitialized) {
 #ifdef _WIN32
-    // Gamepad support disabled for windows, see setup.py
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        if (!SDL_Init(SDL_INIT_VIDEO)) {
 #else
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
+        if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
 #endif
-        printf("Error: SDL_Init(): %s\n", SDL_GetError());
+            printf("Error: SDL_Init(): %s\n", SDL_GetError());
+            return nullptr;
+        }
+        sdlMainThreadId = SDL_ThreadID();
+        sdlInitialized = true;
+    } else if (SDL_ThreadID() != sdlMainThreadId) {
+        fprintf(stderr, "Error: Contexts creation must be performed in the same thread\n");
         return nullptr;
     }
     
@@ -459,6 +472,8 @@ SDLViewport* SDLViewport::create(render_fun render,
 
 // Implementation of SDLViewport methods
 void SDLViewport::cleanup() {
+    if (!checkSDLThread("cleanup")) return;
+    
     std::lock_guard<std::recursive_mutex> lock(textureMutex);
     
     // Must ensure main context is current for GL operations
@@ -534,6 +549,7 @@ void SDLViewport::cleanup() {
 }
 
 bool SDLViewport::initialize(bool start_minimized, bool start_maximized) {
+    if (!checkSDLThread("initialize")) return false;
     const char* glsl_version = "#version 150";
 
     SDL_WindowFlags creation_flags = 0;
@@ -671,6 +687,8 @@ void SDLViewport::restore() {
 }
 
 void SDLViewport::processEvents(int timeout_ms) {
+    if (!checkSDLThread("processEvents")) return;
+    
     if (positionChangeRequested)
     {
         SDL_SetWindowPosition(windowHandle, positionX, positionY);
@@ -730,111 +748,92 @@ void SDLViewport::processEvents(int timeout_ms) {
                 break; // Timeout occurred
         }
 
-        ImGui_ImplSDL3_ProcessEvent(&event);
-        switch (event.type) {
-            case SDL_EVENT_WINDOW_MOUSE_ENTER:
-            case SDL_EVENT_WINDOW_FOCUS_GAINED:
-            case SDL_EVENT_WINDOW_FOCUS_LOST:
-            case SDL_EVENT_WINDOW_MOVED:
-            case SDL_EVENT_WINDOW_SHOWN:
-                if (event.window.windowID == SDL_GetWindowID(windowHandle))
+        // Check if event belongs to this window
+        SDL_Window* event_window = SDL_GetWindowFromEvent(&event);
+        bool isOurWindowEvent = event_window == windowHandle;
+
+        if (isOurWindowEvent || event_window == nullptr) {
+            ImGui_ImplSDL3_ProcessEvent(&event);
+            switch (event.type) {
+                case SDL_EVENT_WINDOW_MOUSE_ENTER:
+                case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                case SDL_EVENT_WINDOW_FOCUS_LOST:
+                case SDL_EVENT_WINDOW_MOVED:
+                case SDL_EVENT_WINDOW_SHOWN:
+                case SDL_EVENT_MOUSE_MOTION:
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
+                case SDL_EVENT_MOUSE_WHEEL:
+                case SDL_EVENT_TEXT_EDITING:
+                case SDL_EVENT_TEXT_INPUT:
+                case SDL_EVENT_KEY_DOWN:
+                case SDL_EVENT_KEY_UP:
                     activityDetected.store(true);
-                break;
-            case SDL_EVENT_MOUSE_MOTION:
-                if (event.motion.windowID == SDL_GetWindowID(windowHandle))
-                    activityDetected.store(true);
-                break;
-            case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
-                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    break;
+                case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
                     isFullScreen = true;
                     needsRefresh.store(true);
-                }
-                break;
-            case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
-                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    break;
+                case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
                     isFullScreen = false;
                     needsRefresh.store(true);
-                }
-                break;
-            case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-            case SDL_EVENT_WINDOW_RESIZED:
-                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    break;
+                case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                case SDL_EVENT_WINDOW_RESIZED:
                     hasResized = true;
                     needsRefresh.store(true);
-                }
-                break;
-            case SDL_EVENT_MOUSE_WHEEL:
-                if (event.wheel.windowID == SDL_GetWindowID(windowHandle))
-                    activityDetected.store(true);
-                break;
-            case SDL_EVENT_MOUSE_BUTTON_DOWN:
-            case SDL_EVENT_MOUSE_BUTTON_UP:
-                if (event.button.windowID == SDL_GetWindowID(windowHandle))
-                    activityDetected.store(true);
-                break;
-            case SDL_EVENT_TEXT_EDITING:
-                if (event.edit.windowID == SDL_GetWindowID(windowHandle))
-                    activityDetected.store(true);
-                break;
-            case SDL_EVENT_TEXT_INPUT:
-                if (event.text.windowID == SDL_GetWindowID(windowHandle))
-                    activityDetected.store(true);
-                break;
-            case SDL_EVENT_KEY_DOWN:
-            case SDL_EVENT_KEY_UP:
-                if (event.key.windowID == SDL_GetWindowID(windowHandle))
-                    activityDetected.store(true);
-                break;
-            case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
-            case SDL_EVENT_WINDOW_EXPOSED:
-            case SDL_EVENT_WINDOW_DESTROYED:
-                if (event.window.windowID == SDL_GetWindowID(windowHandle))
+                    break;
+                case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+                case SDL_EVENT_WINDOW_EXPOSED:
+                case SDL_EVENT_WINDOW_DESTROYED:
                     needsRefresh.store(true);
-                break;
-            case SDL_EVENT_WINDOW_MINIMIZED:
-                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    break;
+                case SDL_EVENT_WINDOW_MINIMIZED:
                     activityDetected.store(true);
                     isMinimized = true;
-                }
-                break;
-            case SDL_EVENT_WINDOW_MAXIMIZED:
-                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    break;
+                case SDL_EVENT_WINDOW_MAXIMIZED:
                     activityDetected.store(true);
                     isMaximized = true;
-                }
-                break;
-            case SDL_EVENT_WINDOW_RESTORED:
-                if (event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    break;
+                case SDL_EVENT_WINDOW_RESTORED:
                     activityDetected.store(true);
                     isMinimized = false;
                     isMaximized = false;
-                }
-                break;
-            case SDL_EVENT_QUIT:
-            case SDL_EVENT_WINDOW_CLOSE_REQUESTED: // && event.window.windowID == SDL_GetWindowID(handle)
-                if (event.type == SDL_EVENT_QUIT || event.window.windowID == SDL_GetWindowID(windowHandle)) {
+                    break;
+                case SDL_EVENT_QUIT:
+                case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     closeCallback(callbackData);
                     activityDetected.store(true);
-                }
-            case SDL_EVENT_DROP_BEGIN:
-                if (event.drop.windowID == SDL_GetWindowID(windowHandle))
+                case SDL_EVENT_DROP_BEGIN:
                     dropCallback(callbackData, 0, nullptr);
-                break;
-            case SDL_EVENT_DROP_FILE:
-                if (event.drop.windowID == SDL_GetWindowID(windowHandle))
+                    break;
+                case SDL_EVENT_DROP_FILE:
                     dropCallback(callbackData, 1, event.drop.data);
-                break;
-            case SDL_EVENT_DROP_TEXT:
-                if (event.drop.windowID == SDL_GetWindowID(windowHandle))
+                    break;
+                case SDL_EVENT_DROP_TEXT:
                     dropCallback(callbackData, 2, event.drop.data);
-                break;
-            case SDL_EVENT_DROP_COMPLETE:
-                if (event.drop.windowID == SDL_GetWindowID(windowHandle))
+                    break;
+                case SDL_EVENT_DROP_COMPLETE:
                     dropCallback(callbackData, 3, nullptr);
-                break;
-            default:
-                break;
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            // Queue event for other windows
+            deferredEvents.push_back(event);
         }
+    }
+
+    // Move back to the queue events meant for other windows
+    if (!deferredEvents.empty()) {
+        if (deferredEvents.size() >= 1024)
+            fprintf(stderr, "Warning: %d deferred events. Events are not properly flushed. Skipping...\n", (int)deferredEvents.size());
+        else
+            SDL_PeepEvents(deferredEvents.data(), deferredEvents.size(),
+                           SDL_ADDEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST);
+        deferredEvents.clear();
     }
     //if (waitForEvents || glfwGetWindowAttrib(handle, GLFW_ICONIFIED))
     //    while (!activityDetected.load() && !needs_refresh.load())
@@ -1331,4 +1330,12 @@ bool SDLViewport::downloadTexture(void* texture,
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDeleteFramebuffers(1, &fbo);
     return success;
+}
+
+bool SDLViewport::checkSDLThread(const char* operation) {
+    if (SDL_ThreadID() != sdlMainThreadId) {
+        fprintf(stderr, "Error: context creation, render_frame and context deletion must be all occur from the same thread\n", operation);
+        return false;
+    }
+    return true;
 }

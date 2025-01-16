@@ -341,4 +341,14 @@ private:
     void retainFenceSync(FenceSync* fence);
     void releaseFenceSync(FenceSync* fence);
     FenceSync* createFenceSync();
+
+    // Thread safety
+    static SDL_ThreadID sdlMainThreadId;  // Thread that first initialized SDL
+    static std::atomic<bool> sdlInitialized;
+    static std::mutex sdlInitMutex;
+    
+    // Event queue for forwarding events
+    std::vector<SDL_Event> deferredEvents;
+    
+    bool checkSDLThread(const char* operation);
 };

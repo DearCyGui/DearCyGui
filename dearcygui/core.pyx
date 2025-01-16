@@ -3524,6 +3524,7 @@ cdef class Viewport(baseItem):
         cdef unique_lock[recursive_mutex] backend_m = unique_lock[recursive_mutex](self._mutex_backend, defer_lock_t())
         lock_gil_friendly(self_m, self.mutex)
         self.__check_initialized()
+        ensure_correct_im_context(self.context)
         self.last_t_before_event_handling = ctime.monotonic_ns()
         cdef double current_time_s, target_timeout_ms
         cdef bint should_present
@@ -3602,7 +3603,7 @@ cdef class Viewport(baseItem):
             self_m.lock()
             backend_m.lock()
             #self.last_t_before_rendering = ctime.monotonic_ns()
-            ensure_correct_im_context(self.context)
+            
             #imgui.GetMainViewport().DpiScale = self.viewport.dpi
             #imgui.GetIO().FontGlobalScale = self.viewport.dpi
             should_present = \
