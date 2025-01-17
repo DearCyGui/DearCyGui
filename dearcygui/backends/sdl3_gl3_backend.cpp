@@ -1321,7 +1321,6 @@ bool SDLViewport::downloadTexture(void* texture,
     glBindTexture(GL_TEXTURE_2D, tex_id);
 
     // Determine format and type
-
     GLenum gl_format = GL_RED;
     switch (num_chans) {
         case 2: gl_format = GL_RG; break;
@@ -1348,6 +1347,9 @@ bool SDLViewport::downloadTexture(void* texture,
         glBufferData(GL_PIXEL_PACK_BUFFER, sub_height * dst_stride, nullptr, GL_STREAM_READ);
 
         glReadPixels(x, y, sub_width, sub_height, gl_format, gl_type, 0);
+        if (GLenum err = glGetError() != GL_NO_ERROR) {
+            fprintf(stderr, "glReadPixels error: %d\n", err);
+        }
         markTextureRead(it->second);
         glFlush();
 
@@ -1361,12 +1363,20 @@ bool SDLViewport::downloadTexture(void* texture,
                 memcpy((unsigned char*)dst + row * dst_stride, (unsigned char*)mapped + row * dst_stride, sub_width * num_chans * ((type == 1) ? 1 : 4));
             }
             glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+        } else {
+            if (GLenum err = glGetError() != GL_NO_ERROR) {
+                fprintf(stderr, "glMapBufferRange error: %d\n", err);
+            }
         }
 
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         glDeleteBuffers(1, &pbo);
 
         success = true;
+    } else {
+        if (GLenum err = glGetError() != GL_NO_ERROR) {
+            fprintf(stderr, "Framebuffer status error: %d\n", err);
+        }
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1376,7 +1386,7 @@ bool SDLViewport::downloadTexture(void* texture,
 
 bool SDLViewport::checkSDLThread(const char* operation) {
     if (SDL_ThreadID() != sdlMainThreadId) {
-        fprintf(stderr, "Error: context creation, render_frame and context deletion must be all occur from the same thread\n", operation);
+        fprintf(stderr, "Error: context creation, render_frame and context deletion must be all occur from the same thread (%s)\n", operation);
         return false;
     }
     return true;

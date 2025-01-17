@@ -42,6 +42,10 @@ public:
     virtual void makeUploadContextCurrent() = 0;
     virtual void releaseUploadContext() = 0;
     virtual GLContext* createSharedContext(int major, int minor) = 0;
+    virtual void beginExternalWrite(GLuint tex_id) = 0;
+    virtual void endExternalWrite(GLuint tex_id) = 0;
+    virtual void beginExternalRead(GLuint tex_id) = 0;
+    virtual void endExternalRead(GLuint tex_id) = 0;
 
 	// makeUploadContextCurrent must be called before any texture
 	// operations are performed, and releaseUploadContext must be
@@ -150,7 +154,7 @@ public:
      * The GL context must be current before calling this function.
      * @param tex_id OpenGL texture identifier
      */
-    void beginExternalWrite(GLuint tex_id);
+    virtual void beginExternalWrite(GLuint tex_id);
 
     /**
      * End exclusive write access to a texture and place a fence sync.
@@ -158,7 +162,7 @@ public:
      * The GL context must be current before calling this function.
      * @param tex_id OpenGL texture identifier
      */
-    void endExternalWrite(GLuint tex_id);
+    virtual void endExternalWrite(GLuint tex_id);
 
     /**
      * Begin read access to a texture. Must be paired with endExternalRead.
@@ -166,7 +170,7 @@ public:
      * The GL context must be current before calling this function.
      * @param tex_id OpenGL texture identifier
      */
-    void beginExternalRead(GLuint tex_id);
+    virtual void beginExternalRead(GLuint tex_id);
 
     /**
      * End read access to a texture and place a fence sync.
@@ -174,7 +178,7 @@ public:
      * The GL context must be current before calling this function.
      * @param tex_id OpenGL texture identifier
      */
-    void endExternalRead(GLuint tex_id);
+    virtual void endExternalRead(GLuint tex_id);
 
     /**
      * Allocate a new texture or reuse a cached one.

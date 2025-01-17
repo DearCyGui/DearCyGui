@@ -7103,7 +7103,7 @@ cdef class Texture(baseItem):
             array = np.empty((crop_height_, crop_width_, num_chans), dtype=np.float32)
         data = cnp.PyArray_DATA(array)
 
-        cdef int stride = cnp.PyArray_STRIDE(array, 1)
+        cdef int stride = cnp.PyArray_STRIDE(array, 0)
         with nogil:
             m.unlock()
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
@@ -7115,6 +7115,91 @@ cdef class Texture(baseItem):
             (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
         if not(success):
             raise ValueError("Failed to read the texture")
+        return array
+
+    cdef void c_gl_begin_read(self) noexcept nogil:
+        """
+        Same as gl_begin_read, but for cython item draw subclassing
+        """
+        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        (<platformViewport*>self.context.viewport._platform).beginExternalRead(<uintptr_t>self.allocated_texture)
+
+    def gl_begin_read(self):
+        """
+        Locks a texture for a read operation for an external GL context.
+
+        The target GL context MUST be current.
+
+        The call inserts a GPU fence to ensure any previous
+        DearCyGui rendering or upload finishes before the texture
+        is read.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.c_gl_begin_read()
+
+    cdef void c_gl_end_read(self) noexcept nogil:
+        """
+        Same as gl_end_read, but for cython item draw subclassing
+        """
+        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        (<platformViewport*>self.context.viewport._platform).endExternalRead(<uintptr_t>self.allocated_texture)
+
+    def gl_end_read(self):
+        """
+        Unlocks a texture after a read operation for an external GL context.
+
+        The target GL context MUST be current.
+
+        The call issues a GPU fence that will be used by
+        DearCyGui to ensure the texture is not written to
+        before the read operation has finished.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.c_gl_end_read()
+
+    cdef void c_gl_begin_write(self) noexcept nogil:
+        """
+        Same as gl_begin_write, but for cython item draw subclassing
+        """
+        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        (<platformViewport*>self.context.viewport._platform).beginExternalWrite(<uintptr_t>self.allocated_texture)
+
+    def gl_begin_write(self):
+        """
+        Locks a texture for a write operation for an external GL context.
+
+        The target GL context MUST be current.
+
+        The call inserts a GPU fence to ensure any previous
+        DearCyGui rendering reading from the texture finishes
+        before the texture is written to.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.c_gl_begin_write()
+
+    cdef void c_gl_end_write(self) noexcept nogil:
+        """
+        Same as gl_end_write, but for cython item draw subclassing
+        """
+        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        (<platformViewport*>self.context.viewport._platform).endExternalWrite(<uintptr_t>self.allocated_texture)
+
+    def gl_end_write(self):
+        """
+        Unlocks a texture after a write operation for an external GL context.
+
+        The target GL context MUST be current.
+
+        The call issues a GPU fence that will be used by
+        DearCyGui to ensure the texture is not read from
+        before the write operation has finished.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.c_gl_end_write()
 
 
 cdef class baseFont(baseItem):

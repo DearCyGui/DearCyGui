@@ -692,6 +692,10 @@ cdef class Texture(baseItem):
     cdef bint _readonly
     cdef bint _no_realloc
     cdef void set_content(self, cnp.ndarray content)
+    cdef void c_gl_begin_read(self) noexcept nogil
+    cdef void c_gl_end_read(self) noexcept nogil
+    cdef void c_gl_begin_write(self) noexcept nogil
+    cdef void c_gl_end_write(self) noexcept nogil
 
 cdef class baseFont(baseItem):
     cdef void push(self) noexcept nogil
