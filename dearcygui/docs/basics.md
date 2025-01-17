@@ -118,6 +118,14 @@ Once attached to the rendering tree, you do not need
 to retain a reference to the item for it to remain alive. You can
 retain a reference if you want to access later the object.
 
+Rendering the tree is then performed using
+```python
+    while C.running:
+        C.viewport.render_frame()
+```
+
+Note that due to OS-es limitations (see Advanced section), context creation, `initialize()` and `render_frame` must all be performed in the same thread.
+
 ## Building the rendering tree
 
 To attach an item to another, several options are available.
