@@ -596,15 +596,161 @@ cdef class DrawInWindow(uiItem):
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_active = True
         self.state.cap.has_rect_size = True
+        self.has_frame = False
+        self.orig_x = 0
+        self.orig_y = 0
+        self.scale_x = 1.
+        self.scale_y = 1.
+        self.relative_scaling = False
+        self.invert_y = False
+
+    @property
+    def frame(self):
+        """
+        Writable attribute: Whether the item has a frame.
+        By default the frame is disabled for DrawInWindow.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._has_frame
+
+    @frame.setter
+    def frame(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._has_frame = value
+
+    @property
+    def orig_x(self):
+        """
+        Starting X coordinate inside the item (top-left)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.orig_x
+
+    @orig_x.setter
+    def orig_x(self, double value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.orig_x = value
+
+    @property
+    def orig_y(self):
+        """
+        Starting Y coordinate inside the item (top-left)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.orig_x
+
+    @orig_y.setter
+    def orig_y(self, double value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.orig_y = value
+
+    @property
+    def scale_x(self):
+        """
+        X Scaling of items inside the item.
+
+        If set to 1. (default), the scaling corresponds
+        to the unit of a pixel (as per global_scale).
+        That is, the coordinate of the end of the visible area
+        corresponds to item.width
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.scale_x
+
+    @scale_x.setter
+    def scale_x(self, double value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.scale_x = value
+
+    @property
+    def scale_y(self):
+        """
+        Y Scaling of items inside the item.
+
+        If set to 1. (default), the scaling corresponds
+        to the unit of a pixel (as per global_scale).
+        That is, the coordinate of end of the visible area
+        corresponds to item.height
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.scale_y
+
+    @scale_y.setter
+    def scale_y(self, double value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.scale_y = value
+
+    @property
+    def relative(self):
+        """
+        Writable attribute: If set, the scaling is relative
+        to the item's width and height. That is, the
+        coordinate of the end of the visible area
+        is (orig_x, orig_y) + (scale_x, scale_y)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.relative_scaling
+
+    @relative.setter
+    def relative(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.relative_scaling = value
+
+    @property
+    def invert_y(self):
+        """
+        When set to True, orig_x/orig_y correspond
+        to the bottom left of the item, and y
+        increases when going up.
+
+        When False, this is the top left, and y
+        increases when going down.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.invert_y
+
+    @invert_y.setter
+    def invert_y(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.invert_y = value
 
     cdef bint draw_item(self) noexcept nogil:
-        # negative width is used to indicate UI alignment
+        cdef bint no_frame = not(self.has_frame)
+        # Remove frames
+        if no_frame:
+            imgui.PushStyleVar(imgui.ImGuiStyleVar_FrameBorderSize, imgui.ImVec2(0., 0.))
+            imgui.PushStyleVar(imgui.ImGuiStyleVar_FramePadding, imgui.ImVec2(0., 0.))
         cdef Vec2 requested_size = self.scaled_requested_size()
-        cdef float clip_width = abs(requested_size.x)
-        if clip_width == 0:
-            clip_width = imgui.CalcItemWidth()
-        cdef float clip_height = requested_size.y
-        if clip_height <= 0 or clip_width == 0:
+        cdef float clip_width, clip_height
+        if requested_size.x == 0:
+            clip_width = self.context.viewport.parent_size.x
+        elif requested_size.x > 0:
+            clip_width = requested_size.x
+        else:
+            clip_width = self.context.viewport.parent_size.x - requested_size.x
+        if requested_size.y == 0:
+            clip_height = imgui.GetFrameHeight()
+        elif requested_size.y > 0:
+            clip_height = requested_size.y
+        else:
+            clip_height = self.context.viewport.parent_size.y
+        if clip_height <= 0 or clip_width <= 0:
+            if no_frame:
+                imgui.PopStyleVar(2)
             self.set_hidden_no_handler_and_propagate_to_children_with_handlers() # won't propagate though
             return False
         cdef imgui.ImDrawList* drawlist = imgui.GetWindowDrawList()
@@ -617,10 +763,28 @@ cdef class DrawInWindow(uiItem):
         self.context.viewport.parent_pos = ImVec2Vec2(imgui.GetCursorScreenPos())
         self.context.viewport.shifts[0] = <double>startx
         self.context.viewport.shifts[1] = <double>starty
-        cdef double scale = <double>self.context.viewport.global_scale if self._dpi_scaling else 1.
-        self.context.viewport.scales = [scale, scale]
-        self.context.viewport.thickness_multiplier = scale
-        self.context.viewport.size_multiplier = scale
+        cdef double scale, scale_x, scale_y
+        if self.relative_scaling:
+            scale_x = clip_width / self.scale_x
+            scale_y = clip_height / self.scale_y
+            scale = min(scale_x, scale_y)
+        else:
+            scale = <double>self.context.viewport.global_scale if self._dpi_scaling else 1.
+            scale_x = self.scale_x * scale
+            scale_y = self.scale_y * scale
+        self.context.viewport.scales = [scale_x, scale_y]
+        self.context.viewport.thickness_multiplier =  <double>self.context.viewport.global_scale if self._dpi_scaling else 1.
+        self.context.viewport.size_multiplier = scale_x #min(scale_x, scale_y) -> scale_x for compatibility with plots
+
+        if self.invert_y:
+            self.context.viewport.shifts[1] = \
+                self.context.viewport.shifts[1] + clip_height - 1
+            self.context.viewport.scales[1] = -self.context.viewport.scales[1]
+
+        self.context.viewport.shifts[1] = \
+            self.context.viewport.shifts[1] - self.orig_y
+        self.context.viewport.shifts[0] = \
+            self.context.viewport.shifts[0] - self.orig_x
 
         imgui.PushClipRect(imgui.ImVec2(startx, starty),
                            imgui.ImVec2(startx + clip_width,
@@ -642,6 +806,8 @@ cdef class DrawInWindow(uiItem):
                                  imgui.ImGuiButtonFlags_MouseButtonRight | \
                                  imgui.ImGuiButtonFlags_MouseButtonMiddle)
         self.update_current_state()
+        if no_frame:
+            imgui.PopStyleVar(2)
         return active
 
 

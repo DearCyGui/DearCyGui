@@ -19,6 +19,13 @@ cdef class DrawInvisibleButton(drawingItem):
     cdef Vec2 _initial_mouse_position
 
 cdef class DrawInWindow(uiItem):
+    cdef bint has_frame
+    cdef double orig_x
+    cdef double orig_y
+    cdef double scale_x
+    cdef double scale_y
+    cdef bint invert_y
+    cdef bint relative_scaling
     cdef bint draw_item(self) noexcept nogil
 
 cdef class SimplePlot(uiItem):

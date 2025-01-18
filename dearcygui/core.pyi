@@ -21310,7 +21310,7 @@ class DrawInWindow(uiItem):
     visible/etc tests maintained and thus do not have a callback.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -21354,6 +21354,9 @@ class DrawInWindow(uiItem):
                   remaining area minus one pixel.
         indent: Shifts horizontally the DEFAULT
             position of the item by the requested amount of pixels.
+        invert_y: When set to True, orig_x/orig_y correspond
+            to the bottom left of the item, and y
+            increases when going up.
         label: label assigned to the item.
             Used for text fields, window titles, etc
         next_sibling: child of the parent of the item that
@@ -21367,6 +21370,8 @@ class DrawInWindow(uiItem):
             scale which is defined by the dpi and the
             viewport/window scale.
             If set, disables this automated scaling.
+        orig_x: Starting X coordinate inside the item (top-left)
+        orig_y: Starting Y coordinate inside the item (top-left)
         parent: parent of the item in the rendering tree.
         pos_policy: Positioning policy
         pos_to_default: Relative position to the item's default position.
@@ -21379,6 +21384,12 @@ class DrawInWindow(uiItem):
             content area.
         previous_sibling: child of the parent of the item that
             is rendered just before this item.
+        relative: If set, the scaling is relative
+            to the item's width and height. That is, the
+            coordinate of the end of the visible area
+            is (orig_x, orig_y) + (scale_x, scale_y)
+        scale_x: X Scaling of items inside the item.
+        scale_y: Y Scaling of items inside the item.
         scaling_factor: scaling factor
             that multiplies the global viewport scaling and
             applies to this item and its children.
@@ -21445,7 +21456,7 @@ class DrawInWindow(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -21488,6 +21499,9 @@ class DrawInWindow(uiItem):
                   remaining area minus one pixel.
         indent: Shifts horizontally the DEFAULT
             position of the item by the requested amount of pixels.
+        invert_y: When set to True, orig_x/orig_y correspond
+            to the bottom left of the item, and y
+            increases when going up.
         label: label assigned to the item.
             Used for text fields, window titles, etc
         next_sibling: child of the parent of the item that
@@ -21501,6 +21515,8 @@ class DrawInWindow(uiItem):
             scale which is defined by the dpi and the
             viewport/window scale.
             If set, disables this automated scaling.
+        orig_x: Starting X coordinate inside the item (top-left)
+        orig_y: Starting Y coordinate inside the item (top-left)
         parent: parent of the item in the rendering tree.
         pos_policy: Positioning policy
         pos_to_default: Relative position to the item's default position.
@@ -21513,6 +21529,12 @@ class DrawInWindow(uiItem):
             content area.
         previous_sibling: child of the parent of the item that
             is rendered just before this item.
+        relative: If set, the scaling is relative
+            to the item's width and height. That is, the
+            coordinate of the end of the visible area
+            is (orig_x, orig_y) + (scale_x, scale_y)
+        scale_x: X Scaling of items inside the item.
+        scale_y: Y Scaling of items inside the item.
         scaling_factor: scaling factor
             that multiplies the global viewport scaling and
             applies to this item and its children.
@@ -21877,6 +21899,25 @@ class DrawInWindow(uiItem):
 
 
     @property
+    def invert_y(self) -> bool:
+        """
+        When set to True, orig_x/orig_y correspond
+        to the bottom left of the item, and y
+        increases when going up.
+
+        When False, this is the top left, and y
+        increases when going down.
+        
+        """
+        ...
+
+
+    @invert_y.setter
+    def invert_y(self, value : bool):
+        ...
+
+
+    @property
     def item_type(self) -> ChildType:
         """Returns which type of child this item is
         """
@@ -21987,6 +22028,34 @@ class DrawInWindow(uiItem):
 
     @no_scaling.setter
     def no_scaling(self, value : bool):
+        ...
+
+
+    @property
+    def orig_x(self) -> float:
+        """
+        Starting X coordinate inside the item (top-left)
+        
+        """
+        ...
+
+
+    @orig_x.setter
+    def orig_x(self, value : float):
+        ...
+
+
+    @property
+    def orig_y(self) -> float:
+        """
+        Starting Y coordinate inside the item (top-left)
+        
+        """
+        ...
+
+
+    @orig_y.setter
+    def orig_y(self, value : float):
         ...
 
 
@@ -22263,6 +22332,23 @@ class DrawInWindow(uiItem):
 
 
     @property
+    def relative(self) -> bool:
+        """
+        Writable attribute: If set, the scaling is relative
+        to the item's width and height. That is, the
+        coordinate of the end of the visible area
+        is (orig_x, orig_y) + (scale_x, scale_y)
+        
+        """
+        ...
+
+
+    @relative.setter
+    def relative(self, value : bool):
+        ...
+
+
+    @property
     def resized(self) -> bool:
         """
         Readonly attribute: has the item size just changed
@@ -22270,6 +22356,44 @@ class DrawInWindow(uiItem):
         on handlers to catch this event.
         
         """
+        ...
+
+
+    @property
+    def scale_x(self) -> float:
+        """
+        X Scaling of items inside the item.
+
+        If set to 1. (default), the scaling corresponds
+        to the unit of a pixel (as per global_scale).
+        That is, the coordinate of the end of the visible area
+        corresponds to item.width
+        
+        """
+        ...
+
+
+    @scale_x.setter
+    def scale_x(self, value : float):
+        ...
+
+
+    @property
+    def scale_y(self) -> float:
+        """
+        Y Scaling of items inside the item.
+
+        If set to 1. (default), the scaling corresponds
+        to the unit of a pixel (as per global_scale).
+        That is, the coordinate of end of the visible area
+        corresponds to item.height
+        
+        """
+        ...
+
+
+    @scale_y.setter
+    def scale_y(self, value : float):
         ...
 
 
