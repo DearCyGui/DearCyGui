@@ -239,7 +239,10 @@ def setup_package():
           'freetype-py',
           'scipy'
         ],
-        ext_modules = cythonize(extensions, compiler_directives={'language_level' : "3"}, nthreads=4)
+        ext_modules = cythonize(extensions, compiler_directives={'language_level' : "3"}, nthreads=4),
+        extras_require={
+            'svg': ['skia-python'],  # For SVG rendering support in utils.image
+        }
     )
     metadata["package_data"] = {}
     metadata["package_data"]['dearcygui'] = ['*.pxd', '*.py', '*.pyi', '*ttf', '*otf', '*typed']
