@@ -143,10 +143,19 @@ def setup_package():
             "-arch", "x86_64"
         ]
     elif get_platform() == "Windows":
-        compile_args += ["/O2", "/DNDEBUG", "/D_WINDOWS", "/D_UNICODE", "/DWIN32_LEAN_AND_MEAN"]
-        libraries = ["user32", "gdi32", "shell32", "advapi32", "ole32", "oleaut32", "uuid", "opengl32", \
-                     "setupapi", "cfgmgr32", "version", "winmm"]
-        linking_args += ["/MACHINE:X64"]
+        compile_args += [
+            "/O2", "/DNDEBUG", "/D_WINDOWS", "/D_UNICODE", "/DWIN32_LEAN_AND_MEAN",
+            "/MT",  # Static runtime library
+            "/EHsc"  # Exception handling model
+        ]
+        libraries = ["user32", "gdi32", "shell32", "advapi32", "ole32", "oleaut32", 
+                    "uuid", "opengl32", "setupapi", "cfgmgr32", "version", "winmm"]
+        # Add static linking flags
+        linking_args += [
+            "/MACHINE:X64",
+            "/NODEFAULTLIB:MSVCRT",  # Don't use dynamic runtime
+            "/NODEFAULTLIB:MSVCRTD"
+        ]
     else:
         # Please test and tell us what changes are needed to the build
         raise ValueError("Unsupported platform")

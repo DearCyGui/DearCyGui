@@ -68,7 +68,11 @@ jobs:
         choco install visualstudio2019-workload-universal
 
     - name: Build wheels
-      run: python -m build --wheel
+      env:
+        DISTUTILS_USE_SDK: "1"
+        MSSdk: "1"
+        CMAKE_GENERATOR: "Visual Studio 16 2019"
+      run: python -m build --wheel --config-setting="--build-option=/p:Configuration=Release" --config-setting="--build-option=/p:Platform=x64"
 
     - name: Upload wheels
       uses: actions/upload-artifact@v3
