@@ -554,7 +554,7 @@ cdef class uiItem(baseItem):
     cdef bint _focus_update_requested
     cdef Vec2 requested_size
     cdef bint size_update_requested
-    cdef Sizing[2] size_policy
+    #cdef Sizing[2] size_policy
     ### Set by subclass (but has default value) ###
     cdef bint can_be_disabled
     cdef SharedValue _value
