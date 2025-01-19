@@ -90,7 +90,7 @@ GLuint SDLViewport::findTextureInCache(unsigned width, unsigned height, unsigned
     std::lock_guard<std::recursive_mutex> lock(textureMutex);
     // Look for reusable texture in cache
     GLuint best_tex_id = 0;
-    int best_deletion_frame = std::numeric_limits<int>::max();
+    int best_deletion_frame = 0x7fffffff; // Maximum value for signed 32-bit integer
 
     for(auto& [tex_id, info] : textureInfoMap) {
         if(info.deletion_frame >= 0 &&
