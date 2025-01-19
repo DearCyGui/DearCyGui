@@ -92,7 +92,9 @@ GLuint SDLViewport::findTextureInCache(unsigned width, unsigned height, unsigned
     GLuint best_tex_id = 0;
     int best_deletion_frame = 0x7fffffff; // Maximum value for signed 32-bit integer
 
-    for(auto& [tex_id, info] : textureInfoMap) {
+    for(auto& tex_pair : textureInfoMap) {
+        GLuint tex_id = tex_pair.first;
+        TextureInfo& info = tex_pair.second;
         if(info.deletion_frame >= 0 &&
            info.deletion_frame < (currentFrame - CACHE_REUSE_FRAMES) &&
            info.width == width &&
@@ -516,7 +518,9 @@ void SDLViewport::cleanup() {
         // Clean up all GL resources properly before destroying contexts
         {
             std::lock_guard<std::recursive_mutex> lock(textureMutex);
-            for (auto& [tex_id, info] : textureInfoMap) {
+            for (auto& tex_pair : textureInfoMap) {
+                const GLuint tex_id = tex_pair.first;
+                const TextureInfo& info = tex_pair.second;
                 // Clean up sync objects
                 if (info.write_fence) {
                     releaseFenceSync(info.write_fence);
@@ -1073,32 +1077,33 @@ void SDLViewport::cleanupTextures() {
 
     // Remove textures that have been marked for deletion
     for(auto it = textureInfoMap.begin(); it != textureInfoMap.end();) {
-        if(it->second.deletion_frame >= 0 && 
-           ((currentFrame - it->second.deletion_frame) >= 10 * CACHE_REUSE_FRAMES
+        TextureInfo& info = it->second;
+        if(info.deletion_frame >= 0 && 
+           ((currentFrame - info.deletion_frame) >= 10 * CACHE_REUSE_FRAMES
             || (deletedTexturesMemory > CACHE_MEMORY_THRESHOLD))) {
 
             // Wait for any pending operations
-            if (it->second.write_fence && it->second.write_fence->sync) {
-                glWaitSync(it->second.write_fence->sync, 0, GL_TIMEOUT_IGNORED);
+            if (info.write_fence && info.write_fence->sync) {
+                glWaitSync(info.write_fence->sync, 0, GL_TIMEOUT_IGNORED);
             }
-            if (it->second.read_fence && it->second.read_fence->sync) {
-                glWaitSync(it->second.read_fence->sync, 0, GL_TIMEOUT_IGNORED);
+            if (info.read_fence && info.read_fence->sync) {
+                glWaitSync(info.read_fence->sync, 0, GL_TIMEOUT_IGNORED);
             }
 
             // Clean up fences
-            releaseFenceSync(it->second.write_fence);
-            releaseFenceSync(it->second.read_fence);
-            it->second.write_fence = nullptr;
-            it->second.read_fence = nullptr;
+            releaseFenceSync(info.write_fence);
+            releaseFenceSync(info.read_fence);
+            info.write_fence = nullptr;
+            info.read_fence = nullptr;
             
             // Clean up resources
-            if(it->second.pbo != 0) {
-                glDeleteBuffers(1, &it->second.pbo);
+            if(info.pbo != 0) {
+                glDeleteBuffers(1, &info.pbo);
             }
             glDeleteTextures(1, &it->first);
             
-            deletedTexturesMemory -= getTextureSize(it->second.width, it->second.height,
-                                                  it->second.num_chans, it->second.type);
+            deletedTexturesMemory -= getTextureSize(info.width, info.height,
+                                                  info.num_chans, info.type);
             it = textureInfoMap.erase(it);
         } else {
             ++it;
