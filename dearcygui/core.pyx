@@ -4495,7 +4495,7 @@ cdef class uiItem(baseItem):
         self.requested_size = make_Vec2(0., 0.)
         self._dpi_scaling = True
         self._indent = 0.
-        self._theme_condition_enabled = ThemeEnablers.TRUE
+        self._theme_condition_enabled = ThemeEnablers.ENABLED
         self._theme_condition_category = ThemeCategories.t_any
         self.can_have_sibling = True
         self.element_child_category = child_type.cat_widget
@@ -4828,7 +4828,7 @@ cdef class uiItem(baseItem):
         lock_gil_friendly(m, self.mutex)
         if not(self.can_be_disabled) and value != True:
             raise AttributeError(f"Objects of type {type(self)} cannot be disabled")
-        self._theme_condition_enabled = ThemeEnablers.TRUE if value else ThemeEnablers.FALSE
+        self._theme_condition_enabled = ThemeEnablers.ENABLED if value else ThemeEnablers.DISABLED
         self._enabled_update_requested = True
         self._enabled = value
 
@@ -6044,6 +6044,7 @@ cdef class Window(uiItem):
         if value:
             self._window_flags |= imgui.ImGuiWindowFlags_UnsavedDocument
 
+    '''
     @property
     def disallow_docking(self):
         """
@@ -6060,6 +6061,7 @@ cdef class Window(uiItem):
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoDocking
         if value:
             self._window_flags |= imgui.ImGuiWindowFlags_NoDocking
+    '''
 
     @property
     def no_open_over_existing_popup(self):

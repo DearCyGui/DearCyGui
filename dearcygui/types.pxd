@@ -111,8 +111,8 @@ cdef enum theme_backends:
 
 cpdef enum class ThemeEnablers:
     ANY,
-    FALSE,
-    TRUE,
+    DISABLED,
+    ENABLED,
     DISCARDED
 
 cpdef enum class ThemeCategories:

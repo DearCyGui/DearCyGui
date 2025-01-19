@@ -6429,9 +6429,9 @@ def theme_component(item_type : int =0, *, label: str =None, user_data: Any =Non
         warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
         tag=kwargs['id']
     if enabled_state:
-        enabled_state = dcg.ThemeEnablers.TRUE
+        enabled_state = dcg.ThemeEnablers.ENABLED
     else:
-        enabled_state = dcg.ThemeEnablers.FALSE
+        enabled_state = dcg.ThemeEnablers.DISABLED
     # TODO: convert category
 
     return dcg.ThemeListWithCondition(CONTEXT, condition_category=item_type, condition_enabled=enabled_state, label=label, user_data=user_data, **kwargs)
