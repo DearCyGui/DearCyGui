@@ -152,7 +152,6 @@ def setup_package():
         raise ValueError("Unsupported platform")
     cython_sources = [
         "dearcygui/core.pyx",
-        "dearcygui/constants.pyx",
         "dearcygui/draw.pyx",
         "dearcygui/font.pyx",
         "dearcygui/handler.pyx",

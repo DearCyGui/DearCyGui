@@ -20,7 +20,6 @@ from contextlib import contextmanager
 
 import dearcygui as dcg
 
-from dearcygui.constants import *
 from dearcygui import Key, KeyMod, MouseButton
 
 from typing import List, Any, Callable, Union, Tuple
@@ -323,6 +322,215 @@ mvPlotCol_AxisGrid = "AxisGrid"
 mvPlotCol_AxisText = "AxisText"
 mvPlotCol_Selection = "Selection"
 mvPlotCol_Crosshairs = "Crosshairs"
+
+
+mvStyleVar_Alpha = "Alpha" #float Alpha
+mvStyleVar_DisabledAlpha = "DisabledAlpha" #float DisabledAlpha
+mvStyleVar_WindowPadding = "WindowPadding" #ImVec2WindowPadding
+mvStyleVar_WindowRounding = "WindowRounding"#float WindowRounding
+mvStyleVar_WindowBorderSize = "WindowBorderSize"#float WindowBorderSize
+mvStyleVar_WindowMinSize = "WindowMinSize" #ImVec2WindowMinSize
+mvStyleVar_WindowTitleAlign = "WindowTitleAlign"#ImVec2WindowTitleAlign
+mvStyleVar_ChildRounding = "ChildRounding" #float ChildRounding
+mvStyleVar_ChildBorderSize = "ChildBorderSize" #float ChildBorderSize
+mvStyleVar_PopupRounding = "PopupRounding" #float PopupRounding
+mvStyleVar_PopupBorderSize = "PopupBorderSize" #float PopupBorderSize
+mvStyleVar_FramePadding = "FramePadding"#ImVec2FramePadding
+mvStyleVar_FrameRounding = "FrameRounding" #float FrameRounding
+mvStyleVar_FrameBorderSize = "FrameBorderSize" #float FrameBorderSize
+mvStyleVar_ItemSpacing = "ItemSpacing" #ImVec2ItemSpacing
+mvStyleVar_ItemInnerSpacing = "ItemInnerSpacing"#ImVec2ItemInnerSpacing
+mvStyleVar_IndentSpacing = "IndentSpacing" #float IndentSpacing
+mvStyleVar_CellPadding = "CellPadding" #ImVec2CellPadding
+mvStyleVar_ScrollbarSize = "ScrollbarSize" #float ScrollbarSize
+mvStyleVar_ScrollbarRounding = "ScrollbarRounding" #float ScrollbarRounding
+mvStyleVar_GrabMinSize = "GrabMinSize" #float GrabMinSize
+mvStyleVar_GrabRounding = "GrabRounding" #float GrabRounding
+mvStyleVar_TabRounding = "TabRounding" #float TabRounding
+mvStyleVar_TabBorderSize = "TabBorderSize"	# float TabBorderSize
+mvStyleVar_TabBarBorderSize = "TabBarBorderSize"	# float TabBarBorderSize
+mvStyleVar_TableAngledHeadersAngle = "TableAngledHeadersAngle" # float TableAngledHeadersAngle
+mvStyleVar_TableAngledHeadersTextAlign = "TableAngledHeadersTextAlign" #ImVec2 TableAngledHeadersTextAlign
+mvStyleVar_ButtonTextAlign = "ButtonTextAlign" #ImVec2ButtonTextAlign
+mvStyleVar_SelectableTextAlign = "SelectableTextAlign" #ImVec2SelectableTextAlign
+mvStyleVar_SeparatorTextBorderSize = "SeparatorTextBorderSize"	# float SeparatorTextBorderSize
+mvStyleVar_SeparatorTextAlign = "SeparatorTextAlign"# ImVec2SeparatorTextAlign
+mvStyleVar_SeparatorTextPadding = "SeparatorTextPadding"	# ImVec2SeparatorTextPadding
+
+# item styling variables
+mvPlotStyleVar_LineWeight = "LineWeight" #float,  plot item line weight in pixels
+mvPlotStyleVar_Marker = "Marker" #int,marker specification
+mvPlotStyleVar_MarkerSize = "MarkerSize" #float,  marker size in pixels (roughly the marker's "radius")
+mvPlotStyleVar_MarkerWeight =   "MarkerWeight"#float,  plot outline weight of markers in pixels
+mvPlotStyleVar_FillAlpha =  "FillAlpha"#float,  alpha modifier applied to all plot item fills
+mvPlotStyleVar_ErrorBarSize =   "ErrorBarSize"#float,  error bar whisker width in pixels
+mvPlotStyleVar_ErrorBarWeight = "ErrorBarWeight" #float,  error bar whisker weight in pixels
+mvPlotStyleVar_DigitalBitHeight =   "DigitalBitHeight"#float,  digital channels bit height (at 1) in pixels
+mvPlotStyleVar_DigitalBitGap =  "DigitalBitGap"#float,  digital channels bit padding gap in pixels
+
+# plot styling variables
+mvPlotStyleVar_PlotBorderSize = "PlotBorderSize" #float,  thickness of border around plot area
+mvPlotStyleVar_MinorAlpha = "MinorAlpha" #float,  alpha multiplier applied to minor axis grid lines
+mvPlotStyleVar_MajorTickLen = "MajorTickLen" #ImVec2, major tick lengths for X and Y axes
+mvPlotStyleVar_MinorTickLen = "MinorTickLen" #ImVec2, minor tick lengths for X and Y axes
+mvPlotStyleVar_MajorTickSize = "MajorTickSize"#ImVec2, line thickness of major ticks
+mvPlotStyleVar_MinorTickSize = "MinorTickSize"#ImVec2, line thickness of minor ticks
+mvPlotStyleVar_MajorGridSize = "MajorGridSize"#ImVec2, line thickness of major grid lines
+mvPlotStyleVar_MinorGridSize = "MinorGridSize"#ImVec2, line thickness of minor grid lines
+mvPlotStyleVar_PlotPadding = "PlotPadding"#ImVec2, padding between widget frame and plot area, labels, or outside legends (i.e. main padding)
+mvPlotStyleVar_LabelPadding = "LabelPadding" #ImVec2, padding between axes labels, tick labels, and plot edge
+mvPlotStyleVar_LegendPadding = "LegendPadding"#ImVec2, legend padding from plot edges
+mvPlotStyleVar_LegendInnerPadding = "LegendInnerPadding" #ImVec2, legend inner padding from legend edges
+mvPlotStyleVar_LegendSpacing = "LegendSpacing"#ImVec2, spacing between legend entries
+mvPlotStyleVar_MousePosPadding = "MousePosPadding"#ImVec2, padding between plot edge and interior info text
+mvPlotStyleVar_AnnotationPadding = "AnnotationPadding"#ImVec2, text padding around annotation labels
+mvPlotStyleVar_FitPadding = "FitPadding" #ImVec2, additional fit padding as a percentage of the fit extents (e.g. ImVec2(0.1f,0.1f) adds 10% to the fit extents of X and Y)
+mvPlotStyleVar_PlotDefaultSize = "PlotDefaultSize"#ImVec2, default size used when ImVec2(0,0) is passed to BeginPlot
+mvPlotStyleVar_PlotMinSize = "PlotMinSize"   # ImVec2, minimum size plot frame can be when shrunk
+
+
+# nodes
+mvNodeCol_NodeBackground = "NodeBackground"
+mvNodeCol_NodeBackgroundHovered = "NodeBackgroundHovered"
+mvNodeCol_NodeBackgroundSelected = "NodeBackgroundSelected"
+mvNodeCol_NodeOutline = "NodeOutline"
+mvNodeCol_TitleBar = "TitleBar"
+mvNodeCol_TitleBarHovered = "TitleBarHovered"
+mvNodeCol_TitleBarSelected = "TitleBarSelected"
+mvNodeCol_Link = "Link"
+mvNodeCol_LinkHovered = "LinkHovered"
+mvNodeCol_LinkSelected = "LinkSelected"
+mvNodeCol_Pin = "Pin"
+mvNodeCol_PinHovered = "PinHovered"
+mvNodeCol_BoxSelector = "BoxSelector"
+mvNodeCol_BoxSelectorOutline = "BoxSelectorOutline"
+mvNodeCol_GridBackground = "GridBackground"
+mvNodeCol_GridLine = "GridLine"
+mvNodesCol_GridLinePrimary = "GridLinePrimary"
+mvNodesCol_MiniMapBackground = "MiniMapBackground"
+mvNodesCol_MiniMapBackgroundHovered = "MiniMapBackgroundHovered"
+mvNodesCol_MiniMapOutline = "MiniMapOutline"
+mvNodesCol_MiniMapOutlineHovered = "MiniMapOutlineHovered"
+mvNodesCol_MiniMapNodeBackground = "MiniMapNodeBackground"
+mvNodesCol_MiniMapNodeBackgroundHovered = "MiniMapNodeBackgroundHovered"
+mvNodesCol_MiniMapNodeBackgroundSelected = "MiniMapNodeBackgroundSelected"
+mvNodesCol_MiniMapNodeOutline = "MiniMapNodeOutline"
+mvNodesCol_MiniMapLink = "MiniMapLink"
+mvNodesCol_MiniMapLinkSelected = "MiniMapLinkSelected"
+mvNodesCol_MiniMapCanvas = "MiniMapCanvas"
+mvNodesCol_MiniMapCanvasOutline = "MiniMapCanvasOutline"
+
+# nodes
+mvNodeStyleVar_GridSpacing = "GridSpacing"
+mvNodeStyleVar_NodeCornerRounding = "NodeCornerRounding"
+mvNodeStyleVar_NodePadding = "NodePadding"
+mvNodeStyleVar_NodeBorderThickness = "NodeBorderThickness"
+mvNodeStyleVar_LinkThickness = "LinkThickness"
+mvNodeStyleVar_LinkLineSegmentsPerLength = "LinkLineSegmentsPerLength"
+mvNodeStyleVar_LinkHoverDistance = "LinkHoverDistance"
+mvNodeStyleVar_PinCircleRadius = "PinCircleRadius"
+mvNodeStyleVar_PinQuadSideLength = "PinQuadSideLength"
+mvNodeStyleVar_PinTriangleSideLength = "PinTriangleSideLength"
+mvNodeStyleVar_PinLineThickness = "PinLineThickness"
+mvNodeStyleVar_PinHoverRadius = "PinHoverRadius"
+mvNodeStyleVar_PinOffset = "PinOffset"
+mvNodesStyleVar_MiniMapPadding = "MiniMapPadding"
+mvNodesStyleVar_MiniMapOffset = "MiniMapOffset"
+
+
+mvPlotScale_Linear = dcg.AxisScale.LINEAR
+mvPlotScale_Time = dcg.AxisScale.TIME
+mvPlotScale_Log10 = dcg.AxisScale.LOG10
+mvPlotScale_SymLog = dcg.AxisScale.SYMLOG
+
+mvPlotMarker_None = dcg.PlotMarker.NONE  # no marker
+mvPlotMarker_Circle = dcg.PlotMarker.CIRCLE  # a circle marker will be rendered at each point
+mvPlotMarker_Square = dcg.PlotMarker.SQUARE  # a square maker will be rendered at each point
+mvPlotMarker_Diamond = dcg.PlotMarker.DIAMOND  # a diamond marker will be rendered at each point
+mvPlotMarker_Up = dcg.PlotMarker.UP  # an upward-pointing triangle marker will up rendered at each point
+mvPlotMarker_Down =  dcg.PlotMarker.DOWN  # an downward-pointing triangle marker will up rendered at each point
+mvPlotMarker_Left = dcg.PlotMarker.LEFT  # an leftward-pointing triangle marker will up rendered at each point
+mvPlotMarker_Right = dcg.PlotMarker.RIGHT  # an rightward-pointing triangle marker will up rendered at each point
+mvPlotMarker_Cross = dcg.PlotMarker.CROSS  # a cross marker will be rendered at each point
+mvPlotMarker_Plus = dcg.PlotMarker.PLUS  # a plus marker will be rendered at each point
+mvPlotMarker_Asterisk = dcg.PlotMarker.ASTERISK  # an asterisk marker will be rendered at each point
+
+mvPlot_Location_Center = dcg.LegendLocation.CENTER
+mvPlot_Location_North = dcg.LegendLocation.NORTH
+mvPlot_Location_South = dcg.LegendLocation.SOUTH
+mvPlot_Location_West = dcg.LegendLocation.WEST
+mvPlot_Location_East = dcg.LegendLocation.EAST
+mvPlot_Location_NorthWest = dcg.LegendLocation.NORTHWEST
+mvPlot_Location_NorthEast = dcg.LegendLocation.NORTHEAST
+mvPlot_Location_SouthWest = dcg.LegendLocation.SOUTHWEST
+mvPlot_Location_SouthEast = dcg.LegendLocation.SOUTHEAST
+
+mvXAxis = dcg.Axis.X1
+mvXAxis2 = dcg.Axis.X2
+mvXAxis3 = dcg.Axis.X3
+mvYAxis = dcg.Axis.Y1
+mvYAxis2 = dcg.Axis.Y2
+mvYAxis3 = dcg.Axis.Y3
+
+mvDir_None = dcg.ButtonDirection.NONE
+mvDir_Left = dcg.ButtonDirection.LEFT
+mvDir_Right = dcg.ButtonDirection.RIGHT
+mvDir_Up = dcg.ButtonDirection.UP
+mvDir_Down = dcg.ButtonDirection.DOWN
+
+mvColorEdit_AlphaPreviewNone = "none"
+mvColorEdit_AlphaPreview = "full"
+mvColorEdit_AlphaPreviewHalf = "half"
+mvColorEdit_uint8 = "uint8"
+mvColorEdit_float = "float"
+mvColorEdit_rgb = "rgb"
+mvColorEdit_hsv = "hsv"
+mvColorEdit_hex = "hex"
+mvColorEdit_input_rgb = "rgb"
+mvColorEdit_input_hsv = "hsv"
+
+mvColorPicker_bar = "bar"
+mvColorPicker_wheel = "wheel"
+
+
+# The ones below to not yet exist,
+# mapping may change
+
+mvPlotColormap_Default = "deep" # implot.ImPlot default colormap (n=10)
+mvPlotColormap_Deep = "deep" # a.k.a. seaborn deep (default) (n=10)
+mvPlotColormap_Dark = "dark" # a.k.a. matplotlib "Set1"(n=9)
+mvPlotColormap_Pastel = "pastel" # a.k.a. matplotlib "Pastel1" (n=9)
+mvPlotColormap_Paired = "paired" # a.k.a. matplotlib "Paired"  (n=12)
+mvPlotColormap_Viridis = "viridis" # a.k.a. matplotlib "viridis" (n=11)
+mvPlotColormap_Plasma = "plasma" # a.k.a. matplotlib "plasma"  (n=11)
+mvPlotColormap_Hot = "hot" # a.k.a. matplotlib/MATLAB "hot"  (n=11)
+mvPlotColormap_Cool = "cool" # a.k.a. matplotlib/MATLAB "cool" (n=11)
+mvPlotColormap_Pink = "pink" # a.k.a. matplotlib/MATLAB "pink" (n=11)
+mvPlotColormap_Jet = "jet" # a.k.a. MATLAB "jet" (n=11)
+mvPlotColormap_Twilight = "twilight" # a.k.a. MATLAB "twilight" (n=11)
+mvPlotColormap_RdBu = "RdBu" # red/blue, Color Brewer(n=11)
+mvPlotColormap_BrBG = "BrBG" # brown/blue-green, Color Brewer (n=11)
+mvPlotColormap_PiYG = "PiYG" # pink/yellow-green, Color Brewer (n=11)
+mvPlotColormap_Spectral = "spectral" # color spectrum, Color Brewer (n=11)
+mvPlotColormap_Greys = "greys" # white/black (n=11)
+
+mvNode_PinShape_Circle = "circle"
+mvNode_PinShape_CircleFilled = "circle_filled"
+mvNode_PinShape_Triangle = "triangle"
+mvNode_PinShape_TriangleFilled = "triangle_filled"
+mvNode_PinShape_Quad = "quad"
+mvNode_PinShape_QuadFilled = "quad_filled"
+
+mvNodeMiniMap_Location_BottomLeft = "bottom_left"
+mvNodeMiniMap_Location_BottomRight = "bottom_right"
+mvNodeMiniMap_Location_TopLeft = "top_left"
+mvNodeMiniMap_Location_TopRight = "top_right"
+
+mvTable_SizingFixedFit = "sizing_fixed_fit"
+mvTable_SizingFixedSame = "sizing_fixed_same"
+mvTable_SizingStretchProp = "sizing_stretch_prop"
+mvTable_SizingStretchSame = "sizing_stretch_same"
+
 
 class DPGContext(dcg.Context):
     """
@@ -6196,7 +6404,7 @@ def theme_color(target : int =0, value : Union[List[int], Tuple[int, ...]] =(0, 
         theme_element = dcg.ThemeColorImPlot(CONTEXT, parent=None, **kwargs)
     else:
         theme_element = dcg.ThemeColorImNodes(CONTEXT, parent=None, **kwargs)
-    theme_element[target] = value
+    setattr(theme_element, target, value)
     #theme_element.parent = CONTEXT.fetch_parent_queue_back()
     return theme_element
 
@@ -6259,9 +6467,9 @@ def theme_style(target : int =0, x : float =1.0, y : float =-1.0, *, category: i
     else:
         theme_element = dcg.ThemeStyleImNodes(CONTEXT, parent=None, **kwargs)
     try:
-        theme_element[target] = (x, y)
+        setattr(theme_element, target, (x, y))
     except Exception:
-        theme_element[target] = x
+        setattr(theme_element, target, x)
 
     return theme_element
 
