@@ -143,7 +143,7 @@ def setup_package():
             "-arch", "x86_64"
         ]
     elif get_platform() == "Windows":
-        compile_args += ["/O2", "/DNDEBUG", "/D_WINDOWS", "/D_UNICODE", "/DWIN32_LEAN_AND_MEAN", "/std:c++14"]
+        compile_args += ["/O2", "/DNDEBUG", "/D_WINDOWS", "/D_UNICODE", "/DWIN32_LEAN_AND_MEAN", "/std:c++17"]
         libraries = ["user32", "gdi32", "shell32", "advapi32", "ole32", "oleaut32", "uuid", "opengl32", \
                      "setupapi", "cfgmgr32", "version", "winmm"]
         linking_args += ["/MACHINE:X64"]
