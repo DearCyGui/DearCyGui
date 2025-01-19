@@ -64,6 +64,8 @@ jobs:
         choco install cmake
         choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
         choco install windows-sdk-10.0
+        choco install visualstudio2022-workload-nativegame
+        choco install visualstudio2022-workload-universal
 
     - name: Build wheels
       run: python -m build --wheel
