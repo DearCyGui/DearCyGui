@@ -24,6 +24,7 @@ cdef class DrawInWindow(uiItem):
     cdef double orig_y
     cdef double scale_x
     cdef double scale_y
+    cdef bint button
     cdef bint invert_y
     cdef bint relative_scaling
     cdef bint draw_item(self) noexcept nogil

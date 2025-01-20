@@ -603,6 +603,26 @@ cdef class DrawInWindow(uiItem):
         self.scale_y = 1.
         self.relative_scaling = False
         self.invert_y = False
+        self.button = False
+
+    @property
+    def button(self):
+        """
+        Writable attribute: If True, the entire DrawInWindow area
+        will behave like a single button.
+
+        If False (default), clicks and the hovered status
+        will be forwarded to the window underneath.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.button
+
+    @button.setter
+    def button(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.button = value
 
     @property
     def frame(self):
@@ -612,13 +632,13 @@ cdef class DrawInWindow(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._has_frame
+        return self.has_frame
 
     @frame.setter
     def frame(self, bint value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._has_frame = value
+        self.has_frame = value
 
     @property
     def orig_x(self):
@@ -799,12 +819,18 @@ cdef class DrawInWindow(uiItem):
         # for correct hovering tests. Indeed the user might want
         # to insert some UI on top of the draw elements.
         imgui.SetNextItemAllowOverlap()
-        cdef bint active = imgui.InvisibleButton(self._imgui_label.c_str(),
-                                 imgui.ImVec2(clip_width,
-                                              clip_height),
-                                 imgui.ImGuiButtonFlags_MouseButtonLeft | \
-                                 imgui.ImGuiButtonFlags_MouseButtonRight | \
-                                 imgui.ImGuiButtonFlags_MouseButtonMiddle)
+        cdef bint active
+        if self.button:
+            active = imgui.InvisibleButton(self._imgui_label.c_str(),
+                                           imgui.ImVec2(clip_width,
+                                                        clip_height),
+                                           imgui.ImGuiButtonFlags_MouseButtonLeft | \
+                                           imgui.ImGuiButtonFlags_MouseButtonRight | \
+                                           imgui.ImGuiButtonFlags_MouseButtonMiddle)
+        else:
+            imgui.Dummy(imgui.ImVec2(clip_width, clip_height))
+            active = False
+
         self.update_current_state()
         if no_frame:
             imgui.PopStyleVar(2)

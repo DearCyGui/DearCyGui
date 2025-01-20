@@ -21310,11 +21310,13 @@ class DrawInWindow(uiItem):
     visible/etc tests maintained and thus do not have a callback.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        button: If True, the entire DrawInWindow area
+            will behave like a single button.
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -21333,6 +21335,8 @@ class DrawInWindow(uiItem):
             A disabled item does not react to hovering or clicking.
         font: font used for the text rendered
             of this item and its subitems
+        frame: Whether the item has a frame.
+            By default the frame is disabled for DrawInWindow.
         handlers: bound handlers for the item.
             If read returns a list of handlers. Accept
             a handler or a list of handlers as input.
@@ -21456,10 +21460,12 @@ class DrawInWindow(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        button: If True, the entire DrawInWindow area
+            will behave like a single button.
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -21478,6 +21484,8 @@ class DrawInWindow(uiItem):
             A disabled item does not react to hovering or clicking.
         font: font used for the text rendered
             of this item and its subitems
+        frame: Whether the item has a frame.
+            By default the frame is disabled for DrawInWindow.
         handlers: bound handlers for the item.
             If read returns a list of handlers. Accept
             a handler or a list of handlers as input.
@@ -21692,6 +21700,24 @@ class DrawInWindow(uiItem):
 
 
     @property
+    def button(self) -> bool:
+        """
+        Writable attribute: If True, the entire DrawInWindow area
+        will behave like a single button.
+
+        If False (default), clicks and the hovered status
+        will be forwarded to the window underneath.
+        
+        """
+        ...
+
+
+    @button.setter
+    def button(self, value : bool):
+        ...
+
+
+    @property
     def callbacks(self) -> list[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
@@ -21812,6 +21838,21 @@ class DrawInWindow(uiItem):
 
     @font.setter
     def font(self, value : Font):
+        ...
+
+
+    @property
+    def frame(self) -> bool:
+        """
+        Writable attribute: Whether the item has a frame.
+        By default the frame is disabled for DrawInWindow.
+        
+        """
+        ...
+
+
+    @frame.setter
+    def frame(self, value : bool):
         ...
 
 
