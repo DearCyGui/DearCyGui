@@ -1892,7 +1892,7 @@ cdef class baseItem:
             self.prev_sibling.unlock_and_previous_siblings()
         self.mutex.unlock()
 
-    cdef bint __check_rendered(self):
+    cdef bint _check_rendered(self):
         """
         Returns if an item is rendered
         """
@@ -1977,9 +1977,9 @@ cdef class baseItem:
         cdef unique_lock[recursive_mutex] m2
         cdef unique_lock[recursive_mutex] m3
         # We must ensure a single thread attaches at a given time.
-        # __detach_item_and_lock will lock both the item lock
+        # _detach_item_and_lock will lock both the item lock
         # and the parent lock.
-        self.__detach_item_and_lock(m)
+        self._detach_item_and_lock(m)
         # retaining the lock enables to ensure the item is
         # still detached
 
@@ -2081,7 +2081,7 @@ cdef class baseItem:
                 target_parent.last_window_child = <Window>self
                 attached = True
         assert(attached) # because we checked before compatibility
-        if not(self.parent.__check_rendered()): # TODO: could be optimized. Also not totally correct (attaching to a menu for instance)
+        if not(self.parent._check_rendered()): # TODO: could be optimized. Also not totally correct (attaching to a menu for instance)
             self.set_hidden_and_propagate_to_children_no_handlers()
 
     cpdef void attach_before(self, target):
@@ -2106,9 +2106,9 @@ cdef class baseItem:
         cdef unique_lock[recursive_mutex] target_before_m
         cdef unique_lock[recursive_mutex] target_parent_m
          # We must ensure a single thread attaches at a given time.
-        # __detach_item_and_lock will lock both the item lock
+        # _detach_item_and_lock will lock both the item lock
         # and the parent lock.
-        self.__detach_item_and_lock(m)
+        self._detach_item_and_lock(m)
         # retaining the lock enables to ensure the item is
         # still detached
 
@@ -2145,10 +2145,10 @@ cdef class baseItem:
         self.prev_sibling = prev_sibling
         self.next_sibling = target_before
         target_before.prev_sibling = self
-        if not(self.parent.__check_rendered()):
+        if not(self.parent._check_rendered()):
             self.set_hidden_and_propagate_to_children_no_handlers()
 
-    cdef void __detach_item_and_lock(self, unique_lock[recursive_mutex]& m):
+    cdef void _detach_item_and_lock(self, unique_lock[recursive_mutex]& m):
         # NOTE: the mutex is not locked if we raise an exception.
         # Detach the item from its parent and siblings
         # We are going to change the tree structure, we must lock
@@ -2209,7 +2209,7 @@ cdef class baseItem:
         """
         cdef unique_lock[recursive_mutex] m0
         cdef unique_lock[recursive_mutex] m
-        self.__detach_item_and_lock(m)
+        self._detach_item_and_lock(m)
         # Mark as hidden. Useful for OtherItemHandler
         # when we want to detect loss of hover, render, etc
         self.set_hidden_and_propagate_to_children_no_handlers()
@@ -2228,29 +2228,29 @@ cdef class baseItem:
         cdef unique_lock[recursive_mutex] sibling_m
 
         cdef unique_lock[recursive_mutex] m
-        self.__detach_item_and_lock(m)
+        self._detach_item_and_lock(m)
         # retaining the lock enables to ensure the item is
         # still detached
 
         # delete all children recursively
         if self.last_drawings_child is not None:
-            (<baseItem>self.last_drawings_child).__delete_and_siblings()
+            (<baseItem>self.last_drawings_child)._delete_and_siblings()
         if self.last_handler_child is not None:
-            (<baseItem>self.last_handler_child).__delete_and_siblings()
+            (<baseItem>self.last_handler_child)._delete_and_siblings()
         if self.last_menubar_child is not None:
-            (<baseItem>self.last_menubar_child).__delete_and_siblings()
+            (<baseItem>self.last_menubar_child)._delete_and_siblings()
         if self.last_plot_element_child is not None:
-            (<baseItem>self.last_plot_element_child).__delete_and_siblings()
+            (<baseItem>self.last_plot_element_child)._delete_and_siblings()
         if self.last_tab_child is not None:
-            (<baseItem>self.last_tab_child).__delete_and_siblings()
+            (<baseItem>self.last_tab_child)._delete_and_siblings()
         if self.last_tag_child is not None:
-            (<baseItem>self.last_tag_child).__delete_and_siblings()
+            (<baseItem>self.last_tag_child)._delete_and_siblings()
         if self.last_theme_child is not None:
-            (<baseItem>self.last_theme_child).__delete_and_siblings()
+            (<baseItem>self.last_theme_child)._delete_and_siblings()
         if self.last_widgets_child is not None:
-            (<baseItem>self.last_widgets_child).__delete_and_siblings()
+            (<baseItem>self.last_widgets_child)._delete_and_siblings()
         if self.last_window_child is not None:
-            (<baseItem>self.last_window_child).__delete_and_siblings()
+            (<baseItem>self.last_window_child)._delete_and_siblings()
         # TODO: free item specific references (themes, font, etc)
         self.last_drawings_child = None
         self.last_handler_child = None
@@ -2266,31 +2266,31 @@ cdef class baseItem:
         # still be referenced for instance in handlers,
         # and thus should be valid.
 
-    cdef void __delete_and_siblings(self):
+    cdef void _delete_and_siblings(self):
         # Must only be called from delete_item or itself.
         # Assumes the parent mutex is already held
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         # delete all its children recursively
         if self.last_drawings_child is not None:
-            (<baseItem>self.last_drawings_child).__delete_and_siblings()
+            (<baseItem>self.last_drawings_child)._delete_and_siblings()
         if self.last_handler_child is not None:
-            (<baseItem>self.last_handler_child).__delete_and_siblings()
+            (<baseItem>self.last_handler_child)._delete_and_siblings()
         if self.last_plot_element_child is not None:
-            (<baseItem>self.last_plot_element_child).__delete_and_siblings()
+            (<baseItem>self.last_plot_element_child)._delete_and_siblings()
         if self.last_tab_child is not None:
-            (<baseItem>self.last_tab_child).__delete_and_siblings()
+            (<baseItem>self.last_tab_child)._delete_and_siblings()
         if self.last_tag_child is not None:
-            (<baseItem>self.last_tag_child).__delete_and_siblings()
+            (<baseItem>self.last_tag_child)._delete_and_siblings()
         if self.last_theme_child is not None:
-            (<baseItem>self.last_theme_child).__delete_and_siblings()
+            (<baseItem>self.last_theme_child)._delete_and_siblings()
         if self.last_widgets_child is not None:
-            (<baseItem>self.last_widgets_child).__delete_and_siblings()
+            (<baseItem>self.last_widgets_child)._delete_and_siblings()
         if self.last_window_child is not None:
-            (<baseItem>self.last_window_child).__delete_and_siblings()
+            (<baseItem>self.last_window_child)._delete_and_siblings()
         # delete previous sibling
         if self.prev_sibling is not None:
-            (<baseItem>self.prev_sibling).__delete_and_siblings()
+            (<baseItem>self.prev_sibling)._delete_and_siblings()
         # Free references
         self.parent = None
         self.prev_sibling = None

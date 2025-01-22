@@ -203,9 +203,9 @@ cdef class baseItem:
     cdef void set_hidden_no_handler_and_propagate_to_children_with_handlers(self) noexcept nogil
     cdef void set_hidden_and_propagate_to_children_no_handlers(self) noexcept
     ### private methods ###
-    cdef bint __check_rendered(self)
-    cdef void __detach_item_and_lock(self, unique_lock[recursive_mutex]&)
-    cdef void __delete_and_siblings(self)
+    cdef bint _check_rendered(self)
+    cdef void _detach_item_and_lock(self, unique_lock[recursive_mutex]&)
+    cdef void _delete_and_siblings(self)
 
 
 # The capabilities are set during item creation

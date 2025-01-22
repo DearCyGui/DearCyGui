@@ -9,6 +9,7 @@ from dearcygui.imgui_types import *
 from dearcygui.layout import *
 from dearcygui.os import *
 from dearcygui.plot import *
+from dearcygui.table import *
 from dearcygui.theme import *
 from dearcygui.types import *
 from dearcygui.widget import *

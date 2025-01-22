@@ -160,6 +160,7 @@ def setup_package():
         "dearcygui/layout.pyx",
         "dearcygui/os.pyx",
         "dearcygui/plot.pyx",
+        "dearcygui/table.pyx",
         "dearcygui/theme.pyx",
         "dearcygui/types.pyx",
         "dearcygui/widget.pyx",

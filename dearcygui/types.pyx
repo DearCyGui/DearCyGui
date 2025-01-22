@@ -1089,5 +1089,101 @@ class KeyOrMod(IntFlag):
     ALT = imgui.ImGuiMod_Alt,
     SUPER = imgui.ImGuiMod_Super
 
+class TableFlag(IntFlag):
+    """
+    Flags for controlling table behavior and appearance.
+
+    Features:
+        NONE (0): No flags
+        RESIZABLE: Enable resizing columns
+        REORDERABLE: Enable reordering columns 
+        HIDEABLE: Enable hiding/disabling columns
+        SORTABLE: Enable sorting
+        NO_SAVED_SETTINGS: Disable persisting columns order, width and sort settings
+        CONTEXT_MENU_IN_BODY: Right-click on columns body/contents will display table context menu
+    
+    Decorations:
+        ROW_BG: Set each RowBg color with alternating colors
+        BORDERS_INNER_H: Draw horizontal borders between rows
+        BORDERS_OUTER_H: Draw horizontal borders at the top and bottom
+        BORDERS_INNER_V: Draw vertical borders between columns
+        BORDERS_OUTER_V: Draw vertical borders on the left and right sides
+        BORDERS_H: Draw all horizontal borders (inner + outer)
+        BORDERS_V: Draw all vertical borders (inner + outer)
+        BORDERS_INNER: Draw all inner borders
+        BORDERS_OUTER: Draw all outer borders
+        BORDERS: Draw all borders (inner + outer)
+        NO_BORDERS_IN_BODY: Disable vertical borders in columns Body
+        NO_BORDERS_IN_BODY_UNTIL_RESIZE: Disable vertical borders in columns Body until hovered for resize
+    
+    Sizing Policy:
+        SIZING_FIXED_FIT: Columns default to _WidthFixed or _WidthAuto, matching contents width
+        SIZING_FIXED_SAME: Columns default to _WidthFixed or _WidthAuto, matching the maximum contents width of all columns
+        SIZING_STRETCH_PROP: Columns default to _WidthStretch with default weights proportional to each columns contents widths
+        SIZING_STRETCH_SAME: Columns default to _WidthStretch with default weights all equal
+    
+    Sizing Extra Options:
+        NO_HOST_EXTEND_X: Make outer width auto-fit to columns
+        NO_HOST_EXTEND_Y: Make outer height stop exactly at outer_size.y
+        NO_KEEP_COLUMNS_VISIBLE: Disable keeping column always minimally visible when ScrollX is off
+        PRECISE_WIDTHS: Disable distributing remainder width to stretched columns 
+    
+    Clipping:
+        NO_CLIP: Disable clipping rectangle for every individual column
+    
+    Padding:
+        PAD_OUTER_X: Enable outermost padding
+        NO_PAD_OUTER_X: Disable outermost padding
+        NO_PAD_INNER_X: Disable inner padding between columns
+    
+    Scrolling:
+        SCROLL_X: Enable horizontal scrolling
+        SCROLL_Y: Enable vertical scrolling
+    
+    Sorting:
+        SORT_MULTI: Hold shift when clicking headers to sort on multiple columns
+        SORT_TRISTATE: Allow no sorting, disable default sorting
+    
+    Miscellaneous:
+        HIGHLIGHT_HOVERED_COLUMN: Highlight column header when hovered
+    """
+    
+    NONE = imgui.ImGuiTableFlags_None,
+    RESIZABLE = imgui.ImGuiTableFlags_Resizable,   # Enable resizing columns
+    REORDERABLE = imgui.ImGuiTableFlags_Reorderable,   # Enable reordering columns 
+    HIDEABLE = imgui.ImGuiTableFlags_Hideable,   # Enable hiding/disabling columns
+    SORTABLE = imgui.ImGuiTableFlags_Sortable,   # Enable sorting
+    NO_SAVED_SETTINGS = imgui.ImGuiTableFlags_NoSavedSettings,   # Disable persisting columns order, width and sort settings
+    CONTEXT_MENU_IN_BODY = imgui.ImGuiTableFlags_ContextMenuInBody,   # Right-click on columns body/contents will display table context menu
+    ROW_BG = imgui.ImGuiTableFlags_RowBg,   # Set each RowBg color
+    BORDERS_INNER_H = imgui.ImGuiTableFlags_BordersInnerH,   # Draw horizontal borders between rows
+    BORDERS_OUTER_H = imgui.ImGuiTableFlags_BordersOuterH,   # Draw horizontal borders at the top and bottom
+    BORDERS_INNER_V = imgui.ImGuiTableFlags_BordersInnerV,   # Draw vertical borders between columns
+    BORDERS_OUTER_V = imgui.ImGuiTableFlags_BordersOuterV,  # Draw vertical borders on the left and right sides
+    BORDERS_H = imgui.ImGuiTableFlags_BordersH,
+    BORDERS_V = imgui.ImGuiTableFlags_BordersV,
+    BORDERS_INNER = imgui.ImGuiTableFlags_BordersInner,
+    BORDERS_OUTER = imgui.ImGuiTableFlags_BordersOuter,
+    BORDERS = imgui.ImGuiTableFlags_Borders,
+    NO_BORDERS_IN_BODY = imgui.ImGuiTableFlags_NoBordersInBody,
+    NO_BORDERS_IN_BODY_UNTIL_RESIZE = imgui.ImGuiTableFlags_NoBordersInBodyUntilResize,
+    SIZING_FIXED_FIT = imgui.ImGuiTableFlags_SizingFixedFit,
+    SIZING_FIXED_SAME = imgui.ImGuiTableFlags_SizingFixedSame,
+    SIZING_STRETCH_PROP = imgui.ImGuiTableFlags_SizingStretchProp,
+    SIZING_STRETCH_SAME = imgui.ImGuiTableFlags_SizingStretchSame,
+    NO_HOST_EXTEND_X = imgui.ImGuiTableFlags_NoHostExtendX,
+    NO_HOST_EXTEND_Y = imgui.ImGuiTableFlags_NoHostExtendY,
+    NO_KEEP_COLUMNS_VISIBLE = imgui.ImGuiTableFlags_NoKeepColumnsVisible,
+    PRECISE_WIDTHS = imgui.ImGuiTableFlags_PreciseWidths,
+    NO_CLIP = imgui.ImGuiTableFlags_NoClip,
+    PAD_OUTER_X = imgui.ImGuiTableFlags_PadOuterX,
+    NO_PAD_OUTER_X = imgui.ImGuiTableFlags_NoPadOuterX,
+    NO_PAD_INNER_X = imgui.ImGuiTableFlags_NoPadInnerX,
+    SCROLL_X = imgui.ImGuiTableFlags_ScrollX,
+    SCROLL_Y = imgui.ImGuiTableFlags_ScrollY,
+    SORT_MULTI = imgui.ImGuiTableFlags_SortMulti,
+    SORT_TRISTATE = imgui.ImGuiTableFlags_SortTristate,
+    HIGHLIGHT_HOVERED_COLUMN = imgui.ImGuiTableFlags_HighlightHoveredColumn
+
 cdef object make_PlotMarker(int marker):
     return PlotMarker(marker)
