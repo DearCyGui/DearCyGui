@@ -77,6 +77,7 @@ cdef class TableColConfig(baseItem):
         self.state.cur.open = True
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_toggled = True # hide/enable
+        self.state.cap.can_be_clicked = True
         #self.state.cap.can_be_active = True # sort request
         #self.state.cap.has_position = True
         #self.state.cap.has_content_region = True
@@ -86,6 +87,56 @@ cdef class TableColConfig(baseItem):
         self._fixed = False
         self._stretch = False
         self._dpi_scaling = True
+
+    @property
+    def clicked(self):
+        """
+        Readonly attribute: has the item just been clicked.
+        The returned value is a tuple of len 5 containing the individual test
+        mouse buttons (up to 5 buttons)
+        If True, the attribute is reset the next frame. It's better to rely
+        on handlers to catch this event.
+        """
+        if not(self.state.cap.can_be_clicked):
+            raise AttributeError("Field undefined for type {}".format(type(self)))
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return tuple(self.state.cur.clicked)
+
+    @property
+    def double_clicked(self):
+        """
+        Readonly attribute: has the item just been double-clicked.
+        The returned value is a tuple of len 5 containing the individual test
+        mouse buttons (up to 5 buttons)
+        If True, the attribute is reset the next frame. It's better to rely
+        on handlers to catch this event.
+        """
+        if not(self.state.cap.can_be_clicked):
+            raise AttributeError("Field undefined for type {}".format(type(self)))
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.state.cur.double_clicked
+
+    @property
+    def hovered(self):
+        """
+        Readonly attribute: Is the mouse inside the region of the item.
+        Only one element is hovered at a time, thus
+        subitems/subwindows take priority over their parent.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.state.cur.hovered
+
+    @property
+    def visible(self):
+        """
+        True if the column is not clipped and is enabled.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.state.cur.rendered
 
     @property
     def show(self):
@@ -495,6 +546,9 @@ cdef class TableColConfig(baseItem):
         self.state.cur.rendered = (flags & imgui.ImGuiTableColumnFlags_IsVisible) != 0
         self.state.cur.open = (flags & imgui.ImGuiTableColumnFlags_IsEnabled) != 0
         self.state.cur.hovered = (flags & imgui.ImGuiTableColumnFlags_IsHovered) != 0
+
+        update_current_mouse_states(self.state)
+        self.run_handlers()
 
 
 cdef class TableColConfigView:
