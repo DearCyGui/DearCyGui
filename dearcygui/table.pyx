@@ -22,6 +22,7 @@ from dearcygui.wrapper cimport imgui, implot
 from libcpp.cmath cimport trunc
 from libcpp.map cimport map, pair
 from libcpp.string cimport string
+from libcpp.vector cimport vector
 from libc.math cimport INFINITY
 
 from cython.operator cimport dereference
@@ -48,7 +49,7 @@ cimport numpy as cnp
 cnp.import_array()
 
 
-cdef class TableColumnConfig(baseItem):
+cdef class TableColConfig(baseItem):
     """
     Configuration for a table column.
 
@@ -57,8 +58,6 @@ cdef class TableColumnConfig(baseItem):
     The states can be changed by the user, but also by the
     application.
     To listen for state changes use:
-    - ActivatedHandler to listen if the user requests
-        the column to be sorted.
     - ToggledOpenHandler/ToggledCloseHandler to listen if the user
         requests the column to be shown/hidden.
     - ContentResizeHandler to listen if the user resizes the column.
@@ -75,6 +74,7 @@ cdef class TableColumnConfig(baseItem):
 
     def __cinit__(self):
         self.p_state = &self.state
+        self.state.cur.open = True
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_toggled = True # hide/enable
         #self.state.cap.can_be_active = True # sort request
@@ -154,6 +154,42 @@ cdef class TableColumnConfig(baseItem):
         else:
             self._stretch = False
             self._fixed = True
+
+    ''' -> Redundant with enabled
+    @property
+    def default_hide(self):
+        """
+        Writable attribute: Default hide state for the column.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiTableColumnFlags_DefaultHide) != 0
+
+    @default_hide.setter
+    def default_hide(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiTableColumnFlags_DefaultHide
+        if value:
+            self._flags |= imgui.ImGuiTableColumnFlags_DefaultHide
+    '''
+
+    @property
+    def default_sort(self):
+        """
+        Writable attribute: Default as a sorting column.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiTableColumnFlags_DefaultSort) != 0
+
+    @default_sort.setter
+    def default_sort(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiTableColumnFlags_DefaultSort
+        if value:
+            self._flags |= imgui.ImGuiTableColumnFlags_DefaultSort
 
     @property
     def no_resize(self):
@@ -246,10 +282,73 @@ cdef class TableColumnConfig(baseItem):
             self._flags |= imgui.ImGuiTableColumnFlags_PreferSortDescending
 
     @property
+    def no_sort_ascending(self):
+        """Disable ability to sort in ascending order"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiTableColumnFlags_NoSortAscending) != 0
+
+    @no_sort_ascending.setter
+    def no_sort_ascending(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiTableColumnFlags_NoSortAscending
+        if value:
+            self._flags |= imgui.ImGuiTableColumnFlags_NoSortAscending
+
+    @property
+    def no_sort_descending(self):
+        """Disable ability to sort in descending order"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiTableColumnFlags_NoSortDescending) != 0
+
+    @no_sort_descending.setter
+    def no_sort_descending(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiTableColumnFlags_NoSortDescending
+        if value:
+            self._flags |= imgui.ImGuiTableColumnFlags_NoSortDescending
+
+    @property
+    def no_header_label(self):
+        """Don't display column header for this column"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiTableColumnFlags_NoHeaderLabel) != 0
+
+    @no_header_label.setter
+    def no_header_label(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiTableColumnFlags_NoHeaderLabel
+        if value:
+            self._flags |= imgui.ImGuiTableColumnFlags_NoHeaderLabel
+
+    @property
+    def no_header_width(self):
+        """Don't display column width when hovered"""
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & imgui.ImGuiTableColumnFlags_NoHeaderWidth) != 0
+
+    @no_header_width.setter
+    def no_header_width(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._flags &= ~imgui.ImGuiTableColumnFlags_NoHeaderWidth
+        if value:
+            self._flags |= imgui.ImGuiTableColumnFlags_NoHeaderWidth
+
+    @property
     def width(self):
         """Requested fixed width of the column in pixels.
         Unused if in stretch mode.
-        Set to 0 for auto-width."""
+        Set to 0 for auto-width.
+
+        Note the width is used only when the column
+        is initialized, and is not updated with resizes."""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         return self._width
@@ -311,24 +410,6 @@ cdef class TableColumnConfig(baseItem):
             self._flags |= imgui.ImGuiTableColumnFlags_NoReorder
 
     @property
-    def bg_color(self):
-        """Background color for the whole column.
-
-        Set to 0 (default) to disable.
-        """
-        cdef unique_lock[recursive_mutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef float[4] color
-        unparse_color(color, self._bg_color)
-        return color
-
-    @bg_color.setter
-    def bg_color(self, value):
-        cdef unique_lock[recursive_mutex] m
-        lock_gil_friendly(m, self.mutex) 
-        self._bg_color = parse_color(value)
-
-    @property
     def label(self):
         """
         Label in the header for the column
@@ -382,31 +463,223 @@ cdef class TableColumnConfig(baseItem):
         clear_obj_vector(self._handlers)
         append_obj_vector(self._handlers, items)
 
-    cdef void setup(self) noexcept nogil:
+    cdef void setup(self, int col_idx, unsigned table_flags) noexcept nogil:
         """Setup the column"""
+        cdef bint enabled_state_change = \
+            self.state.cur.open != self.state.prev.open
+        self.set_previous_states()
+
         cdef imgui.ImGuiTableColumnFlags flags = self._flags
         cdef float width_or_weight = 0.
         if self._stretch:
             width_or_weight = self._stretch_weight
+            flags |= imgui.ImGuiTableColumnFlags_WidthStretch
         elif self._fixed:
             if self._dpi_scaling:
                 width_or_weight = self._width * \
                     self.context.viewport.global_scale
             else:
                 width_or_weight = self._width
-        imgui.TableSetColumnEnabled(-1, self.state.cur.open)
+            flags |= imgui.ImGuiTableColumnFlags_WidthFixed
         imgui.TableSetupColumn(self._label.c_str(),
                                flags,
                                width_or_weight,
                                self.uuid)
+        if table_flags & imgui.ImGuiTableFlags_Hideable and enabled_state_change:
+            imgui.TableSetColumnEnabled(col_idx, self.state.prev.open)
 
-    cdef void after_draw(self) noexcept nogil:
+    cdef void after_draw(self, int col_idx) noexcept nogil:
         """After draw, update the states"""
-        cdef imgui.ImGuiTableColumnFlags flags = imgui.TableGetColumnFlags(self.uuid)
+        cdef imgui.ImGuiTableColumnFlags flags = imgui.TableGetColumnFlags(col_idx)
 
-        self.set_previous_states()
+        self.state.cur.rendered = (flags & imgui.ImGuiTableColumnFlags_IsVisible) != 0
         self.state.cur.open = (flags & imgui.ImGuiTableColumnFlags_IsEnabled) != 0
         self.state.cur.hovered = (flags & imgui.ImGuiTableColumnFlags_IsHovered) != 0
+
+
+cdef class TableColConfigView:
+    """
+    A View of a Table which you can index to get the
+    TableColConfig for a specific column.
+    """
+    cdef Table table
+
+    def __init__(self):
+        raise TypeError("TableColConfigView cannot be instantiated directly")
+
+    def __cinit__(self):
+        self.table = None
+
+    def __getitem__(self, int col_idx) -> TableColConfig:
+        """Get the column configuration for the specified column."""
+        return self.table.get_col_config(col_idx)
+
+    def __setitem__(self, int col_idx, TableColConfig config) -> None:
+        """Set the column configuration for the specified column."""
+        self.table.set_col_config(col_idx, config)
+
+    def __delitem__(self, int col_idx) -> None:
+        """Delete the column configuration for the specified column."""
+        self.table.set_col_config(col_idx, TableColConfig(self.table.context))
+
+    def __call__(self, int col_idx, str attribute, value) -> TableColConfig:
+        """Set an attribute of the column configuration for the specified column."""
+        cdef TableColConfig config = self.table.get_col_config(col_idx)
+        setattr(config, attribute, value)
+        self.table.set_col_config(col_idx, config)
+        return config
+
+    @staticmethod
+    cdef TableColConfigView create(Table table):
+        """Create a TableColConfigView for the specified table."""
+        cdef TableColConfigView view = TableColConfigView.__new__(TableColConfigView)
+        view.table = table
+        return view
+
+cdef class TableRowConfig(baseItem):
+    """
+    Configuration for a table row.
+
+    A table row can be hidden and its background color can be changed.
+    """
+    #cdef itemState state
+    cdef bint show
+    cdef float min_height
+    cdef unsigned bg_color
+
+    def __cinit__(self):
+        #self.p_state = &self.state
+        #self.state.has_content_region
+        self.min_height = 0.0
+        self.bg_color = 0
+        self.show = True
+
+    @property
+    def show(self):
+        """
+        Writable attribute: Show the row.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.show
+
+    @show.setter
+    def show(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.show = value
+
+    @property
+    def bg_color(self):
+        """Background color for the whole row.
+
+        Set to 0 (default) to disable.
+        This background color is applied on top
+        of any row background color defined by
+        the theme (blending)
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef float[4] color
+        unparse_color(color, self.bg_color)
+        return color
+
+    @bg_color.setter
+    def bg_color(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex) 
+        self.bg_color = parse_color(value)
+
+    @property
+    def min_height(self):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.min_height
+
+    @min_height.setter
+    def min_height(self, float value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex) 
+        self.min_height = value
+
+    @property
+    def handlers(self):
+        """
+        Writable attribute: bound handlers for the item.
+        If read returns a list of handlers. Accept
+        a handler or a list of handlers as input.
+        This enables to do item.handlers += [new_handler].
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        result = []
+        cdef int i
+        cdef baseHandler handler
+        for i in range(<int>self._handlers.size()):
+            handler = <baseHandler>self._handlers[i]
+            result.append(handler)
+        return result
+
+    @handlers.setter
+    def handlers(self, value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef list items = []
+        cdef int i
+        if value is None:
+            clear_obj_vector(self._handlers)
+            return
+        if not hasattr(value, "__len__"):
+            value = [value]
+        for i in range(len(value)):
+            if not(isinstance(value[i], baseHandler)):
+                raise TypeError(f"{value[i]} is not a handler")
+            # Check the handlers can use our states. Else raise error
+            (<baseHandler>value[i]).check_bind(self)
+            items.append(value[i])
+        # Success: bind
+        clear_obj_vector(self._handlers)
+        append_obj_vector(self._handlers, items)
+
+cdef class TableRowConfigView:
+    """
+    A View of a Table which you can index to get the
+    TableRowConfig for a specific row.
+    """
+    cdef Table table
+
+    def __init__(self):
+        raise TypeError("TableRowConfigView cannot be instantiated directly")
+
+    def __cinit__(self):
+        self.table = None
+
+    def __getitem__(self, int row_idx) -> TableRowConfig:
+        """Get the column configuration for the specified column."""
+        return self.table.get_row_config(row_idx)
+
+    def __setitem__(self, int row_idx, TableRowConfig config) -> None:
+        """Set the column configuration for the specified column."""
+        self.table.set_row_config(row_idx, config)
+
+    def __delitem__(self, int col_idx) -> None:
+        """Delete the column configuration for the specified column."""
+        self.table.set_row_config(col_idx, TableRowConfig(self.table.context))
+
+    def __call__(self, int row_idx, str attribute, value) -> TableRowConfig:
+        """Set an attribute of the column configuration for the specified column."""
+        cdef TableRowConfig config = self.table.get_row_config(row_idx)
+        setattr(config, attribute, value)
+        self.table.set_row_config(row_idx, config)
+        return config
+
+    @staticmethod
+    cdef TableRowConfigView create(Table table):
+        """Create a TableColConfigView for the specified table."""
+        cdef TableRowConfigView view = TableRowConfigView.__new__(TableRowConfigView)
+        view.table = table
+        return view
+
 
 cdef struct TableElementData:
     # Optional item to display in the table cell
@@ -721,6 +994,8 @@ cdef class Table(uiItem):
     display data, but also to interact with the user.
     """
     cdef map[pair[int, int], TableElementData] _items
+    cdef map[int, PyObject*] _col_configs # TableColConfig
+    cdef map[int, PyObject*] _row_configs # TableRowConfig
     cdef imgui.ImGuiTableFlags _flags
     cdef bint _dirty_num_rows_cols
     cdef int _num_rows
@@ -728,6 +1003,7 @@ cdef class Table(uiItem):
     cdef int _num_rows_visible
     cdef int _num_cols_visible
     cdef float _inner_width
+    cdef bint _header
     def __cinit__(self):
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_toggled = True
@@ -742,6 +1018,90 @@ cdef class Table(uiItem):
         self._num_rows_visible = -1
         self._num_cols_visible = -1
         self.can_have_widget_child = True
+
+    cdef TableColConfig get_col_config(self, int col_idx):
+        """
+        Retrieve the configuration of a column,
+        and create a default one if we didn't have any yet.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if col_idx < 0:
+            raise ValueError(f"Invalid column index {col_idx}")
+        cdef map[int, PyObject*].iterator it
+        it = self._col_configs.find(col_idx)
+        if it == self._col_configs.end():
+            config = TableColConfig(self.context)
+            Py_INCREF(config)
+            self._col_configs[col_idx] = <PyObject*>config
+            return config
+        cdef PyObject* item = dereference(it).second
+        cdef TableColConfig found_config = <TableColConfig>item
+        return found_config
+
+    cdef void set_col_config(self, int col_idx, TableColConfig config):
+        """
+        Set the configuration of a column.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if col_idx < 0:
+            raise ValueError(f"Invalid column index {col_idx}")
+        cdef map[int, PyObject*].iterator it
+        it = self._col_configs.find(col_idx)
+        if it != self._col_configs.end():
+            Py_DECREF(<object>dereference(it).second)
+        Py_INCREF(config)
+        self._col_configs[col_idx] = <PyObject*>config
+
+    cdef TableRowConfig get_row_config(self, int row_idx):
+        """
+        Retrieve the configuration of a row,
+        and create a default one if we didn't have any yet.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if row_idx < 0:
+            raise ValueError(f"Invalid row index {row_idx}")
+        cdef map[int, PyObject*].iterator it
+        it = self._row_configs.find(row_idx)
+        if it == self._row_configs.end():
+            config = TableRowConfig(self.context)
+            Py_INCREF(config)
+            self._row_configs[row_idx] = <PyObject*>config
+            return config
+        cdef PyObject* item = dereference(it).second
+        cdef TableRowConfig found_config = <TableRowConfig>item
+        return found_config
+
+    cdef void set_row_config(self, int row_idx, TableRowConfig config):
+        """
+        Set the configuration of a row.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if row_idx < 0:
+            raise ValueError(f"Invalid row index {row_idx}")
+        cdef map[int, PyObject*].iterator it
+        it = self._row_configs.find(row_idx)
+        if it != self._row_configs.end():
+            Py_DECREF(<object>dereference(it).second)
+        Py_INCREF(config)
+        self._row_configs[row_idx] = <PyObject*>config
+
+    @property
+    def col_config(self):
+        """
+        Get the column configuration view.
+        """
+        return TableColConfigView.create(self)
+
+    @property
+    def row_config(self):
+        """
+        Get the row configuration view.
+        """
+        return TableRowConfigView.create(self)
 
     @property 
     def flags(self):
@@ -795,6 +1155,22 @@ cdef class Table(uiItem):
         self._inner_width = value
 
     @property
+    def header(self):
+        """
+        boolean. Defaults to True.
+        Produce a table header based on the column labels.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._header
+
+    @header.setter
+    def header(self, bint value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._header = value
+
+    @property
     def num_rows(self):
         """
         Get the number of rows in the table.
@@ -805,7 +1181,7 @@ cdef class Table(uiItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if self._dirty_num_rows_cols:
-            self._update_num_rows_cols()
+            self._update_row_col_counts()
         return self._num_rows
 
     @property
@@ -819,7 +1195,7 @@ cdef class Table(uiItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if self._dirty_num_rows_cols:
-            self._update_num_rows_cols()
+            self._update_row_col_counts()
         return self._num_cols
 
     @property
@@ -935,12 +1311,23 @@ cdef class Table(uiItem):
         self._dirty_num_rows_cols = False
 
     def clear(self) -> None:
-        """Release all items attached to the table."""
+        """Release all items attached to the table.
+        
+        Does now clear row and column configurations.
+        These are cleared only when the Table is released.
+        """
         self.clear_items()
         self.children = []
 
     def __dealloc__(self):
         self.clear_items()
+        cdef pair[int, PyObject*] key_value
+        for key_value in self._col_configs:
+            Py_DECREF(<object>key_value.second)
+        for key_value in self._row_configs:
+            Py_DECREF(<object>key_value.second)
+        self._col_configs.clear()
+        self._row_configs.clear()
 
     cpdef void delete_item(self):
         uiItem.delete_item(self)
@@ -1377,8 +1764,8 @@ cdef class Table(uiItem):
             max_row = max(max_row, key_element.first.first)
             max_col = max(max_col, key_element.first.second) 
 
-        self._num_rows = max_row + 1 if max_row >= 0 else 0
-        self._num_cols = max_col + 1 if max_col >= 0 else 0
+        self._num_rows = (max_row + 1) if max_row >= 0 else 0
+        self._num_cols = (max_col + 1) if max_col >= 0 else 0
         self._dirty_num_rows_cols = False
 
     def row(self, int idx):
@@ -1476,12 +1863,20 @@ cdef class Table(uiItem):
             order = order[::-1]
 
         # Convert order to permutations
-        order = order.tolist()
+        cdef vector[int] current
+        current.reserve(self._num_rows)
+        # Will store the current position
+        # of each index
         for i in range(self._num_rows):
-            assert (order[i] >= i)
-            if order[i] != i:
-                self.swap_rows(i, order[i])
-                order[i], order[order[i]] = i, order[i]
+            current.push_back(i)
+        for i in range(self._num_rows):
+            if current[i] == order[i]:
+                continue
+            # Find where our target value currently is
+            j = current[order[i]]
+            # Swap the elements
+            self.swap_rows(i, j)
+            current[i], current[j] = current[j], current[i]
 
     def sort_cols(self, int ref_row, bint ascending=True):
         """Sort the columns using the value in ref_row as index.
@@ -1519,12 +1914,20 @@ cdef class Table(uiItem):
             order = order[::-1]
 
         # Convert order to permutations
-        order = order.tolist()
+        cdef vector[int] current
+        current.reserve(self._num_cols)
+        # Will store the current position
+        # of each index
         for i in range(self._num_cols):
-            assert (order[i] >= i)
-            if order[i] != i:
-                self.swap_cols(i, order[i])
-                order[i], order[order[i]] = i, order[i]
+            current.push_back(i)
+        for i in range(self._num_cols):
+            if current[i] == order[i]:
+                continue
+            # Find where our target value currently is
+            j = current[order[i]]
+            # Swap the elements
+            self.swap_cols(i, j)
+            current[i], current[j] = current[j], current[i]
 
 
     cdef bint draw_item(self) noexcept nogil:
@@ -1547,13 +1950,57 @@ cdef class Table(uiItem):
         cdef TableElementData element
         cdef int row, col
         cdef int prev_row = -1
+        cdef int prev_col = -1
         cdef int j
+        cdef Vec2 pos_p_backup, pos_w_backup, parent_size_backup
+        cdef pair[int, PyObject*] col_data
+        cdef map[int, PyObject*].iterator it_row
+
+        # Corruption issue for empty tables
+        if actual_num_rows == 0 or actual_num_cols == 0:
+            return False
+
+        # If no column are enabled, there is a crash
+        # if that occurs, force enable all of them
+        # if we skip drawing instead, user cannot
+        # re-enable them.
+        # In addition, lock the column configurations
+        cdef int num_cols_disabled = 0
+        for col_data in self._col_configs:
+            if col_data.first >= actual_num_cols:
+                break
+            (<TableColConfig>col_data.second).mutex.lock()
+            if not((<TableColConfig>col_data.second).state.cur.open):
+                num_cols_disabled += 1
+
+        if num_cols_disabled == actual_num_cols and num_cols_disabled > 0:
+            for col_data in self._col_configs:
+                if col_data.first >= actual_num_cols:
+                    break
+                (<TableColConfig>col_data.second).state.cur.open = True
 
         if imgui.BeginTable(self._imgui_label.c_str(),
-                            self._num_cols,
+                            actual_num_cols,
                             self._flags,
                             Vec2ImVec2(requested_size),
                             self._inner_width):
+            # Set column configurations
+            for col_data in self._col_configs:
+                if col_data.first >= actual_num_cols:
+                    break
+                for j in range(prev_col+1, col_data.first):
+                    # We must submit empty configs
+                    # to increase the column index
+                    imgui.TableSetupColumn("", 0, 0., 0)
+                (<TableColConfig>col_data.second).setup(col_data.first, <unsigned>self._flags)
+                prev_col = col_data.first
+            # Submit header row
+            if self._header:
+                imgui.TableHeadersRow()
+            # Draw each row
+            pos_p_backup = self.context.viewport.parent_pos
+            pos_w_backup = self.context.viewport.window_pos
+            parent_size_backup = self.context.viewport.parent_size
             for key_element in self._items:
                 key = key_element.first
                 element = key_element.second
@@ -1563,7 +2010,15 @@ cdef class Table(uiItem):
                     continue
                 if row != prev_row:
                     for j in range(prev_row, row):
-                        imgui.TableNextRow(0, 0.)
+                        it_row = self._row_configs.find(j+1) # +1 here, but not for below (empty rows)
+                        if it_row == self._row_configs.end():
+                            imgui.TableNextRow(0, 0.)
+                            continue
+                        # NOTE: should be fine not to lock the mutex, none
+                        # of the values require it.
+                        imgui.TableNextRow(0, (<TableRowConfig>dereference(it_row).second).min_height)
+                        imgui.TableSetBgColor(imgui.ImGuiTableBgTarget_RowBg1,
+                            (<TableRowConfig>dereference(it_row).second).bg_color, -1)
                     prev_row = row
                 imgui.TableSetColumnIndex(col)
 
@@ -1572,18 +2027,36 @@ cdef class Table(uiItem):
 
                 # Draw the element
                 if element.ui_item is not NULL:
-                    (<uiItem>element.ui_item).draw_item()
+                    # Each cell is like a Child Window
+                    self.context.viewport.parent_pos = ImVec2Vec2(imgui.GetCursorScreenPos())
+                    self.context.viewport.window_pos = self.context.viewport.parent_pos
+                    self.context.viewport.parent_size = ImVec2Vec2(imgui.GetContentRegionAvail())
+                    (<uiItem>element.ui_item).draw()
                 elif not element.str_item.empty():
                     imgui.TextUnformatted(element.str_item.c_str())
 
                 # Optional tooltip
                 if element.tooltip_ui_item is not NULL:
-                    (<uiItem>element.tooltip_ui_item).draw_item()
+                    (<uiItem>element.tooltip_ui_item).draw()
                 elif not element.str_tooltip.empty():
                     if imgui.IsItemHovered(0):
                         if imgui.BeginTooltip():
                             imgui.TextUnformatted(element.str_tooltip.c_str())
                             imgui.EndTooltip()
+            # Submit empty rows if any
+            for j in range(prev_row+1, actual_num_rows):
+                it_row = self._row_configs.find(j)
+                if it_row == self._row_configs.end():
+                    imgui.TableNextRow(0, 0.)
+                    continue
+                imgui.TableNextRow(0, (<TableRowConfig>dereference(it_row).second).min_height)
+                imgui.TableSetBgColor(imgui.ImGuiTableBgTarget_RowBg1,
+                    (<TableRowConfig>dereference(it_row).second).bg_color, -1)
+            # Update column states
+            for col_data in self._col_configs:
+                if col_data.first >= actual_num_cols:
+                    break
+                (<TableColConfig>col_data.second).after_draw(col_data.first)
             # Sort if needed
             sort_specs = imgui.TableGetSortSpecs()
             if sort_specs != NULL and \
@@ -1596,7 +2069,17 @@ cdef class Table(uiItem):
                     for j in range(sort_specs.SpecsCount):
                         self.sort_rows(sort_specs.Specs[j].ColumnIndex,
                                        sort_specs.Specs[j].SortDirection != imgui.ImGuiSortDirection_Descending)
+            self.context.viewport.window_pos = pos_w_backup
+            self.context.viewport.parent_pos = pos_p_backup
+            self.context.viewport.parent_size = parent_size_backup
             # end table
             imgui.EndTable()
+
+        # Release the column configurations
+        for col_data in self._col_configs:
+            if col_data.first >= actual_num_cols:
+                break
+            (<TableColConfig>col_data.second).mutex.unlock()
+
         return False
 

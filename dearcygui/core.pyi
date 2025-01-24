@@ -83601,7 +83601,7 @@ class Table(uiItem):
     display data, but also to interact with the user.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_visible : Any = ..., num_rows_visible : Any = ..., parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_visible : Any = ..., num_rows_visible : Any = ..., parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -83629,6 +83629,8 @@ class Table(uiItem):
             If read returns a list of handlers. Accept
             a handler or a list of handlers as input.
             This enables to do item.handlers += [new_handler].
+        header: boolean. Defaults to True.
+            Produce a table header based on the column labels.
         height: Requested height of the item.
             When it is written, it is set to a 'requested value' that is not
             entirely guaranteed to be enforced.
@@ -83778,6 +83780,10 @@ class Table(uiItem):
     def clear(self) -> None:
         """
 Release all items attached to the table.
+        
+        Does now clear row and column configurations.
+        These are cleared only when the Table is released.
+        
         """
         ...
 
@@ -83789,7 +83795,7 @@ Get a view of the specified column.
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_visible : Any = ..., num_rows_visible : Any = ..., parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_visible : Any = ..., num_rows_visible : Any = ..., parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -83816,6 +83822,8 @@ Get a view of the specified column.
             If read returns a list of handlers. Accept
             a handler or a list of handlers as input.
             This enables to do item.handlers += [new_handler].
+        header: boolean. Defaults to True.
+            Produce a table header based on the column labels.
         height: Requested height of the item.
             When it is written, it is set to a 'requested value' that is not
             entirely guaranteed to be enforced.
@@ -84207,6 +84215,15 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
+    def col_config(self) -> TableColConfigView:
+        """
+        Get the column configuration view.
+        
+        """
+        ...
+
+
+    @property
     def content_pos(self) -> Coord:
         """
         Readable attribute indicating the top left starting
@@ -84318,6 +84335,21 @@ Sort the rows using the value in ref_col as index.
 
     @handlers.setter
     def handlers(self, value : list):
+        ...
+
+
+    @property
+    def header(self) -> bool:
+        """
+        boolean. Defaults to True.
+        Produce a table header based on the column labels.
+        
+        """
+        ...
+
+
+    @header.setter
+    def header(self, value : bool):
         ...
 
 
@@ -84884,6 +84916,15 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
+    def row_config(self) -> TableRowConfigView:
+        """
+        Get the row configuration view.
+        
+        """
+        ...
+
+
+    @property
     def scaling_factor(self) -> float:
         """
         Writable attribute: scaling factor
@@ -85053,6 +85094,641 @@ Sort the rows using the value in ref_col as index.
         In this case, the width may be changed back by setting again the value
         of this field.
         
+        """
+        ...
+
+
+    @width.setter
+    def width(self, value : float):
+        ...
+
+
+class TableColConfig(baseItem):
+    """
+    Configuration for a table column.
+
+    A table column can be hidden, stretched, resized, etc.
+
+    The states can be changed by the user, but also by the
+    application.
+    To listen for state changes use:
+    - ToggledOpenHandler/ToggledCloseHandler to listen if the user
+        requests the column to be shown/hidden.
+    - ContentResizeHandler to listen if the user resizes the column.
+    - HoveredHandler to listen if the user hovers the column.
+    
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], enabled : bool = False, handlers : list = [], label : str = "", next_sibling : baseItem | None = None, no_clip : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, parent : baseItem | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItem | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float = 0.0):
+        """
+
+        attach: Whether to attach the item to a parent. Default is None (auto)
+        before: Attach the item just before the target item. Default is None (disabled)
+        children: List of all the children of the item,
+            from first rendered, to last rendered.
+        enabled: Writable attribute (and can change with user interaction):
+            Whether the table is hidden (user can control this
+            in the context menu).
+        handlers: bound handlers for the item.
+            If read returns a list of handlers. Accept
+            a handler or a list of handlers as input.
+            This enables to do item.handlers += [new_handler].
+        label: Label in the header for the column
+        next_sibling: child of the parent of the item that
+            is rendered just after this item.
+        no_clip: Disable clipping for this column
+        no_hide: Disable ability to hide this column
+        no_reorder: Disable manual reordering
+        no_resize: Disable manual resizing
+        no_scaling: boolean. Defaults to False.
+            By default, the requested width and
+            height are multiplied internally by the global
+            scale which is defined by the dpi and the
+            viewport/window scale.
+            If set, disables this automated scaling.
+        no_sort: Disable sorting for this column
+        parent: parent of the item in the rendering tree.
+        prefer_sort_ascending: Make the initial sort direction ascending when first sorting
+        prefer_sort_descending: Make the initial sort direction descending when first sorting
+        previous_sibling: child of the parent of the item that
+            is rendered just before this item.
+        show: Show the column.
+        stretch: Writable attribute to enable stretching for this column.
+            True: Stretch, using the stretch_weight factor
+            False: Fixed width, using the width value.
+            None: Default depending on Table policy.
+        stretch_weight: Weight used when stretching this column. Must be >= 0.
+        user_data: User data of any type.
+        width: Requested fixed width of the column in pixels.
+            Unused if in stretch mode.
+            Set to 0 for auto-width.
+        """
+        ...
+
+
+    def attach_before(self, target):
+        """
+        Same as item.next_sibling = target,
+        but target must not be None
+        
+        """
+        ...
+
+
+    def attach_to_parent(self, target):
+        """
+        Same as item.parent = target, but
+        target must not be None
+        
+        """
+        ...
+
+
+    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], enabled : bool = False, handlers : list = [], label : str = "", next_sibling : baseItem | None = None, no_clip : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, parent : baseItem | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItem | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float = 0.0):
+        """
+        attach: Whether to attach the item to a parent. Default is None (auto)
+        before: Attach the item just before the target item. Default is None (disabled)
+        children: List of all the children of the item,
+            from first rendered, to last rendered.
+        enabled: Writable attribute (and can change with user interaction):
+            Whether the table is hidden (user can control this
+            in the context menu).
+        handlers: bound handlers for the item.
+            If read returns a list of handlers. Accept
+            a handler or a list of handlers as input.
+            This enables to do item.handlers += [new_handler].
+        label: Label in the header for the column
+        next_sibling: child of the parent of the item that
+            is rendered just after this item.
+        no_clip: Disable clipping for this column
+        no_hide: Disable ability to hide this column
+        no_reorder: Disable manual reordering
+        no_resize: Disable manual resizing
+        no_scaling: boolean. Defaults to False.
+            By default, the requested width and
+            height are multiplied internally by the global
+            scale which is defined by the dpi and the
+            viewport/window scale.
+            If set, disables this automated scaling.
+        no_sort: Disable sorting for this column
+        parent: parent of the item in the rendering tree.
+        prefer_sort_ascending: Make the initial sort direction ascending when first sorting
+        prefer_sort_descending: Make the initial sort direction descending when first sorting
+        previous_sibling: child of the parent of the item that
+            is rendered just before this item.
+        show: Show the column.
+        stretch: Writable attribute to enable stretching for this column.
+            True: Stretch, using the stretch_weight factor
+            False: Fixed width, using the width value.
+            None: Default depending on Table policy.
+        stretch_weight: Weight used when stretching this column. Must be >= 0.
+        user_data: User data of any type.
+        width: Requested fixed width of the column in pixels.
+            Unused if in stretch mode.
+            Set to 0 for auto-width.
+        """
+        ...
+
+
+    def delete_item(self):
+        """
+        When an item is not referenced anywhere, it might
+        not get deleted immediately, due to circular references.
+        The Python garbage collector will eventually catch
+        the circular references, but to speedup the process,
+        delete_item will recursively detach the item
+        and all elements in its subtree, as well as bound
+        items. As a result, items with no more references
+        will be freed immediately.
+        
+        """
+        ...
+
+
+    def detach_item(self):
+        """
+        Same as item.parent = None
+
+        The item states (if any) are updated
+        to indicate it is not rendered anymore,
+        and the information propagated to the
+        children.
+        
+        """
+        ...
+
+
+    def lock_mutex(self, wait=False):
+        """
+        Lock the internal item mutex.
+        **Know what you are doing**
+        Locking the mutex will prevent:
+        . Other threads from reading/writing
+          attributes or calling methods with this item,
+          editing the children/parent of the item
+        . Any rendering of this item and its children.
+          If the viewport attemps to render this item,
+          it will be blocked until the mutex is released.
+          (if the rendering thread is holding the mutex,
+           no blocking occurs)
+        This is useful if you want to edit several attributes
+        in several commands of an item or its subtree,
+        and prevent rendering or other threads from accessing
+        the item until you have finished.
+        If you plan on moving the item position in the rendering
+        tree, to avoid deadlock you must hold the mutex of a
+        parent of all the items involved in the motion (a common
+        parent of the source and target parent). This mutex has to
+        be locked before you lock any mutex of your child item
+        if this item is already in the rendering tree (to avoid
+        deadlock with the rendering thread).
+        If you are unsure and plans to move an item already
+        in the rendering tree, it is thus best to lock the viewport
+        mutex first.
+
+        Input argument:
+        . wait (default = False): if locking the mutex fails (mutex
+          held by another thread), wait it is released
+
+        Returns: True if the mutex is held, False else.
+
+        The mutex is a recursive mutex, thus you can lock it several
+        times in the same thread. Each lock has to be matched to an unlock.
+        
+        """
+        ...
+
+
+    def unlock_mutex(self):
+        """
+        Unlock a previously held mutex on this object by this thread.
+        Returns True on success, False if no lock was held by this thread.
+        
+        """
+        ...
+
+
+    def __enter__(self) -> TableColConfig:
+        ...
+
+
+    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
+        ...
+
+
+    @property
+    def children(self) -> list[baseItem]:
+        """
+        Writable attribute: List of all the children of the item,
+        from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+        
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : list[baseItem]):
+        ...
+
+
+    @property
+    def children_types(self) -> ChildType:
+        """Returns which types of children can be attached to this item
+        """
+        ...
+
+
+    @property
+    def context(self) -> Context:
+        """
+        Read-only attribute: Context in which the item resides
+        
+        """
+        ...
+
+
+    @property
+    def enabled(self) -> bool:
+        """
+        Writable attribute (and can change with user interaction):
+        Whether the table is hidden (user can control this
+        in the context menu).
+        
+        """
+        ...
+
+
+    @enabled.setter
+    def enabled(self, value : bool):
+        ...
+
+
+    @property
+    def handlers(self) -> list:
+        """
+        Writable attribute: bound handlers for the item.
+        If read returns a list of handlers. Accept
+        a handler or a list of handlers as input.
+        This enables to do item.handlers += [new_handler].
+        
+        """
+        ...
+
+
+    @handlers.setter
+    def handlers(self, value : list):
+        ...
+
+
+    @property
+    def item_type(self) -> ChildType:
+        """Returns which type of child this item is
+        """
+        ...
+
+
+    @property
+    def label(self) -> str:
+        """
+        Label in the header for the column
+        
+        """
+        ...
+
+
+    @label.setter
+    def label(self, value : str):
+        ...
+
+
+    @property
+    def mutex(self) -> wrap_mutex:
+        """
+        Context manager instance for the item mutex
+
+        Locking the mutex will prevent:
+        . Other threads from reading/writing
+          attributes or calling methods with this item,
+          editing the children/parent of the item
+        . Any rendering of this item and its children.
+          If the viewport attemps to render this item,
+          it will be blocked until the mutex is released.
+          (if the rendering thread is holding the mutex,
+           no blocking occurs)
+
+        In general, you don't need to use any mutex in your code,
+        unless you are writing a library and cannot make assumptions
+        on what the users will do, or if you know your code manipulates
+        the same objects with multiple threads.
+
+        All attribute accesses are mutex protected.
+
+        If you want to subclass and add attributes, you
+        can use this mutex to protect your new attributes.
+        Be careful not to hold the mutex if your thread
+        intends to access the attributes of a parent item.
+        In case of doubt use parents_mutex instead.
+        
+        """
+        ...
+
+
+    @property
+    def next_sibling(self) -> baseItem | None:
+        """
+        Writable attribute: child of the parent of the item that
+        is rendered just after this item.
+
+        It is not possible to have siblings if you have no parent,
+        thus if you intend to attach together items outside the
+        rendering tree, there must be a toplevel parent item.
+
+        If you write to this attribute, the item will be moved
+        to be inserted just before the target item.
+        In case of failure, the item remains in a detached state.
+        
+        """
+        ...
+
+
+    @next_sibling.setter
+    def next_sibling(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def no_clip(self) -> bool:
+        """Disable clipping for this column
+        """
+        ...
+
+
+    @no_clip.setter
+    def no_clip(self, value : bool):
+        ...
+
+
+    @property
+    def no_hide(self) -> bool:
+        """Disable ability to hide this column
+        """
+        ...
+
+
+    @no_hide.setter
+    def no_hide(self, value : bool):
+        ...
+
+
+    @property
+    def no_reorder(self) -> bool:
+        """Disable manual reordering
+        """
+        ...
+
+
+    @no_reorder.setter
+    def no_reorder(self, value : bool):
+        ...
+
+
+    @property
+    def no_resize(self) -> bool:
+        """Disable manual resizing
+        """
+        ...
+
+
+    @no_resize.setter
+    def no_resize(self, value : bool):
+        ...
+
+
+    @property
+    def no_scaling(self) -> bool:
+        """
+        boolean. Defaults to False.
+        By default, the requested width and
+        height are multiplied internally by the global
+        scale which is defined by the dpi and the
+        viewport/window scale.
+        If set, disables this automated scaling.
+        
+        """
+        ...
+
+
+    @no_scaling.setter
+    def no_scaling(self, value : bool):
+        ...
+
+
+    @property
+    def no_sort(self) -> bool:
+        """Disable sorting for this column
+        """
+        ...
+
+
+    @no_sort.setter
+    def no_sort(self, value : bool):
+        ...
+
+
+    @property
+    def parent(self) -> baseItem | None:
+        """
+        Writable attribute: parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+        . Remove the item from the tree, remove all your references.
+          If the item has children or siblings, the item will not be
+          released until Python's garbage collection detects a
+          circular reference.
+        . Use delete_item to remove the item from the tree, and remove
+          all the internal references inside the item structure and
+          the item's children, thus allowing them to be removed from
+          memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+        
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def parents_mutex(self) -> wrap_this_and_parents_mutex:
+        """Context manager instance for the item mutex and all its parents
+        
+        Similar to mutex but locks not only this item, but also all
+        its current parents.
+        If you want to access parent fields, or if you are unsure,
+        lock this mutex rather than self.mutex.
+        This mutex will lock the item and all its parent in a safe
+        way that does not deadlock.
+        
+        """
+        ...
+
+
+    @property
+    def prefer_sort_ascending(self) -> bool:
+        """Make the initial sort direction ascending when first sorting
+        """
+        ...
+
+
+    @prefer_sort_ascending.setter
+    def prefer_sort_ascending(self, value : bool):
+        ...
+
+
+    @property
+    def prefer_sort_descending(self) -> bool:
+        """Make the initial sort direction descending when first sorting
+        """
+        ...
+
+
+    @prefer_sort_descending.setter
+    def prefer_sort_descending(self, value : bool):
+        ...
+
+
+    @property
+    def previous_sibling(self) -> baseItem | None:
+        """
+        Writable attribute: child of the parent of the item that
+        is rendered just before this item.
+
+        It is not possible to have siblings if you have no parent,
+        thus if you intend to attach together items outside the
+        rendering tree, there must be a toplevel parent item.
+
+        If you write to this attribute, the item will be moved
+        to be inserted just after the target item.
+        In case of failure, the item remains in a detached state.
+
+        Note that a parent can have several child queues, and thus
+        child elements are not guaranteed to be siblings of each other.
+        
+        """
+        ...
+
+
+    @previous_sibling.setter
+    def previous_sibling(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def show(self) -> bool:
+        """
+        Writable attribute: Show the column.
+
+        show = False differs from enabled=False as
+        the latter can be changed by user interaction.
+        Defaults to True.
+        
+        """
+        ...
+
+
+    @show.setter
+    def show(self, value : bool):
+        ...
+
+
+    @property
+    def stretch(self):
+        """
+        Writable attribute to enable stretching for this column.
+        True: Stretch, using the stretch_weight factor
+        False: Fixed width, using the width value.
+        None: Default depending on Table policy.
+        
+        """
+        ...
+
+
+    @stretch.setter
+    def stretch(self, value):
+        ...
+
+
+    @property
+    def stretch_weight(self) -> float:
+        """Weight used when stretching this column. Must be >= 0.
+        """
+        ...
+
+
+    @stretch_weight.setter
+    def stretch_weight(self, value : float):
+        ...
+
+
+    @property
+    def user_data(self):
+        """
+        User data of any type.
+        
+        """
+        ...
+
+
+    @user_data.setter
+    def user_data(self, value):
+        ...
+
+
+    @property
+    def uuid(self) -> int:
+        """
+        Readonly attribute: uuid is an unique identifier created
+        by the context for the item.
+        uuid can be used to access the object by name for parent=,
+        previous_sibling=, next_sibling= arguments, but it is
+        preferred to pass the objects directly. 
+        
+        """
+        ...
+
+
+    @property
+    def width(self) -> float:
+        """Requested fixed width of the column in pixels.
+        Unused if in stretch mode.
+        Set to 0 for auto-width.
+
+        Note the width is used only when the column
+        is initialized, and is not updated with resizes.
         """
         ...
 
@@ -85731,6 +86407,430 @@ class TablePlaceHolderParent(baseItem):
 
     @previous_sibling.setter
     def previous_sibling(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def user_data(self):
+        """
+        User data of any type.
+        
+        """
+        ...
+
+
+    @user_data.setter
+    def user_data(self, value):
+        ...
+
+
+    @property
+    def uuid(self) -> int:
+        """
+        Readonly attribute: uuid is an unique identifier created
+        by the context for the item.
+        uuid can be used to access the object by name for parent=,
+        previous_sibling=, next_sibling= arguments, but it is
+        preferred to pass the objects directly. 
+        
+        """
+        ...
+
+
+class TableRowConfig(baseItem):
+    """
+    Configuration for a table row.
+
+    A table row can be hidden and its background color can be changed.
+    
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : list[baseItem] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+        """
+
+        attach: Whether to attach the item to a parent. Default is None (auto)
+        before: Attach the item just before the target item. Default is None (disabled)
+        bg_color: Background color for the whole row.
+        children: List of all the children of the item,
+            from first rendered, to last rendered.
+        handlers: bound handlers for the item.
+            If read returns a list of handlers. Accept
+            a handler or a list of handlers as input.
+            This enables to do item.handlers += [new_handler].
+        next_sibling: child of the parent of the item that
+            is rendered just after this item.
+        parent: parent of the item in the rendering tree.
+        previous_sibling: child of the parent of the item that
+            is rendered just before this item.
+        show: Show the row.
+        user_data: User data of any type.
+        """
+        ...
+
+
+    def attach_before(self, target):
+        """
+        Same as item.next_sibling = target,
+        but target must not be None
+        
+        """
+        ...
+
+
+    def attach_to_parent(self, target):
+        """
+        Same as item.parent = target, but
+        target must not be None
+        
+        """
+        ...
+
+
+    def configure(self, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : list[baseItem] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+        """
+        attach: Whether to attach the item to a parent. Default is None (auto)
+        before: Attach the item just before the target item. Default is None (disabled)
+        bg_color: Background color for the whole row.
+        children: List of all the children of the item,
+            from first rendered, to last rendered.
+        handlers: bound handlers for the item.
+            If read returns a list of handlers. Accept
+            a handler or a list of handlers as input.
+            This enables to do item.handlers += [new_handler].
+        next_sibling: child of the parent of the item that
+            is rendered just after this item.
+        parent: parent of the item in the rendering tree.
+        previous_sibling: child of the parent of the item that
+            is rendered just before this item.
+        show: Show the row.
+        user_data: User data of any type.
+        """
+        ...
+
+
+    def delete_item(self):
+        """
+        When an item is not referenced anywhere, it might
+        not get deleted immediately, due to circular references.
+        The Python garbage collector will eventually catch
+        the circular references, but to speedup the process,
+        delete_item will recursively detach the item
+        and all elements in its subtree, as well as bound
+        items. As a result, items with no more references
+        will be freed immediately.
+        
+        """
+        ...
+
+
+    def detach_item(self):
+        """
+        Same as item.parent = None
+
+        The item states (if any) are updated
+        to indicate it is not rendered anymore,
+        and the information propagated to the
+        children.
+        
+        """
+        ...
+
+
+    def lock_mutex(self, wait=False):
+        """
+        Lock the internal item mutex.
+        **Know what you are doing**
+        Locking the mutex will prevent:
+        . Other threads from reading/writing
+          attributes or calling methods with this item,
+          editing the children/parent of the item
+        . Any rendering of this item and its children.
+          If the viewport attemps to render this item,
+          it will be blocked until the mutex is released.
+          (if the rendering thread is holding the mutex,
+           no blocking occurs)
+        This is useful if you want to edit several attributes
+        in several commands of an item or its subtree,
+        and prevent rendering or other threads from accessing
+        the item until you have finished.
+        If you plan on moving the item position in the rendering
+        tree, to avoid deadlock you must hold the mutex of a
+        parent of all the items involved in the motion (a common
+        parent of the source and target parent). This mutex has to
+        be locked before you lock any mutex of your child item
+        if this item is already in the rendering tree (to avoid
+        deadlock with the rendering thread).
+        If you are unsure and plans to move an item already
+        in the rendering tree, it is thus best to lock the viewport
+        mutex first.
+
+        Input argument:
+        . wait (default = False): if locking the mutex fails (mutex
+          held by another thread), wait it is released
+
+        Returns: True if the mutex is held, False else.
+
+        The mutex is a recursive mutex, thus you can lock it several
+        times in the same thread. Each lock has to be matched to an unlock.
+        
+        """
+        ...
+
+
+    def unlock_mutex(self):
+        """
+        Unlock a previously held mutex on this object by this thread.
+        Returns True on success, False if no lock was held by this thread.
+        
+        """
+        ...
+
+
+    def __enter__(self) -> TableRowConfig:
+        ...
+
+
+    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
+        ...
+
+
+    @property
+    def bg_color(self) -> list:
+        """Background color for the whole row.
+
+        Set to 0 (default) to disable.
+        This background color is applied on top
+        of any row background color defined by
+        the theme (blending)
+        
+        """
+        ...
+
+
+    @bg_color.setter
+    def bg_color(self, value : list):
+        ...
+
+
+    @property
+    def children(self) -> list[baseItem]:
+        """
+        Writable attribute: List of all the children of the item,
+        from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+        
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : list[baseItem]):
+        ...
+
+
+    @property
+    def children_types(self) -> ChildType:
+        """Returns which types of children can be attached to this item
+        """
+        ...
+
+
+    @property
+    def context(self) -> Context:
+        """
+        Read-only attribute: Context in which the item resides
+        
+        """
+        ...
+
+
+    @property
+    def handlers(self) -> list:
+        """
+        Writable attribute: bound handlers for the item.
+        If read returns a list of handlers. Accept
+        a handler or a list of handlers as input.
+        This enables to do item.handlers += [new_handler].
+        
+        """
+        ...
+
+
+    @handlers.setter
+    def handlers(self, value : list):
+        ...
+
+
+    @property
+    def item_type(self) -> ChildType:
+        """Returns which type of child this item is
+        """
+        ...
+
+
+    @property
+    def min_height(self) -> float:
+        ...
+
+
+    @min_height.setter
+    def min_height(self, value : float):
+        ...
+
+
+    @property
+    def mutex(self) -> wrap_mutex:
+        """
+        Context manager instance for the item mutex
+
+        Locking the mutex will prevent:
+        . Other threads from reading/writing
+          attributes or calling methods with this item,
+          editing the children/parent of the item
+        . Any rendering of this item and its children.
+          If the viewport attemps to render this item,
+          it will be blocked until the mutex is released.
+          (if the rendering thread is holding the mutex,
+           no blocking occurs)
+
+        In general, you don't need to use any mutex in your code,
+        unless you are writing a library and cannot make assumptions
+        on what the users will do, or if you know your code manipulates
+        the same objects with multiple threads.
+
+        All attribute accesses are mutex protected.
+
+        If you want to subclass and add attributes, you
+        can use this mutex to protect your new attributes.
+        Be careful not to hold the mutex if your thread
+        intends to access the attributes of a parent item.
+        In case of doubt use parents_mutex instead.
+        
+        """
+        ...
+
+
+    @property
+    def next_sibling(self) -> baseItem | None:
+        """
+        Writable attribute: child of the parent of the item that
+        is rendered just after this item.
+
+        It is not possible to have siblings if you have no parent,
+        thus if you intend to attach together items outside the
+        rendering tree, there must be a toplevel parent item.
+
+        If you write to this attribute, the item will be moved
+        to be inserted just before the target item.
+        In case of failure, the item remains in a detached state.
+        
+        """
+        ...
+
+
+    @next_sibling.setter
+    def next_sibling(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def parent(self) -> baseItem | None:
+        """
+        Writable attribute: parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+        . Remove the item from the tree, remove all your references.
+          If the item has children or siblings, the item will not be
+          released until Python's garbage collection detects a
+          circular reference.
+        . Use delete_item to remove the item from the tree, and remove
+          all the internal references inside the item structure and
+          the item's children, thus allowing them to be removed from
+          memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+        
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def parents_mutex(self) -> wrap_this_and_parents_mutex:
+        """Context manager instance for the item mutex and all its parents
+        
+        Similar to mutex but locks not only this item, but also all
+        its current parents.
+        If you want to access parent fields, or if you are unsure,
+        lock this mutex rather than self.mutex.
+        This mutex will lock the item and all its parent in a safe
+        way that does not deadlock.
+        
+        """
+        ...
+
+
+    @property
+    def previous_sibling(self) -> baseItem | None:
+        """
+        Writable attribute: child of the parent of the item that
+        is rendered just before this item.
+
+        It is not possible to have siblings if you have no parent,
+        thus if you intend to attach together items outside the
+        rendering tree, there must be a toplevel parent item.
+
+        If you write to this attribute, the item will be moved
+        to be inserted just after the target item.
+        In case of failure, the item remains in a detached state.
+
+        Note that a parent can have several child queues, and thus
+        child elements are not guaranteed to be siblings of each other.
+        
+        """
+        ...
+
+
+    @previous_sibling.setter
+    def previous_sibling(self, value : baseItem | None):
+        ...
+
+
+    @property
+    def show(self) -> bool:
+        """
+        Writable attribute: Show the row.
+        
+        """
+        ...
+
+
+    @show.setter
+    def show(self, value : bool):
         ...
 
 

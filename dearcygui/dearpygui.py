@@ -6153,6 +6153,69 @@ def table(*, label: str =None, user_data: Any =None, width: int =0, height: int 
         tag=kwargs['id']
 
     #return table(label=label, user_data=user_data, width=width, height=height, indent=indent, callback=wrap_callback(callback), show=show, pos=pos, filter_key=filter_key, header_row=header_row, clipper=clipper, inner_width=inner_width, policy=policy, freeze_rows=freeze_rows, freeze_columns=freeze_columns, sort_multi=sort_multi, sort_tristate=sort_tristate, resizable=resizable, reorderable=reorderable, hideable=hideable, sortable=sortable, context_menu_in_body=context_menu_in_body, row_background=row_background, borders_innerH=borders_innerH, borders_outerH=borders_outerH, borders_innerV=borders_innerV, borders_outerV=borders_outerV, no_host_extendX=no_host_extendX, no_host_extendY=no_host_extendY, no_keep_columns_visible=no_keep_columns_visible, precise_widths=precise_widths, no_clip=no_clip, pad_outerX=pad_outerX, no_pad_outerX=no_pad_outerX, no_pad_innerX=no_pad_innerX, scrollX=scrollX, scrollY=scrollY, no_saved_settings=no_saved_settings, **kwargs)
+    table = dcg.Table(CONTEXT)
+    table.header = header_row
+    flags = dcg.TableFlag.NONE
+    if resizable:
+        flags |= dcg.TableFlag.RESIZABLE
+    if reorderable:
+        flags |= dcg.TableFlag.REORDERABLE
+    if hideable:
+        flags |= dcg.TableFlag.HIDEABLE
+    if sortable:
+        flags |= dcg.TableFlag.SORTABLE
+    if no_saved_settings:
+        flags |= dcg.TableFlag.NO_SAVED_SETTINGS
+    if context_menu_in_body:
+        flags |= dcg.TableFlag.CONTEXT_MENU_IN_BODY
+    if row_background:
+        flags |= dcg.TableFlag.ROW_BG
+    if borders_innerH:
+        flags |= dcg.TableFlag.BORDERS_INNER_H
+    if borders_outerH:
+        flags |= dcg.TableFlag.BORDERS_OUTER_H
+    if borders_innerV:
+        flags |= dcg.TableFlag.BORDERS_INNER_V
+    if borders_outerV:
+        flags |= dcg.TableFlag.BORDERS_OUTER_V
+    if no_host_extendX:
+        flags |= dcg.TableFlag.NO_HOST_EXTEND_X
+    if no_host_extendY:
+        flags |= dcg.TableFlag.NO_HOST_EXTEND_Y
+    if no_keep_columns_visible:
+        flags |= dcg.TableFlag.NO_KEEP_COLUMNS_VISIBLE
+    if precise_widths:
+        flags |= dcg.TableFlag.PRECISE_WIDTHS
+    if no_clip:
+        flags |= dcg.TableFlag.NO_CLIP
+    if pad_outerX:
+        flags |= dcg.TableFlag.PAD_OUTER_X
+    if no_pad_outerX:
+        flags |= dcg.TableFlag.NO_PAD_OUTER_X
+    if no_pad_innerX:
+        flags |= dcg.TableFlag.NO_PAD_INNER_X
+    if scrollX:
+        flags |= dcg.TableFlag.SCROLL_X
+    if scrollY:
+        flags |= dcg.TableFlag.SCROLL_Y
+    if sort_multi:
+        flags |= dcg.TableFlag.SORT_MULTI
+    if sort_tristate:
+        flags |= dcg.TableFlag.SORT_TRISTATE
+
+    if policy == mvTable_SizingFixedFit:
+        flags |= dcg.TableFlag.SIZING_FIXED_FIT
+    elif policy == mvTable_SizingFixedSame:
+        flags |= dcg.TableFlag.SIZING_FIXED_SAME
+    elif policy == mvTable_SizingStretchProp:
+        flags |= dcg.TableFlag.SIZING_STRETCH_PROP
+    elif policy == mvTable_SizingStretchSame:
+        flags |= dcg.TableFlag.SIZING_STRETCH_SAME
+
+    table.flags = flags
+    table.num_cols_visible = 0
+    table.num_rows_visible = 0
+    return table
 
 def table_cell(*, label: str =None, user_data: Any =None, height: int =0, show: bool =True, filter_key: str ='', **kwargs) -> Union[int, str]:
     """     Adds a table.
@@ -6176,6 +6239,7 @@ def table_cell(*, label: str =None, user_data: Any =None, height: int =0, show: 
         tag=kwargs['id']
 
     #return table_cell(label=label, user_data=user_data, height=height, show=show, filter_key=filter_key, **kwargs)
+    return dcg.Layout(CONTEXT)
 
 def table_column(*, label: str =None, user_data: Any =None, width: int =0, show: bool =True, enabled: bool =True, init_width_or_weight: float =0.0, default_hide: bool =False, default_sort: bool =False, width_stretch: bool =False, width_fixed: bool =False, no_resize: bool =False, no_reorder: bool =False, no_hide: bool =False, no_clip: bool =False, no_sort: bool =False, no_sort_ascending: bool =False, no_sort_descending: bool =False, no_header_width: bool =False, prefer_sort_ascending: bool =True, prefer_sort_descending: bool =False, indent_enable: bool =False, indent_disable: bool =False, angled_header: bool =False, no_header_label: bool =False, **kwargs) -> Union[int, str]:
     """     Adds a table column.
@@ -6217,6 +6281,44 @@ def table_column(*, label: str =None, user_data: Any =None, width: int =0, show:
         warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
         tag=kwargs['id']
 
+    table : dcg.Table = kwargs.pop("parent", CONTEXT.fetch_last_created_container())
+    if table is None:
+        raise RuntimeError("table column must be added to a table")
+
+    # Increase the visible count
+    col_idx = table.num_cols_visible
+    table.num_cols_visible += 1
+
+    col_config : dcg.TableColConfig = table.col_config[col_idx]
+    col_config.label = label
+    col_config.width = init_width_or_weight#width
+    col_config.show = show
+    col_config.enabled = enabled
+    col_config.stretch_weight = init_width_or_weight
+    #col_config.default_hide = default_hide
+    #col_config.default_sort = default_sort
+    if width_stretch:
+        col_config.stretch = True
+    elif width_fixed:
+        col_config.stretch = False
+    else:
+        col_config.stretch = None
+    col_config.no_resize = no_resize
+    col_config.no_reorder = no_reorder
+    col_config.no_hide = no_hide
+    col_config.no_clip = no_clip
+    col_config.no_sort = no_sort
+    #col_config.no_sort_ascending = no_sort_ascending
+    #col_config.no_sort_descending = no_sort_descending
+    #col_config.no_header_width = no_header_width
+    col_config.prefer_sort_ascending = prefer_sort_ascending
+    col_config.prefer_sort_descending = prefer_sort_descending
+    #col_config.indent_enable = indent_enable
+    #col_config.indent_disable = indent_disable
+    #col_config.angled_header = angled_header
+    #col_config.no_header_label = no_header_label
+
+    return col_config
     #return table_column(label=label, user_data=user_data, width=width, show=show, enabled=enabled, init_width_or_weight=init_width_or_weight, default_hide=default_hide, default_sort=default_sort, width_stretch=width_stretch, width_fixed=width_fixed, no_resize=no_resize, no_reorder=no_reorder, no_hide=no_hide, no_clip=no_clip, no_sort=no_sort, no_sort_ascending=no_sort_ascending, no_sort_descending=no_sort_descending, no_header_width=no_header_width, prefer_sort_ascending=prefer_sort_ascending, prefer_sort_descending=prefer_sort_descending, indent_enable=indent_enable, indent_disable=indent_disable, angled_header=angled_header, no_header_label=no_header_label, **kwargs)
 
 def table_row(*, label: str =None, user_data: Any =None, height: int =0, show: bool =True, filter_key: str ='', **kwargs) -> Union[int, str]:
@@ -6240,6 +6342,13 @@ def table_row(*, label: str =None, user_data: Any =None, height: int =0, show: b
         warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
         tag=kwargs['id']
 
+    table : dcg.Table = kwargs.pop("parent", CONTEXT.fetch_last_created_container())
+    if table is None:
+        raise RuntimeError("table row must be added to a table")
+    if height != 0:
+        table.row_config[table.num_rows_visible].min_height = height
+    table.num_rows_visible += 1
+    return table.next_row
     #return table_row(label=label, user_data=user_data, height=height, show=show, filter_key=filter_key, **kwargs)
 
 def template_registry(*, label: str =None, user_data: Any =None, **kwargs) -> Union[int, str]:
