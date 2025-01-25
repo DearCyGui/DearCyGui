@@ -8,6 +8,7 @@ cimport dearcygui.backends.time as ctime
 from libcpp.map cimport pair
 from libcpp.deque cimport deque
 from libcpp.set cimport set
+from libc.stdint cimport int32_t
 from libc.math cimport fmod
 
 class DragPoint(dcg.DrawingList):
