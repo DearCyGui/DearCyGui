@@ -18,6 +18,7 @@ cdef extern from "backend.h" nogil:
         void processEvents(int)
         bint renderFrame(bint)
         void present()
+        bint checkPrimaryThread()
         void toggleFullScreen()
         void wakeRendering()
         void makeUploadContextCurrent()
@@ -99,4 +100,5 @@ cdef extern from "backend.h" nogil:
     cdef cppclass SDLViewport(platformViewport):
         @staticmethod
         platformViewport* create(render_fun, on_resize_fun, on_close_fun, on_drop_fun, void*)
+        void *getSDLWindowHandle()
 

@@ -290,6 +290,7 @@ cdef class Viewport(baseItem):
     ### private variables ###
     cdef recursive_mutex _mutex_backend
     cdef void *_platform # platformViewport
+    cdef void *_platform_window # SDL_Window
     cdef bint _initialized
     cdef bint _retrieve_framebuffer
     cdef object _frame_buffer
@@ -316,6 +317,7 @@ cdef class Viewport(baseItem):
     cdef void ask_refresh_after(self, double monotonic) noexcept nogil # might refresh before, in which case you should call again
     cdef void force_present(self) noexcept nogil
     cdef Vec2 get_size(self) noexcept nogil
+    cdef void *get_platform_window(self) noexcept nogil
     ### private methods ###
     cdef void __check_initialized(self)
     cdef void __check_not_initialized(self)

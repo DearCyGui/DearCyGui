@@ -1439,10 +1439,10 @@ cdef class baseItem:
         # Fast path for this common case
         if self.context._item_unused_configure_args_callback is None:
             for (key, value) in kwargs.items():
-                try:
-                    setattr(self, key, value)
-                except:
-                    pass
+                #try:
+                setattr(self, key, value)
+                #except:
+                #    pass
             return
         remaining = {}
         for (key, value) in kwargs.items():
@@ -2694,6 +2694,9 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m2, self._mutex_backend) # To not release while we render a frame
         ensure_correct_im_context(self.context)
         if self._platform != NULL:
+            # Maybe just a warning ? Not sure how to solve this issue.
+            #if not (<platformViewport*>self._platform).checkPrimaryThread():
+            #    raise RuntimeError("Viewport deallocated from a different thread than the one it was created in")
             (<platformViewport*>self._platform).cleanup()
             self._platform = NULL
 
@@ -3640,6 +3643,8 @@ cdef class Viewport(baseItem):
         cdef unique_lock[recursive_mutex] backend_m = unique_lock[recursive_mutex](self._mutex_backend, defer_lock_t())
         lock_gil_friendly(self_m, self.mutex)
         self.__check_initialized()
+        if not (<platformViewport*>self._platform).checkPrimaryThread():
+            raise RuntimeError("render_frame must be called from the thread where the context was created")
         ensure_correct_im_context(self.context)
         self.last_t_before_event_handling = ctime.monotonic_ns()
         cdef double current_time_s, target_timeout_ms
@@ -3811,6 +3816,9 @@ cdef class Viewport(baseItem):
         size.x = (<platformViewport*>self._platform).frameWidth
         size.y = (<platformViewport*>self._platform).frameHeight
         return size
+
+    cdef void *get_platform_window(self) noexcept nogil:
+        return (<SDLViewport*>self._platform).getSDLWindowHandle()
 
 # Callbacks
 

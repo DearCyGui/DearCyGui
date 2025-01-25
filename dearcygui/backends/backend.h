@@ -38,6 +38,7 @@ public:
     virtual void processEvents(int timeout_ms = 0) = 0;
     virtual bool renderFrame(bool can_skip_presenting) = 0;
     virtual void present() = 0;
+    virtual bool checkPrimaryThread() = 0;
     virtual void wakeRendering() = 0;
     virtual void makeUploadContextCurrent() = 0;
     virtual void releaseUploadContext() = 0;
@@ -143,6 +144,7 @@ public:
     virtual void processEvents(int timeout_ms) override;
     virtual bool renderFrame(bool can_skip_presenting) override;
     virtual void present() override;
+    virtual bool checkPrimaryThread() override;
     virtual void wakeRendering() override;
     virtual void makeUploadContextCurrent() override;
     virtual void releaseUploadContext() override;
@@ -258,6 +260,8 @@ public:
     virtual bool backBufferToTexture(void* texture, unsigned width, unsigned height,
                                      unsigned num_chans, unsigned type) override;
 
+    void *getSDLWindowHandle() { return (void*)windowHandle; }
+
 private:
     SDL_Window* windowHandle = nullptr;
     SDL_Window* uploadWindowHandle = nullptr;
@@ -354,6 +358,4 @@ private:
     
     // Event queue for forwarding events
     std::vector<SDL_Event> deferredEvents;
-    
-    bool checkSDLThread(const char* operation);
 };

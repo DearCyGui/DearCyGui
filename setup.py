@@ -32,6 +32,9 @@ def get_platform():
         return sys.platform
     return platforms[sys.platform]
 
+def is_mingw():
+    return get_platform() == "Windows" and "GCC" in sys.version
+
 def build_SDL3():
     src_path = os.path.dirname(os.path.abspath(__file__))
     cmake_config_args = [
@@ -46,12 +49,22 @@ def build_SDL3():
         '-DCMAKE_POSITION_INDEPENDENT_CODE=ON'
     ]
     if get_platform() == "Windows":
-        cmake_config_args += ["-DSDL_JOYSTICK=OFF -DSDL_HAPTIC=OFF"] # without fails to compile on github windows
+        cmake_config_args += ["-DSDL_JOYSTICK=OFF -DSDL_HAPTIC=OFF"]
+        if is_mingw():
+            cmake_config_args += ["-G", "MinGW Makefiles"]
+            cmake_config_args += ["-DCMAKE_C_COMPILER=gcc", "-DCMAKE_CXX_COMPILER=g++"]
+            # Add MSVC ABI compatibility flags
+            cmake_config_args += ["-DCMAKE_C_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29",
+                                "-DCMAKE_CXX_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29 -fdeclspec"]
+
     command = 'cmake -S thirdparty/SDL/ -B build_SDL ' + ' '.join(cmake_config_args)
     subprocess.check_call(command, shell=True)
     command = 'cmake --build build_SDL --config Release'
     subprocess.check_call(command, shell=True)
+    
     if get_platform() == "Windows":
+        if is_mingw():
+            return os.path.abspath(os.path.join("build_SDL", "libSDL3.a"))
         return os.path.abspath(os.path.join("build_SDL", "Release/SDL3-static.lib"))
     return os.path.abspath(os.path.join("build_SDL", "libSDL3.a"))
 
@@ -66,11 +79,22 @@ def build_FREETYPE():
         '-D FT_DISABLE_HARFBUZZ=TRUE',
         '-D FT_DISABLE_BROTLI=TRUE'
     ]
+    
+    if get_platform() == "Windows" and is_mingw():
+        cmake_config_args += ["-G", "MinGW Makefiles"]
+        cmake_config_args += ["-DCMAKE_C_COMPILER=gcc", "-DCMAKE_CXX_COMPILER=g++"]
+        # Add MSVC ABI compatibility flags
+        cmake_config_args += ["-DCMAKE_C_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29",
+                            "-DCMAKE_CXX_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29 -fdeclspec"]
+
     command = 'cmake -S thirdparty/freetype/ -B build_FT ' + ' '.join(cmake_config_args)
     subprocess.check_call(command, shell=True)
     command = 'cmake --build build_FT --config Release'
     subprocess.check_call(command, shell=True)
+    
     if get_platform() == "Windows":
+        if is_mingw():
+            return os.path.abspath(os.path.join("build_FT", "libfreetype.a"))
         return os.path.abspath(os.path.join("build_FT", "Release/freetype.lib"))
     return os.path.abspath(os.path.join("build_FT", "libfreetype.a"))
 
@@ -143,10 +167,26 @@ def setup_package():
             "-arch", "x86_64"
         ]
     elif get_platform() == "Windows":
-        compile_args += ["/O2", "/DNDEBUG", "/D_WINDOWS", "/D_UNICODE", "/DWIN32_LEAN_AND_MEAN", "/std:c++14", "/EHsc"]
-        libraries = ["user32", "gdi32", "shell32", "advapi32", "ole32", "oleaut32", "uuid", "opengl32", \
-                     "setupapi", "cfgmgr32", "version", "winmm"]
-        linking_args += ["/MACHINE:X64"]
+        if is_mingw():
+            msvc_compat_flags = [
+                "-fms-extensions",
+                "-fms-compatibility",
+                "-fms-compatibility-version=19.29",
+                "-fdeclspec",
+                "-fpack-struct=8",  # MSVC compatible struct packing
+                "-mms-bitfields",   # MSVC compatible bitfields
+                "-fno-strict-aliasing",
+                "-D_CRT_SECURE_NO_WARNINGS"
+            ]
+            compile_args += ["-O2", "-DNDEBUG", "-D_WINDOWS", "-DWIN32_LEAN_AND_MEAN", "-std=c++14"] + msvc_compat_flags
+            libraries = ["user32", "gdi32", "shell32", "advapi32", "ole32", "oleaut32", "uuid", "opengl32",
+                        "setupapi", "version", "winmm"]
+            linking_args += ["-static", "-static-libgcc", "-static-libstdc++"]
+        else:
+            compile_args += ["/O2", "/DNDEBUG", "/D_WINDOWS", "/D_UNICODE", "/DWIN32_LEAN_AND_MEAN", "/std:c++14", "/EHsc"]
+            libraries = ["user32", "gdi32", "shell32", "advapi32", "ole32", "oleaut32", "uuid", "opengl32",
+                        "setupapi", "cfgmgr32", "version", "winmm"]
+            linking_args += ["/MACHINE:X64"]
     else:
         # Please test and tell us what changes are needed to the build
         raise ValueError("Unsupported platform")

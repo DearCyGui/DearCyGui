@@ -477,7 +477,7 @@ SDLViewport* SDLViewport::create(render_fun render,
 
 // Implementation of SDLViewport methods
 void SDLViewport::cleanup() {
-    if (!checkSDLThread("cleanup")) return;
+    if (!checkPrimaryThread()) return;
     
     std::lock_guard<std::recursive_mutex> lock(textureMutex);
     
@@ -556,7 +556,7 @@ void SDLViewport::cleanup() {
 }
 
 bool SDLViewport::initialize() {
-    if (!checkSDLThread("initialize")) return false;
+    if (!checkPrimaryThread()) return false;
     const char* glsl_version = "#version 150";
 
     SDL_WindowFlags creation_flags = 0;
@@ -692,7 +692,7 @@ bool SDLViewport::initialize() {
 }
 
 void SDLViewport::processEvents(int timeout_ms) {
-    if (!checkSDLThread("processEvents")) return;
+    if (!checkPrimaryThread()) return;
     
     if (positionChangeRequested)
     {
@@ -1392,10 +1392,6 @@ bool SDLViewport::downloadTexture(void* texture,
     return success;
 }
 
-bool SDLViewport::checkSDLThread(const char* operation) {
-    if (SDL_ThreadID() != sdlMainThreadId) {
-        fprintf(stderr, "Error: context creation, render_frame and context deletion must be all occur from the same thread (%s)\n", operation);
-        return false;
-    }
-    return true;
+bool SDLViewport::checkPrimaryThread() {
+    return SDL_ThreadID() == sdlMainThreadId;
 }
