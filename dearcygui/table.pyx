@@ -1510,6 +1510,8 @@ cdef class Table(uiItem):
                 if (<uiItem>element.tooltip_ui_item).parent is not self:
                    (<uiItem>element.tooltip_ui_item).attach_to_parent(self)
                 Py_INCREF(<object>element.tooltip_ui_item)
+            if element.ordering_value != NULL:
+                Py_INCREF(<object>element.ordering_value)
         else:
             try:
                 element.str_item = bytes(str(value), encoding='utf-8')
@@ -1946,11 +1948,15 @@ cdef class Table(uiItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
+        cdef int num_rows = self._num_rows
+
+        if num_rows <= 1:
+            return
 
         # Put in a list all the values to sort
         keys = []
         cdef int i
-        for i in range(self._num_rows):
+        for i in range(num_rows):
             element = self._get_single_item(i, ref_col)
             if element is None:
                 keys.append(0)
@@ -1962,21 +1968,30 @@ cdef class Table(uiItem):
         if not(ascending):
             order = order[::-1]
 
-        # Convert order to permutations
-        cdef vector[int] current
-        current.reserve(self._num_rows)
-        # Will store the current position
-        # of each index
-        for i in range(self._num_rows):
-            current.push_back(i)
-        for i in range(self._num_rows):
-            if current[i] == order[i]:
-                continue
-            # Find where our target value currently is
-            j = current[order[i]]
-            # Swap the elements
-            self.swap_rows(i, j)
-            current[i], current[j] = current[j], current[i]
+        cdef map[pair[int, int], TableElementData] items_copy = self._items
+        cdef pair[pair[int, int], TableElementData] element_key
+        self._items.clear()
+
+        # We do not need to play with refcounts because each item
+        # is kept a single time. Similarly, row/col count doesn't
+        # change, so we don't need to update them.
+
+        # Create inverse permutation
+        cdef vector[int] inverse_order
+        inverse_order.resize(len(order))
+        for i in range(len(order)):
+            inverse_order[order[i]] = i
+
+        # apply the invert order
+        cdef int src_row
+        cdef int target_row
+        cdef pair[int, int] target_key
+        for element_key in items_copy:
+            src_row = element_key.first.first
+            target_row = inverse_order[src_row]
+            target_key.first = target_row
+            target_key.second = element_key.first.second
+            self._items[target_key] = element_key.second
 
     def sort_cols(self, int ref_row, bint ascending=True):
         """Sort the columns using the value in ref_row as index.
@@ -2013,21 +2028,27 @@ cdef class Table(uiItem):
         if not(ascending):
             order = order[::-1]
 
-        # Convert order to permutations
-        cdef vector[int] current
-        current.reserve(self._num_cols)
-        # Will store the current position
-        # of each index
-        for i in range(self._num_cols):
-            current.push_back(i)
-        for i in range(self._num_cols):
-            if current[i] == order[i]:
-                continue
-            # Find where our target value currently is
-            j = current[order[i]]
-            # Swap the elements
-            self.swap_cols(i, j)
-            current[i], current[j] = current[j], current[i]
+        # Same as for rows
+        cdef map[pair[int, int], TableElementData] items_copy = self._items
+        cdef pair[pair[int, int], TableElementData] element_key
+        self._items.clear()
+
+        # Create inverse permutation
+        cdef vector[int] inverse_order
+        inverse_order.resize(len(order))
+        for i in range(len(order)):
+            inverse_order[order[i]] = i
+
+        # apply the invert order
+        cdef int src_col
+        cdef int target_col
+        cdef pair[int, int] target_key
+        for element_key in items_copy:
+            src_col = element_key.first.second
+            target_col = inverse_order[src_col]
+            target_key.first = element_key.first.first
+            target_key.second = target_col
+            self._items[target_key] = element_key.second
 
 
     cdef bint draw_item(self) noexcept nogil:
@@ -2061,7 +2082,10 @@ cdef class Table(uiItem):
         cdef int j
         cdef Vec2 pos_p_backup, pos_w_backup, parent_size_backup
         cdef pair[int, PyObject*] col_data
+        cdef pair[int, PyObject*] row_data
         cdef map[int, PyObject*].iterator it_row
+
+        cdef bint row_hidden = False
 
         # Corruption issue for empty tables
         if actual_num_rows == 0 or actual_num_cols == 0:
@@ -2085,6 +2109,12 @@ cdef class Table(uiItem):
                 if col_data.first >= actual_num_cols:
                     break
                 (<TableColConfig>col_data.second).state.cur.open = True
+
+        # Lock row configuration
+        for row_data in self._row_configs:
+            if row_data.first >= actual_num_rows:
+                break
+            (<TableRowConfig>row_data.second).mutex.lock()
 
         if imgui.BeginTable(self._imgui_label.c_str(),
                             actual_num_cols,
@@ -2119,16 +2149,20 @@ cdef class Table(uiItem):
                     continue
                 if row != prev_row:
                     for j in range(prev_row, row):
+                        row_hidden = False
                         it_row = self._row_configs.find(j+1) # +1 here, but not for below (empty rows)
                         if it_row == self._row_configs.end():
                             imgui.TableNextRow(0, 0.)
                             continue
-                        # NOTE: should be fine not to lock the mutex, none
-                        # of the values require it.
+                        if not((<TableRowConfig>dereference(it_row).second).show):
+                            row_hidden = True
+                            continue
                         imgui.TableNextRow(0, (<TableRowConfig>dereference(it_row).second).min_height)
                         imgui.TableSetBgColor(imgui.ImGuiTableBgTarget_RowBg1,
                             (<TableRowConfig>dereference(it_row).second).bg_color, -1)
                     prev_row = row
+                if row_hidden:
+                    continue
                 imgui.TableSetColumnIndex(col)
 
                 if element.bg_color != 0:
@@ -2158,6 +2192,8 @@ cdef class Table(uiItem):
                 if it_row == self._row_configs.end():
                     imgui.TableNextRow(0, 0.)
                     continue
+                if not((<TableRowConfig>dereference(it_row).second).show):
+                    continue
                 imgui.TableNextRow(0, (<TableRowConfig>dereference(it_row).second).min_height)
                 imgui.TableSetBgColor(imgui.ImGuiTableBgTarget_RowBg1,
                     (<TableRowConfig>dereference(it_row).second).bg_color, -1)
@@ -2173,16 +2209,25 @@ cdef class Table(uiItem):
                sort_specs.SpecsCount > 0:
                 sort_specs.SpecsDirty = False
                 with gil: # maybe do in a callback ?
-                    # Unclear if it should be in this
-                    # order or the reverse one
-                    for j in range(sort_specs.SpecsCount):
-                        self.sort_rows(sort_specs.Specs[j].ColumnIndex,
-                                       sort_specs.Specs[j].SortDirection != imgui.ImGuiSortDirection_Descending)
+                    try:
+                        # Unclear if it should be in this
+                        # order or the reverse one
+                        for j in range(sort_specs.SpecsCount):
+                            self.sort_rows(sort_specs.Specs[j].ColumnIndex,
+                                           sort_specs.Specs[j].SortDirection != imgui.ImGuiSortDirection_Descending)
+                    except Exception as e:
+                        print(f"Error {e} while sorting column {j} of {self}")
             self.context.viewport.window_pos = pos_w_backup
             self.context.viewport.parent_pos = pos_p_backup
             self.context.viewport.parent_size = parent_size_backup
             # end table
             imgui.EndTable()
+
+        # Release the row configurations
+        for row_data in self._row_configs:
+            if row_data.first >= actual_num_rows:
+                break
+            (<TableRowConfig>row_data.second).mutex.unlock()
 
         # Release the column configurations
         for col_data in self._col_configs:
