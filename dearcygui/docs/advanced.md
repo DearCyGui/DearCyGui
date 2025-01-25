@@ -93,8 +93,9 @@ Here is a list of the advantages of Cython subclassing
 - Expressing complex draw logic that cannot be expressed efficiently by decomposing into several simpler items.
 - No lag to impact the visual. You have access to the latest states of the item and can affect the rendering of the frame directly. For instance changing the color of a button when hovered can be done without any delay with Cython subclassing, while using callbacks will introduce at least one frame delay.
 
-But some disadvantages are present
+But some significant disadvantages are present
 - Less portable code. Your code will need to be compiled (dynamically with pyximport or statically with a setup.py or similar). The compilation has to occur everytime DearCyGui is updated, which complicates code distribution.
+- Right now C++ items of the standard library are included in the main items of DearCyGui, which means that for the subclassing to work, you need the same compiler version as was used to compile DearCyGui. That's fine for internal projects, but not for libraries that would want do depend on DearCyGui. If you want to contribute items, the best would be to package them with DearCyGui in utils.
 - More care is needed when writing the code. You have access to *DearCyGui* internals, and thus you must use it correctly. No checks will occur.
 
 For examples and documentation of the available API, please refer to the related demo, but also to the cython codes in DearCyGui's utils directory. The cython codes in this directory have exactly the same API access as you would have for your own Cython subclassing.
@@ -211,3 +212,5 @@ The above techniques will typically be used in combination with the `Image`, `Im
 - Using a render callback. The callback will be called asynchronously every frame. The advantage is that the computation can be slow without affecting framerate. The disadvantage is that there is a small lag between states changes and the visual.
 - Inserting your update after `render_frame`.
 - Subclassing `CustomHandler` and implement there your update logic. This solution is the preferred one, as it has the advantage of having no lag. Indeed `CustomHandler` is run just after the item is processed for rendering (its states are up to date), but before the rendering is submitted to the GPU. Thus inserting a write to the texture will directly impact the current frame. Note however that you must be careful not to do heavy computation as frame rendering will wait for `CustomHandler` to return.
+
+A fourth solution would be to use Cython subclassing, but as it is not strictly needed here, it's best to avoid it due to the several constraints it brings.
