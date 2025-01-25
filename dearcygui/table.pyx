@@ -1406,8 +1406,8 @@ cdef class Table(uiItem):
             if key_element.second.ordering_value != NULL:
                 Py_DECREF(<object>key_element.second.ordering_value)
         self._items.clear()
-        self._num_rows = -1
-        self._num_cols = -1
+        self._num_rows = 0
+        self._num_cols = 0
         self._dirty_num_rows_cols = False
 
     def clear(self) -> None:
@@ -2170,17 +2170,26 @@ cdef class Table(uiItem):
 
                 # Draw the element
                 if element.ui_item is not NULL:
-                    # Each cell is like a Child Window
-                    self.context.viewport.parent_pos = ImVec2Vec2(imgui.GetCursorScreenPos())
-                    self.context.viewport.window_pos = self.context.viewport.parent_pos
-                    self.context.viewport.parent_size = ImVec2Vec2(imgui.GetContentRegionAvail())
-                    (<uiItem>element.ui_item).draw()
+                    # We lock because we check the parent field.
+                    # Probably not needed though, as the parent
+                    # must be locked to be edited.
+                    (<uiItem>element.ui_item).mutex.lock()
+                    if (<uiItem>element.ui_item).parent is self:
+                        # Each cell is like a Child Window
+                        self.context.viewport.parent_pos = ImVec2Vec2(imgui.GetCursorScreenPos())
+                        self.context.viewport.window_pos = self.context.viewport.parent_pos
+                        self.context.viewport.parent_size = ImVec2Vec2(imgui.GetContentRegionAvail())
+                        (<uiItem>element.ui_item).draw()
+                    (<uiItem>element.ui_item).mutex.unlock()
                 elif not element.str_item.empty():
                     imgui.TextUnformatted(element.str_item.c_str())
 
                 # Optional tooltip
                 if element.tooltip_ui_item is not NULL:
-                    (<uiItem>element.tooltip_ui_item).draw()
+                    (<uiItem>element.tooltip_ui_item).mutex.lock()
+                    if (<uiItem>element.tooltip_ui_item).parent is self:
+                        (<uiItem>element.tooltip_ui_item).draw()
+                    (<uiItem>element.tooltip_ui_item).mutex.unlock()
                 elif not element.str_tooltip.empty():
                     if imgui.IsItemHovered(0):
                         if imgui.BeginTooltip():
