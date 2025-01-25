@@ -4,6 +4,7 @@
 # the pxd files and without including imgui.
 
 from .c_types cimport float2, double2, Vec2, Vec4
+from libc.stdint cimport uint32_t, int32_t
 
 cdef enum child_type:
     cat_drawing
@@ -98,7 +99,7 @@ cpdef enum class PlotMarker:
 
 # needed to return an object from other cython files
 # rather that using the cdef version of PlotMarker
-cdef object make_PlotMarker(int marker)
+cdef object make_PlotMarker(int32_t marker)
 
 cdef enum theme_types:
     t_color,
@@ -160,23 +161,23 @@ cdef enum theme_value_types:
     t_u32
 
 ctypedef union theme_value:
-    int value_int
+    int32_t value_int
     float value_float
     float[2] value_float2
-    unsigned value_u32
+    uint32_t value_u32
 
 ctypedef struct theme_action:
     ThemeEnablers activation_condition_enabled
     ThemeCategories activation_condition_category
     theme_types type
     theme_backends backend
-    int theme_index
+    int32_t theme_index
     theme_value_types value_type
     theme_value value
     theme_value_float2_mask float2_mask
 
 ctypedef fused point_type:
-    int
+    int32_t
     float
     double
 
@@ -200,7 +201,7 @@ cdef class Rect:
 cdef inline void read_point(point_type* dst, src):
     if not(hasattr(src, '__len__')):
         raise TypeError("Point data must be an array of up to 2 coordinates")
-    cdef int src_size = len(src)
+    cdef int32_t src_size = len(src)
     if src_size > 2:
         raise TypeError("Point data must be an array of up to 2 coordinates")
     dst[0] = <point_type>0.
@@ -237,7 +238,7 @@ cdef inline void read_rect(double* dst, src):
 cdef inline void read_vec4(point_type* dst, src):
     if not(hasattr(src, '__len__')):
         raise TypeError("Point data must be an array of up to 4 coordinates")
-    cdef int src_size = len(src)
+    cdef int32_t src_size = len(src)
     if src_size > 4:
         raise TypeError("Point data must be an array of up to 4 coordinates")
     dst[0] = <point_type>0.

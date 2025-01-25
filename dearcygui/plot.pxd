@@ -2,6 +2,7 @@ from .core cimport baseItem, baseFont, itemState, \
     plotElement, uiItem, Callback, baseHandler
 from .types cimport *
 
+from libc.stdint cimport int32_t
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
@@ -16,9 +17,9 @@ cdef class AxesResizeHandler(baseHandler):
 
 cdef class PlotAxisConfig(baseItem):
     cdef bint _enabled
-    cdef int _scale # AxisScale
+    cdef int32_t _scale # AxisScale
     cdef string _tick_format
-    cdef int _flags # implot.ImPlotAxisFlags
+    cdef int32_t _flags # implot.ImPlotAxisFlags
     cdef double _min
     cdef double _max
     cdef double _prev_min
@@ -38,15 +39,15 @@ cdef class PlotAxisConfig(baseItem):
     cdef vector[const char*] _labels_cstr
     cdef vector[double] _labels_coord
     cdef bint _keep_default_ticks
-    cdef void setup(self, int) noexcept nogil # implot.ImAxis
-    cdef void after_setup(self, int) noexcept nogil # implot.ImAxis
-    cdef void after_plot(self, int) noexcept nogil # implot.ImAxis
+    cdef void setup(self, int32_t) noexcept nogil # implot.ImAxis
+    cdef void after_setup(self, int32_t) noexcept nogil # implot.ImAxis
+    cdef void after_plot(self, int32_t) noexcept nogil # implot.ImAxis
     cdef void set_hidden(self) noexcept nogil
 
 cdef class PlotLegendConfig(baseItem):
     cdef bint _show
-    cdef int _location # LegendLocation
-    cdef int _flags # implot.ImPlotLegendFlags
+    cdef int32_t _location # LegendLocation
+    cdef int32_t _flags # implot.ImPlotLegendFlags
     cdef void setup(self) noexcept nogil
     cdef void after_setup(self) noexcept nogil
 
@@ -58,24 +59,24 @@ cdef class Plot(uiItem):
     cdef PlotAxisConfig _Y2
     cdef PlotAxisConfig _Y3
     cdef PlotLegendConfig _legend
-    cdef int _pan_button
-    cdef int _pan_modifier # imgui.ImGuiKeyChord
-    cdef int _fit_button
-    cdef int _menu_button
-    cdef int _override_mod # imgui.ImGuiKeyChord
-    cdef int _zoom_mod # imgui.ImGuiKeyChord
+    cdef int32_t _pan_button
+    cdef int32_t _pan_modifier # imgui.ImGuiKeyChord
+    cdef int32_t _fit_button
+    cdef int32_t _menu_button
+    cdef int32_t _override_mod # imgui.ImGuiKeyChord
+    cdef int32_t _zoom_mod # imgui.ImGuiKeyChord
     cdef float _zoom_rate
     cdef bint _use_local_time
     cdef bint _use_ISO8601
     cdef bint _use_24hour_clock
-    cdef int _mouse_location # LegendLocation
-    cdef int _flags # implot.ImPlotFlags
+    cdef int32_t _mouse_location # LegendLocation
+    cdef int32_t _flags # implot.ImPlotFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class plotElementWithLegend(plotElement):
     cdef itemState state
     cdef bint _legend
-    cdef int _legend_button
+    cdef int32_t _legend_button
     cdef baseFont _font
     cdef bint _enabled
     cdef bint _enabled_dirty
@@ -124,11 +125,11 @@ cdef class DrawInPlot(plotElementWithLegend):
     cdef void draw(self) noexcept nogil
 
 cdef class Subplots(uiItem):
-    cdef int _rows 
-    cdef int _cols
+    cdef int32_t _rows 
+    cdef int32_t _cols
     cdef vector[float] _row_ratios
     cdef vector[float] _col_ratios
-    cdef int _flags # implot.ImPlotSubplotFlags
+    cdef int32_t _flags # implot.ImPlotSubplotFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class PlotBarGroups(plotElementWithLegend):
@@ -160,13 +161,13 @@ cdef class PlotAnnotation(plotElement):
     cdef string _text
     cdef double _x
     cdef double _y
-    cdef int _bg_color
+    cdef int32_t _bg_color
     cdef Vec2 _offset
     cdef bint _clamp
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotHistogram(plotElementX):
-    cdef int _bins
+    cdef int32_t _bins
     cdef double _bar_scale
     cdef double _range_min
     cdef double _range_max
@@ -174,8 +175,8 @@ cdef class PlotHistogram(plotElementX):
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotHistogram2D(plotElementXY):
-    cdef int _x_bins
-    cdef int _y_bins 
+    cdef int32_t _x_bins
+    cdef int32_t _y_bins 
     cdef double _range_min_x
     cdef double _range_max_x
     cdef double _range_min_y
@@ -186,8 +187,8 @@ cdef class PlotHistogram2D(plotElementXY):
 
 cdef class PlotHeatmap(plotElementWithLegend):
     cdef cnp.ndarray _values
-    cdef int _rows
-    cdef int _cols
+    cdef int32_t _rows
+    cdef int32_t _cols
     cdef double _scale_min
     cdef double _scale_max
     cdef bint _auto_scale

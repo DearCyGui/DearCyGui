@@ -1,5 +1,6 @@
 from dearcygui.wrapper cimport imgui, implot
 from .c_types cimport Vec2, Vec4
+from libc.stdint cimport uint32_t, int32_t
 
 # Here all the types that need a cimport
 # of imgui. In order to enable Cython code
@@ -46,7 +47,7 @@ cdef inline imgui.ImU32 parse_color(src):
     if isinstance(src, int):
         # RGBA, little endian
         return <imgui.ImU32>(<long long>src)
-    cdef int src_size = 5 # to trigger error by default
+    cdef int32_t src_size = 5 # to trigger error by default
     if hasattr(src, '__len__'):
         src_size = len(src)
     if src_size == 0 or src_size > 4:
@@ -55,16 +56,16 @@ cdef inline imgui.ImU32 parse_color(src):
     cdef imgui.ImVec4 color_float4
     cdef imgui.ImU32 color_u32
     cdef bint contains_nonints = False
-    cdef int i
+    cdef int32_t i
     cdef float[4] values
-    cdef int[4] values_int
+    cdef uint32_t[4] values_int
 
     for i in range(src_size):
         element = src[i]
         if not(isinstance(element, int)):
             contains_nonints = True
             values[i] = element
-            values_int[i] = <int>values[i]
+            values_int[i] = <uint32_t>values[i]
         else:
             values_int[i] = element
             values[i] = <float>values_int[i]

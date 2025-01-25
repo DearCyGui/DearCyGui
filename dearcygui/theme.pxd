@@ -2,11 +2,13 @@ from libcpp.unordered_map cimport unordered_map
 from .core cimport *
 from .types cimport *
 
+from libc.stdint cimport uint32_t, int32_t
+
 cdef class baseThemeColor(baseTheme):
     cdef list _names
-    cdef unordered_map[int, unsigned int] _index_to_value
-    cdef object __common_getter(self, int)
-    cdef void __common_setter(self, int, object)
+    cdef unordered_map[int32_t, uint32_t] _index_to_value
+    cdef object __common_getter(self, int32_t)
+    cdef void __common_setter(self, int32_t, object)
 
 cdef class ThemeColorImGui(baseThemeColor):
     cdef void push(self) noexcept nogil
@@ -35,13 +37,13 @@ ctypedef struct theme_value_info:
 cdef class baseThemeStyle(baseTheme):
     cdef list _names
     cdef theme_backends _backend
-    cdef unordered_map[int, theme_value_info] _index_to_value
-    cdef unordered_map[int, theme_value_info] _index_to_value_for_dpi
+    cdef unordered_map[int32_t, theme_value_info] _index_to_value
+    cdef unordered_map[int32_t, theme_value_info] _index_to_value_for_dpi
     cdef float _dpi
     cdef bint _dpi_scaling
     cdef bint _round_after_scale
-    cdef object __common_getter(self, int, theme_value_types)
-    cdef void __common_setter(self, int, theme_value_types, bint, bint, py_value)
+    cdef object __common_getter(self, int32_t, theme_value_types)
+    cdef void __common_setter(self, int32_t, theme_value_types, bint, bint, py_value)
     cdef void __compute_for_dpi(self) noexcept nogil
     cdef void push_to_list(self, vector[theme_action]&) noexcept nogil
     cdef void push(self) noexcept nogil
@@ -69,7 +71,7 @@ cdef class ThemeListWithCondition(baseTheme):
     cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil
 
 cdef class ThemeStopCondition(baseTheme):
-    cdef vector[int] _start_pending_theme_actions_backup
+    cdef vector[int32_t] _start_pending_theme_actions_backup
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
     cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil

@@ -17,6 +17,7 @@
 from libcpp cimport bool
 
 from dearcygui.wrapper cimport imgui, implot
+from libc.stdint cimport int32_t
 from libc.math cimport INFINITY
 from cpython cimport PyObject
 
@@ -94,7 +95,7 @@ cdef class AxesResizeHandler(baseHandler):
     def axes(self, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef int axis_x, axis_y
+        cdef int32_t axis_x, axis_y
         try:
             (axis_x, axis_y) = value
             assert(axis_x in [implot.ImAxis_X1,
@@ -675,7 +676,7 @@ cdef class PlotAxisConfig(baseItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
-        cdef int i
+        cdef int32_t i
         cdef baseHandler handler
         for i in range(<int>self._handlers.size()):
             handler = <baseHandler>self._handlers[i]
@@ -687,7 +688,7 @@ cdef class PlotAxisConfig(baseItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
-        cdef int i
+        cdef int32_t i
         if value is None:
             clear_obj_vector(self._handlers)
             return
@@ -753,7 +754,7 @@ cdef class PlotAxisConfig(baseItem):
     @labels.setter
     def labels(self, value):
         cdef unique_lock[recursive_mutex] m
-        cdef int i
+        cdef int32_t i
         lock_gil_friendly(m, self.mutex)
         self._labels.clear()
         self._labels_cstr.clear()
@@ -807,7 +808,7 @@ cdef class PlotAxisConfig(baseItem):
         lock_gil_friendly(m, self.mutex)
         self._keep_default_ticks = value
 
-    cdef void setup(self, int axis) noexcept nogil:
+    cdef void setup(self, int32_t axis) noexcept nogil:
         """
         Apply the config to the target axis during plot
         setup
@@ -864,7 +865,7 @@ cdef class PlotAxisConfig(baseItem):
             implot.SetupAxisZoomConstraints(axis,
                                             self._zoom_min,
                                             self._zoom_max)
-        cdef int label_count = min(<int>self._labels_coord.size(), <int>self._labels_cstr.size())
+        cdef int32_t label_count = min(<int>self._labels_coord.size(), <int>self._labels_cstr.size())
         if label_count > 0:
             implot.SetupAxisTicks(axis,
                                   self._labels_coord.data(),
@@ -872,7 +873,7 @@ cdef class PlotAxisConfig(baseItem):
                                   self._labels_cstr.data(),
                                   self._keep_default_ticks)
 
-    cdef void after_setup(self, int axis) noexcept nogil:
+    cdef void after_setup(self, int32_t axis) noexcept nogil:
         """
         Update states, etc. after the elements were setup
         """
@@ -928,7 +929,7 @@ cdef class PlotAxisConfig(baseItem):
         self._flags = flags
 
         cdef bint hovered = implot.IsAxisHovered(axis)
-        cdef int i
+        cdef int32_t i
         for i in range(<int>imgui.ImGuiMouseButton_COUNT):
             self.state.cur.clicked[i] = hovered and imgui.IsMouseClicked(i, False)
             self.state.cur.double_clicked[i] = hovered and imgui.IsMouseDoubleClicked(i)
@@ -944,7 +945,7 @@ cdef class PlotAxisConfig(baseItem):
             self.state.cur.clicked[i] = self.state.cur.hovered and imgui.IsMouseClicked(i, False)
             self.state.cur.double_clicked[i] = self.state.cur.hovered and imgui.IsMouseDoubleClicked(i)
 
-    cdef void after_plot(self, int axis) noexcept nogil:
+    cdef void after_plot(self, int32_t axis) noexcept nogil:
         # The fit only impacts the next frame
         if self._enabled and (self._min != self._prev_min or self._max != self._prev_max):
             self.context.viewport.redraw_needed = True
@@ -953,7 +954,7 @@ cdef class PlotAxisConfig(baseItem):
         self.set_previous_states()
         self.state.cur.hovered = False
         self.state.cur.rendered = False
-        cdef int i
+        cdef int32_t i
         for i in range(<int>imgui.ImGuiMouseButton_COUNT):
             self.state.cur.clicked[i] = False
             self.state.cur.double_clicked[i] = False
@@ -1848,7 +1849,7 @@ cdef class plotElementWithLegend(plotElement):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
-        cdef int i
+        cdef int32_t i
         cdef baseHandler handler
         for i in range(<int>self._handlers.size()):
             handler = <baseHandler>self._handlers[i]
@@ -1860,7 +1861,7 @@ cdef class plotElementWithLegend(plotElement):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
-        cdef int i
+        cdef int32_t i
         if value is None:
             clear_obj_vector(self._handlers)
             return
@@ -2118,7 +2119,7 @@ cdef class PlotLine(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
         if size == 0:
             return
 
@@ -2244,7 +2245,7 @@ cdef class plotElementXYY(plotElementWithLegend):
 cdef class PlotShadedLine(plotElementXYY):
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(min(self._X.shape[0], self._Y1.shape[0]), self._Y2.shape[0])
+        cdef int32_t size = min(min(self._X.shape[0], self._Y1.shape[0]), self._Y2.shape[0])
         if size == 0:
             return
 
@@ -2296,7 +2297,7 @@ cdef class PlotStems(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
         if size == 0:
             return
 
@@ -2366,7 +2367,7 @@ cdef class PlotBars(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
         if size == 0:
             return
 
@@ -2439,7 +2440,7 @@ cdef class PlotStairs(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
         if size == 0:
             return
 
@@ -2529,7 +2530,7 @@ cdef class PlotInfLines(plotElementX):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = self._X.shape[0]
+        cdef int32_t size = self._X.shape[0]
         if size == 0:
             return
 
@@ -2575,7 +2576,7 @@ cdef class PlotScatter(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
         if size == 0:
             return
 
@@ -2751,7 +2752,7 @@ cdef class plotDraggable(plotElement):
         return self.state.cur.hovered
 
     cdef void draw(self) noexcept nogil:
-        cdef int i
+        cdef int32_t i
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
 
         # Check the axes are enabled
@@ -2947,7 +2948,7 @@ cdef class Subplots(uiItem):
         return self._rows
 
     @rows.setter 
-    def rows(self, int value):
+    def rows(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 1:
@@ -2962,7 +2963,7 @@ cdef class Subplots(uiItem):
         return self._cols
 
     @cols.setter
-    def cols(self, int value):
+    def cols(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 1:
@@ -3174,8 +3175,8 @@ cdef class Subplots(uiItem):
         cdef bint visible
         cdef Vec2 pos_p, parent_size_backup
         cdef PyObject *child
-        cdef int n = self._rows * self._cols
-        cdef int i
+        cdef int32_t n = self._rows * self._cols
+        cdef int32_t i
 
         # TODO: Not sure if shared legend needs specific handling.
 
@@ -3271,7 +3272,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
             self._values = array
         else:
             self._values = np.ascontiguousarray(array, dtype=np.float64)
-        cdef int k
+        cdef int32_t k
         for k in range(<int>self._labels.size(), self._values.shape[0]):
             self._labels.push_back(string(b"Item %d" % k))
 
@@ -3288,7 +3289,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
     def labels(self, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef int i, k
+        cdef int32_t i, k
         self._labels.clear()
         if value is None:
             return
@@ -3372,7 +3373,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
         if self._values.shape[0] == 0 or self._values.shape[1] == 0:
             return
 
-        cdef int i
+        cdef int32_t i
         # Note: we ensured that self._values.shape[0] <= <int>self._labels.size()
 
         cdef vector[const char*] labels_cstr
@@ -3444,7 +3445,7 @@ cdef class PlotPieChart(plotElementWithLegend):
             self._values = array
         else:
             self._values = np.ascontiguousarray(array, dtype=np.float64)
-        cdef int k
+        cdef int32_t k
         for k in range(<int>self._labels.size(), self._values.shape[0]):
             self._labels.push_back(string(b"Slice %d" % k))
 
@@ -3462,7 +3463,7 @@ cdef class PlotPieChart(plotElementWithLegend):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._labels.clear()
-        cdef int k
+        cdef int32_t k
         if value is None:
             return
         if hasattr(value, '__len__'):
@@ -3578,7 +3579,7 @@ cdef class PlotPieChart(plotElementWithLegend):
         if self._values.shape[0] == 0:
             return
 
-        cdef int i
+        cdef int32_t i
         # Note: we ensured that self._values.shape[0] <= <int>self._labels.size()
 
         cdef vector[const char*] labels_cstr
@@ -3625,7 +3626,7 @@ cdef class PlotDigital(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
         if size == 0:
             return
 
@@ -3734,7 +3735,7 @@ cdef class PlotErrorBars(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(self._X.shape[0],
+        cdef int32_t size = min(self._X.shape[0],
                             self._Y.shape[0],
                             self._pos.shape[0])
         if self._neg is not None:
@@ -3920,7 +3921,7 @@ cdef class PlotHistogram(plotElementX):
         return self._bins
 
     @bins.setter 
-    def bins(self, int value):
+    def bins(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < -4:
@@ -4025,7 +4026,7 @@ cdef class PlotHistogram(plotElementX):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = self._X.shape[0]
+        cdef int32_t size = self._X.shape[0]
         if size == 0:
             return
 
@@ -4093,7 +4094,7 @@ cdef class PlotHistogram2D(plotElementXY):
         return self._x_bins
 
     @x_bins.setter
-    def x_bins(self, int value):
+    def x_bins(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < -4:
@@ -4114,7 +4115,7 @@ cdef class PlotHistogram2D(plotElementXY):
         return self._y_bins
 
     @y_bins.setter
-    def y_bins(self, int value):
+    def y_bins(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < -4:
@@ -4199,7 +4200,7 @@ cdef class PlotHistogram2D(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
         if size == 0:
             return
 

@@ -190,7 +190,7 @@ cdef class FontMultiScales(baseFont):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
-        cdef int i
+        cdef int32_t i
         for i in range(<int>self._fonts.size()):
             result.append(<Font>self._fonts[i])
         return result
@@ -235,7 +235,7 @@ cdef class FontMultiScales(baseFont):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
-        cdef int i
+        cdef int32_t i
         for i in range(<int>self._callbacks.size()):
             result.append(<Callback>self._callbacks[i])
         return result
@@ -268,7 +268,7 @@ cdef class FontMultiScales(baseFont):
         cdef float best_diff = 1e10
         cdef float diff
         cdef PyObject *best_font = NULL
-        cdef int i
+        cdef int32_t i
         
         for i in range(<int>self._fonts.size()):
             diff = abs(logf((<Font>self._fonts[i])._scale) + target_scale)
@@ -372,7 +372,7 @@ cdef class AutoFont(FontMultiScales):
         cdef Font font = None
         
         # Calculate scaled size
-        cdef int scaled_size = int(round(self._base_size * scale))
+        cdef int32_t scaled_size = int(round(self._base_size * scale))
 
         try:
             # Create glyph set using the font creator
@@ -476,7 +476,7 @@ cdef class FontTexture(baseItem):
     def add_font_file(self,
                       str path,
                       float size=13.,
-                      int index_in_file=0,
+                      int32_t index_in_file=0,
                       float density_scale=1.,
                       bint align_to_pixel=False):
         """
@@ -559,7 +559,7 @@ cdef class FontTexture(baseItem):
 
         keys = sorted(glyph_set.images.keys())
         cdef float x, y, advance
-        cdef int w, h, i, j
+        cdef int32_t w, h, i, j
         for i, key in enumerate(keys):
             image = glyph_set.images[key]
             h = image.shape[0] + 1
@@ -599,7 +599,7 @@ cdef class FontTexture(baseItem):
         data_array.data = <char*>data
         array = np.asarray(data_array, dtype=np.uint8)
         cdef imgui.ImFontAtlasCustomRect *rect
-        cdef int ym, yM, xm, xM
+        cdef int32_t ym, yM, xm, xM
         if len(array.shape) == 2:
             array = array[:,:,np.newaxis]
         cdef unsigned char[:,:,:] array_view = array
@@ -732,7 +732,7 @@ cdef class GlyphSet:
         self.positioning = {}
         
     cpdef void add_glyph(self,
-                         int unicode_key, 
+                         int32_t unicode_key, 
                          object image,
                          float dy,
                          float dx,
@@ -851,7 +851,7 @@ cdef class GlyphSet:
         if isinstance(target_unicode, str):
             target_unicode = ord(target_unicode)
         if not(isinstance(target_unicode, int)):
-            raise ValueError("target_unicode must be an int (ord('B') for instance)")
+            raise ValueError("target_unicode must be an int32_t (ord('B') for instance)")
         if target_unicode not in self.positioning:
             raise ValueError(f"target unicode character not found")
 
@@ -935,7 +935,7 @@ cdef class GlyphSet:
         cdef GlyphSet g
         GlyphSet.fit_glyph_sets(glyphs)
         cdef GlyphSet new_glyphset = GlyphSet(glyphs[0].height, glyphs[0].origin_y)
-        cdef int key
+        cdef int32_t key
         cdef object image
         cdef float dy, dx, advance
         for g in glyphs:
@@ -948,7 +948,7 @@ cdef class GlyphSet:
         return new_glyphset
 
 
-cdef inline int get_freetype_load_flags(str hinter, bint allow_color):
+cdef inline int32_t get_freetype_load_flags(str hinter, bint allow_color):
     """Prepare FreeType loading flags"""
 
     """
@@ -981,7 +981,7 @@ cdef inline int get_freetype_load_flags(str hinter, bint allow_color):
     Other values exist but you'll likely not need them.
     """
     
-    cdef int load_flags = 0
+    cdef int32_t load_flags = 0
     if hinter == "none":
         load_flags |= freetype.FT_LOAD_TARGETS["FT_LOAD_TARGET_NORMAL"]
         load_flags |= freetype.FT_LOAD_FLAGS["FT_LOAD_NO_HINTING"]
@@ -1206,7 +1206,7 @@ cdef class FontRenderer:
         cdef const unsigned char* buffer_view
         cdef unsigned char[:,::1] image_view
         cdef unsigned char[:,:,::1] color_image_view
-        cdef int rows, cols, pitch, i, j, idx
+        cdef int32_t rows, cols, pitch, i, j, idx
         cdef uintptr_t buffer_ptr
         
         # First pass - collect all glyphs and find dimensions

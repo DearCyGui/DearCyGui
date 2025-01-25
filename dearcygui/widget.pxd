@@ -2,6 +2,7 @@ from .core cimport baseItem, uiItem, drawingItem, itemState, \
     baseHandler, Texture, SharedValue
 from .c_types cimport Vec2, Vec4
 
+from libc.stdint cimport uint32_t, int32_t
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
@@ -9,7 +10,7 @@ cimport numpy as cnp
 
 cdef class DrawInvisibleButton(drawingItem):
     cdef itemState state
-    cdef int _button # imgui.ImGuiButtonFlags
+    cdef int32_t _button # imgui.ImGuiButtonFlags
     cdef float _min_side
     cdef float _max_side
     cdef bint _no_input
@@ -35,12 +36,12 @@ cdef class SimplePlot(uiItem):
     cdef float _scale_max
     cdef bint _histogram
     cdef bint _autoscale
-    cdef int _last_frame_autoscale_update
+    cdef int32_t _last_frame_autoscale_update
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class Button(uiItem):
-    cdef int _direction # imgui.ImGuiDir
+    cdef int32_t _direction # imgui.ImGuiDir
     cdef bint _small
     cdef bint _arrow
     cdef bint _repeat
@@ -48,7 +49,7 @@ cdef class Button(uiItem):
 
 
 cdef class Combo(uiItem):
-    cdef int _flags # imgui.ImGuiComboFlags
+    cdef int32_t _flags # imgui.ImGuiComboFlags
     cdef vector[string] _items
     cdef string _disabled_value
     cdef bint draw_item(self) noexcept nogil
@@ -59,21 +60,21 @@ cdef class Checkbox(uiItem):
 
 
 cdef class Slider(uiItem):
-    cdef int _size
-    cdef int _format
+    cdef int32_t _size
+    cdef int32_t _format
     cdef bint _drag
     cdef float _drag_speed
     cdef double _min
     cdef double _max
     cdef string _print_format
     cdef bint _vertical
-    cdef int _flags # imgui.ImGuiSliderFlags
+    cdef int32_t _flags # imgui.ImGuiSliderFlags
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class ListBox(uiItem):
     cdef vector[string] _items
-    cdef int _num_items_shown_when_open
+    cdef int32_t _num_items_shown_when_open
     cdef bint draw_item(self) noexcept nogil
 
 
@@ -86,39 +87,39 @@ cdef class RadioButton(uiItem):
 cdef class InputText(uiItem):
     cdef string _hint
     cdef bint _multiline
-    cdef int _max_characters
+    cdef int32_t _max_characters
     cdef char* _buffer
-    cdef int _last_frame_update
-    cdef int _flags # imgui.ImGuiInputTextFlags
+    cdef int32_t _last_frame_update
+    cdef int32_t _flags # imgui.ImGuiInputTextFlags
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class InputValue(uiItem):
-    cdef int _size
-    cdef int _format
+    cdef int32_t _size
+    cdef int32_t _format
     cdef double _step
     cdef double _step_fast
     cdef double _min
     cdef double _max
     cdef string _print_format
-    cdef int _flags # imgui.ImGuiInputTextFlags
+    cdef int32_t _flags # imgui.ImGuiInputTextFlags
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class Text(uiItem):
-    cdef unsigned int _color # imgui.ImU32
-    cdef int _wrap
+    cdef uint32_t _color # imgui.ImU32
+    cdef int32_t _wrap
     cdef bint _bullet
     cdef bint _show_label
     cdef bint draw_item(self) noexcept nogil
 
 cdef class TextValue(uiItem):
     cdef string _print_format
-    cdef int _type
+    cdef int32_t _type
     cdef bint draw_item(self) noexcept nogil
 
 cdef class Selectable(uiItem):
-    cdef int _flags # imgui.ImGuiSelectableFlags
+    cdef int32_t _flags # imgui.ImGuiSelectableFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class MenuItem(uiItem):
@@ -134,18 +135,18 @@ cdef class ProgressBar(uiItem):
 
 cdef class Image(uiItem):
     cdef float[4] _uv
-    cdef unsigned int _color_multiplier # imgui.ImU32
-    cdef unsigned int _border_color # imgui.ImU32
+    cdef uint32_t _color_multiplier # imgui.ImU32
+    cdef uint32_t _border_color # imgui.ImU32
     cdef Texture _texture
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class ImageButton(uiItem):
     cdef float[4] _uv
-    cdef unsigned int _color_multiplier # imgui.ImU32
-    cdef unsigned int _background_color # imgui.ImU32
+    cdef uint32_t _color_multiplier # imgui.ImU32
+    cdef uint32_t _background_color # imgui.ImU32
     cdef Texture _texture
-    cdef int _frame_padding
+    cdef int32_t _frame_padding
     cdef bint draw_item(self) noexcept nogil
 
 cdef class Separator(uiItem):
@@ -170,41 +171,41 @@ cdef class Tooltip(uiItem):
     cdef bint draw_item(self) noexcept nogil
 
 cdef class TabButton(uiItem):
-    cdef int _flags # imgui.ImGuiTabBarFlags
+    cdef int32_t _flags # imgui.ImGuiTabBarFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class Tab(uiItem):
     cdef bint _closable
-    cdef int _flags # imgui.ImGuiTabItemFlags
+    cdef int32_t _flags # imgui.ImGuiTabItemFlags
 
 cdef class TabBar(uiItem):
-    cdef int _flags # imgui.ImGuiTabBarFlags
+    cdef int32_t _flags # imgui.ImGuiTabBarFlags
 
 cdef class TreeNode(uiItem):
-    cdef int _flags # imgui.ImGuiTreeNodeFlags
+    cdef int32_t _flags # imgui.ImGuiTreeNodeFlags
     cdef bint _selectable
     cdef bint draw_item(self) noexcept nogil
 
 cdef class CollapsingHeader(uiItem):
-    cdef int _flags # imgui.ImGuiTreeNodeFlags
+    cdef int32_t _flags # imgui.ImGuiTreeNodeFlags
     cdef bint _closable
     cdef bint draw_item(self) noexcept nogil
 
 cdef class ChildWindow(uiItem):
-    cdef int _window_flags # imgui.ImGuiWindowFlags
-    cdef int _child_flags # imgui.ImGuiChildFlags
+    cdef int32_t _window_flags # imgui.ImGuiWindowFlags
+    cdef int32_t _child_flags # imgui.ImGuiChildFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class ColorButton(uiItem):
-    cdef int _flags # imgui.ImGuiColorEditFlags
+    cdef int32_t _flags # imgui.ImGuiColorEditFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class ColorEdit(uiItem):
-    cdef int _flags # imgui.ImGuiColorEditFlags
+    cdef int32_t _flags # imgui.ImGuiColorEditFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class ColorPicker(uiItem):
-    cdef int _flags # imgui.ImGuiColorEditFlags
+    cdef int32_t _flags # imgui.ImGuiColorEditFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class SharedBool(SharedValue):
@@ -220,16 +221,16 @@ cdef class SharedFloat(SharedValue):
     cdef void set(self, float) noexcept nogil
 
 cdef class SharedInt(SharedValue):
-    cdef int _value
-    cdef int get(self) noexcept nogil
-    cdef void set(self, int) noexcept nogil
+    cdef int32_t _value
+    cdef int32_t get(self) noexcept nogil
+    cdef void set(self, int32_t) noexcept nogil
 
 cdef class SharedColor(SharedValue):
-    cdef unsigned int _value # imgui.ImU32
+    cdef uint32_t _value # imgui.ImU32
     cdef Vec4 _value_asfloat4 # imgui.ImVec4
-    cdef unsigned int getU32(self) noexcept nogil # imgui.ImU32
+    cdef uint32_t getU32(self) noexcept nogil # imgui.ImU32
     cdef Vec4 getF4(self) noexcept nogil # imgui.ImVec4
-    cdef void setU32(self, unsigned int) noexcept nogil # imgui.ImU32
+    cdef void setU32(self, uint32_t) noexcept nogil # imgui.ImU32
     cdef void setF4(self, Vec4) noexcept nogil # imgui.ImVec4
 
 cdef class SharedDouble(SharedValue):
@@ -248,9 +249,9 @@ cdef class SharedFloat4(SharedValue):
     cdef void set(self, float[4]) noexcept nogil
 
 cdef class SharedInt4(SharedValue):
-    cdef int[4] _value
-    cdef void get(self, int *) noexcept nogil
-    cdef void set(self, int[4]) noexcept nogil
+    cdef int32_t[4] _value
+    cdef void get(self, int32_t *) noexcept nogil
+    cdef void set(self, int32_t[4]) noexcept nogil
 
 cdef class SharedDouble4(SharedValue):
     cdef double[4] _value
@@ -277,10 +278,10 @@ cdef class SharedTime:
 
 cdef class TableColumnConfig(baseItem):
     cdef itemState state
-    cdef int _flags # ImGuiTableColumnFlags_
+    cdef int32_t _flags # ImGuiTableColumnFlags_
     cdef bint _stretch
     cdef bint _fixed
     cdef float _width
     cdef float _stretch_weight
     cdef bint _dpi_scaling
-    cdef int _bg_color # imgui.U32
+    cdef int32_t _bg_color # imgui.U32

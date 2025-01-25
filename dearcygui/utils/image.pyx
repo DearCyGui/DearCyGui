@@ -2,6 +2,7 @@ cimport dearcygui as dcg
 
 from dearcygui.core cimport lock_gil_friendly
 from dearcygui.c_types cimport unique_lock, recursive_mutex
+from libc.stdint cimport int32_t
 from libcpp.cmath cimport round as cround
 from libcpp.map cimport map, pair
 from libcpp.set cimport set
@@ -22,9 +23,9 @@ cdef struct TileData:
     double xmax
     double ymin
     double ymax
-    int width
-    int height
-    int last_frame_count
+    int32_t width
+    int32_t height
+    int32_t last_frame_count
     bint show
     PyObject *texture
 
@@ -39,7 +40,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
 
     cdef double margin
     cdef map[long long, TileData] _tiles
-    cdef set[pair[int, int]] _requested_tiles
+    cdef set[pair[int32_t, int32_t]] _requested_tiles
 
     def __cinit__(self):
         self.margin = 128
@@ -99,7 +100,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         """
         cdef pair[long long, TileData] tile_data
         cdef long long uuid = -1
-        cdef int worst_last_frame_count = -1
+        cdef int32_t worst_last_frame_count = -1
         for tile_data in self._tiles:
             if uuid == -1 or \
                tile_data.second.last_frame_count < worst_last_frame_count:
@@ -365,7 +366,7 @@ class SkiaSVGRenderer(SVGRenderer):
         return (tx, ty)
 
     def allocate_texture(self, C : dcg.Context,
-                         int width, int height,
+                         int32_t width, int32_t height,
                          bint allow_gpu = False) -> None:
         """Allocate a texture for rendering the SVG content"""
         skia = self.skia
@@ -532,11 +533,11 @@ cdef class DrawSVG(dcg.drawingItem):
     cdef object _renderer
     cdef dcg.Texture _texture
     # size of the texture
-    cdef int _texture_width
-    cdef int _texture_height
+    cdef int32_t _texture_width
+    cdef int32_t _texture_height
     # size of the rendered area which the texture contains a crop of
-    cdef int _rendered_ref_width
-    cdef int _rendered_ref_height
+    cdef int32_t _rendered_ref_width
+    cdef int32_t _rendered_ref_height
     # relative coordinates of the rendered area that maps to the texture
     cdef double _texture_u0
     cdef double _texture_u1
@@ -713,8 +714,8 @@ cdef class DrawSVG(dcg.drawingItem):
             v1 = (v1 - self._texture_v0) / (self._texture_v1 - self._texture_v0)
 
         # Round to integers
-        cdef int width = <int>cround(w)
-        cdef int height = <int>cround(h)
+        cdef int32_t width = <int>cround(w)
+        cdef int32_t height = <int>cround(h)
         cdef double scalex, scaley
 
 

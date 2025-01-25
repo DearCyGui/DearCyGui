@@ -18,6 +18,7 @@ cimport cython
 from cpython.ref cimport PyObject
 
 from dearcygui.wrapper cimport imgui
+from libc.stdint cimport int32_t
 from libcpp.cmath cimport floor
 
 from .core cimport uiItem, Callback, lock_gil_friendly
@@ -72,7 +73,7 @@ cdef class Layout(uiItem):
         self._previous_last_child = NULL
 
     def update_layout(self):
-        cdef int i
+        cdef int32_t i
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         for i in range(<int>self._callbacks.size()):
@@ -311,7 +312,7 @@ cdef class HorizontalLayout(Layout):
         lock_gil_friendly(m, self.mutex)
         self._force_update = True
 
-    cdef float __compute_items_size(self, int &n_items) noexcept nogil:
+    cdef float __compute_items_size(self, int32_t &n_items) noexcept nogil:
         cdef float size = 0.
         n_items = 0
         cdef PyObject *child = <PyObject*>self.last_widgets_child
@@ -329,7 +330,7 @@ cdef class HorizontalLayout(Layout):
         # assumes children are locked and > 0
         cdef float available_width = self.state.cur.content_region_size.x
         cdef float pos_start = 0.
-        cdef int i = 0
+        cdef int32_t i = 0
         cdef PyObject *child = <PyObject*>self.last_widgets_child
         cdef bint pos_change = False
 
@@ -391,7 +392,7 @@ cdef class HorizontalLayout(Layout):
         while ((<uiItem>child).prev_sibling) is not None:
             child = <PyObject*>((<uiItem>child).prev_sibling)
         cdef PyObject *sibling
-        cdef int i, n_items_this_row, row
+        cdef int32_t i, n_items_this_row, row
         cdef float target_x, expected_x, expected_size, expected_size_next
         cdef float y, next_y = 0
         cdef float wrap_x = max(-self.state.cur.pos_to_window.x, self._wrap_x)
@@ -619,7 +620,7 @@ cdef class VerticalLayout(Layout):
         lock_gil_friendly(m, self.mutex)
         self._force_update = True
 
-    cdef float __compute_items_size(self, int &n_items) noexcept nogil:
+    cdef float __compute_items_size(self, int32_t &n_items) noexcept nogil:
         cdef float size = 0.
         n_items = 0
         cdef PyObject *child = <PyObject*>self.last_widgets_child
@@ -646,7 +647,7 @@ cdef class VerticalLayout(Layout):
         cdef float available_height = self.state.cur.content_region_size.y
 
         cdef float pos_end, pos_start, target_pos, size, spacing, rem
-        cdef int n_items = 0
+        cdef int32_t n_items = 0
         if self._alignment_mode == Alignment.TOP:
             child = <PyObject*>self.last_widgets_child
             while (<uiItem>child) is not None:
@@ -774,7 +775,7 @@ cdef class WindowLayout(uiItem):
         self.state.cap.has_content_region = True
 
     def update_layout(self):
-        cdef int i
+        cdef int32_t i
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         for i in range(<int>self._callbacks.size()):
@@ -879,7 +880,7 @@ cdef class WindowLayout(uiItem):
         self.context.viewport.parent_size = parent_size_backup
 
     cdef void __update_layout(self) noexcept nogil:
-        cdef int i
+        cdef int32_t i
 
         with gil:
             for i in range(<int>self._callbacks.size()):
@@ -1061,7 +1062,7 @@ cdef class WindowHorizontalLayout(WindowLayout):
             self._positions.push_back(v)
         self._force_update = True
 
-    cdef float __compute_items_size(self, int &n_items) noexcept nogil:
+    cdef float __compute_items_size(self, int32_t &n_items) noexcept nogil:
         """Compute total width of all windows"""
         cdef float size = 0.
         n_items = 0
@@ -1086,7 +1087,7 @@ cdef class WindowHorizontalLayout(WindowLayout):
             child = <PyObject*>((<uiItem>child).prev_sibling) 
 
         cdef PyObject *sibling
-        cdef int i, n_items_this_row
+        cdef int32_t i, n_items_this_row
         cdef float target_x, expected_x, expected_size
         cdef bint pos_change = False
 
@@ -1249,7 +1250,7 @@ cdef class WindowVerticalLayout(WindowLayout):
             self._positions.push_back(v)
         self._force_update = True
 
-    cdef float __compute_items_size(self, int &n_items) noexcept nogil:
+    cdef float __compute_items_size(self, int32_t &n_items) noexcept nogil:
         cdef float size = 0.
         n_items = 0
         cdef PyObject *child = <PyObject*>self.last_window_child
@@ -1273,7 +1274,7 @@ cdef class WindowVerticalLayout(WindowLayout):
             child = <PyObject*>((<uiItem>child).prev_sibling) 
 
         cdef PyObject *sibling
-        cdef int i, n_items_this_row
+        cdef int32_t i, n_items_this_row
         cdef float target_y, expected_y, expected_size
         cdef bint pos_change = False
 

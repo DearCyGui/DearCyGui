@@ -340,7 +340,7 @@ cdef class DrawStream(dcg.DrawingList):
     cdef bint _allow_no_children
     cdef bint _no_skip_children
     cdef double _time_modulus
-    cdef int _last_index
+    cdef int32_t  _last_index
     cdef deque[pair[double, PyObject*]] _expiry_times # Weak ref
 
     def __cinit__(self):
@@ -357,19 +357,19 @@ cdef class DrawStream(dcg.DrawingList):
             return fmod(current_time, self._time_modulus)
         return current_time
 
-    cdef int _get_index_to_show(self) noexcept nogil:
+    cdef int32_t  _get_index_to_show(self) noexcept nogil:
         """Return the index of the item to show. -1 if None"""
         cdef pair[double, PyObject*] element
         cdef double current_time = self._get_time_with_modulus()
-        cdef int i = 0
-        cdef int result = -1
+        cdef int32_t  i = 0
+        cdef int32_t  result = -1
         for element in self._expiry_times:
             if element.first > current_time:
                 result = i
                 break
             i = i + 1
         # All children are outdated or no children
-        cdef int num_items = self._expiry_times.size()
+        cdef int32_t  num_items = self._expiry_times.size()
         if result == -1:
             if self._allow_no_children:
                 result = num_items
@@ -460,14 +460,14 @@ cdef class DrawStream(dcg.DrawingList):
             return
         cdef set[PyObject*] candidates
         cdef pair[double, PyObject*] element
-        cdef int index_to_show = self._get_index_to_show()
+        cdef int32_t  index_to_show = self._get_index_to_show()
         if index_to_show == -1:
             # All are to be removed or no children
             self._expiry_times.clear()
             self.children = []
             self._last_index = -1
             return
-        cdef int i = 0
+        cdef int32_t  i = 0
         for element in self._expiry_times:
             if i < index_to_show:
                 # outdated
@@ -535,7 +535,7 @@ cdef class DrawStream(dcg.DrawingList):
         """Draw the first unexpired child in the stream."""
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         # Find index to show
-        cdef int index_to_show = self._get_index_to_show()
+        cdef int32_t  index_to_show = self._get_index_to_show()
 
         if self._last_index != index_to_show:
             # If the children have the same number of

@@ -9,7 +9,7 @@ from libc.math cimport M_PI, INFINITY
 
 cdef void t_draw_line(Context context, void* drawlist,
                     float x1, float y1, float x2, float y2,
-                    unsigned int color, float thickness) noexcept nogil:
+                    uint32_t color, float thickness) noexcept nogil:
     # Create imgui.ImVec2 points
     cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
     cdef imgui.ImVec2 ip2 = imgui.ImVec2(x2, y2) 
@@ -18,7 +18,7 @@ cdef void t_draw_line(Context context, void* drawlist,
 
 cdef void draw_line(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
-                    unsigned int color, float thickness) noexcept nogil:
+                    uint32_t color, float thickness) noexcept nogil:
     # Transform coordinates 
     cdef float[2] p1, p2
     cdef double[2] pos1, pos2
@@ -33,7 +33,7 @@ cdef void draw_line(Context context, void* drawlist,
 
 cdef void t_draw_rect(Context context, void* drawlist,
                       float x1, float y1, float x2, float y2,
-                      unsigned int color, unsigned int fill_color,
+                      uint32_t color, uint32_t fill_color,
                       float thickness, float rounding) noexcept nogil:
     # Create imgui.ImVec2 points
     cdef imgui.ImVec2 ipmin = imgui.ImVec2(x1, y1)
@@ -61,7 +61,7 @@ cdef void t_draw_rect(Context context, void* drawlist,
 
 cdef void draw_rect(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
-                    unsigned int color, unsigned int fill_color,
+                    uint32_t color, uint32_t fill_color,
                     float thickness, float rounding) noexcept nogil:
     # Transform coordinates
     cdef float[2] pmin, pmax
@@ -78,8 +78,8 @@ cdef void draw_rect(Context context, void* drawlist,
 
 cdef void t_draw_rect_multicolor(Context context, void* drawlist,
                                  float x1, float y1, float x2, float y2,
-                                 unsigned int col_up_left, unsigned int col_up_right, 
-                                 unsigned int col_bot_right, unsigned int col_bot_left) noexcept nogil:
+                                 uint32_t col_up_left, uint32_t col_up_right, 
+                                 uint32_t col_bot_right, uint32_t col_bot_left) noexcept nogil:
 
     cdef imgui.ImVec2 ipmin = imgui.ImVec2(x1, y1)
     cdef imgui.ImVec2 ipmax = imgui.ImVec2(x2, y2)
@@ -103,8 +103,8 @@ cdef void t_draw_rect_multicolor(Context context, void* drawlist,
 
 cdef void draw_rect_multicolor(Context context, void* drawlist,
                                double x1, double y1, double x2, double y2,
-                               unsigned int col_up_left, unsigned int col_up_right, 
-                               unsigned int col_bot_right, unsigned int col_bot_left) noexcept nogil:
+                               uint32_t col_up_left, uint32_t col_up_right, 
+                               uint32_t col_bot_right, uint32_t col_bot_left) noexcept nogil:
     # Transform coordinates
     cdef float[2] pmin, pmax  
     cdef double[2] pos1, pos2
@@ -120,7 +120,7 @@ cdef void draw_rect_multicolor(Context context, void* drawlist,
 
 cdef void t_draw_triangle(Context context, void* drawlist,
                           float x1, float y1, float x2, float y2, float x3, float y3,
-                          unsigned int color, unsigned int fill_color,
+                          uint32_t color, uint32_t fill_color,
                           float thickness) noexcept nogil:
     # Create imgui.ImVec2 points
     cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
@@ -144,7 +144,7 @@ cdef void t_draw_triangle(Context context, void* drawlist,
 
 cdef void draw_triangle(Context context, void* drawlist,
                        double x1, double y1, double x2, double y2, double x3, double y3,
-                       unsigned int color, unsigned int fill_color,
+                       uint32_t color, uint32_t fill_color,
                        float thickness) noexcept nogil:
     # Transform coordinates
     cdef float[2] p1, p2, p3
@@ -166,7 +166,7 @@ cdef void t_draw_textured_triangle(Context context, void* drawlist,
                                   void* texture,
                                   float x1, float y1, float x2, float y2, float x3, float y3,
                                   float u1, float v1, float u2, float v2, float u3, float v3,
-                                  unsigned int tint_color) noexcept nogil:
+                                  uint32_t tint_color) noexcept nogil:
     if tint_color == 0:
         return
     # Create imgui.ImVec2 points
@@ -193,7 +193,7 @@ cdef void draw_textured_triangle(Context context, void* drawlist,
                                 void* texture,
                                 double x1, double y1, double x2, double y2, double x3, double y3,
                                 float u1, float v1, float u2, float v2, float u3, float v3,
-                                unsigned int tint_color) noexcept nogil:
+                                uint32_t tint_color) noexcept nogil:
     # Transform coordinates
     cdef float[2] p1, p2, p3
     cdef double[2] pos1, pos2, pos3
@@ -214,7 +214,7 @@ cdef void draw_textured_triangle(Context context, void* drawlist,
 cdef void t_draw_quad(Context context, void* drawlist,
                     float x1, float y1, float x2, float y2,
                     float x3, float y3, float x4, float y4, 
-                    unsigned int color, unsigned int fill_color,
+                    uint32_t color, uint32_t fill_color,
                     float thickness) noexcept nogil:
     # Create imgui.ImVec2 points
     cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
@@ -246,7 +246,7 @@ cdef void t_draw_quad(Context context, void* drawlist,
 cdef void draw_quad(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
                     double x3, double y3, double x4, double y4, 
-                    unsigned int color, unsigned int fill_color,
+                    uint32_t color, uint32_t fill_color,
                     float thickness) noexcept nogil:
     # Transform coordinates
     cdef float[2] p1, p2, p3, p4
@@ -269,8 +269,8 @@ cdef void draw_quad(Context context, void* drawlist,
 
 cdef void t_draw_circle(Context context, void* drawlist,
                       float x, float y, float radius,
-                      unsigned int color, unsigned int fill_color,
-                      float thickness, int num_segments) noexcept nogil:
+                      uint32_t color, uint32_t fill_color,
+                      float thickness, int32_t num_segments) noexcept nogil:
     # Create imgui.ImVec2 point
     cdef imgui.ImVec2 icenter = imgui.ImVec2(x, y)
     radius = abs(radius)
@@ -282,8 +282,8 @@ cdef void t_draw_circle(Context context, void* drawlist,
 
 cdef void draw_circle(Context context, void* drawlist,
                       double x, double y, double radius,
-                      unsigned int color, unsigned int fill_color,
-                      float thickness, int num_segments) noexcept nogil:
+                      uint32_t color, uint32_t fill_color,
+                      float thickness, int32_t num_segments) noexcept nogil:
     # Transform coordinates
     cdef float[2] center
     cdef double[2] pos
@@ -299,7 +299,7 @@ cdef void t_draw_image_quad(Context context, void* drawlist,
                          float x3, float y3, float x4, float y4,
                          float u1, float v1, float u2, float v2,
                          float u3, float v3, float u4, float v4,
-                         unsigned int tint_color) noexcept nogil:
+                         uint32_t tint_color) noexcept nogil:
     # Create imgui.ImVec2 points
     cdef imgui.ImVec2 ip1 = imgui.ImVec2(x1, y1)
     cdef imgui.ImVec2 ip2 = imgui.ImVec2(x2, y2)
@@ -322,7 +322,7 @@ cdef void draw_image_quad(Context context, void* drawlist,
                          double x3, double y3, double x4, double y4,
                          float u1, float v1, float u2, float v2,
                          float u3, float v3, float u4, float v4,
-                         unsigned int tint_color) noexcept nogil:
+                         uint32_t tint_color) noexcept nogil:
     # Transform coordinates
     cdef float[2] p1, p2, p3, p4
     cdef double[2] pos1, pos2, pos3, pos4
@@ -346,8 +346,8 @@ cdef void draw_image_quad(Context context, void* drawlist,
 cdef void t_draw_regular_polygon(Context context, void* drawlist,
                                  float centerx, float centery,
                                  float radius, float direction,  
-                                 int num_points,
-                                 unsigned int color, unsigned int fill_color,
+                                 int32_t num_points,
+                                 uint32_t color, uint32_t fill_color,
                                  float thickness) noexcept nogil:
 
     if num_points <= 1:
@@ -365,7 +365,7 @@ cdef void t_draw_regular_polygon(Context context, void* drawlist,
     cdef float angle
     cdef float angle_step = 2.0 * M_PI / num_points
     cdef float px, py
-    cdef int i
+    cdef int32_t i
     
     for i in range(num_points):
         angle = -direction + i * angle_step  # Negative direction for y-up coords
@@ -397,8 +397,8 @@ cdef void t_draw_regular_polygon(Context context, void* drawlist,
 cdef void draw_regular_polygon(Context context, void* drawlist,
                              double centerx, double centery,
                              double radius, double direction,  
-                             int num_points,
-                             unsigned int color, unsigned int fill_color,
+                             int32_t num_points,
+                             uint32_t color, uint32_t fill_color,
                              float thickness) noexcept nogil:
 
     if num_points <= 1:
@@ -420,8 +420,8 @@ cdef void draw_regular_polygon(Context context, void* drawlist,
 cdef void t_draw_star(Context context, void* drawlist,
                       float centerx, float centery, 
                       float radius, float inner_radius,
-                      float direction, int num_points,
-                      unsigned int color, unsigned int fill_color,
+                      float direction, int32_t num_points,
+                      uint32_t color, uint32_t fill_color,
                       float thickness) noexcept nogil:
 
     if num_points < 3:
@@ -443,7 +443,7 @@ cdef void t_draw_star(Context context, void* drawlist,
     cdef double angle_step = M_PI / num_points
     cdef float px, py
     cdef imgui.ImVec2 pt
-    cdef int i
+    cdef int32_t i
     
     # Generate outer and inner points alternating
     for i in range(num_points * 2):
@@ -498,8 +498,8 @@ cdef void t_draw_star(Context context, void* drawlist,
 cdef void draw_star(Context context, void* drawlist,
                     double centerx, double centery, 
                     double radius, double inner_radius,
-                    double direction, int num_points,
-                    unsigned int color, unsigned int fill_color,
+                    double direction, int32_t num_points,
+                    uint32_t color, uint32_t fill_color,
                     float thickness) noexcept nogil:
 
     if num_points < 3:
@@ -521,7 +521,7 @@ cdef void draw_star(Context context, void* drawlist,
 cdef void t_draw_text(Context context, void* drawlist,
                       float x, float y,
                       const char* text,
-                      unsigned int color,
+                      uint32_t color,
                       void* font, float size) noexcept nogil:    
     # Create ImVec2 point
     cdef imgui.ImVec2 ipos = imgui.ImVec2(x, y)
@@ -543,7 +543,7 @@ cdef void t_draw_text(Context context, void* drawlist,
 cdef void draw_text(Context context, void* drawlist,
                     double x, double y,
                     const char* text,
-                    unsigned int color,
+                    uint32_t color,
                     void* font, float size) noexcept nogil:
     # Transform coordinates
     cdef float[2] pos
@@ -557,7 +557,7 @@ cdef void draw_text(Context context, void* drawlist,
 cdef void t_draw_text_quad(Context context, void* drawlist,
                          float x1, float y1, float x2, float y2,  
                          float x3, float y3, float x4, float y4,
-                         const char* text, unsigned int color,
+                         const char* text, uint32_t color,
                          void* font, bint preserve_ratio) noexcept nogil:
     # Get draw list for low-level operations
     cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist
@@ -606,8 +606,8 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
 
     # Process each character
     cdef const char* text_end = NULL  # Process until null terminator
-    cdef unsigned int c = 0
-    cdef int bytes_read = 0
+    cdef uint32_t c = 0
+    cdef int32_t bytes_read = 0
     cdef const char* s = text
     cdef const imgui.ImFontGlyph* glyph = NULL
     cdef float char_width
@@ -684,7 +684,7 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
 cdef void draw_text_quad(Context context, void* drawlist,
                          double x1, double y1, double x2, double y2,  
                          double x3, double y3, double x4, double y4,
-                         const char* text, unsigned int color,
+                         const char* text, uint32_t color,
                          void* font, bint preserve_ratio) noexcept nogil:
     # Transform coordinates
     cdef float[2] p1, p2, p3, p4
@@ -724,23 +724,23 @@ cdef Vec2 get_cursor_pos() noexcept nogil:
     result.y = pos.y
     return result
 
-cdef void push_theme_color(int idx, float r, float g, float b, float a) noexcept nogil:
+cdef void push_theme_color(int32_t idx, float r, float g, float b, float a) noexcept nogil:
     imgui.PushStyleColor(idx, imgui.ImVec4(r, g, b, a))
 
 cdef void pop_theme_color() noexcept nogil:
     imgui.PopStyleColor(1)
     
-cdef void push_theme_style_float(int idx, float val) noexcept nogil:
+cdef void push_theme_style_float(int32_t idx, float val) noexcept nogil:
     imgui.PushStyleVar(idx, val)
 
-cdef void push_theme_style_vec2(int idx, float x, float y) noexcept nogil:
+cdef void push_theme_style_vec2(int32_t idx, float x, float y) noexcept nogil:
     cdef imgui.ImVec2 val = imgui.ImVec2(x, y)
     imgui.PushStyleVar(idx, val)
     
 cdef void pop_theme_style() noexcept nogil:
     imgui.PopStyleVar(1)
 
-cdef Vec4 get_theme_color(int idx) noexcept nogil:
+cdef Vec4 get_theme_color(int32_t idx) noexcept nogil:
     """Retrieve the current theme color for a target idx."""
     cdef imgui.ImVec4 color = imgui.GetStyleColorVec4(idx)
     cdef Vec4 result
@@ -779,7 +779,7 @@ cdef Vec2 calc_text_size(const char* text, void* font, float size, float wrap_wi
     result.y = text_size.y
     return result
 
-cdef GlyphInfo get_glyph_info(void* font, unsigned int codepoint) noexcept nogil:
+cdef GlyphInfo get_glyph_info(void* font, uint32_t codepoint) noexcept nogil:
     # Get font
     cdef imgui.ImFont* cur_font
     if font != NULL:

@@ -15,6 +15,7 @@
 #distutils: language=c++
 
 from libcpp cimport bool
+from libc.stdint cimport uint32_t, int32_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, memset
 
@@ -175,7 +176,7 @@ cdef class DrawInvisibleButton(drawingItem):
         return self._min_side
 
     @min_side.setter
-    def min_side(self, int value):
+    def min_side(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
@@ -196,7 +197,7 @@ cdef class DrawInvisibleButton(drawingItem):
         return self._max_side
 
     @max_side.setter
-    def max_side(self, int value):
+    def max_side(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
@@ -214,7 +215,7 @@ cdef class DrawInvisibleButton(drawingItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
-        cdef int i
+        cdef int32_t i
         cdef baseHandler handler
         for i in range(<int>self._handlers.size()):
             handler = <baseHandler>self._handlers[i]
@@ -226,7 +227,7 @@ cdef class DrawInvisibleButton(drawingItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
-        cdef int i
+        cdef int32_t i
         if value is None:
             clear_obj_vector(self._handlers)
             return
@@ -529,7 +530,7 @@ cdef class DrawInvisibleButton(drawingItem):
             cur_mouse_pos.y = coordinate_p[1]
             self._initial_mouse_position = cur_mouse_pos
         cdef bint dragging = False
-        cdef int i
+        cdef int32_t i
         if self.state.cur.active:
             cur_mouse_pos = ImVec2Vec2(imgui.GetMousePos())
             screen_p[0] = cur_mouse_pos.x
@@ -932,7 +933,7 @@ cdef class SimplePlot(uiItem):
 
     cdef bint draw_item(self) noexcept nogil:
         cdef float[:] data = SharedFloatVect.get(<SharedFloatVect>self._value)
-        cdef int i
+        cdef int32_t i
         if self._autoscale and data.shape[0] > 0:
             if self._value._last_frame_change != self._last_frame_autoscale_update:
                 self._last_frame_autoscale_update = self._value._last_frame_change
@@ -1216,7 +1217,7 @@ cdef class Combo(uiItem):
 
     cdef bint draw_item(self) noexcept nogil:
         cdef bint open
-        cdef int i
+        cdef int32_t i
         cdef string current_value
         SharedStr.get(<SharedStr>self._value, current_value)
         open = imgui.BeginCombo(self._imgui_label.c_str(),
@@ -1345,7 +1346,7 @@ cdef class Slider(uiItem):
     def format(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef int target_format
+        cdef int32_t target_format
         if value == "int":
             target_format = 0
         elif value == "float":
@@ -1392,7 +1393,7 @@ cdef class Slider(uiItem):
         
 
     @size.setter
-    def size(self, int target_size):
+    def size(self, int32_t target_size):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if target_size < 0 or target_size > 4:
@@ -1612,17 +1613,17 @@ cdef class Slider(uiItem):
         if not(self._enabled):
             flags |= imgui.ImGuiSliderFlags_NoInput
         cdef imgui.ImGuiDataType type
-        cdef int value_int
+        cdef int32_t value_int
         cdef float value_float
         cdef double value_double
-        cdef int[4] value_int4
+        cdef int32_t[4] value_int4
         cdef float[4] value_float4
         cdef double[4] value_double4
         cdef void *data
         cdef void *data_min
         cdef void *data_max
         cdef bint modified
-        cdef int imin, imax
+        cdef int32_t imin, imax
         cdef float fmin, fmax
         cdef double dmin, dmax
         # Prepare data type
@@ -1794,7 +1795,7 @@ cdef class ListBox(uiItem):
         return self._num_items_shown_when_open
 
     @num_items_shown_when_open.setter
-    def num_items_shown_when_open(self, int value):
+    def num_items_shown_when_open(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._num_items_shown_when_open = value
@@ -1803,12 +1804,12 @@ cdef class ListBox(uiItem):
         # TODO: Merge with ComboBox
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef bint visible
-        cdef int i
+        cdef int32_t i
         cdef string current_value
         SharedStr.get(<SharedStr>self._value, current_value)
         cdef imgui.ImVec2 popup_size = imgui.ImVec2(0., 0.)
         cdef float text_height = imgui.GetTextLineHeightWithSpacing()
-        cdef int num_items = min(7, <int>self._items.size())
+        cdef int32_t num_items = min(7, <int>self._items.size())
         if self._num_items_shown_when_open > 0:
             num_items = self._num_items_shown_when_open
         # Computation from imgui
@@ -1924,7 +1925,7 @@ cdef class RadioButton(uiItem):
     cdef bint draw_item(self) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef bint open
-        cdef int i
+        cdef int32_t i
         cdef string current_value
         SharedStr.get(<SharedStr>self._value, current_value)
         imgui.PushID(self.uuid)
@@ -2029,7 +2030,7 @@ cdef class InputText(uiItem):
         return self._max_characters
 
     @max_characters.setter
-    def max_characters(self, int value):
+    def max_characters(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 1:
@@ -2310,7 +2311,7 @@ cdef class InputText(uiItem):
 
     cdef bint draw_item(self) noexcept nogil:
         cdef string current_value
-        cdef int size
+        cdef int32_t size
         cdef imgui.ImGuiInputTextFlags flags = self._flags
         
         # Get current value from source if needed
@@ -2363,7 +2364,7 @@ cdef class InputText(uiItem):
         return changed
 
 ctypedef fused clamp_types:
-    int
+    int32_t
     float
     double
 
@@ -2435,7 +2436,7 @@ cdef class InputValue(uiItem):
     def format(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef int target_format
+        cdef int32_t target_format
         if value == "int":
             target_format = 0
         elif value == "float":
@@ -2482,7 +2483,7 @@ cdef class InputValue(uiItem):
         
 
     @size.setter
-    def size(self, int target_size):
+    def size(self, int32_t target_size):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if target_size < 0 or target_size > 4:
@@ -2822,17 +2823,17 @@ cdef class InputValue(uiItem):
         if not(self._enabled):
             flags |= imgui.ImGuiInputTextFlags_ReadOnly
         cdef imgui.ImGuiDataType type
-        cdef int value_int
+        cdef int32_t value_int
         cdef float value_float
         cdef double value_double
-        cdef int[4] value_int4
+        cdef int32_t[4] value_int4
         cdef float[4] value_float4
         cdef double[4] value_double4
         cdef void *data
         cdef void *data_step = NULL
         cdef void *data_step_fast = NULL
         cdef bint modified
-        cdef int istep, istep_fast
+        cdef int32_t istep, istep_fast
         cdef float fstep, fstep_fast
         cdef double dstep, dstep_fast
         # Prepare data type
@@ -2908,11 +2909,11 @@ cdef class InputValue(uiItem):
             if self._format == 0:
                 if self._size == 1:
                     if modified:
-                        clamp1[int](value_int, self._min, self._max)
+                        clamp1[int32_t](value_int, self._min, self._max)
                     SharedInt.set(<SharedInt>self._value, value_int)
                 else:
                     if modified:
-                        clamp4[int](value_int4, self._min, self._max)
+                        clamp4[int32_t](value_int4, self._min, self._max)
                     SharedInt4.set(<SharedInt4>self._value, value_int4)
             elif self._format == 1:
                 if self._size == 1:
@@ -3004,7 +3005,7 @@ cdef class Text(uiItem):
         return <int>self._wrap
 
     @wrap.setter
-    def wrap(self, int value):
+    def wrap(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._wrap = value
@@ -3178,15 +3179,15 @@ cdef class TextValue(uiItem):
 
     cdef bint draw_item(self) noexcept nogil:
         cdef bool value_bool
-        cdef int value_int
+        cdef int32_t value_int
         cdef float value_float
         cdef double value_double
         cdef Vec4 value_color
-        cdef int[4] value_int4
+        cdef int32_t[4] value_int4
         cdef float[4] value_float4
         cdef double[4] value_double4
         cdef float[:] value_vect
-        cdef int i
+        cdef int32_t i
         if self._type == 0:
             value_bool = SharedBool.get(<SharedBool>self._value)
             imgui.Text(self._print_format.c_str(), value_bool)
@@ -3525,7 +3526,7 @@ cdef class ImageButton(uiItem):
         lock_gil_friendly(m, self.mutex)
         return self._frame_padding
     @frame_padding.setter
-    def frame_padding(self, int value):
+    def frame_padding(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._frame_padding = value
@@ -3715,7 +3716,7 @@ cdef class MenuBar(uiItem):
             # or has no menu bar
             self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
         cdef bint activated = self.state.cur.active and not(self.state.prev.active)
-        cdef int i
+        cdef int32_t i
         if activated and not(self._callbacks.empty()):
             for i in range(<int>self._callbacks.size()):
                 self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
@@ -5839,7 +5840,7 @@ cdef class SharedFloat(SharedValue):
         self.on_update(changed)
 
 cdef class SharedInt(SharedValue):
-    def __init__(self, Context context, int value):
+    def __init__(self, Context context, int32_t value):
         self._value = value
         self._num_attached = 0
     @property
@@ -5848,16 +5849,16 @@ cdef class SharedInt(SharedValue):
         lock_gil_friendly(m, self.mutex)
         return self._value
     @value.setter
-    def value(self, int value):
+    def value(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
-    cdef int get(self) noexcept nogil:
+    cdef int32_t get(self) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         return self._value
-    cdef void set(self, int value) noexcept nogil:
+    cdef void set(self, int32_t value) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef bint changed = value != self._value
         self._value = value
@@ -5872,9 +5873,9 @@ cdef class SharedColor(SharedValue):
     def value(self):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        "Color data is an int32 (rgba, little endian),\n" \
-        "If you pass an array of int (r, g, b, a), or float\n" \
-        "(r, g, b, a) normalized it will get converted automatically"
+        #"Color data is an int32 (rgba, little endian),\n" \
+        #"If you pass an array of int (r, g, b, a), or float\n" \
+        #"(r, g, b, a) normalized it will get converted automatically"
         return <int>self._value
     @value.setter
     def value(self, value):
@@ -5883,13 +5884,13 @@ cdef class SharedColor(SharedValue):
         self._value = parse_color(value)
         self._value_asfloat4 = ImVec4Vec4(imgui.ColorConvertU32ToFloat4(self._value))
         self.on_update(True)
-    cdef unsigned int getU32(self) noexcept nogil:
+    cdef uint32_t getU32(self) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         return self._value
     cdef Vec4 getF4(self) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         return self._value_asfloat4
-    cdef void setU32(self, unsigned int value) noexcept nogil:
+    cdef void setU32(self, uint32_t value) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         self._value = value
         self._value_asfloat4 = ImVec4Vec4(imgui.ColorConvertU32ToFloat4(self._value))
@@ -5979,7 +5980,7 @@ cdef class SharedFloat4(SharedValue):
 
 cdef class SharedInt4(SharedValue):
     def __init__(self, Context context, value):
-        read_vec4[int](self._value, value)
+        read_vec4[int32_t](self._value, value)
         self._num_attached = 0
     @property
     def value(self):
@@ -5990,15 +5991,15 @@ cdef class SharedInt4(SharedValue):
     def value(self, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        read_vec4[int](self._value, value)
+        read_vec4[int32_t](self._value, value)
         self.on_update(True)
-    cdef void get(self, int *dst) noexcept nogil:
+    cdef void get(self, int32_t *dst) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         dst[0] = self._value[0]
         dst[1] = self._value[1]
         dst[2] = self._value[2]
         dst[3] = self._value[3]
-    cdef void set(self, int[4] value) noexcept nogil:
+    cdef void set(self, int32_t[4] value) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         self._value[0] = value[0]
         self._value[1] = value[1]

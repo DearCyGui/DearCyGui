@@ -1,3 +1,4 @@
+from libc.stdint cimport int32_t
 from libcpp.deque cimport deque
 from libcpp.vector cimport vector
 from cpython.ref cimport PyObject
@@ -46,12 +47,12 @@ cdef class FontTexture(baseItem):
     cdef list _fonts
 
 cdef class GlyphSet:
-    cdef readonly int height
+    cdef readonly int32_t height
     cdef readonly dict images
     cdef readonly dict positioning
-    cdef readonly int origin_y
+    cdef readonly int32_t origin_y
     cpdef void add_glyph(self,
-                         int unicode_key, 
+                         int32_t unicode_key, 
                          object image,
                          float dy,
                          float dx,

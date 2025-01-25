@@ -533,7 +533,7 @@ cdef class DraggedHandler(baseHandler):
         cdef itemState *state = item.p_state
         if not(self._enabled):
             return
-        cdef int i = <int>self._button
+        cdef int32_t i = <int32_t>self._button
         if state.prev.dragging[i] and not(state.cur.dragging[i]):
                 self.context.queue_callback_arg2float(self._callback,
                                                       self,
@@ -579,7 +579,7 @@ cdef class DraggingHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef itemState *state = item.p_state
-        cdef int i = <int>self._button
+        cdef int32_t i = <int32_t>self._button
         if not(self._enabled):
             return
         if state.cur.dragging[i]:
@@ -1236,7 +1236,7 @@ cdef class KeyReleaseHandler(baseHandler):
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
-        cdef int i
+        cdef int32_t i
         if not(self._enabled):
             return
         if imgui.IsKeyReleased(<imgui.ImGuiKey>self._key):

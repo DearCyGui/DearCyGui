@@ -152,18 +152,18 @@ cdef class MouseCursorHandler(baseHandler):
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class KeyDownHandler(baseHandler):
-    cdef int _key
+    cdef int32_t _key
     cdef bint check_state(self, baseItem item) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class KeyPressHandler(baseHandler):
-    cdef int _key
+    cdef int32_t _key
     cdef bint _repeat
     cdef bint check_state(self, baseItem item) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class KeyReleaseHandler(baseHandler):
-    cdef int _key
+    cdef int32_t _key
     cdef bint check_state(self, baseItem item) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 

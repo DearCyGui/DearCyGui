@@ -3,6 +3,7 @@ from .c_types cimport Vec2
 from .types cimport Alignment
 
 from cpython.ref cimport PyObject
+from libc.stdint cimport int32_t
 from libcpp.vector cimport vector
 
 cdef class Layout(uiItem):
@@ -20,7 +21,7 @@ cdef class HorizontalLayout(Layout):
     cdef vector[float] _positions
     cdef bint _no_wrap
     cdef float _wrap_x
-    cdef float __compute_items_size(self, int&) noexcept nogil
+    cdef float __compute_items_size(self, int32_t&) noexcept nogil
     cdef void __update_layout_manual(self) noexcept nogil
     cdef void __update_layout(self) noexcept nogil
     cdef bint draw_item(self) noexcept nogil
@@ -28,7 +29,7 @@ cdef class HorizontalLayout(Layout):
 cdef class VerticalLayout(Layout):
     cdef Alignment _alignment_mode
     cdef vector[float] _positions
-    cdef float __compute_items_size(self, int&) noexcept nogil
+    cdef float __compute_items_size(self, int32_t&) noexcept nogil
     cdef void __update_layout(self) noexcept nogil
     cdef bint draw_item(self) noexcept nogil
 
@@ -46,11 +47,11 @@ cdef class WindowLayout(uiItem):
 cdef class WindowHorizontalLayout(WindowLayout):
     cdef Alignment _alignment_mode
     cdef vector[float] _positions 
-    cdef float __compute_items_size(self, int &n_items) noexcept nogil
+    cdef float __compute_items_size(self, int32_t &n_items) noexcept nogil
     cdef void __update_layout(self) noexcept nogil
 
 cdef class WindowVerticalLayout(WindowLayout):
     cdef Alignment _alignment_mode
     cdef vector[float] _positions 
-    cdef float __compute_items_size(self, int &n_items) noexcept nogil
+    cdef float __compute_items_size(self, int32_t &n_items) noexcept nogil
     cdef void __update_layout(self) noexcept nogil

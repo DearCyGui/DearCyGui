@@ -23,6 +23,7 @@ from libcpp.cmath cimport trunc
 from libcpp.map cimport map, pair
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libc.stdint cimport uint32_t, int32_t
 from libc.math cimport INFINITY
 
 from cython.operator cimport dereference
@@ -486,7 +487,7 @@ cdef class TableColConfig(baseItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
-        cdef int i
+        cdef int32_t i
         cdef baseHandler handler
         for i in range(<int>self._handlers.size()):
             handler = <baseHandler>self._handlers[i]
@@ -498,7 +499,7 @@ cdef class TableColConfig(baseItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
-        cdef int i
+        cdef int32_t i
         if value is None:
             clear_obj_vector(self._handlers)
             return
@@ -514,7 +515,7 @@ cdef class TableColConfig(baseItem):
         clear_obj_vector(self._handlers)
         append_obj_vector(self._handlers, items)
 
-    cdef void setup(self, int col_idx, unsigned table_flags) noexcept nogil:
+    cdef void setup(self, int32_t col_idx, uint32_t table_flags) noexcept nogil:
         """Setup the column"""
         cdef bint enabled_state_change = \
             self.state.cur.open != self.state.prev.open
@@ -539,7 +540,7 @@ cdef class TableColConfig(baseItem):
         if table_flags & imgui.ImGuiTableFlags_Hideable and enabled_state_change:
             imgui.TableSetColumnEnabled(col_idx, self.state.prev.open)
 
-    cdef void after_draw(self, int col_idx) noexcept nogil:
+    cdef void after_draw(self, int32_t col_idx) noexcept nogil:
         """After draw, update the states"""
         cdef imgui.ImGuiTableColumnFlags flags = imgui.TableGetColumnFlags(col_idx)
 
@@ -564,19 +565,19 @@ cdef class TableColConfigView:
     def __cinit__(self):
         self.table = None
 
-    def __getitem__(self, int col_idx) -> TableColConfig:
+    def __getitem__(self, int32_t col_idx) -> TableColConfig:
         """Get the column configuration for the specified column."""
         return self.table.get_col_config(col_idx)
 
-    def __setitem__(self, int col_idx, TableColConfig config) -> None:
+    def __setitem__(self, int32_t col_idx, TableColConfig config) -> None:
         """Set the column configuration for the specified column."""
         self.table.set_col_config(col_idx, config)
 
-    def __delitem__(self, int col_idx) -> None:
+    def __delitem__(self, int32_t col_idx) -> None:
         """Delete the column configuration for the specified column."""
         self.table.set_col_config(col_idx, TableColConfig(self.table.context))
 
-    def __call__(self, int col_idx, str attribute, value) -> TableColConfig:
+    def __call__(self, int32_t col_idx, str attribute, value) -> TableColConfig:
         """Set an attribute of the column configuration for the specified column."""
         cdef TableColConfig config = self.table.get_col_config(col_idx)
         setattr(config, attribute, value)
@@ -599,7 +600,7 @@ cdef class TableRowConfig(baseItem):
     #cdef itemState state
     cdef bint show
     cdef float min_height
-    cdef unsigned bg_color
+    cdef uint32_t bg_color
 
     def __cinit__(self):
         #self.p_state = &self.state
@@ -667,7 +668,7 @@ cdef class TableRowConfig(baseItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
-        cdef int i
+        cdef int32_t i
         cdef baseHandler handler
         for i in range(<int>self._handlers.size()):
             handler = <baseHandler>self._handlers[i]
@@ -679,7 +680,7 @@ cdef class TableRowConfig(baseItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
-        cdef int i
+        cdef int32_t i
         if value is None:
             clear_obj_vector(self._handlers)
             return
@@ -708,19 +709,19 @@ cdef class TableRowConfigView:
     def __cinit__(self):
         self.table = None
 
-    def __getitem__(self, int row_idx) -> TableRowConfig:
+    def __getitem__(self, int32_t row_idx) -> TableRowConfig:
         """Get the column configuration for the specified column."""
         return self.table.get_row_config(row_idx)
 
-    def __setitem__(self, int row_idx, TableRowConfig config) -> None:
+    def __setitem__(self, int32_t row_idx, TableRowConfig config) -> None:
         """Set the column configuration for the specified column."""
         self.table.set_row_config(row_idx, config)
 
-    def __delitem__(self, int col_idx) -> None:
+    def __delitem__(self, int32_t col_idx) -> None:
         """Delete the column configuration for the specified column."""
         self.table.set_row_config(col_idx, TableRowConfig(self.table.context))
 
-    def __call__(self, int row_idx, str attribute, value) -> TableRowConfig:
+    def __call__(self, int32_t row_idx, str attribute, value) -> TableRowConfig:
         """Set an attribute of the column configuration for the specified column."""
         cdef TableRowConfig config = self.table.get_row_config(row_idx)
         setattr(config, attribute, value)
@@ -749,7 +750,7 @@ cdef struct TableElementData:
     # if tooltip_ui_item is not set, value used
     # for the tooltip
     string str_tooltip
-    unsigned bg_color
+    uint32_t bg_color
 
 cdef class TableElement:
     """
@@ -909,7 +910,7 @@ cdef class TablePlaceHolderParent(baseItem):
 cdef class TableRowView:
     """View class for accessing and manipulating a single row of a Table."""
     cdef Table table
-    cdef int row_idx
+    cdef int32_t row_idx
     cdef TablePlaceHolderParent _temp_parent # For with statement
 
     def __init__(self):
@@ -951,21 +952,21 @@ cdef class TableRowView:
         self._temp_parent = None
         return False
 
-    def __getitem__(self, int col_idx):
+    def __getitem__(self, int32_t col_idx):
         """Get item at specified column."""
         return self.table._get_single_item(self.row_idx, col_idx)
 
-    def __setitem__(self, int col_idx, value):  
+    def __setitem__(self, int32_t col_idx, value):  
         """Set item at specified column."""
         self.table._set_single_item(self.row_idx, col_idx, value)
 
-    def __delitem__(self, int col_idx):
+    def __delitem__(self, int32_t col_idx):
         """Delete item at specified column."""
-        cdef pair[int, int] key = pair[int, int](self.row_idx, col_idx)
+        cdef pair[int32_t, int32_t] key = pair[int32_t, int32_t](self.row_idx, col_idx)
         self.table._delete_item(key)
 
     @staticmethod
-    cdef create(Table table, int row_idx):
+    cdef create(Table table, int32_t row_idx):
         """Create a TableRowView for the specified row."""
         cdef TableRowView view = TableRowView.__new__(TableRowView)
         view.row_idx = row_idx
@@ -975,7 +976,7 @@ cdef class TableRowView:
 cdef class TableColView:
     """View class for accessing and manipulating a single column of a Table."""
     cdef Table table  
-    cdef int col_idx
+    cdef int32_t col_idx
     cdef TablePlaceHolderParent _temp_parent # For with statement
 
     def __init__(self):
@@ -1017,21 +1018,21 @@ cdef class TableColView:
         self._temp_parent = None
         return False
 
-    def __getitem__(self, int row_idx):
+    def __getitem__(self, int32_t row_idx):
         """Get item at specified row."""
         return self.table._get_single_item(row_idx, self.col_idx)
 
-    def __setitem__(self, int row_idx, value):
+    def __setitem__(self, int32_t row_idx, value):
         """Set item at specified row."""  
         self.table._set_single_item(row_idx, self.col_idx, value)
 
-    def __delitem__(self, int row_idx):
+    def __delitem__(self, int32_t row_idx):
         """Delete item at specified row."""
-        cdef pair[int, int] key = pair[int, int](row_idx, self.col_idx)
+        cdef pair[int32_t, int32_t] key = pair[int32_t, int32_t](row_idx, self.col_idx)
         self.table._delete_item(key)
 
     @staticmethod
-    def create(Table table, int col_idx):
+    def create(Table table, int32_t col_idx):
         """Create a TableColView for the specified column."""
         cdef TableColView view = TableColView.__new__(TableColView)
         view.col_idx = col_idx
@@ -1047,17 +1048,17 @@ cdef class Table(uiItem):
     text, images, buttons, etc. The table can be used to
     display data, but also to interact with the user.
     """
-    cdef map[pair[int, int], TableElementData] _items
-    cdef map[int, PyObject*] _col_configs # TableColConfig
-    cdef map[int, PyObject*] _row_configs # TableRowConfig
+    cdef map[pair[int32_t, int32_t], TableElementData] _items
+    cdef map[int32_t, PyObject*] _col_configs # TableColConfig
+    cdef map[int32_t, PyObject*] _row_configs # TableRowConfig
     cdef imgui.ImGuiTableFlags _flags
     cdef bint _dirty_num_rows_cols
-    cdef int _num_rows
-    cdef int _num_cols
-    cdef int _num_rows_visible
-    cdef int _num_cols_visible
-    cdef int _num_rows_frozen
-    cdef int _num_cols_frozen
+    cdef int32_t _num_rows
+    cdef int32_t _num_cols
+    cdef int32_t _num_rows_visible
+    cdef int32_t _num_cols_visible
+    cdef int32_t _num_rows_frozen
+    cdef int32_t _num_cols_frozen
     cdef float _inner_width
     cdef bint _header
     def __cinit__(self):
@@ -1077,7 +1078,7 @@ cdef class Table(uiItem):
         self._num_cols_frozen = 0
         self.can_have_widget_child = True
 
-    cdef TableColConfig get_col_config(self, int col_idx):
+    cdef TableColConfig get_col_config(self, int32_t col_idx):
         """
         Retrieve the configuration of a column,
         and create a default one if we didn't have any yet.
@@ -1086,7 +1087,7 @@ cdef class Table(uiItem):
         lock_gil_friendly(m, self.mutex)
         if col_idx < 0:
             raise ValueError(f"Invalid column index {col_idx}")
-        cdef map[int, PyObject*].iterator it
+        cdef map[int32_t, PyObject*].iterator it
         it = self._col_configs.find(col_idx)
         if it == self._col_configs.end():
             config = TableColConfig(self.context)
@@ -1097,7 +1098,7 @@ cdef class Table(uiItem):
         cdef TableColConfig found_config = <TableColConfig>item
         return found_config
 
-    cdef void set_col_config(self, int col_idx, TableColConfig config):
+    cdef void set_col_config(self, int32_t col_idx, TableColConfig config):
         """
         Set the configuration of a column.
         """
@@ -1105,14 +1106,14 @@ cdef class Table(uiItem):
         lock_gil_friendly(m, self.mutex)
         if col_idx < 0:
             raise ValueError(f"Invalid column index {col_idx}")
-        cdef map[int, PyObject*].iterator it
+        cdef map[int32_t, PyObject*].iterator it
         it = self._col_configs.find(col_idx)
         if it != self._col_configs.end():
             Py_DECREF(<object>dereference(it).second)
         Py_INCREF(config)
         self._col_configs[col_idx] = <PyObject*>config
 
-    cdef TableRowConfig get_row_config(self, int row_idx):
+    cdef TableRowConfig get_row_config(self, int32_t row_idx):
         """
         Retrieve the configuration of a row,
         and create a default one if we didn't have any yet.
@@ -1121,7 +1122,7 @@ cdef class Table(uiItem):
         lock_gil_friendly(m, self.mutex)
         if row_idx < 0:
             raise ValueError(f"Invalid row index {row_idx}")
-        cdef map[int, PyObject*].iterator it
+        cdef map[int32_t, PyObject*].iterator it
         it = self._row_configs.find(row_idx)
         if it == self._row_configs.end():
             config = TableRowConfig(self.context)
@@ -1132,7 +1133,7 @@ cdef class Table(uiItem):
         cdef TableRowConfig found_config = <TableRowConfig>item
         return found_config
 
-    cdef void set_row_config(self, int row_idx, TableRowConfig config):
+    cdef void set_row_config(self, int32_t row_idx, TableRowConfig config):
         """
         Set the configuration of a row.
         """
@@ -1140,7 +1141,7 @@ cdef class Table(uiItem):
         lock_gil_friendly(m, self.mutex)
         if row_idx < 0:
             raise ValueError(f"Invalid row index {row_idx}")
-        cdef map[int, PyObject*].iterator it
+        cdef map[int32_t, PyObject*].iterator it
         it = self._row_configs.find(row_idx)
         if it != self._row_configs.end():
             Py_DECREF(<object>dereference(it).second)
@@ -1328,7 +1329,7 @@ cdef class Table(uiItem):
         return self._num_rows_frozen
 
     @num_rows_frozen.setter
-    def num_rows_frozen(self, int value):
+    def num_rows_frozen(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
@@ -1349,7 +1350,7 @@ cdef class Table(uiItem):
         return self._num_cols_frozen
 
     @num_cols_frozen.setter
-    def num_cols_frozen(self, int value):
+    def num_cols_frozen(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
@@ -1361,9 +1362,9 @@ cdef class Table(uiItem):
     cdef void _decref_and_detach(self, PyObject* item):
         """All items are attached as children of the table.
         This function decrefs them and detaches them if needed."""
-        cdef pair[int, int] key
+        cdef pair[int32_t, int32_t] key
         cdef TableElementData element
-        cdef pair[pair[int, int], TableElementData] key_element
+        cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         cdef bint found = False
         cdef uiItem ui_item
         if isinstance(<object>item, uiItem):
@@ -1393,7 +1394,7 @@ cdef class Table(uiItem):
         Py_DECREF(<object>item)
 
     cdef void clear_items(self):
-        cdef pair[pair[int, int], TableElementData] key_element
+        cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         for key_element in self._items:
             # No need to iterate the table
             # to see if the item is several times
@@ -1421,7 +1422,7 @@ cdef class Table(uiItem):
 
     def __dealloc__(self):
         self.clear_items()
-        cdef pair[int, PyObject*] key_value
+        cdef pair[int32_t, PyObject*] key_value
         for key_value in self._col_configs:
             Py_DECREF(<object>key_value.second)
         for key_value in self._row_configs:
@@ -1437,12 +1438,12 @@ cdef class Table(uiItem):
         uiItem._delete_and_siblings(self)
         self.clear()
 
-    cdef bint _delete_item(self, pair[int, int] key):
+    cdef bint _delete_item(self, pair[int32_t, int32_t] key):
         """Delete the item at target key.
         
         Returns False if there was no item to delete,
         True else."""
-        cdef map[pair[int, int], TableElementData].iterator it
+        cdef map[pair[int32_t, int32_t], TableElementData].iterator it
         it = self._items.find(key)
         if it == self._items.end():
             return False # already deleted
@@ -1455,14 +1456,14 @@ cdef class Table(uiItem):
             self._decref_and_detach(element.tooltip_ui_item)
         return True
 
-    cdef _get_single_item(self, int row, int col):
+    cdef _get_single_item(self, int32_t row, int32_t col):
         """
         Get item at specific target
         """
         cdef unique_lock[recursive_mutex] m
-        cdef pair[int, int] map_key = pair[int, int](row, col)
+        cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
         lock_gil_friendly(m, self.mutex)
-        cdef map[pair[int, int], TableElementData].iterator it
+        cdef map[pair[int32_t, int32_t], TableElementData].iterator it
         it = self._items.find(map_key)
         if it == self._items.end():
             return None
@@ -1476,11 +1477,11 @@ cdef class Table(uiItem):
         """
         if not(hasattr(key, "__len__")) or not(len(key) == 2):
             raise ValueError("index must be a list of length 2")
-        cdef int row, col
+        cdef int32_t row, col
         (row, col) = key
         return self._get_single_item(row, col)
 
-    def _set_single_item(self, int row, int col, value):
+    def _set_single_item(self, int32_t row, int32_t col, value):
         """
         Set items at specific target
         """
@@ -1522,7 +1523,7 @@ cdef class Table(uiItem):
         # We lock only after in case the value was child
         # of a parent to prevent deadlock.
         lock_gil_friendly(m, self.mutex)
-        cdef pair[int, int] map_key = pair[int, int](row, col)
+        cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
         # delete previous element if any
         self._dirty_num_rows_cols |= not(self._delete_item(map_key))
         self._items[map_key] = element
@@ -1540,7 +1541,7 @@ cdef class Table(uiItem):
     def __setitem__(self, key, value):
         if not(hasattr(key, "__len__")) or not(len(key) == 2):
             raise ValueError("index must be of length 2")
-        cdef int row, col
+        cdef int32_t row, col
         (row, col) = key
         self._set_single_item(row, col, value)
 
@@ -1552,9 +1553,9 @@ cdef class Table(uiItem):
         lock_gil_friendly(m, self.mutex)
         if not(hasattr(key, "__len__")) or not(len(key) == 2):
             raise ValueError("value must be a list of length 2")
-        cdef int row, col
+        cdef int32_t row, col
         (row, col) = key
-        cdef pair[int, int] map_key = pair[int, int](row, col)
+        cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
         self._delete_item(map_key)
 
     def __iter__(self):
@@ -1563,7 +1564,7 @@ cdef class Table(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef pair[pair[int, int], TableElementData] key_element
+        cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         for key_element in self._items:
             yield key_element.first
 
@@ -1583,10 +1584,10 @@ cdef class Table(uiItem):
         lock_gil_friendly(m, self.mutex)
         if not(hasattr(key, "__len__")) or not(len(key) == 2):
             raise ValueError("key must be a list of length 2")
-        cdef int row, col
+        cdef int32_t row, col
         (row, col) = key
-        cdef pair[int, int] map_key = pair[int, int](row, col)
-        cdef map[pair[int, int], TableElementData].iterator it
+        cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
+        cdef map[pair[int32_t, int32_t], TableElementData].iterator it
         it = self._items.find(map_key)
         return it != self._items.end()
 
@@ -1596,7 +1597,7 @@ cdef class Table(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef pair[pair[int, int], TableElementData] key_element
+        cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         for key_element in self._items:
             yield key_element.first
 
@@ -1606,7 +1607,7 @@ cdef class Table(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef pair[pair[int, int], TableElementData] key_element
+        cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         for key_element in self._items:
             element_config = TableElement.from_element(key_element.second)
             yield element_config
@@ -1619,25 +1620,25 @@ cdef class Table(uiItem):
         lock_gil_friendly(m, self.mutex)
         if not(hasattr(key, "__len__")) or not(len(key) == 2):
             raise ValueError("key must be a list of length 2")
-        cdef int row, col
+        cdef int32_t row, col
         (row, col) = key
-        cdef pair[int, int] map_key = pair[int, int](row, col)
-        cdef map[pair[int, int], TableElementData].iterator it
+        cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
+        cdef map[pair[int32_t, int32_t], TableElementData].iterator it
         it = self._items.find(map_key)
         if it != self._items.end():
             return TableElement.from_element(dereference(it).second)
         return default
 
     cdef void _swap_items_from_it(self,
-                             int row1, int col1, int row2, int col2,
-                             map[pair[int, int], TableElementData].iterator &it1,
-                             map[pair[int, int], TableElementData].iterator &it2) noexcept nogil:
+                             int32_t row1, int32_t col1, int32_t row2, int32_t col2,
+                             map[pair[int32_t, int32_t], TableElementData].iterator &it1,
+                             map[pair[int32_t, int32_t], TableElementData].iterator &it2) noexcept nogil:
         """
         Same as _swap_items but assuming we already have
         the iterators on the items.
         """
-        cdef pair[int, int] key1 = pair[int, int](row1, col1)
-        cdef pair[int, int] key2 = pair[int, int](row2, col2)
+        cdef pair[int32_t, int32_t] key1 = pair[int32_t, int32_t](row1, col1)
+        cdef pair[int32_t, int32_t] key2 = pair[int32_t, int32_t](row2, col2)
         if it1 == self._items.end() and it2 == self._items.end():
             return
         if it1 == it2:
@@ -1664,15 +1665,15 @@ cdef class Table(uiItem):
         self._items[key1] = dereference(it2).second
         self._items[key2] = tmp
 
-    cdef void _swap_items(self, int row1, int col1, int row2, int col2) noexcept nogil:
+    cdef void _swap_items(self, int32_t row1, int32_t col1, int32_t row2, int32_t col2) noexcept nogil:
         """
         Swaps the items at the two keys.
 
         Assumes the mutex is held.
         """
-        cdef pair[int, int] key1 = pair[int, int](row1, col1)
-        cdef pair[int, int] key2 = pair[int, int](row2, col2)
-        cdef map[pair[int, int], TableElementData].iterator it1, it2
+        cdef pair[int32_t, int32_t] key1 = pair[int32_t, int32_t](row1, col1)
+        cdef pair[int32_t, int32_t] key2 = pair[int32_t, int32_t](row2, col2)
+        cdef map[pair[int32_t, int32_t], TableElementData].iterator it1, it2
         it1 = self._items.find(key1)
         it2 = self._items.find(key2)
         self._swap_items_from_it(row1, col1, row2, col2, it1, it2)
@@ -1694,61 +1695,61 @@ cdef class Table(uiItem):
             raise ValueError("key1 must be a list of length 2")
         if not(hasattr(key2, "__len__")) or not(len(key2) == 2):
             raise ValueError("key2 must be a list of length 2")
-        cdef int row1, col1, row2, col2
+        cdef int32_t row1, col1, row2, col2
         (row1, col1) = key1
         (row2, col2) = key2
         self._swap_items(row1, col1, row2, col2)
         # _dirty_num_rows_cols managed by _swap_items
 
-    cpdef swap_rows(self, int row1, int row2):
+    cpdef swap_rows(self, int32_t row1, int32_t row2):
         """
         Swaps the rows at the two indices.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        cdef int i
+        cdef int32_t i
         for i in range(self._num_cols):
             # TODO: can be optimized to avoid the find()
             self._swap_items(row1, i, row2, i)
         # _dirty_num_rows_cols managed by _swap_items
 
-    cpdef swap_cols(self, int col1, int col2):
+    cpdef swap_cols(self, int32_t col1, int32_t col2):
         """
         Swaps the cols at the two indices.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        cdef int i
+        cdef int32_t i
         for i in range(self._num_rows):
             # TODO: can be optimized to avoid the find()
             self._swap_items(i, col1, i, col2)
         # _dirty_num_rows_cols managed by _swap_items
 
-    def remove_row(self, int row):
+    def remove_row(self, int32_t row):
         """
         Removes the row at the given index.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        cdef int i
+        cdef int32_t i
         for i in range(self._num_cols):
-            self._delete_item(pair[int, int](row, i))
+            self._delete_item(pair[int32_t, int32_t](row, i))
         # Shift all rows
         for i in range(row + 1, self._num_rows):
             self.swap_rows(i, i - 1)
         self._dirty_num_rows_cols = True
 
-    def insert_row(self, int row, items = None):
+    def insert_row(self, int32_t row, items = None):
         """
         Inserts a row at the given index.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        cdef int i
+        cdef int32_t i
         # Shift all rows
         for i in range(self._num_rows - 1, row-1, -1):
             self.swap_rows(i, i + 1)
@@ -1759,7 +1760,7 @@ cdef class Table(uiItem):
             for i in range(len(items)):
                 self._set_single_item(row, i, items[i])
 
-    def set_row(self, int row, items):
+    def set_row(self, int32_t row, items):
         """
         Sets the row at the given index.
         """
@@ -1768,11 +1769,11 @@ cdef class Table(uiItem):
         self._update_row_col_counts()
         if not hasattr(items, '__len__'):
             raise ValueError("items must be a list")
-        cdef int i
+        cdef int32_t i
         for i in range(len(items)):
             self._set_single_item(row, i, items[i])
         for i in range(len(items), self._num_cols):
-            self._delete_item(pair[int, int](row, i))
+            self._delete_item(pair[int32_t, int32_t](row, i))
         self._dirty_num_rows_cols = True
 
     def append_row(self, items):
@@ -1784,34 +1785,34 @@ cdef class Table(uiItem):
         self._update_row_col_counts()
         if not hasattr(items, '__len__'):
             raise ValueError("items must be a list")
-        cdef int i
+        cdef int32_t i
         for i in range(len(items)):
             self._set_single_item(self._num_rows, i, items[i])
         self._dirty_num_rows_cols = True
 
-    def remove_col(self, int col):
+    def remove_col(self, int32_t col):
         """
         Removes the column at the given index.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        cdef int i
+        cdef int32_t i
         for i in range(self._num_rows):
-            self._delete_item(pair[int, int](i, col))
+            self._delete_item(pair[int32_t, int32_t](i, col))
         # Shift all columns
         for i in range(col + 1, self._num_cols):
             self.swap_cols(i, i - 1)
         self._dirty_num_rows_cols = True
 
-    def insert_col(self, int col, items=None):
+    def insert_col(self, int32_t col, items=None):
         """
         Inserts a column at the given index.
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        cdef int i
+        cdef int32_t i
         # Shift all columns
         for i in range(self._num_cols - 1, col-1, -1):
             self.swap_cols(i, i + 1)
@@ -1822,7 +1823,7 @@ cdef class Table(uiItem):
             for i in range(len(items)):
                 self._set_single_item(i, col, items[i])
 
-    def set_col(self, int col, items):
+    def set_col(self, int32_t col, items):
         """
         Sets the column at the given index.
         """
@@ -1831,11 +1832,11 @@ cdef class Table(uiItem):
         self._update_row_col_counts()
         if not hasattr(items, '__len__'):
             raise ValueError("items must be a list")
-        cdef int i
+        cdef int32_t i
         for i in range(len(items)):
             self._set_single_item(i, col, items[i])
         for i in range(len(items), self._num_rows):
-            self._delete_item(pair[int, int](i, col))
+            self._delete_item(pair[int32_t, int32_t](i, col))
         self._dirty_num_rows_cols = True
 
     def append_col(self, items):
@@ -1847,7 +1848,7 @@ cdef class Table(uiItem):
         self._update_row_col_counts()
         if not hasattr(items, '__len__'):
             raise ValueError("items must be a list")
-        cdef int i
+        cdef int32_t i
         for i in range(len(items)):
             self._set_single_item(i, self._num_cols, items[i])
         self._dirty_num_rows_cols = True
@@ -1857,9 +1858,9 @@ cdef class Table(uiItem):
         if not self._dirty_num_rows_cols:
             return
 
-        cdef pair[pair[int, int], TableElementData] key_element
-        cdef int max_row = -1
-        cdef int max_col = -1
+        cdef pair[pair[int32_t, int32_t], TableElementData] key_element
+        cdef int32_t max_row = -1
+        cdef int32_t max_col = -1
         
         # Find max row/col indices
         for key_element in self._items:
@@ -1870,7 +1871,7 @@ cdef class Table(uiItem):
         self._num_cols = (max_col + 1) if max_col >= 0 else 0
         self._dirty_num_rows_cols = False
 
-    def row(self, int idx):
+    def row(self, int32_t idx):
         """Get a view of the specified row."""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex) 
@@ -1879,7 +1880,7 @@ cdef class Table(uiItem):
             raise IndexError("Row index out of range")
         return TableRowView.create(self, idx)
 
-    def col(self, int idx):
+    def col(self, int32_t idx):
         """Get a view of the specified column."""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1936,7 +1937,7 @@ cdef class Table(uiItem):
             "   table.append_col([item1, item2])"
         )
 
-    def sort_rows(self, int ref_col, bint ascending=True):
+    def sort_rows(self, int32_t ref_col, bint ascending=True):
         """Sort the rows using the value in ref_col as index.
         
         The sorting order is defined using the items's ordering_value
@@ -1948,14 +1949,14 @@ cdef class Table(uiItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        cdef int num_rows = self._num_rows
+        cdef int32_t num_rows = self._num_rows
 
         if num_rows <= 1:
             return
 
         # Put in a list all the values to sort
         keys = []
-        cdef int i
+        cdef int32_t i
         for i in range(num_rows):
             element = self._get_single_item(i, ref_col)
             if element is None:
@@ -1968,8 +1969,8 @@ cdef class Table(uiItem):
         if not(ascending):
             order = order[::-1]
 
-        cdef map[pair[int, int], TableElementData] items_copy = self._items
-        cdef pair[pair[int, int], TableElementData] element_key
+        cdef map[pair[int32_t, int32_t], TableElementData] items_copy = self._items
+        cdef pair[pair[int32_t, int32_t], TableElementData] element_key
         self._items.clear()
 
         # We do not need to play with refcounts because each item
@@ -1977,15 +1978,15 @@ cdef class Table(uiItem):
         # change, so we don't need to update them.
 
         # Create inverse permutation
-        cdef vector[int] inverse_order
+        cdef vector[int32_t] inverse_order
         inverse_order.resize(len(order))
         for i in range(len(order)):
             inverse_order[order[i]] = i
 
         # apply the invert order
-        cdef int src_row
-        cdef int target_row
-        cdef pair[int, int] target_key
+        cdef int32_t src_row
+        cdef int32_t target_row
+        cdef pair[int32_t, int32_t] target_key
         for element_key in items_copy:
             src_row = element_key.first.first
             target_row = inverse_order[src_row]
@@ -1993,7 +1994,7 @@ cdef class Table(uiItem):
             target_key.second = element_key.first.second
             self._items[target_key] = element_key.second
 
-    def sort_cols(self, int ref_row, bint ascending=True):
+    def sort_cols(self, int32_t ref_row, bint ascending=True):
         """Sort the columns using the value in ref_row as index.
         
         The sorting order is defined using the items's ordering_value
@@ -2003,7 +2004,7 @@ cdef class Table(uiItem):
         - If content is an uiItem, it defaults to the UUID (item creation order)
         
         Parameters:
-            ref_row : int 
+            ref_row : int32_t 
                 Row index to use for sorting
             ascending : bool, optional
                 Sort in ascending order if True, descending if False.
@@ -2015,7 +2016,7 @@ cdef class Table(uiItem):
 
         # Put in a list all the values to sort
         keys = []
-        cdef int i
+        cdef int32_t i
         for i in range(self._num_cols):
             element = self._get_single_item(ref_row, i) 
             if element is None:
@@ -2029,20 +2030,20 @@ cdef class Table(uiItem):
             order = order[::-1]
 
         # Same as for rows
-        cdef map[pair[int, int], TableElementData] items_copy = self._items
-        cdef pair[pair[int, int], TableElementData] element_key
+        cdef map[pair[int32_t, int32_t], TableElementData] items_copy = self._items
+        cdef pair[pair[int32_t, int32_t], TableElementData] element_key
         self._items.clear()
 
         # Create inverse permutation
-        cdef vector[int] inverse_order
+        cdef vector[int32_t] inverse_order
         inverse_order.resize(len(order))
         for i in range(len(order)):
             inverse_order[order[i]] = i
 
         # apply the invert order
-        cdef int src_col
-        cdef int target_col
-        cdef pair[int, int] target_key
+        cdef int32_t src_col
+        cdef int32_t target_col
+        cdef pair[int32_t, int32_t] target_key
         for element_key in items_copy:
             src_col = element_key.first.second
             target_col = inverse_order[src_col]
@@ -2056,34 +2057,34 @@ cdef class Table(uiItem):
         cdef imgui.ImGuiTableSortSpecs *sort_specs
 
         self._update_row_col_counts()
-        cdef int actual_num_cols = self._num_cols
+        cdef int32_t actual_num_cols = self._num_cols
         if self._num_cols_visible >= 0:
             actual_num_cols = self._num_cols_visible
-        cdef int actual_num_rows = self._num_rows
+        cdef int32_t actual_num_rows = self._num_rows
         if self._num_rows_visible >= 0:
             actual_num_rows = self._num_rows_visible
 
         if actual_num_cols > 512: # IMGUI_TABLE_MAX_COLUMNS
             actual_num_cols = 512
 
-        cdef int num_rows_frozen = self._num_rows_frozen
+        cdef int32_t num_rows_frozen = self._num_rows_frozen
         if num_rows_frozen >= actual_num_rows:
             num_rows_frozen = actual_num_rows
-        cdef int num_cols_frozen = self._num_cols_frozen
+        cdef int32_t num_cols_frozen = self._num_cols_frozen
         if num_cols_frozen >= actual_num_cols:
             num_cols_frozen = actual_num_cols
 
-        cdef pair[pair[int, int], TableElementData] key_element
-        cdef pair[int, int] key
+        cdef pair[pair[int32_t, int32_t], TableElementData] key_element
+        cdef pair[int32_t, int32_t] key
         cdef TableElementData element
-        cdef int row, col
-        cdef int prev_row = -1
-        cdef int prev_col = -1
-        cdef int j
+        cdef int32_t row, col
+        cdef int32_t prev_row = -1
+        cdef int32_t prev_col = -1
+        cdef int32_t j
         cdef Vec2 pos_p_backup, pos_w_backup, parent_size_backup
-        cdef pair[int, PyObject*] col_data
-        cdef pair[int, PyObject*] row_data
-        cdef map[int, PyObject*].iterator it_row
+        cdef pair[int32_t , PyObject*] col_data
+        cdef pair[int32_t , PyObject*] row_data
+        cdef map[int32_t , PyObject*].iterator it_row
 
         cdef bint row_hidden = False
 
@@ -2096,7 +2097,7 @@ cdef class Table(uiItem):
         # if we skip drawing instead, user cannot
         # re-enable them.
         # In addition, lock the column configurations
-        cdef int num_cols_disabled = 0
+        cdef int32_t num_cols_disabled = 0
         for col_data in self._col_configs:
             if col_data.first >= actual_num_cols:
                 break
@@ -2129,7 +2130,7 @@ cdef class Table(uiItem):
                     # We must submit empty configs
                     # to increase the column index
                     imgui.TableSetupColumn("", 0, 0., 0)
-                (<TableColConfig>col_data.second).setup(col_data.first, <unsigned>self._flags)
+                (<TableColConfig>col_data.second).setup(col_data.first, <uint32_t>self._flags)
                 prev_col = col_data.first
             if num_cols_frozen > 0 or num_rows_frozen > 0:
                 imgui.TableSetupScrollFreeze(num_cols_frozen, num_rows_frozen)

@@ -3,6 +3,7 @@ from libcpp cimport bool
 from libcpp.atomic cimport atomic
 from libcpp.vector cimport vector
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
+from libc.stdint cimport uint32_t, int32_t, int64_t
 cimport numpy as cnp
 from .c_types cimport *
 from .types cimport *
@@ -59,7 +60,7 @@ cdef inline void lock_gil_friendly(unique_lock[recursive_mutex] &m,
 
 
 cdef inline void clear_obj_vector(vector[PyObject *] &items):
-    cdef int i
+    cdef int32_t i
     cdef object obj
     for i in range(<int>items.size()):
         obj = <object> items[i]
@@ -77,13 +78,13 @@ cdef class Context:
     # Mutex that must be held for any
     # call to imgui, glfw, etc
     cdef recursive_mutex imgui_mutex
-    cdef atomic[long long] next_uuid
+    cdef atomic[int64_t] next_uuid
     cdef Viewport viewport
     cdef void* imgui_context # imgui.ImGuiContext
     cdef void* implot_context # implot.ImPlotContext
     cdef void* imnodes_context # imnodes.ImNodesContext
-    cdef unsigned int[5] prev_last_id_button_catch # for custom buttons
-    cdef unsigned int[5] cur_last_id_button_catch
+    cdef uint32_t[5] prev_last_id_button_catch # for custom buttons
+    cdef uint32_t[5] cur_last_id_button_catch
     ### protected variables ###
     cdef Callback _on_close_callback
     cdef object _item_creation_callback
@@ -96,19 +97,19 @@ cdef class Context:
     ### public methods ###
     cdef void queue_callback_noarg(self, Callback, baseItem, baseItem) noexcept nogil
     cdef void queue_callback_arg1obj(self, Callback, baseItem, baseItem, baseItem) noexcept nogil
-    cdef void queue_callback_arg1key(self, Callback, baseItem, baseItem, int) noexcept nogil
-    cdef void queue_callback_arg1button(self, Callback, baseItem, baseItem, int) noexcept nogil
+    cdef void queue_callback_arg1key(self, Callback, baseItem, baseItem, int32_t) noexcept nogil
+    cdef void queue_callback_arg1button(self, Callback, baseItem, baseItem, int32_t) noexcept nogil
     cdef void queue_callback_arg1float(self, Callback, baseItem, baseItem, float) noexcept nogil
     cdef void queue_callback_arg1value(self, Callback, baseItem, baseItem, SharedValue) noexcept nogil
-    cdef void queue_callback_arg1key1float(self, Callback, baseItem, baseItem, int, float) noexcept nogil
-    cdef void queue_callback_arg1button1float(self, Callback, baseItem, baseItem, int, float) noexcept nogil
+    cdef void queue_callback_arg1key1float(self, Callback, baseItem, baseItem, int32_t, float) noexcept nogil
+    cdef void queue_callback_arg1button1float(self, Callback, baseItem, baseItem, int32_t, float) noexcept nogil
     cdef void queue_callback_arg2float(self, Callback, baseItem, baseItem, float, float) noexcept nogil
     cdef void queue_callback_arg2double(self, Callback, baseItem, baseItem, double, double) noexcept nogil
-    cdef void queue_callback_arg1button2float(self, Callback, baseItem, baseItem, int, float, float) noexcept nogil
-    cdef void queue_callback_arg4int(self, Callback, baseItem, baseItem, int, int, int, int) noexcept nogil
-    cdef void queue_callback_arg3long1int(self, Callback, baseItem, baseItem, long long, long long, long long, int) noexcept nogil
+    cdef void queue_callback_arg1button2float(self, Callback, baseItem, baseItem, int32_t, float, float) noexcept nogil
+    cdef void queue_callback_arg4int(self, Callback, baseItem, baseItem, int32_t, int32_t, int32_t, int32_t) noexcept nogil
+    cdef void queue_callback_arg3long1int(self, Callback, baseItem, baseItem, int64_t, int64_t, int64_t, int32_t) noexcept nogil
     cdef void queue_callback_argdoubletriplet(self, Callback, baseItem, baseItem, double, double, double, double, double, double) noexcept nogil
-    cdef void queue_callback_arg1int1stringvector(self, Callback, baseItem, baseItem, int, vector[string]) noexcept nogil
+    cdef void queue_callback_arg1int1stringvector(self, Callback, baseItem, baseItem, int32_t, vector[string]) noexcept nogil
     cpdef void push_next_parent(self, baseItem next_parent)
     cpdef void pop_next_parent(self)
     cpdef object fetch_parent_queue_back(self)
@@ -121,16 +122,16 @@ cdef class Context:
     # Must be called from inside draw()
     cdef Vec2 c_get_mouse_pos(self) noexcept nogil # negative pos means invalid
     cdef Vec2 c_get_mouse_prev_pos(self) noexcept nogil  
-    cdef Vec2 c_get_mouse_drag_delta(self, int button, float threshold) noexcept nogil
-    cdef bint c_is_mouse_down(self, int button) noexcept nogil
-    cdef bint c_is_mouse_clicked(self, int button, bint repeat) noexcept nogil
-    cdef int c_get_mouse_clicked_count(self, int button) noexcept nogil
-    cdef bint c_is_mouse_released(self, int button) noexcept nogil
-    cdef bint c_is_mouse_dragging(self, int button, float delta) noexcept nogil
-    cdef bint c_is_key_down(self, int key) noexcept nogil
-    cdef int c_get_keymod_mask(self) noexcept nogil
-    cdef bint c_is_key_pressed(self, int key, bint repeat) noexcept nogil
-    cdef bint c_is_key_released(self, int key) noexcept nogil
+    cdef Vec2 c_get_mouse_drag_delta(self, int32_t button, float threshold) noexcept nogil
+    cdef bint c_is_mouse_down(self, int32_t button) noexcept nogil
+    cdef bint c_is_mouse_clicked(self, int32_t button, bint repeat) noexcept nogil
+    cdef int32_t c_get_mouse_clicked_count(self, int32_t button) noexcept nogil
+    cdef bint c_is_mouse_released(self, int32_t button) noexcept nogil
+    cdef bint c_is_mouse_dragging(self, int32_t button, float delta) noexcept nogil
+    cdef bint c_is_key_down(self, int32_t key) noexcept nogil
+    cdef int32_t c_get_keymod_mask(self) noexcept nogil
+    cdef bint c_is_key_pressed(self, int32_t key, bint repeat) noexcept nogil
+    cdef bint c_is_key_released(self, int32_t key) noexcept nogil
 
 """
 Main item types
@@ -150,7 +151,7 @@ A child then points to its previous and next sibling of its category
 cdef class baseItem:
     ### Read-only public variables managed by this class ###
     cdef Context context
-    cdef long long uuid
+    cdef int64_t uuid
     cdef recursive_mutex mutex
     cdef baseItem parent
     cdef baseItem prev_sibling
@@ -177,12 +178,12 @@ cdef class baseItem:
     cdef bint can_have_widget_child
     cdef bint can_have_window_child
     cdef bint can_have_sibling
-    cdef int element_child_category
+    cdef int32_t element_child_category
     cdef itemState* p_state # pointer to the itemState. set to NULL if the item doesn't have any.
     ### protected variables ###
     cdef vector[PyObject*] _handlers # type baseHandler. Always empty if p_state is NULL.
     ### private variables ###
-    cdef int _external_lock
+    cdef int32_t _external_lock
     cdef object __weakref__
     cdef object _user_data
     ### public methods ###
@@ -254,15 +255,15 @@ cdef void update_current_mouse_states(itemState&) noexcept nogil
 
 cdef class Viewport(baseItem):
     ### Public read-only variables
-    cdef int frame_count # frame count
+    cdef int32_t frame_count # frame count
     cdef bint skipped_last_frame
     cdef itemState state
     # For timing stats
-    cdef long long last_t_before_event_handling
-    cdef long long last_t_before_rendering
-    cdef long long last_t_after_rendering
-    cdef long long last_t_after_swapping
-    cdef long long t_first_skip
+    cdef int64_t last_t_before_event_handling
+    cdef int64_t last_t_before_rendering
+    cdef int64_t last_t_after_rendering
+    cdef int64_t last_t_after_swapping
+    cdef int64_t t_first_skip
     cdef double delta_event_handling
     cdef double delta_rendering
     cdef double delta_swapping
@@ -284,7 +285,7 @@ cdef class Viewport(baseItem):
     cdef float thickness_multiplier # scale for the thickness of all lines (Draw*)
     cdef float size_multiplier # scale for the size of all Draw* elements.
     cdef bint[6] enabled_axes # <int>implot.ImAxis_COUNT. Enabled plot axes.
-    cdef int start_pending_theme_actions # Used when applying theme actions
+    cdef int32_t start_pending_theme_actions # Used when applying theme actions
     cdef vector[theme_action] pending_theme_actions # Used when applying theme actions
     ### private variables ###
     cdef recursive_mutex _mutex_backend
@@ -299,9 +300,9 @@ cdef class Viewport(baseItem):
     cdef bint _disable_close
     cdef bint _drop_is_file_type
     cdef vector[string] _drop_data
-    cdef int _cursor # imgui.ImGuiMouseCursor
+    cdef int32_t _cursor # imgui.ImGuiMouseCursor
     cdef vector[theme_action] _applied_theme_actions
-    cdef vector[int] _applied_theme_actions_count
+    cdef vector[int32_t] _applied_theme_actions_count
     cdef ThemeEnablers _current_theme_activation_condition_enabled
     cdef ThemeCategories _current_theme_activation_condition_category
     cdef float _scale
@@ -310,7 +311,7 @@ cdef class Viewport(baseItem):
     cdef void coordinate_to_screen(self, float *dst_p, double[2] src_p) noexcept nogil
     cdef void screen_to_coordinate(self, double *dst_p, float[2] src_p) noexcept nogil
     cdef void push_pending_theme_actions(self, ThemeEnablers, ThemeCategories) noexcept nogil
-    cdef void push_pending_theme_actions_on_subset(self, int, int) noexcept nogil
+    cdef void push_pending_theme_actions_on_subset(self, int32_t, int32_t) noexcept nogil
     cdef void pop_applied_pending_theme_actions(self) noexcept nogil
     cdef void ask_refresh_after(self, double monotonic) noexcept nogil # might refresh before, in which case you should call again
     cdef void force_present(self) noexcept nogil
@@ -320,13 +321,13 @@ cdef class Viewport(baseItem):
     cdef void __check_not_initialized(self)
     cdef void __on_resize(self)
     cdef void __on_close(self)
-    cdef void __on_drop(self, int, const char*)
+    cdef void __on_drop(self, int32_t, const char*)
     cdef void __render(self) noexcept nogil
 
 
 cdef class Callback:
     cdef object callback
-    cdef int num_args
+    cdef int32_t num_args
 
 # Rendering children
 
@@ -413,10 +414,10 @@ cdef class drawingItem(baseItem):
 
 
 cdef bint button_area(Context context,
-                      int uuid,
+                      int32_t uuid,
                       Vec2 pos,
                       Vec2 size,
-                      int button_mask,
+                      int32_t button_mask,
                       bint catch_ui_hover,
                       bint first_hovered_wins,
                       bint catch_active,
@@ -596,9 +597,9 @@ cdef class SharedValue:
     # Public read-only variables
     cdef recursive_mutex mutex
     cdef Context context
-    cdef int _last_frame_update # Last frame count the value was updated
-    cdef int _last_frame_change # Last frame count the value changed (>= updated)
-    cdef int _num_attached # number of items the value is attached to
+    cdef int32_t _last_frame_update # Last frame count the value was updated
+    cdef int32_t _last_frame_change # Last frame count the value changed (>= updated)
+    cdef int32_t _num_attached # number of items the value is attached to
     # call when the value is updated. the second argument should be True if the
     # value changed, False else.
     cdef void on_update(self, bint) noexcept nogil
@@ -614,7 +615,7 @@ cdef class TimeWatcher(uiItem):
     pass
 
 cdef class Window(uiItem):
-    cdef int _window_flags # imgui.ImGuiWindowFlags
+    cdef int32_t _window_flags # imgui.ImGuiWindowFlags
     cdef bint _main_window
     cdef bint _resized
     cdef bint _modal
@@ -641,7 +642,7 @@ cdef class Window(uiItem):
     cdef bint _collapse_update_requested
     cdef bint _scroll_x_update_requested
     cdef bint _scroll_y_update_requested
-    cdef int _backup_window_flags # imgui.ImGuiWindowFlags
+    cdef int32_t _backup_window_flags # imgui.ImGuiWindowFlags
     cdef Vec2 _backup_pos
     cdef Vec2 _backup_rect_size
     cdef void draw(self) noexcept nogil
@@ -656,9 +657,9 @@ drawingItem.
 cdef class plotElement(baseItem):
     cdef string _imgui_label
     cdef str _user_label
-    cdef int _flags
+    cdef int32_t _flags
     cdef bint _show
-    cdef int[2] _axes
+    cdef int32_t[2] _axes
     cdef baseTheme _theme
     cdef void draw(self) noexcept nogil
     cdef void draw_element(self) noexcept nogil
@@ -671,7 +672,7 @@ cdef class AxisTag(baseItem):
     cdef bint show
     cdef double coord
     cdef string text
-    cdef int bg_color # imgui.U32
+    cdef uint32_t bg_color # imgui.U32
 
 """
 Bindable elements
@@ -680,15 +681,15 @@ Bindable elements
 cdef class Texture(baseItem):
     ### Public read-only variables ###
     cdef void* allocated_texture
-    cdef int width
-    cdef int height
-    cdef int num_chans
+    cdef int32_t width
+    cdef int32_t height
+    cdef int32_t num_chans
     ### private variables ###
     cdef recursive_mutex _write_mutex
     cdef bint _hint_dynamic
     cdef bint _dynamic
     cdef unsigned _buffer_type
-    cdef int _filtering_mode
+    cdef int32_t _filtering_mode
     cdef bint _readonly
     cdef bint _no_realloc
     cdef void set_content(self, cnp.ndarray content)
@@ -715,7 +716,7 @@ In that case the caller handles the pops
 
 cdef class baseTheme(baseItem):
     cdef bint _enabled
-    cdef vector[int] _last_push_size
+    cdef vector[int32_t] _last_push_size
     cdef void push(self) noexcept nogil
     cdef void push_to_list(self, vector[theme_action]&) noexcept nogil
     cdef void pop(self) noexcept nogil

@@ -48,10 +48,12 @@ parent_pos (Vec2):
 from .core cimport Context
 from .c_types cimport Vec2, Vec4
 
+from libc.stdint cimport uint32_t, int32_t
+
 # Drawing helpers
 cdef void draw_line(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
-                    unsigned int color, float thickness) noexcept nogil
+                    uint32_t color, float thickness) noexcept nogil
 """
     Draw a line segment between two points.
 
@@ -66,7 +68,7 @@ cdef void draw_line(Context context, void* drawlist,
 
 cdef void draw_rect(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
-                    unsigned int color, unsigned int fill_color,
+                    uint32_t color, uint32_t fill_color,
                     float thickness, float rounding) noexcept nogil
 """
     Draw a rectangle defined by two corner points.
@@ -84,8 +86,8 @@ cdef void draw_rect(Context context, void* drawlist,
 
 cdef void draw_rect_multicolor(Context context, void* drawlist,
                               double x1, double y1, double x2, double y2,
-                              unsigned int col_up_left, unsigned int col_up_right,
-                              unsigned int col_bot_right, unsigned int col_bot_left) noexcept nogil
+                              uint32_t col_up_left, uint32_t col_up_right,
+                              uint32_t col_bot_right, uint32_t col_bot_left) noexcept nogil
 """
     Draw a rectangle with different colors at each corner.
 
@@ -104,7 +106,7 @@ cdef void draw_rect_multicolor(Context context, void* drawlist,
 
 cdef void draw_triangle(Context context, void* drawlist,
                        double x1, double y1, double x2, double y2, double x3, double y3,
-                       unsigned int color, unsigned int fill_color,
+                       uint32_t color, uint32_t fill_color,
                        float thickness) noexcept nogil
 """
     Draw a triangle defined by three points.
@@ -128,7 +130,7 @@ cdef void draw_textured_triangle(Context context, void* drawlist,
                                  float u1, float v1,
                                  float u2, float v2,
                                  float u3, float v3,
-                                 unsigned int color_factor) noexcept nogil
+                                 uint32_t color_factor) noexcept nogil
 """
     Draw a triangle extracted from a texture.
 
@@ -143,13 +145,13 @@ cdef void draw_textured_triangle(Context context, void* drawlist,
         u3, v3: Texture coordinates for third point
         color_factor: Color to multiply texture samples with (32-bit RGBA)
 
-    A neutral value for color_factor is 0xFFFFFFFF (unsigned integer: 4294967295)
+    A neutral value for color_factor is 0xFFFFFFFF (uint32_teger: 4294967295)
 """
 
 cdef void draw_quad(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
                     double x3, double y3, double x4, double y4,
-                    unsigned int color, unsigned int fill_color,
+                    uint32_t color, uint32_t fill_color,
                     float thickness) noexcept nogil
 """
     Draw a quadrilateral defined by four points.
@@ -170,8 +172,8 @@ cdef void draw_quad(Context context, void* drawlist,
 
 cdef void draw_circle(Context context, void* drawlist,
                       double x, double y, double radius,
-                      unsigned int color, unsigned int fill_color,
-                      float thickness, int num_segments) noexcept nogil
+                      uint32_t color, uint32_t fill_color,
+                      float thickness, int32_t num_segments) noexcept nogil
 """
     Draw a circle.
 
@@ -193,7 +195,7 @@ cdef void draw_image_quad(Context context, void* drawlist,
                          double x3, double y3, double x4, double y4,
                          float u1, float v1, float u2, float v2,
                          float u3, float v3, float u4, float v4,
-                         unsigned int color_factor) noexcept nogil
+                         uint32_t color_factor) noexcept nogil
 """
     Draw a textured quad with custom UV coordinates.
 
@@ -218,8 +220,8 @@ cdef void draw_image_quad(Context context, void* drawlist,
 cdef void draw_regular_polygon(Context context, void* drawlist,
                                double centerx, double centery,
                                double radius, double direction,  
-                               int num_points,
-                               unsigned int color, unsigned int fill_color,
+                               int32_t num_points,
+                               uint32_t color, uint32_t fill_color,
                                float thickness) noexcept nogil
 """
     Draw a regular polygon with n points.
@@ -239,8 +241,8 @@ cdef void draw_regular_polygon(Context context, void* drawlist,
 cdef void draw_star(Context context, void* drawlist,
                     double centerx, double centery, 
                     double radius, double inner_radius,
-                    double direction, int num_points,
-                    unsigned int color, unsigned int fill_color,
+                    double direction, int32_t num_points,
+                    uint32_t color, uint32_t fill_color,
                     float thickness) noexcept nogil
 """
     Draw a star shaped polygon.
@@ -261,7 +263,7 @@ cdef void draw_star(Context context, void* drawlist,
 cdef void draw_text(Context context, void* drawlist,
                     double x, double y,
                     const char* text,
-                    unsigned int color,
+                    uint32_t color,
                     void* font, float size) noexcept nogil
 """
     Draw text at a position.
@@ -279,7 +281,7 @@ cdef void draw_text(Context context, void* drawlist,
 cdef void draw_text_quad(Context context, void* drawlist,
                          double x1, double y1, double x2, double y2,  
                          double x3, double y3, double x4, double y4,
-                         const char* text, unsigned int color,
+                         const char* text, uint32_t color,
                          void* font, bint preserve_ratio) noexcept nogil
 """
     Draw text deformed to fit inside a quad shape.
@@ -307,50 +309,50 @@ cdef void draw_text_quad(Context context, void* drawlist,
 # don't. (The t_ prefix is because the coordinates must be transformed)
 
 cdef void t_draw_line(Context, void*, float, float, float, float,
-                      unsigned int, float) noexcept nogil
+                      uint32_t, float) noexcept nogil
 
 cdef void t_draw_rect(Context, void*, float, float, float, float,
-                      unsigned int, unsigned int, float, float) noexcept nogil
+                      uint32_t, uint32_t, float, float) noexcept nogil
 
 cdef void t_draw_rect_multicolor(Context, void*, float, float, float, float,
-                                 unsigned int, unsigned int, unsigned int, unsigned int) noexcept nogil
+                                 uint32_t, uint32_t, uint32_t, uint32_t) noexcept nogil
 
 cdef void t_draw_triangle(Context, void*, float, float, float, float, float, float,
-                          unsigned int, unsigned int, float) noexcept nogil
+                          uint32_t, uint32_t, float) noexcept nogil
 
 cdef void t_draw_textured_triangle(Context, void*, void *, 
                                    float, float, float, float,
                                    float, float, float, float,
                                    float, float, float, float,
-                                   unsigned int) noexcept nogil
+                                   uint32_t) noexcept nogil
 
 cdef void t_draw_quad(Context, void*, float, float, float, float,
                       float, float, float, float,
-                      unsigned int, unsigned int, float) noexcept nogil
+                      uint32_t, uint32_t, float) noexcept nogil
 
 cdef void t_draw_circle(Context, void*, float, float, float,
-                        unsigned int, unsigned int, float, int) noexcept nogil
+                        uint32_t, uint32_t, float, int32_t) noexcept nogil
 
 cdef void t_draw_image_quad(Context, void*, void*,
                             float, float, float, float,
                             float, float, float, float,
                             float, float, float, float,
                             float, float, float, float,
-                            unsigned int) noexcept nogil
+                            uint32_t) noexcept nogil
 
 cdef void t_draw_regular_polygon(Context, void*, float, float,
-                                 float, float, int,
-                                 unsigned int, unsigned int, float) noexcept nogil
+                                 float, float, int32_t,
+                                 uint32_t, uint32_t, float) noexcept nogil
 
 cdef void t_draw_star(Context, void*, float, float, float, float,
-                      float, int, unsigned int, unsigned int, float) noexcept nogil
+                      float, int32_t, uint32_t, uint32_t, float) noexcept nogil
 
 cdef void t_draw_text(Context, void*, float, float,
-                      const char*, unsigned int, void*, float) noexcept nogil
+                      const char*, uint32_t, void*, float) noexcept nogil
 
 cdef void t_draw_text_quad(Context, void*, float, float, float, float,
                            float, float, float, float,
-                           const char*, unsigned int, void*, bint) noexcept nogil
+                           const char*, uint32_t, void*, bint) noexcept nogil
 
 
 # When subclassing drawingItem and Draw* items, the drawlist
@@ -381,22 +383,22 @@ cdef Vec2 get_cursor_pos() noexcept nogil
 # ImGuiColorIndex, etc enums which are available
 # using an import dearcygui.
 # Load these indices in your __cinit__.
-cdef void push_theme_color(int idx, float r, float g, float b, float a) noexcept nogil
+cdef void push_theme_color(int32_t idx, float r, float g, float b, float a) noexcept nogil
 """Push a theme color onto the stack (use at start of drawing code)"""
 
 cdef void pop_theme_color() noexcept nogil
 """Pop a theme color from the stack (use at end of drawing code)"""
 
-cdef void push_theme_style_float(int idx, float val) noexcept nogil
+cdef void push_theme_style_float(int32_t idx, float val) noexcept nogil
 """Push a float style value onto the stack"""
 
-cdef void push_theme_style_vec2(int idx, float x, float y) noexcept nogil  
+cdef void push_theme_style_vec2(int32_t idx, float x, float y) noexcept nogil  
 """Push a Vec2 style value onto the stack"""
 
 cdef void pop_theme_style() noexcept nogil
 """Pop a style value from the stack"""
 
-cdef Vec4 get_theme_color(int idx) noexcept nogil
+cdef Vec4 get_theme_color(int32_t idx) noexcept nogil
 """
 Retrieve the current theme color for a target idx.
 
@@ -432,7 +434,7 @@ cdef struct GlyphInfo:
     float offset_y     # Vertical offset from cursor position
     bint visible       # True if glyph has a visible bitmap
     
-cdef GlyphInfo get_glyph_info(void* font, unsigned int codepoint) noexcept nogil
+cdef GlyphInfo get_glyph_info(void* font, uint32_t codepoint) noexcept nogil
 """
 Get rendering information for a Unicode codepoint.
 

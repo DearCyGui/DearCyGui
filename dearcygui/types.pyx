@@ -42,7 +42,7 @@ cdef class Coord:
         return 2
 
     def __getitem__(self, key):
-        cdef int index
+        cdef int32_t index
         if isinstance(key, int):
             index = <int>key
             if index == 0:
@@ -57,7 +57,7 @@ cdef class Coord:
         raise IndexError(f"Invalid key: {key}")
 
     def __setitem__(self, key, value):
-        cdef int index
+        cdef int32_t index
         if isinstance(key, int):
             index = <int>key
             if index == 0:
@@ -480,7 +480,7 @@ cdef class Rect:
         return 4
 
     def __getitem__(self, key):
-        cdef int index
+        cdef int32_t index
         if isinstance(key, int):
             index = <int>key
             if index == 0:
@@ -503,7 +503,7 @@ cdef class Rect:
         raise IndexError(f"Invalid key: {key}")
 
     def __setitem__(self, key, value):
-        cdef int index
+        cdef int32_t index
         if isinstance(key, int):
             index = <int>key
             if index == 0:
@@ -1185,5 +1185,5 @@ class TableFlag(IntFlag):
     SORT_TRISTATE = imgui.ImGuiTableFlags_SortTristate,
     HIGHLIGHT_HOVERED_COLUMN = imgui.ImGuiTableFlags_HighlightHoveredColumn
 
-cdef object make_PlotMarker(int marker):
+cdef object make_PlotMarker(int32_t marker):
     return PlotMarker(marker)

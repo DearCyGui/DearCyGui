@@ -14,6 +14,7 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
+from libc.stdint cimport int32_t, uint32_t
 from libcpp.cmath cimport round
 from libcpp.unordered_map cimport unordered_map, pair
 from libcpp.string cimport string
@@ -86,7 +87,7 @@ cdef class baseThemeColor(baseTheme):
         """Get color by string name or numeric index"""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef int color_index
+        cdef int32_t color_index
         if isinstance(key, str):
             return getattr(self, key)
         elif isinstance(key, int):
@@ -101,7 +102,7 @@ cdef class baseThemeColor(baseTheme):
         """Set color by string name or numeric index"""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef int color_index
+        cdef int32_t color_index
         if isinstance(key, str):
             setattr(self, key, value)
         elif isinstance(key, int):
@@ -117,30 +118,30 @@ cdef class baseThemeColor(baseTheme):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
-        cdef pair[int, unsigned int] element_content
+        cdef pair[int32_t, uint32_t] element_content
         for element_content in self._index_to_value:
             name = self._names[element_content.first] 
             result.append((name, int(element_content.second)))
         return iter(result)
 
-    cdef object __common_getter(self, int index):
+    cdef object __common_getter(self, int32_t index):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[int, unsigned int].iterator element_content = self._index_to_value.find(index)
+        cdef unordered_map[int32_t, uint32_t].iterator element_content = self._index_to_value.find(index)
         if element_content == self._index_to_value.end():
             # None: default
             return None
-        cdef unsigned int value = dereference(element_content).second
+        cdef uint32_t value = dereference(element_content).second
         return value
 
-    cdef void __common_setter(self, int index, value):
+    cdef void __common_setter(self, int32_t index, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._index_to_value.erase(index)
             return
         cdef imgui.ImU32 color = parse_color(value)
-        self._index_to_value[index] = <unsigned int> color
+        self._index_to_value[index] = <uint32_t> color
 
 cdef class ThemeColorImGui(baseThemeColor):
     """
@@ -957,7 +958,7 @@ cdef class ThemeColorImGui(baseThemeColor):
         if not(self._enabled):
             self._last_push_size.push_back(0)
             return
-        cdef pair[int, unsigned int] element_content
+        cdef pair[int32_t, uint32_t] element_content
         for element_content in self._index_to_value:
             # Note: imgui seems to convert U32 for this. Maybe use float4
             imgui.PushStyleColor(<imgui.ImGuiCol>element_content.first, <imgui.ImU32>element_content.second)
@@ -965,7 +966,7 @@ cdef class ThemeColorImGui(baseThemeColor):
 
     cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
-        cdef pair[int, unsigned int] element_content
+        cdef pair[int32_t, uint32_t] element_content
         cdef theme_action action
         if not(self._enabled):
             return
@@ -981,7 +982,7 @@ cdef class ThemeColorImGui(baseThemeColor):
             v.push_back(action)
 
     cdef void pop(self) noexcept nogil:
-        cdef int count = self._last_push_size.back()
+        cdef int32_t count = self._last_push_size.back()
         self._last_push_size.pop_back()
         if count > 0:
             imgui.PopStyleColor(count)
@@ -1312,7 +1313,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
         if not(self._enabled):
             self._last_push_size.push_back(0)
             return
-        cdef pair[int, unsigned int] element_content
+        cdef pair[int32_t, uint32_t] element_content
         for element_content in self._index_to_value:
             # Note: imgui seems to convert U32 for this. Maybe use float4
             implot.PushStyleColor(<implot.ImPlotCol>element_content.first, <imgui.ImU32>element_content.second)
@@ -1320,7 +1321,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
 
     cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
-        cdef pair[int, unsigned int] element_content
+        cdef pair[int32_t, uint32_t] element_content
         cdef theme_action action
         if not(self._enabled):
             return
@@ -1336,7 +1337,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
             v.push_back(action)
 
     cdef void pop(self) noexcept nogil:
-        cdef int count = self._last_push_size.back()
+        cdef int32_t count = self._last_push_size.back()
         self._last_push_size.pop_back()
         if count > 0:
             implot.PopStyleColor(count)
@@ -1377,7 +1378,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
             "MiniMapCanvas",
             "MiniMapCanvasOutline"
         ]
-        cdef int i
+        cdef int32_t i
         cdef string name_str
         for i, name in enumerate(self._names):
             name_str = name
@@ -1390,11 +1391,11 @@ cdef class ThemeColorImNodes(baseThemeColor):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef string name_str = bytes(name, 'utf-8')
-        cdef unordered_map[string, int].iterator element = self.name_to_index.find(name_str)
+        cdef unordered_map[string, int32_t].iterator element = self.name_to_index.find(name_str)
         if element == self.name_to_index.end():
             raise AttributeError("Color %s not found" % name)
-        cdef int color_index = dereference(element).second
-        cdef unordered_map[int, imgui.ImU32].iterator element_content = self._index_to_value.find(color_index)
+        cdef int32_t color_index = dereference(element).second
+        cdef unordered_map[int32_t, imgui.ImU32].iterator element_content = self._index_to_value.find(color_index)
         if element_content == self._index_to_value.end():
             # None: default
             return None
@@ -1404,9 +1405,9 @@ cdef class ThemeColorImNodes(baseThemeColor):
     def __getitem__(self, key):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[string, int].iterator element
-        cdef int color_index
-        cdef unordered_map[int, imgui.ImU32].iterator element_content
+        cdef unordered_map[string, int32_t].iterator element
+        cdef int32_t color_index
+        cdef unordered_map[int32_t, imgui.ImU32].iterator element_content
         cdef string name_str
         if isinstance(key, str):
             name_str = bytes(key, 'utf-8')
@@ -1432,7 +1433,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         lock_gil_friendly(m, self.mutex)
         cdef bint found
         cdef string name_str
-        cdef unordered_map[string, int].iterator element
+        cdef unordered_map[string, int32_t].iterator element
         try:
             name_str = bytes(name, 'utf-8')
             element = self.name_to_index.find(name_str)
@@ -1442,7 +1443,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         if not(found):
             PyObject_GenericSetAttr(self, name, value)
             return
-        cdef int color_index = dereference(element).second
+        cdef int32_t color_index = dereference(element).second
         if value is None:
             self._index_to_value.erase(color_index)
             return
@@ -1452,8 +1453,8 @@ cdef class ThemeColorImNodes(baseThemeColor):
     def __setitem__(self, key, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[string, int].iterator element
-        cdef int color_index
+        cdef unordered_map[string, int32_t].iterator element
+        cdef int32_t color_index
         cdef string name_str
         if isinstance(key, str):
             name_str = bytes(key, 'utf-8')
@@ -1477,7 +1478,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
-        cdef pair[int, imgui.ImU32] element_content
+        cdef pair[int32_t, imgui.ImU32] element_content
         for element_content in self._index_to_value:
             result.append((self._names[element_content.first],
                            int(element_content.second)))
@@ -1488,7 +1489,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         if not(self._enabled):
             self._last_push_size.push_back(0)
             return
-        cdef pair[int, imgui.ImU32] element_content
+        cdef pair[int32_t, imgui.ImU32] element_content
         for element_content in self._index_to_value:
             # Note: imgui seems to convert U32 for this. Maybe use float4
             imnodes.PushColorStyle(<imnodes.ImNodesCol>element_content.first, <imgui.ImU32>element_content.second)
@@ -1496,7 +1497,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
 
     cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
-        cdef pair[int, imgui.ImU32] element_content
+        cdef pair[int32_t, imgui.ImU32] element_content
         cdef theme_action action
         if not(self._enabled):
             return
@@ -1512,8 +1513,8 @@ cdef class ThemeColorImNodes(baseThemeColor):
             v.push_back(action)
 
     cdef void pop(self) noexcept nogil:
-        cdef int count = self._last_push_size.back()
-        cdef int i
+        cdef int32_t count = self._last_push_size.back()
+        cdef int32_t i
         self._last_push_size.pop_back()
         if count > 0:
             for i in range(count):
@@ -1566,7 +1567,7 @@ cdef class baseThemeStyle(baseTheme):
     def __getitem__(self, key):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef int style_index
+        cdef int32_t style_index
         if isinstance(key, str):
             return getattr(self, key)
         elif isinstance(key, int):
@@ -1579,7 +1580,7 @@ cdef class baseThemeStyle(baseTheme):
     def __setitem__(self, key, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef int style_index
+        cdef int32_t style_index
         if isinstance(key, str):
             setattr(self, key, value)
         elif isinstance(key, int):
@@ -1594,7 +1595,7 @@ cdef class baseThemeStyle(baseTheme):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
-        cdef pair[int, theme_value_info] element_content
+        cdef pair[int32_t, theme_value_info] element_content
         for element_content in self._index_to_value:
             name = self._names[element_content.first]
             if element_content.second.value_type == theme_value_types.t_int:
@@ -1612,10 +1613,10 @@ cdef class baseThemeStyle(baseTheme):
                 result.append((name, element_content.second.value.value_u32))
         return iter(result)
 
-    cdef object __common_getter(self, int index, theme_value_types type):
+    cdef object __common_getter(self, int32_t index, theme_value_types type):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[int, theme_value_info].iterator element_content = self._index_to_value.find(index)
+        cdef unordered_map[int32_t, theme_value_info].iterator element_content = self._index_to_value.find(index)
         if element_content == self._index_to_value.end():
             # None: default
             return None
@@ -1635,7 +1636,7 @@ cdef class baseThemeStyle(baseTheme):
             return value.value.value_u32
         return None
 
-    cdef void __common_setter(self, int index, theme_value_types type, bint should_scale, bint should_round, py_value):
+    cdef void __common_setter(self, int32_t index, theme_value_types type, bint should_scale, bint should_round, py_value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         if py_value is None:
@@ -1682,7 +1683,7 @@ cdef class baseThemeStyle(baseTheme):
         cdef bint should_round = self._round_after_scale
         self._dpi = dpi
         self._index_to_value_for_dpi.clear()
-        cdef pair[int, theme_value_info] element_content
+        cdef pair[int32_t, theme_value_info] element_content
         for element_content in self._index_to_value:
             if should_scale and element_content.second.should_scale:
                 if element_content.second.value_type == theme_value_types.t_int:
@@ -1704,7 +1705,7 @@ cdef class baseThemeStyle(baseTheme):
 
     cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
-        cdef pair[int, theme_value_info] element_content
+        cdef pair[int32_t, theme_value_info] element_content
         cdef theme_action action
         if not(self._enabled):
             return
@@ -1731,7 +1732,7 @@ cdef class baseThemeStyle(baseTheme):
             return
         if self.context.viewport.global_scale != self._dpi:
             self.__compute_for_dpi()
-        cdef pair[int, theme_value_info] element_content
+        cdef pair[int32_t, theme_value_info] element_content
         if self._backend == theme_backends.t_imgui:
             for element_content in self._index_to_value_for_dpi:
                 if element_content.second.value_type == theme_value_types.t_float:
@@ -1766,7 +1767,7 @@ cdef class baseThemeStyle(baseTheme):
         self._last_push_size.push_back(<int>self._index_to_value_for_dpi.size())
 
     cdef void pop(self) noexcept nogil:
-        cdef int count = self._last_push_size.back()
+        cdef int32_t count = self._last_push_size.back()
         self._last_push_size.pop_back()
         if count > 0:
             if self._backend == theme_backends.t_imgui:
@@ -2380,7 +2381,7 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
     @Marker.setter
     def Marker(self, value):
-        cdef int value_int = int(make_PlotMarker(value))
+        cdef int32_t value_int = int(make_PlotMarker(value))
         baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int, False, False, value_int)
 
     @property
@@ -2774,7 +2775,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
 '''
 cdef extern from * nogil:
     """
-    const int styles_imnodes_sizes[15] = {
+    const int32_t styles_imnodes_sizes[15] = {
     1,
     1,
     2,
@@ -2813,7 +2814,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
             b"MiniMapPadding",
             b"MiniMapOffset"
         ]
-        cdef int i
+        cdef int32_t i
         cdef string name_str
         for i, name in enumerate(self._names):
             name_str = name
@@ -2827,11 +2828,11 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef string name_str = bytes(name, 'utf-8')
-        cdef unordered_map[string, int].iterator element = self.name_to_index.find(name_str)
+        cdef unordered_map[string, int32_t].iterator element = self.name_to_index.find(name_str)
         if element == self.name_to_index.end():
             raise AttributeError("Element %s not found" % name)
-        cdef int style_index = dereference(element).second
-        cdef unordered_map[int, imgui.ImVec2].iterator element_content = self._index_to_value.find(style_index)
+        cdef int32_t style_index = dereference(element).second
+        cdef unordered_map[int32_t, imgui.ImVec2].iterator element_content = self._index_to_value.find(style_index)
         if element_content == self._index_to_value.end():
             # None: default
             return None
@@ -2843,9 +2844,9 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
     def __getitem__(self, key):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[string, int].iterator element
-        cdef int style_index
-        cdef unordered_map[int, imgui.ImVec2].iterator element_content
+        cdef unordered_map[string, int32_t].iterator element
+        cdef int32_t style_index
+        cdef unordered_map[int32_t, imgui.ImVec2].iterator element_content
         cdef string name_str
         if isinstance(key, str):
             name_str = bytes(key, 'utf-8')
@@ -2873,7 +2874,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         lock_gil_friendly(m, self.mutex)
         cdef bint found
         cdef string name_str
-        cdef unordered_map[string, int].iterator element
+        cdef unordered_map[string, int32_t].iterator element
         try:
             name_str = bytes(name, 'utf-8')
             element = self.name_to_index.find(name_str)
@@ -2883,7 +2884,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         if not(found):
             PyObject_GenericSetAttr(self, name, value)
             return
-        cdef int style_index = dereference(element).second
+        cdef int32_t style_index = dereference(element).second
         if value is None:
             self._index_to_value.erase(style_index)
             return
@@ -2907,8 +2908,8 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
     def __setitem__(self, key, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[string, int].iterator element
-        cdef int style_index
+        cdef unordered_map[string, int32_t].iterator element
+        cdef int32_t style_index
         cdef string name_str
         if isinstance(key, str):
             name_str = bytes(key, 'utf-8')
@@ -2945,7 +2946,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
-        cdef pair[int, imgui.ImVec2] element_content
+        cdef pair[int32_t, imgui.ImVec2] element_content
         for element_content in self._index_to_value:
             name = self._names[element_content.first]
             if styles_imnodes_sizes[element_content.first] == 1:
@@ -2961,7 +2962,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         if not(self._enabled):
             self._last_push_size.push_back(0)
             return
-        cdef pair[int, imgui.ImVec2] element_content
+        cdef pair[int32_t, imgui.ImVec2] element_content
         for element_content in self._index_to_value:
             if styles_imnodes_sizes[element_content.first] == 1:
                 imnodes_PushStyleVar1(element_content.first, element_content.second.x)
@@ -2971,7 +2972,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
 
     cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
-        cdef pair[int, imgui.ImVec2] element_content
+        cdef pair[int32_t, imgui.ImVec2] element_content
         cdef theme_action action
         if not(self._enabled):
             return
@@ -2991,7 +2992,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
             v.push_back(action)
 
     cdef void pop(self) noexcept nogil:
-        cdef int count = self._last_push_size.back()
+        cdef int32_t count = self._last_push_size.back()
         self._last_push_size.pop_back()
         if count > 0:
             imnodes.PopStyleVar(count)
@@ -3095,7 +3096,7 @@ cdef class ThemeListWithCondition(baseTheme):
         if not(self._enabled):
             self._last_push_size.push_back(0)
             return
-        cdef int prev_size, i, new_size, count, applied_count
+        cdef int32_t prev_size, i, new_size, count, applied_count
         cdef ThemeEnablers condition_enabled
         cdef ThemeCategories condition_category
         count = 0
@@ -3134,9 +3135,9 @@ cdef class ThemeListWithCondition(baseTheme):
         self._last_push_size.push_back(count)
 
     cdef void pop(self) noexcept nogil:
-        cdef int count = self._last_push_size.back()
+        cdef int32_t count = self._last_push_size.back()
         self._last_push_size.pop_back()
-        cdef int i
+        cdef int32_t i
         for i in range(count):
             self.context.viewport.pending_theme_actions.pop_back()
         if count > 0:
@@ -3145,7 +3146,7 @@ cdef class ThemeListWithCondition(baseTheme):
     
     cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
-        cdef int prev_size, i, new_size
+        cdef int32_t prev_size, i, new_size
         cdef ThemeEnablers condition_enabled
         cdef ThemeCategories condition_category
         if self.last_theme_child is not None:
@@ -3242,7 +3243,7 @@ cdef object apply_theme_conditions(string name, vector[theme_action] &current_th
     elif target_class is ThemeStyleImGui or target_class is ThemeStyleImPlot:
         type = theme_types.t_style
     item_enabled = getattr(item, "enabled", True)
-    cdef int theme_index = target_class.get_internal_index(name)
+    cdef int32_t theme_index = target_class.get_internal_index(name)
     for action in current_theme_conditions:
         if action.backend != backend:
             continue

@@ -27,6 +27,7 @@ from .types cimport child_type, Coord
 from libcpp.algorithm cimport swap
 from libcpp.cmath cimport atan, atan2, sin, cos, sqrt, trunc, floor, round as cround
 from libc.math cimport M_PI, INFINITY
+from libc.stdint cimport uint32_t, int32_t
 from libcpp cimport bool
 
 import scipy
@@ -885,7 +886,7 @@ cdef class DrawBezierCubic(drawingItem):
         lock_gil_friendly(m, self.mutex)
         return self._segments
     @segments.setter
-    def segments(self, int value):
+    def segments(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._segments = value
@@ -994,7 +995,7 @@ cdef class DrawBezierQuadratic(drawingItem):
         lock_gil_friendly(m, self.mutex)
         return self._segments
     @segments.setter
-    def segments(self, int value):
+    def segments(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._segments = value
@@ -1104,7 +1105,7 @@ cdef class DrawCircle(drawingItem):
         lock_gil_friendly(m, self.mutex)
         return self._segments
     @segments.setter
-    def segments(self, int value):
+    def segments(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._segments = value
@@ -1256,14 +1257,14 @@ cdef class DrawEllipse(drawingItem):
         lock_gil_friendly(m, self.mutex)
         return self._segments
     @segments.setter
-    def segments(self, int value):
+    def segments(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._segments = value
         self.__fill_points()
 
     cdef void __fill_points(self):
-        cdef int segments = max(self._segments, 3)
+        cdef int32_t segments = max(self._segments, 3)
         cdef double width = self._pmax[0] - self._pmin[0]
         cdef double height = self._pmax[1] - self._pmin[1]
         cdef double cx = width / 2. + self._pmin[0]
@@ -1271,7 +1272,7 @@ cdef class DrawEllipse(drawingItem):
         cdef double radian_inc = (M_PI * 2.) / <double>segments
         self._points.clear()
         self._points.reserve(segments+1)
-        cdef int i
+        cdef int32_t i
         # vector needs double2 rather than double[2]
         cdef double2 p
         width = abs(width)
@@ -1296,7 +1297,7 @@ cdef class DrawEllipse(drawingItem):
 
         cdef vector[imgui.ImVec2] transformed_points
         transformed_points.reserve(self._points.size())
-        cdef int i
+        cdef int32_t i
         cdef float[2] p
         for i in range(<int>self._points.size()):
             self.context.viewport.coordinate_to_screen(p, self._points[i].p)
@@ -2018,7 +2019,7 @@ cdef class DrawPolyline(drawingItem):
         lock_gil_friendly(m, self.mutex)
         res = []
         cdef double2 p
-        cdef int i
+        cdef int32_t i
         for i in range(<int>self._points.size()):
             res.append(Coord.build(self._points[i].p))
         return res
@@ -2027,7 +2028,7 @@ cdef class DrawPolyline(drawingItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef double2 p
-        cdef int i
+        cdef int32_t i
         self._points.clear()
         for i in range(len(value)):
             read_coord(p.p, value[i])
@@ -2105,7 +2106,7 @@ cdef class DrawPolyline(drawingItem):
         # imgui has artifacts for PolyLine when thickness is small.
         # in that case use AddLine
         # For big thickness, use AddPolyline
-        cdef int i
+        cdef int32_t i
         cdef vector[imgui.ImVec2] ipoints
         if thickness < 2.:
             for i in range(1, <int>self._points.size()):
@@ -2159,7 +2160,7 @@ cdef class DrawPolygon(drawingItem):
         lock_gil_friendly(m, self.mutex)
         res = []
         cdef double2 p
-        cdef int i
+        cdef int32_t i
         for i in range(<int>self._points.size()):
             res.append(Coord.build(self._points[i].p))
         return res
@@ -2168,7 +2169,7 @@ cdef class DrawPolygon(drawingItem):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         cdef double2 p
-        cdef int i
+        cdef int32_t i
         self._points.clear()
         for i in range(len(value)):
             read_coord(p.p, value[i])
@@ -2234,7 +2235,7 @@ cdef class DrawPolygon(drawingItem):
             return
         # TODO: optimize with arrays
         points = []
-        cdef int i
+        cdef int32_t i
         for i in range(<int>self._points.size()):
             # For now perform only in 2D
             points.append([self._points[i].p[0], self._points[i].p[1]])
@@ -2256,7 +2257,7 @@ cdef class DrawPolygon(drawingItem):
         cdef float[2] p
         cdef imgui.ImVec2 ip
         cdef vector[imgui.ImVec2] ipoints
-        cdef int i
+        cdef int32_t i
         cdef bint ccw
         ipoints.reserve(self._points.size())
         for i in range(<int>self._points.size()):
@@ -2849,7 +2850,7 @@ cdef class DrawRegularPolygon(drawingItem):
         lock_gil_friendly(m, self.mutex)
         return self._num_points
     @num_points.setter
-    def num_points(self, int value):
+    def num_points(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._num_points = value
@@ -2919,7 +2920,7 @@ cdef class DrawRegularPolygon(drawingItem):
             thickness *= self.context.viewport.size_multiplier
         thickness = abs(thickness)
         cdef float radius = self._radius
-        cdef int num_points = self._num_points
+        cdef int32_t num_points = self._num_points
 
         if radius == 0 or num_points <= 0:
             return
@@ -2933,7 +2934,7 @@ cdef class DrawRegularPolygon(drawingItem):
         cdef float[2] p
         cdef imgui.ImVec2 ip
         cdef vector[imgui.ImVec2] ipoints
-        cdef int i
+        cdef int32_t i
         cdef float angle
         cdef float2 pp
 
@@ -3081,7 +3082,7 @@ cdef class DrawStar(drawingItem):
         lock_gil_friendly(m, self.mutex)
         return self._num_points
     @num_points.setter
-    def num_points(self, int value):
+    def num_points(self, int32_t value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
         self._num_points = value
@@ -3152,8 +3153,8 @@ cdef class DrawStar(drawingItem):
         thickness = abs(thickness)
         cdef float radius = self._radius
         cdef float inner_radius = self._inner_radius
-        cdef int num_points = self._num_points
-        cdef int num_segments = max(1, num_points - 1)
+        cdef int32_t num_points = self._num_points
+        cdef int32_t num_segments = max(1, num_points - 1)
 
         if radius == 0 or num_points <= 2:
             return
@@ -3170,7 +3171,7 @@ cdef class DrawStar(drawingItem):
         cdef imgui.ImVec2 icenter, ip
         cdef float[2] p
         cdef float2 pp
-        cdef int i
+        cdef int32_t i
         cdef vector[imgui.ImVec2] ipoints
         cdef vector[imgui.ImVec2] inner_ipoints
 
@@ -3730,16 +3731,16 @@ cdef class DrawValue(drawingItem):
             self._font.push()
 
         cdef bool value_bool
-        cdef int value_int
+        cdef int32_t value_int
         cdef float value_float
         cdef double value_double
         cdef Vec4 value_color
-        cdef int[4] value_int4
+        cdef int32_t[4] value_int4
         cdef float[4] value_float4
         cdef double[4] value_double4
         cdef string value_str
 
-        cdef int ret
+        cdef int32_t ret
 
         if self._type == 0:
             value_bool = SharedBool.get(<SharedBool>self._value)
