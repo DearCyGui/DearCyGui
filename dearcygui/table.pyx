@@ -1056,6 +1056,8 @@ cdef class Table(uiItem):
     cdef int _num_cols
     cdef int _num_rows_visible
     cdef int _num_cols_visible
+    cdef int _num_rows_frozen
+    cdef int _num_cols_frozen
     cdef float _inner_width
     cdef bint _header
     def __cinit__(self):
@@ -1071,6 +1073,8 @@ cdef class Table(uiItem):
         self._dirty_num_rows_cols = False
         self._num_rows_visible = -1
         self._num_cols_visible = -1
+        self._num_rows_frozen = 0
+        self._num_cols_frozen = 0
         self.can_have_widget_child = True
 
     cdef TableColConfig get_col_config(self, int col_idx):
@@ -1311,6 +1315,48 @@ cdef class Table(uiItem):
         if value > 512: # IMGUI_TABLE_MAX_COLUMNS
             raise ValueError("num_cols_visible must be <= 512")
         self._num_cols_visible = value
+
+    @property
+    def num_rows_frozen(self):
+        """
+        Writable attribute: Number of rows
+        with scroll frozen.
+        Default is 0.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._num_rows_frozen
+
+    @num_rows_frozen.setter
+    def num_rows_frozen(self, int value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value < 0:
+            raise ValueError("num_rows_frozen must be a non-negative integer")
+        if value >= 128: # imgui limit
+            raise ValueError("num_rows_frozen must be < 128")
+        self._num_rows_frozen = value
+
+    @property
+    def num_cols_frozen(self):
+        """
+        Writable attribute: Number of columns
+        with scroll frozen.
+        Default is 0.
+        """
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._num_cols_frozen
+
+    @num_cols_frozen.setter
+    def num_cols_frozen(self, int value):
+        cdef unique_lock[recursive_mutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value < 0:
+            raise ValueError("num_cols_frozen must be a non-negative integer")
+        if value >= 512: # imgui limit
+            raise ValueError("num_cols_frozen must be < 512")
+        self._num_cols_frozen = value
 
     cdef void _decref_and_detach(self, PyObject* item):
         """All items are attached as children of the table.
@@ -1999,6 +2045,13 @@ cdef class Table(uiItem):
         if actual_num_cols > 512: # IMGUI_TABLE_MAX_COLUMNS
             actual_num_cols = 512
 
+        cdef int num_rows_frozen = self._num_rows_frozen
+        if num_rows_frozen >= actual_num_rows:
+            num_rows_frozen = actual_num_rows
+        cdef int num_cols_frozen = self._num_cols_frozen
+        if num_cols_frozen >= actual_num_cols:
+            num_cols_frozen = actual_num_cols
+
         cdef pair[pair[int, int], TableElementData] key_element
         cdef pair[int, int] key
         cdef TableElementData element
@@ -2048,6 +2101,8 @@ cdef class Table(uiItem):
                     imgui.TableSetupColumn("", 0, 0., 0)
                 (<TableColConfig>col_data.second).setup(col_data.first, <unsigned>self._flags)
                 prev_col = col_data.first
+            if num_cols_frozen > 0 or num_rows_frozen > 0:
+                imgui.TableSetupScrollFreeze(num_cols_frozen, num_rows_frozen)
             # Submit header row
             if self._header:
                 imgui.TableHeadersRow()
