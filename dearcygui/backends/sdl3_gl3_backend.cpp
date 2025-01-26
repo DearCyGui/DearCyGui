@@ -761,6 +761,7 @@ void SDLViewport::processEvents(int timeout_ms) {
     if (shouldFullscreen)
     {
         SDL_SetWindowFullscreen(windowHandle, !isFullScreen);
+        shouldFullscreen = false;
     }
 
     // Poll and handle events (inputs, window resize, etc.)
