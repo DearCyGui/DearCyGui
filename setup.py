@@ -70,6 +70,11 @@ def get_gcc_clang_compat_flags():
 
 def build_SDL3():
     src_path = os.path.dirname(os.path.abspath(__file__))
+    src_path = os.path.join(src_path, "thirdparty/SDL")
+    work_dir = os.path.abspath(os.getcwd())
+    build_dir = os.path.join(work_dir, "build_SDL")
+    os.makedirs(build_dir, exist_ok=True)
+    
     cmake_config_args = [
         '-DCMAKE_BUILD_TYPE=Release',
         '-DSDL_SHARED=OFF',
@@ -83,36 +88,39 @@ def build_SDL3():
     ]
     if get_platform() == "Windows":
         cmake_config_args += ["-DSDL_JOYSTICK=OFF -DSDL_HAPTIC=OFF"]
-        if is_mingw():
-            # First, set up the generator
-            generator_command = 'cmake -S thirdparty/SDL/ -B build_SDL -G "MinGW Makefiles"'
-            generator_command += " -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"
-            subprocess.check_call(generator_command, shell=True)
+    if get_platform() == "Windows" and is_mingw():
+        # First, set up the generator
+        generator_command = f'cmake -S "{src_path}" -B "{build_dir}" -G "MinGW Makefiles"'
+        generator_command += " -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"
+        subprocess.check_call(generator_command, shell=True)
             
-            # Then configure with the rest of the arguments
-            mingw_args = ["-DCMAKE_C_COMPILER=gcc", "-DCMAKE_CXX_COMPILER=g++"]
-            if is_msvc_compat():
-                mingw_args += [
-                    "-DCMAKE_C_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29",
-                    "-DCMAKE_CXX_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29 -fdeclspec"
-                ]
-            command = 'cmake -S thirdparty/SDL/ -B build_SDL ' + ' '.join(cmake_config_args + mingw_args)
-            subprocess.check_call(command, shell=True)
-        else:
-            command = 'cmake -S thirdparty/SDL/ -B build_SDL ' + ' '.join(cmake_config_args)
-            subprocess.check_call(command, shell=True)
+        # Then configure with the rest of the arguments
+        mingw_args = ["-DCMAKE_C_COMPILER=gcc", "-DCMAKE_CXX_COMPILER=g++"]
+        if is_msvc_compat():
+            mingw_args += [
+                "-DCMAKE_C_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29",
+                "-DCMAKE_CXX_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29 -fdeclspec"
+            ]
+        command = f'cmake -S "{src_path}" -B "{build_dir}" ' + ' '.join(cmake_config_args + mingw_args)
+        subprocess.check_call(command, shell=True)
+    else:
+        command = f'cmake -S "{src_path}" -B "{build_dir}" ' + ' '.join(cmake_config_args)
+        subprocess.check_call(command, shell=True)
 
-    command = 'cmake --build build_SDL --config Release'
+    command = f'cmake --build "{build_dir}" --config Release'
     subprocess.check_call(command, shell=True)
     
-    if get_platform() == "Windows":
-        if is_mingw():
-            return os.path.abspath(os.path.join("build_SDL", "libSDL3.a"))
-        return os.path.abspath(os.path.join("build_SDL", "Release/SDL3-static.lib"))
-    return os.path.abspath(os.path.join("build_SDL", "libSDL3.a"))
+    if get_platform() == "Windows" and not is_mingw():
+        return os.path.abspath(os.path.join(build_dir, "Release/SDL3-static.lib"))
+    return os.path.abspath(os.path.join(build_dir, "libSDL3.a"))
 
 def build_FREETYPE():
     src_path = os.path.dirname(os.path.abspath(__file__))
+    src_path = os.path.join(src_path, "thirdparty/freetype")
+    work_dir = os.path.abspath(os.getcwd())
+    build_dir = os.path.join(work_dir, "build_FT")
+    os.makedirs(build_dir, exist_ok=True)
+    
     cmake_config_args = [
         '-DCMAKE_BUILD_TYPE=Release',
         '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
@@ -125,7 +133,7 @@ def build_FREETYPE():
     
     if get_platform() == "Windows" and is_mingw():
         # First, set up the generator
-        generator_command = 'cmake -S thirdparty/freetype/ -B build_FT -G "MinGW Makefiles"'
+        generator_command = f'cmake -S "{src_path}" -B "{build_dir}" -G "MinGW Makefiles"'
         generator_command += " -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"
         subprocess.check_call(generator_command, shell=True)
         
@@ -136,20 +144,18 @@ def build_FREETYPE():
                 "-DCMAKE_C_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29",
                 "-DCMAKE_CXX_FLAGS=-fms-extensions -fms-compatibility -fms-compatibility-version=19.29 -fdeclspec"
             ]
-        command = 'cmake -S thirdparty/freetype/ -B build_FT ' + ' '.join(cmake_config_args + mingw_args)
+        command = f'cmake -S "{src_path}" -B "{build_dir}" ' + ' '.join(cmake_config_args + mingw_args)
         subprocess.check_call(command, shell=True)
     else:
-        command = 'cmake -S thirdparty/freetype/ -B build_FT ' + ' '.join(cmake_config_args)
+        command = f'cmake -S "{src_path}" -B "{build_dir}" ' + ' '.join(cmake_config_args)
         subprocess.check_call(command, shell=True)
 
-    command = 'cmake --build build_FT --config Release'
+    command = f'cmake --build "{build_dir}" --config Release'
     subprocess.check_call(command, shell=True)
     
-    if get_platform() == "Windows":
-        if is_mingw():
-            return os.path.abspath(os.path.join("build_FT", "libfreetype.a"))
-        return os.path.abspath(os.path.join("build_FT", "Release/freetype.lib"))
-    return os.path.abspath(os.path.join("build_FT", "libfreetype.a"))
+    if get_platform() == "Windows" and not is_mingw():
+        return os.path.abspath(os.path.join(build_dir, "Release/freetype.lib"))
+    return os.path.abspath(os.path.join(build_dir, "libfreetype.a"))
 
 def setup_package():
 
