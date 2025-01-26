@@ -156,7 +156,7 @@ public:
      * The GL context must be current before calling this function.
      * @param tex_id OpenGL texture identifier
      */
-    virtual void beginExternalWrite(GLuint tex_id);
+    virtual void beginExternalWrite(GLuint tex_id) override;
 
     /**
      * End exclusive write access to a texture and place a fence sync.
@@ -164,7 +164,7 @@ public:
      * The GL context must be current before calling this function.
      * @param tex_id OpenGL texture identifier
      */
-    virtual void endExternalWrite(GLuint tex_id);
+    virtual void endExternalWrite(GLuint tex_id) override;
 
     /**
      * Begin read access to a texture. Must be paired with endExternalRead.
@@ -172,7 +172,7 @@ public:
      * The GL context must be current before calling this function.
      * @param tex_id OpenGL texture identifier
      */
-    virtual void beginExternalRead(GLuint tex_id);
+    virtual void beginExternalRead(GLuint tex_id) override;
 
     /**
      * End read access to a texture and place a fence sync.
@@ -180,7 +180,7 @@ public:
      * The GL context must be current before calling this function.
      * @param tex_id OpenGL texture identifier
      */
-    virtual void endExternalRead(GLuint tex_id);
+    virtual void endExternalRead(GLuint tex_id) override;
 
     /**
      * Allocate a new texture or reuse a cached one.
