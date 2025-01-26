@@ -12,7 +12,7 @@ import numpy as np
 import shutil
 import subprocess
 
-wip_version = "0.0.8"
+wip_version = "0.0.9"
 
 def version_number():
     return wip_version
@@ -86,6 +86,7 @@ def build_SDL3():
         if is_mingw():
             # First, set up the generator
             generator_command = 'cmake -S thirdparty/SDL/ -B build_SDL -G "MinGW Makefiles"'
+            generator_command += " -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"
             subprocess.check_call(generator_command, shell=True)
             
             # Then configure with the rest of the arguments
@@ -125,6 +126,7 @@ def build_FREETYPE():
     if get_platform() == "Windows" and is_mingw():
         # First, set up the generator
         generator_command = 'cmake -S thirdparty/freetype/ -B build_FT -G "MinGW Makefiles"'
+        generator_command += " -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"
         subprocess.check_call(generator_command, shell=True)
         
         # Then configure with the rest of the arguments

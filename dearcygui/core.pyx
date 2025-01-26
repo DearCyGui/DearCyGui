@@ -1439,10 +1439,7 @@ cdef class baseItem:
         # Fast path for this common case
         if self.context._item_unused_configure_args_callback is None:
             for (key, value) in kwargs.items():
-                #try:
                 setattr(self, key, value)
-                #except:
-                #    pass
             return
         remaining = {}
         for (key, value) in kwargs.items():
