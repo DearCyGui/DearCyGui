@@ -86,8 +86,12 @@ def build_SDL3():
         '-DSDL_DISABLE_INSTALL_DOCS=ON',
         '-DCMAKE_POSITION_INDEPENDENT_CODE=ON'
     ]
-    if get_platform() == "Windows":
-        cmake_config_args += ["-DSDL_JOYSTICK=OFF -DSDL_HAPTIC=OFF"]
+
+    # Add architecture-specific flags for macOS
+    if get_platform() == "OS X":
+        if os.environ.get('CMAKE_OSX_ARCHITECTURES'):
+            cmake_config_args.append(f'-DCMAKE_OSX_ARCHITECTURES={os.environ["CMAKE_OSX_ARCHITECTURES"]}')
+
     if get_platform() == "Windows" and is_mingw():
         # First, set up the generator
         generator_command = f'cmake -S "{src_path}" -B "{build_dir}" -G "MinGW Makefiles"'
@@ -130,7 +134,12 @@ def build_FREETYPE():
         '-D FT_DISABLE_HARFBUZZ=TRUE',
         '-D FT_DISABLE_BROTLI=TRUE'
     ]
-    
+
+    # Add architecture-specific flags for macOS
+    if get_platform() == "OS X":
+        if os.environ.get('CMAKE_OSX_ARCHITECTURES'):
+            cmake_config_args.append(f'-DCMAKE_OSX_ARCHITECTURES={os.environ["CMAKE_OSX_ARCHITECTURES"]}')
+
     if get_platform() == "Windows" and is_mingw():
         # First, set up the generator
         generator_command = f'cmake -S "{src_path}" -B "{build_dir}" -G "MinGW Makefiles"'

@@ -106,10 +106,16 @@ jobs:
       env:
         MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target == 'arm64' && '11.0' || '10.15' }}
         CMAKE_OSX_ARCHITECTURES: ${{ matrix.target }}
+        ARCHFLAGS: "-arch ${{ matrix.target }}"
         CFLAGS: "-arch ${{ matrix.target }}"
         CXXFLAGS: "-arch ${{ matrix.target }}"
         LDFLAGS: "-arch ${{ matrix.target }}"
-      run: python -m build --wheel
+      run: |
+        # Clean any previous builds
+        rm -rf build/
+        rm -rf build_SDL/
+        rm -rf build_FT/
+        python -m build --wheel
 
     - name: Fix wheel tags
       run: |
