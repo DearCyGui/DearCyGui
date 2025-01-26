@@ -62,12 +62,19 @@ cdef extern from "SDL3/SDL_dialog.h" nogil:
 
 cdef class RenderFrameCommandSubmission(baseHandler):
     cdef bint _has_run
+    cdef object custom_callback
     def __cinit__(self):
         self._has_run = False
 
     def configure(self, callback, **kwargs):
         super().configure(**kwargs)
-        self.callback = [callback, self._delayed_delete]
+        self.custom_callback = callback
+        self.callback = self._run_async
+
+    def _run_async(self):
+        self.custom_callback()
+        self._delayed_delete()
+
     def _delayed_delete(self):
         """Free the item in the queue frame,
            as we cannot do it safely during rendering.
@@ -76,11 +83,14 @@ cdef class RenderFrameCommandSubmission(baseHandler):
             setattr(self.context.viewport,
                     "handlers",
                    [h for h in getattr(self.context.viewport, "handlers") if h is not self])
+
     cdef void check_bind(self, baseItem item):
         if item is not self.context.viewport:
             raise TypeError("May only be attached to viewport")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         return not self._has_run
+
     cdef void run_handler(self, baseItem item) noexcept nogil:
         if self._has_run:
             return
@@ -145,9 +155,18 @@ cdef class _FileDialogQuery:
         cdef SDL_DialogFileFilter filter
         # First copy to the backing for proper cleanup
         # on error
+        if filters is None:
+            filters = []
         for (name, pattern) in filters:
             self.filters_backing.push_back(bytes(str(name), encoding="utf-8"))
-            self.filters_backing.push_back(bytes(str(pattern), encoding="utf-8"))
+            pattern = str(pattern)
+            if pattern != "*":
+                parts = pattern.split(";")
+                for part in parts:
+                    if not all(c.isalnum() or c in "-_." for c in part):
+                        raise ValueError(f"Invalid pattern: {pattern}. Extensions may only contain alphanumeric characters, hyphens, underscores and periods.")
+            self.filters_backing.push_back(bytes(pattern, encoding="utf-8"))
+        
         # Add the pointers to the actual filters
         cdef int32_t i
         for i in range(0, <int32_t>self.filters_backing.size(), 2):
