@@ -40,7 +40,7 @@ def is_mingw():
             return False
         import subprocess
         result = subprocess.run(['gcc', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return result.returncode == 0 and (b'mingw' in result.stdout.lower() or b'mingw' in result.stderr.lower())
+        return result.returncode == 0 and (b'gcc' in result.stdout.lower() or b'gcc' in result.stderr.lower())
     except:
         return False
 
