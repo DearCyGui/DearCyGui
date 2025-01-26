@@ -242,6 +242,10 @@ def setup_package():
             "-framework", "CoreFoundation",
             "-framework", "CoreVideo",
             "-framework", "OpenGL",
+            "-framework", "AVFoundation",
+            "-framework", "CoreHaptics",
+            "-framework", "GameController",
+            "-framework", "ForceFeedback",
             "-arch", mac_arch  # Use the same architecture for linking
         ]
     elif get_platform() == "Windows":

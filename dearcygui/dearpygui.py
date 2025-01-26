@@ -1851,7 +1851,7 @@ def add_2d_histogram_series(x : Union[List[float], Tuple[float, ...]], y : Union
         warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
         tag=kwargs['id']
 
-    #return add_2d_histogram_series(x, y, label=label, user_data=user_data, show=show, xbins=xbins, ybins=ybins, xmin_range=xmin_range, xmax_range=xmax_range, ymin_range=ymin_range, ymax_range=ymax_range, density=density, outliers=outliers, col_major=col_major, **kwargs)
+    return dcg.PlotHistogram2D(CONTEXT, X=x, Y=y, label=label, user_data=user_data, show=show, x_bins=xbins, y_bins=ybins, range_x=(xmin_range, xmax_range), range_y=(ymin_range, ymax_range), density=density, no_outliers=not(outliers), **kwargs)
 
 def add_3d_slider(*, label: str =None, user_data: Any =None, width: int =0, height: int =0, indent: int =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: Union[List[float], Tuple[float, ...]] =(0.0, 0.0, 0.0, 0.0), max_x: float =100.0, max_y: float =100.0, max_z: float =100.0, min_x: float =0.0, min_y: float =0.0, min_z: float =0.0, scale: float =1.0, **kwargs) -> Union[int, str]:
     """     Adds a 3D box slider.
