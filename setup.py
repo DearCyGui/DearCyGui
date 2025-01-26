@@ -93,6 +93,10 @@ def build_SDL3():
         if os.environ.get('CMAKE_OSX_ARCHITECTURES'):
             cmake_config_args.append(f'-DCMAKE_OSX_ARCHITECTURES={os.environ["CMAKE_OSX_ARCHITECTURES"]}')
 
+    if get_platform() == "Windows":
+        # gamepad input bug https://github.com/libsdl-org/SDL/issues/11487
+        cmake_config_args += ["-DSDL_PRESEED=OFF"]
+
     if get_platform() == "Windows" and is_mingw():
         # First, set up the generator
         generator_command = f'cmake -S "{src_path}" -B "{build_dir}" -G "MinGW Makefiles"'
