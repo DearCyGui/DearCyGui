@@ -221,9 +221,11 @@ def setup_package():
         compile_args += get_gcc_clang_compat_flags()
         libraries = ["crypt", "pthread", "dl", "util", "m", "GL"]
     elif get_platform() == "OS X":
+        # Get architecture from environment or default to x86_64
+        mac_arch = os.environ.get('CMAKE_OSX_ARCHITECTURES', 'x86_64')
         compile_args += [
             "-fobjc-arc", "-fno-common", "-dynamic", "-DNDEBUG",
-            "-fwrapv", "-O3", "-DAPPLE", "-arch", "x86_64", "-std=c++14"
+            "-fwrapv", "-O3", "-DAPPLE", "-arch", mac_arch, "-std=c++14"
         ]
         compile_args += get_gcc_clang_compat_flags()
         libraries = []
@@ -234,7 +236,7 @@ def setup_package():
             "-framework", "CoreFoundation",
             "-framework", "CoreVideo",
             "-framework", "OpenGL",
-            "-arch", "x86_64"
+            "-arch", mac_arch  # Use the same architecture for linking
         ]
     elif get_platform() == "Windows":
         if is_mingw():
