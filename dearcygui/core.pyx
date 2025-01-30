@@ -363,6 +363,12 @@ cdef class Context:
         if self._queue is not None:
             self._queue.shutdown(wait=True)
 
+    def __reduce__(self):
+        """
+        Pickle support.
+        """
+        return (self.__class__, ())
+
     @property
     def viewport(self) -> Viewport:
         """
@@ -1457,6 +1463,50 @@ cdef class baseItem:
 
     def __dealloc__(self):
         clear_obj_vector(self._handlers)
+
+    def __reduce__(self):
+        """
+        Pickle support.
+        """
+        return (self.__class__, (self.context,), self.__getstate__())
+
+    def __getstate__(self):
+        """
+        Generic implementation.
+
+        Retrieve the item configuration and child tree (Pickle support.)
+        """
+        result = {}
+
+        blacklist = set([
+            "parent", "previous_sibling", "next_sibling",
+            "children", "children_types", "item_type",
+            "context", "uuid", "mutex", "shareable_value"
+        ])
+
+        # Retrieve the attributes of the item
+        # that are not methods.
+        for key in dir(self):
+            if key in blacklist:
+                continue
+            if key.startswith("__"):
+                continue
+            value = getattr(self, key)
+            try:
+                setattr(self, key, value)
+            except AttributeError, TypeError:
+                continue
+            result[key] = value
+
+        result["children"] = self.children
+
+        return result
+
+    def __setstate__(self, state):
+        """
+        Restore the item configuration and child tree (Pickle support.)
+        """
+        self.configure(**state)
 
     @property
     def context(self):
