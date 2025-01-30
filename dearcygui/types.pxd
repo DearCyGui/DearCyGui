@@ -64,6 +64,28 @@ cpdef enum class Positioning:
     REL_WINDOW, # Shift relative to the window position
     REL_VIEWPORT # Shift relative to the viewport position
 
+cdef inline Positioning check_Positioning(Positioning value):
+    """
+    Using Positioning directly cython has trouble
+    using the python version of the enum, so we
+    need to have manual checking of the validity
+    of the input value.
+    """
+    if value == Positioning.DEFAULT:
+        return Positioning.DEFAULT
+    elif value == Positioning.REL_DEFAULT:
+        return Positioning.REL_DEFAULT
+    elif value == Positioning.REL_PARENT:
+        return Positioning.REL_PARENT
+    elif value == Positioning.REL_WINDOW:
+        return Positioning.REL_WINDOW
+    elif value == Positioning.REL_VIEWPORT:
+        return Positioning.REL_VIEWPORT
+    else:
+        raise ValueError(f"Invalid Positioning value: {value}")
+
+cdef object make_Positioning(Positioning value)
+
 """
 #Class to describe the sizing policy of an item
 cpdef enum class Sizing:

@@ -5246,7 +5246,7 @@ cdef class uiItem(baseItem):
         while items react dynamically to the size of their parent, a few
         frames may be needed for positions to stabilize.
         """
-        return (<Positioning>self.pos_policy[0], <Positioning>self.pos_policy[1])
+        return (make_Positioning(self.pos_policy[0]), make_Positioning(self.pos_policy[1]))
 
     @property
     def height(self):
@@ -5401,19 +5401,15 @@ cdef class uiItem(baseItem):
         self.pos_update_requested = True
 
     @pos_policy.setter
-    def pos_policy(self, Positioning value):
+    def pos_policy(self, value):
         if hasattr(value, "__len__"):
             (x, y) = value
-            if x not in Positioning or y not in Positioning:
-                raise ValueError("Invalid Positioning policy")
-            self.pos_policy[0] = x
-            self.pos_policy[1] = y
+            self.pos_policy[0] = check_Positioning(x)
+            self.pos_policy[1] = check_Positioning(y)
             self.pos_update_requested = True
         else:
-            if value not in Positioning:
-                raise ValueError("Invalid Positioning policy")
-            self.pos_policy[0] = value
-            self.pos_policy[1] = value
+            self.pos_policy[0] = check_Positioning(value)
+            self.pos_policy[1] = check_Positioning(value)
             self.pos_update_requested = True
 
     @height.setter

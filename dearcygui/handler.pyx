@@ -824,21 +824,17 @@ cdef class MotionHandler(baseHandler):
 
         Defaults to REL_PARENT on both axes.
         """
-        return (<Positioning>self._positioning[0], <Positioning>self._positioning[1])
+        return (make_Positioning(self._positioning[0]), make_Positioning(self._positioning[1]))
 
     @pos_policy.setter
-    def pos_policy(self, Positioning value):
+    def pos_policy(self, value):
         if hasattr(value, "__len__"):
             (x, y) = value
-            if x not in Positioning or y not in Positioning:
-                raise ValueError("Invalid Positioning policy")
-            self._positioning[0] = x
-            self._positioning[1] = y
+            self._positioning[0] = check_Positioning(x)
+            self._positioning[1] = check_Positioning(y)
         else:
-            if value not in Positioning:
-                raise ValueError("Invalid Positioning policy")
-            self._positioning[0] = value
-            self._positioning[1] = value
+            self._positioning[0] = check_Positioning(value)
+            self._positioning[1] = check_Positioning(value)
 
     cdef void check_bind(self, baseItem item):
         cdef unique_lock[recursive_mutex] m

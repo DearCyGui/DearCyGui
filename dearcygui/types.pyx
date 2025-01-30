@@ -1187,3 +1187,6 @@ class TableFlag(IntFlag):
 
 cdef object make_PlotMarker(int32_t marker):
     return PlotMarker(marker)
+
+cdef object make_Positioning(Positioning positioning):
+    return Positioning(positioning)
