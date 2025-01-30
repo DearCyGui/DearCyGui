@@ -1494,7 +1494,7 @@ cdef class baseItem:
             value = getattr(self, key)
             try:
                 setattr(self, key, value)
-            except AttributeError, TypeError:
+            except (AttributeError, TypeError):
                 continue
             result[key] = value
 
