@@ -17,6 +17,7 @@
 from libc.math cimport logf
 from libcpp cimport bool
 from libcpp.deque cimport deque
+from libcpp.vector cimport vector
 
 cimport cython
 cimport cython.view

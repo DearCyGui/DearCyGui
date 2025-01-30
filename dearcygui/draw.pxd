@@ -1,9 +1,7 @@
 from .core cimport drawingItem, Texture, baseFont, SharedValue
-from .c_types cimport double2, float2
+from .c_types cimport double2, float2, DCGVector, DCGString
 
 from libc.stdint cimport uint32_t, int32_t
-from libcpp.string cimport string
-from libcpp.vector cimport vector
 
 cdef class ViewportDrawList(drawingItem):
     cdef bint _front
@@ -86,7 +84,7 @@ cdef class DrawEllipse(drawingItem):
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
     cdef int32_t _segments
-    cdef vector[double2] _points
+    cdef DCGVector[double2] _points
     cdef void __fill_points(self)
     cdef void draw(self, void*) noexcept nogil
 
@@ -126,14 +124,14 @@ cdef class DrawPolyline(drawingItem):
     cdef uint32_t _color # imgui.ImU32
     cdef float _thickness
     cdef bint _closed
-    cdef vector[double2] _points
+    cdef DCGVector[double2] _points
     cdef void draw(self, void*) noexcept nogil
 
 cdef class DrawPolygon(drawingItem):
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
-    cdef vector[double2] _points
+    cdef DCGVector[double2] _points
     cdef int[:,:] _triangulation_indices
     cdef void __triangulate(self)
     cdef void draw(self, void*) noexcept nogil
@@ -170,7 +168,7 @@ cdef class DrawRegularPolygon(drawingItem):
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
     cdef int32_t _num_points
-    cdef vector[float2] _points
+    cdef DCGVector[float2] _points
     cdef bint _dirty
     cdef void draw(self, void*) noexcept nogil
 
@@ -183,14 +181,14 @@ cdef class DrawStar(drawingItem):
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
     cdef int32_t _num_points
-    cdef vector[float2] _points
-    cdef vector[float2] _inner_points
+    cdef DCGVector[float2] _points
+    cdef DCGVector[float2] _inner_points
     cdef bint _dirty
     cdef void draw(self, void*) noexcept nogil
 
 cdef class DrawText(drawingItem):
     cdef double[2] _pos
-    cdef string _text
+    cdef DCGString _text
     cdef uint32_t _color # imgui.ImU32
     cdef float _size
     cdef baseFont _font
@@ -208,7 +206,7 @@ cdef class DrawTriangle(drawingItem):
 cdef class DrawValue(drawingItem):
     cdef char[256] buffer
     cdef double[2] _pos
-    cdef string _print_format
+    cdef DCGString _print_format
     cdef uint32_t _color  # imgui.ImU32
     cdef int32_t _type
     cdef float _size

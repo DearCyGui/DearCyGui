@@ -1,6 +1,7 @@
 from libcpp.unordered_map cimport unordered_map
 from .core cimport *
 from .types cimport *
+from .c_types cimport DCGVector
 
 from libc.stdint cimport uint32_t, int32_t
 
@@ -12,18 +13,18 @@ cdef class baseThemeColor(baseTheme):
 
 cdef class ThemeColorImGui(baseThemeColor):
     cdef void push(self) noexcept nogil
-    cdef void push_to_list(self, vector[theme_action]&) noexcept nogil
+    cdef void push_to_list(self, DCGVector[theme_action]&) noexcept nogil
     cdef void pop(self) noexcept nogil
 
 cdef class ThemeColorImPlot(baseThemeColor):
     cdef void push(self) noexcept nogil
-    cdef void push_to_list(self, vector[theme_action]&) noexcept nogil
+    cdef void push_to_list(self, DCGVector[theme_action]&) noexcept nogil
     cdef void pop(self) noexcept nogil
 
 '''
 cdef class ThemeColorImNodes(baseThemeColor):
     cdef void push(self) noexcept nogil
-    cdef void push_to_list(self, vector[theme_action]&) noexcept nogil
+    cdef void push_to_list(self, DCGVector[theme_action]&) noexcept nogil
     cdef void pop(self) noexcept nogil
 '''
 
@@ -45,7 +46,7 @@ cdef class baseThemeStyle(baseTheme):
     cdef object __common_getter(self, int32_t, theme_value_types)
     cdef void __common_setter(self, int32_t, theme_value_types, bint, bint, py_value)
     cdef void __compute_for_dpi(self) noexcept nogil
-    cdef void push_to_list(self, vector[theme_action]&) noexcept nogil
+    cdef void push_to_list(self, DCGVector[theme_action]&) noexcept nogil
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
 
@@ -60,7 +61,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
 
 cdef class ThemeList(baseTheme):
     cdef void push(self) noexcept nogil
-    cdef void push_to_list(self, vector[theme_action]&) noexcept nogil
+    cdef void push_to_list(self, DCGVector[theme_action]&) noexcept nogil
     cdef void pop(self) noexcept nogil
 
 cdef class ThemeListWithCondition(baseTheme):
@@ -68,10 +69,10 @@ cdef class ThemeListWithCondition(baseTheme):
     cdef ThemeCategories _activation_condition_category
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil
 
 cdef class ThemeStopCondition(baseTheme):
-    cdef vector[int32_t] _start_pending_theme_actions_backup
+    cdef DCGVector[int32_t] _start_pending_theme_actions_backup
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil

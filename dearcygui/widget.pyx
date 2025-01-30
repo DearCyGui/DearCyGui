@@ -21,7 +21,6 @@ from libc.string cimport memcpy, memset
 
 from dearcygui.wrapper cimport imgui, implot
 from libcpp.cmath cimport trunc
-from libcpp.string cimport string
 from libc.math cimport INFINITY
 
 
@@ -923,13 +922,13 @@ cdef class SimplePlot(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._overlay
+        return string_to_str(self._overlay)
 
     @overlay.setter
     def overlay(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._overlay = bytes(str(value), 'utf-8')
+        self._overlay = string_from_str(value)
 
     cdef bint draw_item(self) noexcept nogil:
         cdef float[:] data = SharedFloatVect.get(<SharedFloatVect>self._value)
@@ -1083,7 +1082,11 @@ cdef class Combo(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [str(v, encoding='utf-8') for v in self._items]
+        result = []
+        cdef int i
+        for i in range(self._items.size()):
+            result.append(string_to_str(self._items[i]))
+        return result
 
     @items.setter
     def items(self, value):
@@ -1094,10 +1097,10 @@ cdef class Combo(uiItem):
         if value is None:
             return
         if value is str:
-            self._items.push_back(bytes(value, 'utf-8'))
+            self._items.push_back(string_from_str(value))
         elif hasattr(value, '__len__'):
             for v in value:
-                self._items.push_back(bytes(v, 'utf-8'))
+                self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
         lock_gil_friendly(value_m, self._value.mutex)
@@ -1218,7 +1221,7 @@ cdef class Combo(uiItem):
     cdef bint draw_item(self) noexcept nogil:
         cdef bint open
         cdef int32_t i
-        cdef string current_value
+        cdef DCGString current_value
         SharedStr.get(<SharedStr>self._value, current_value)
         open = imgui.BeginCombo(self._imgui_label.c_str(),
                                 current_value.c_str(),
@@ -1301,7 +1304,7 @@ cdef class Slider(uiItem):
         self._size = 1
         self._drag = False
         self._drag_speed = 1.
-        self._print_format = b"%.3f"
+        self._print_format = string_from_bytes(b"%.3f")
         self._flags = 0
         self._min = 0.
         self._max = 100.
@@ -1375,7 +1378,9 @@ cdef class Slider(uiItem):
             else:
                 self._value = <SharedValue>(SharedDouble4.__new__(SharedDouble4, self.context))
         self.value = previous_value # Use property to pass through python for the conversion
-        self._print_format = b"%d" if target_format == 0 else b"%.3f"
+        self._print_format = string_from_bytes(b"%d") \
+            if target_format == 0 else \
+            string_from_bytes(b"%.3f")
 
     @property
     def size(self):
@@ -1538,13 +1543,13 @@ cdef class Slider(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(bytes(self._print_format), encoding="utf-8")
+        return string_to_str(self._print_format)
 
     @print_format.setter
     def print_format(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._print_format = bytes(value, 'utf-8')
+        self._print_format = string_from_str(value)
 
     @property
     def round_to_format(self):
@@ -1760,7 +1765,11 @@ cdef class ListBox(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [str(v, encoding='utf-8') for v in self._items]
+        result = []
+        cdef int i
+        for i in range(self._items.size()):
+            result.append(string_to_str(self._items[i]))
+        return result
 
     @items.setter
     def items(self, value):
@@ -1771,10 +1780,10 @@ cdef class ListBox(uiItem):
         if value is None:
             return
         if value is str:
-            self._items.push_back(bytes(value, 'utf-8'))
+            self._items.push_back(string_from_str(value))
         elif hasattr(value, '__len__'):
             for v in value:
-                self._items.push_back(bytes(v, 'utf-8'))
+                self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
         lock_gil_friendly(value_m, self._value.mutex)
@@ -1805,7 +1814,7 @@ cdef class ListBox(uiItem):
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef bint visible
         cdef int32_t i
-        cdef string current_value
+        cdef DCGString current_value
         SharedStr.get(<SharedStr>self._value, current_value)
         cdef imgui.ImVec2 popup_size = imgui.ImVec2(0., 0.)
         cdef float text_height = imgui.GetTextLineHeightWithSpacing()
@@ -1883,7 +1892,11 @@ cdef class RadioButton(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [str(v, encoding='utf-8') for v in self._items]
+        result = []
+        cdef int i
+        for i in range(self._items.size()):
+            result.append(string_to_str(self._items[i]))
+        return result
 
     @items.setter
     def items(self, value):
@@ -1894,10 +1907,10 @@ cdef class RadioButton(uiItem):
         if value is None:
             return
         if value is str:
-            self._items.push_back(bytes(value, 'utf-8'))
+            self._items.push_back(string_from_str(value))
         elif hasattr(value, '__len__'):
             for v in value:
-                self._items.push_back(bytes(v, 'utf-8'))
+                self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
         lock_gil_friendly(value_m, self._value.mutex)
@@ -1926,7 +1939,7 @@ cdef class RadioButton(uiItem):
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef bint open
         cdef int32_t i
-        cdef string current_value
+        cdef DCGString current_value
         SharedStr.get(<SharedStr>self._value, current_value)
         imgui.PushID(self.uuid)
         imgui.BeginGroup()
@@ -1992,13 +2005,13 @@ cdef class InputText(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._hint, encoding='utf-8')
+        return string_to_str(self._hint)
 
     @hint.setter
     def hint(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._hint = bytes(value, 'utf-8')
+        self._hint = string_from_str(value)
         if len(value) > 0:
             self.multiline = False
 
@@ -2018,7 +2031,8 @@ cdef class InputText(uiItem):
         lock_gil_friendly(m, self.mutex)
         self._multiline = value
         if value:
-            self._hint = b""
+            # reset hint
+            self._hint = DCGString()
 
     @property
     def max_characters(self):
@@ -2310,7 +2324,7 @@ cdef class InputText(uiItem):
             self._flags |= imgui.ImGuiInputTextFlags_NoUndoRedo
 
     cdef bint draw_item(self) noexcept nogil:
-        cdef string current_value
+        cdef DCGString current_value
         cdef int32_t size
         cdef imgui.ImGuiInputTextFlags flags = self._flags
         
@@ -2352,7 +2366,7 @@ cdef class InputText(uiItem):
 
         self.update_current_state()
         if changed:
-            current_value.assign(<char*>self._buffer)
+            current_value = DCGString(<char*>self._buffer)
             SharedStr.set(<SharedStr>self._value, current_value)
 
         if not(self._enabled):
@@ -2391,7 +2405,7 @@ cdef class InputValue(uiItem):
         self._theme_condition_category = ThemeCategories.t_inputvalue
         self._format = 1
         self._size = 1
-        self._print_format = b"%.3f"
+        self._print_format = string_from_bytes(b"%.3f")
         self._flags = 0
         self._min = -INFINITY
         self._max = INFINITY
@@ -2465,7 +2479,9 @@ cdef class InputValue(uiItem):
             else:
                 self._value = <SharedValue>(SharedDouble4.__new__(SharedDouble4, self.context))
         self.value = previous_value # Use property to pass through python for the conversion
-        self._print_format = b"%d" if target_format == 0 else b"%.3f"
+        self._print_format = string_from_bytes(b"%d") \
+            if target_format == 0 else \
+            string_from_bytes(b"%.3f")
 
     @property
     def size(self):
@@ -2586,13 +2602,13 @@ cdef class InputValue(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(bytes(self._print_format), encoding="utf-8")
+        return string_to_str(self._print_format)
 
     @print_format.setter
     def print_format(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._print_format = bytes(value, 'utf-8')
+        self._print_format = string_from_str(value)
 
     @property
     def decimal(self):
@@ -2990,7 +3006,7 @@ cdef class Text(uiItem):
         # uuid is not used for text, and we don't want to
         # add it when we show the label, thus why we override
         # the label property here.
-        self._imgui_label = bytes(self._user_label, 'utf-8')
+        self._imgui_label = string_from_str(self._user_label)
 
     @property
     def wrap(self):
@@ -3055,7 +3071,7 @@ cdef class Text(uiItem):
         if self._bullet:
             imgui.Bullet()
 
-        cdef string current_value
+        cdef DCGString current_value
         SharedStr.get(<SharedStr>self._value, current_value)
 
         imgui.TextUnformatted(current_value.c_str(), current_value.c_str()+current_value.size())
@@ -3091,7 +3107,7 @@ cdef class TextValue(uiItem):
     """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_text
-        self._print_format = b"%.3f"
+        self._print_format = string_from_bytes(b"%.3f")
         self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
         self._type = 2
         self.state.cap.can_be_active = False
@@ -3169,13 +3185,13 @@ cdef class TextValue(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(bytes(self._print_format), encoding="utf-8")
+        return string_to_str(self._print_format)
 
     @print_format.setter
     def print_format(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._print_format = bytes(value, 'utf-8')
+        self._print_format = string_from_str(value)
 
     cdef bint draw_item(self) noexcept nogil:
         cdef bool value_bool
@@ -3359,13 +3375,13 @@ cdef class MenuItem(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._shortcut, encoding='utf-8')
+        return string_to_str(self._shortcut)
 
     @shortcut.setter
     def shortcut(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._shortcut = bytes(value, 'utf-8')
+        self._shortcut = string_from_str(value)
 
     cdef bint draw_item(self) noexcept nogil:
         # TODO dpg does overwrite textdisabled...
@@ -3394,13 +3410,13 @@ cdef class ProgressBar(uiItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._overlay, encoding='utf-8')
+        return string_to_str(self._overlay)
 
     @overlay.setter
     def overlay(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._overlay = bytes(value, 'utf-8')
+        self._overlay = string_from_str(value)
 
     cdef bint draw_item(self) noexcept nogil:
         cdef float current_value = SharedFloat.get(<SharedFloat>self._value)
@@ -3620,7 +3636,7 @@ cdef class Separator(uiItem):
         # uuid is not used for text, and we don't want to
         # add it when we show the label, thus why we override
         # the label property here.
-        self._imgui_label = bytes(self._user_label, 'utf-8')
+        self._imgui_label = string_from_str(self._user_label)
 
     cdef bint draw_item(self) noexcept nogil:
         if self._user_label is None:
@@ -5928,23 +5944,23 @@ cdef class SharedDouble(SharedValue):
 
 cdef class SharedStr(SharedValue):
     def __init__(self, Context context, str value):
-        self._value = bytes(str(value), 'utf-8')
+        self._value = string_from_str(value)
         self._num_attached = 0
     @property
     def value(self):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._value, encoding='utf-8')
+        return string_to_str(self._value)
     @value.setter
     def value(self, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._value = bytes(str(value), 'utf-8')
+        self._value = string_from_str(str(value))
         self.on_update(True)
-    cdef void get(self, string& out) noexcept nogil:
+    cdef void get(self, DCGString& out) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         out = self._value
-    cdef void set(self, string value) noexcept nogil:
+    cdef void set(self, DCGString value) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         self._value = value
         self.on_update(True)

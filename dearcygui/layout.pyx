@@ -289,7 +289,11 @@ cdef class HorizontalLayout(Layout):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._positions
+        result = []
+        cdef int i
+        for i in range(<int>self._positions.size()):
+            result.append(self._positions[i])
+        return result
 
     @positions.setter
     def positions(self, value):
@@ -598,7 +602,11 @@ cdef class VerticalLayout(Layout):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._positions
+        result = []
+        cdef int i
+        for i in range(<int>self._positions.size()):
+            result.append(self._positions[i])
+        return result
 
     @positions.setter
     def positions(self, value):
@@ -1049,7 +1057,11 @@ cdef class WindowHorizontalLayout(WindowLayout):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._positions
+        result = []
+        cdef int i
+        for i in range(<int>self._positions.size()):
+            result.append(self._positions[i])
+        return result
 
     @positions.setter
     def positions(self, value):
@@ -1237,7 +1249,11 @@ cdef class WindowVerticalLayout(WindowLayout):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._positions
+        result = []
+        cdef int i
+        for i in range(<int>self._positions.size()):
+            result.append(self._positions[i])
+        return result
 
     @positions.setter
     def positions(self, value):

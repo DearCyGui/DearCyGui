@@ -21,6 +21,7 @@ cimport cython
 cimport cython.view
 from cython.operator cimport dereference
 from libc.string cimport memset, memcpy
+from libcpp.string cimport string
 
 # This file is the only one that is linked to the C++ code
 # Thus it is the only one allowed to make calls to it
@@ -36,7 +37,6 @@ from concurrent.futures import Executor, ThreadPoolExecutor
 from libcpp.cmath cimport floor, ceil
 from libcpp.cmath cimport round as cround
 from libcpp.set cimport set as cpp_set
-from libcpp.vector cimport vector
 from libc.math cimport M_PI, INFINITY
 from libc.stdint cimport uintptr_t, uint32_t, int32_t, int64_t
 
@@ -794,7 +794,7 @@ cdef class Context:
                 print(traceback.format_exc())
 
     cdef void queue_callback_arg1int1stringvector(self, Callback callback, baseItem parent_item, baseItem target_item,
-                                                  int32_t arg1, vector[string] arg2) noexcept nogil:
+                                                  int32_t arg1, DCGVector[DCGString] arg2) noexcept nogil:
         """
         Queue a callback with one integer and one vector of strings arguments.
 
@@ -812,11 +812,12 @@ cdef class Context:
         """
         if callback is None:
             return
+        cdef int i
         with gil:
             try:
                 element_list = []
-                for element in arg2:
-                    element_list.append(str(element, 'utf-8'))
+                for i in range(arg2.size()):
+                    element_list.append(string_to_str(arg2[i]))
                 self._queue.submit(callback, parent_item, target_item, (arg1, element_list))
             except Exception as e:
                 print(traceback.format_exc())
@@ -3473,18 +3474,18 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef string data_str
+        cdef DCGString data_str
         if type == 0:
             # Start of a new drop operation
             self._drop_data.clear()
         elif type == 1:
             # Drop file
-            data_str = data
+            data_str = DCGString(data)
             self.drop_is_file_type = True
             self._drop_data.push_back(data_str)
         elif type == 2:
             # Drop text
-            data_str = data
+            data_str = DCGString(data)
             self.drop_is_file_type = False
             self._drop_data.push_back(data_str)
         elif type == 3:
@@ -4620,7 +4621,7 @@ cdef class uiItem(baseItem):
     """
     def __cinit__(self):
         # mvAppItemInfo
-        self._imgui_label = b'###%ld'% self.uuid
+        self._imgui_label = string_from_bytes(b'###%ld'% self.uuid)
         self._user_label = ""
         self._show = True
         self._enabled = True
@@ -5012,7 +5013,7 @@ cdef class uiItem(baseItem):
         # Using ### means that imgui will ignore the user_label for
         # its internal ID of the object. Indeed else the ID would change
         # when the user label would change
-        self._imgui_label = bytes(self._user_label, 'utf-8') + b'###%ld'% self.uuid
+        self._imgui_label = string_from_bytes(bytes(self._user_label, 'utf-8') + b'###%ld'% self.uuid)
 
     @property
     def value(self):
@@ -6690,7 +6691,7 @@ cdef class plotElement(baseItem):
     - theme: Theme for the plot element.
     """
     def __cinit__(self):
-        self._imgui_label = b'###%ld'% self.uuid
+        self._imgui_label = string_from_bytes(b'###%ld'% self.uuid)
         self._user_label = ""
         self._flags = implot.ImPlotItemFlags_None
         self.can_have_sibling = True
@@ -6770,7 +6771,7 @@ cdef class plotElement(baseItem):
         # Using ### means that imgui will ignore the user_label for
         # its internal ID of the object. Indeed else the ID would change
         # when the user label would change
-        self._imgui_label = bytes(self._user_label, 'utf-8') + b'###%ld'% self.uuid
+        self._imgui_label = string_from_bytes(bytes(self._user_label, 'utf-8') + b'###%ld'% self.uuid)
 
     @property
     def theme(self):
@@ -6895,13 +6896,13 @@ cdef class AxisTag(baseItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self.text, encoding='utf-8')
+        return string_to_str(self.text)
 
     @text.setter
     def text(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self.text = bytes(str(value), 'utf-8')
+        self.text = string_from_str(value)
 
 """
 Textures
@@ -7384,6 +7385,6 @@ cdef class baseTheme(baseItem):
         return
     cdef void pop(self) noexcept nogil:
         return
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         return
 

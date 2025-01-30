@@ -19,6 +19,7 @@ from libcpp cimport bool
 from dearcygui.wrapper cimport imgui, implot
 from libc.stdint cimport int32_t
 from libc.math cimport INFINITY
+from libcpp.vector cimport vector
 from cpython cimport PyObject
 
 from .core cimport baseHandler, baseItem, uiItem, AxisTag, \
@@ -192,7 +193,6 @@ cdef class PlotAxisConfig(baseItem):
         self.p_state = &self.state
         self._enabled = True
         self._scale = <int>AxisScale.LINEAR
-        self._tick_format = b""
         self._flags = 0
         self._min = 0
         self._max = 1
@@ -719,13 +719,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._label, encoding='utf-8')
+        return string_to_str(self._label)
 
     @label.setter
     def label(self, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._label = bytes(value, 'utf-8')
+        self._label = string_from_str(value)
 
     @property
     def format(self):
@@ -734,13 +734,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._format, encoding='utf-8')
+        return string_to_str(self._format)
 
     @format.setter
     def format(self, value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._format = bytes(value, 'utf-8')
+        self._format = string_from_str(value)
 
     @property
     def labels(self):
@@ -749,7 +749,11 @@ cdef class PlotAxisConfig(baseItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [str(v, encoding='utf-8') for v in self._labels]
+        result = []
+        cdef int i
+        for i in range(<int>self._labels.size()):
+            result.append(string_to_str(self._labels[i]))
+        return result
 
     @labels.setter
     def labels(self, value):
@@ -762,7 +766,7 @@ cdef class PlotAxisConfig(baseItem):
             return
         if hasattr(value, '__len__'):
             for v in value:
-                self._labels.push_back(bytes(v, 'utf-8'))
+                self._labels.push_back(string_from_str(v))
             for i in range(<int>self._labels.size()):
                 self._labels_cstr.push_back(self._labels[i].c_str())
         else:
@@ -776,7 +780,11 @@ cdef class PlotAxisConfig(baseItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [v for v in self._labels_coord]
+        result = []
+        cdef int i
+        for i in range(<int>self._labels_coord.size()):
+            result.append(self._labels_coord[i])
+        return result
 
     @labels_coord.setter
     def labels_coord(self, value):
@@ -2975,7 +2983,11 @@ cdef class Subplots(uiItem):
         """Size ratios for subplot rows"""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [v for v in self._row_ratios]
+        result = []
+        cdef int i
+        for i in range(self._rows):
+            result.append(self._row_ratios[i])
+        return result
 
     @row_ratios.setter
     def row_ratios(self, value):
@@ -2996,7 +3008,11 @@ cdef class Subplots(uiItem):
         """Size ratios for subplot columns"""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [v for v in self._col_ratios]
+        result = []
+        cdef int i
+        for i in range(self._cols):
+            result.append(self._col_ratios[i])
+        return result
 
     @col_ratios.setter
     def col_ratios(self, value):
@@ -3181,9 +3197,9 @@ cdef class Subplots(uiItem):
         # TODO: Not sure if shared legend needs specific handling.
 
         # Get row/col ratios if specified
-        if self._row_ratios.size() >= self._rows:
+        if <int>self._row_ratios.size() >= self._rows:
             row_sizes = self._row_ratios.data()
-        if self._col_ratios.size() >= self._cols:
+        if <int>self._col_ratios.size() >= self._cols:
             col_sizes = self._col_ratios.data()
 
         # Begin subplot layout
@@ -3233,8 +3249,8 @@ cdef class PlotBarGroups(plotElementWithLegend):
         self._group_size = 0.67
         self._shift = 0
         self._values = np.zeros(shape=(1,1), dtype=np.float64)
-        self._labels = vector[string]()
-        self._labels.push_back(b"Item 0")
+        self._labels = DCGVector[DCGString]()
+        self._labels.push_back(string_from_bytes(b"Item 0"))
 
     @property
     def values(self):
@@ -3274,7 +3290,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
             self._values = np.ascontiguousarray(array, dtype=np.float64)
         cdef int32_t k
         for k in range(<int>self._labels.size(), self._values.shape[0]):
-            self._labels.push_back(string(b"Item %d" % k))
+            self._labels.push_back(string_from_bytes(b"Item %d" % k))
 
     @property
     def labels(self):
@@ -3283,7 +3299,11 @@ cdef class PlotBarGroups(plotElementWithLegend):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [str(v, encoding='utf-8') for v in self._labels]
+        result = []
+        cdef int i
+        for i in range(<int>self._labels.size()):
+            result.append(string_to_str(self._labels[i]))
+        return result
 
     @labels.setter 
     def labels(self, value):
@@ -3296,10 +3316,10 @@ cdef class PlotBarGroups(plotElementWithLegend):
         if hasattr(value, '__len__'):
             i = 0
             for v in value:
-                self._labels.push_back(bytes(v, 'utf-8'))
+                self._labels.push_back(string_from_str(v))
                 i = i + 1
             for k in range(i, self._values.shape[0]):
-                self._labels.push_back(string(b"Item %d" % k))
+                self._labels.push_back(string_from_bytes(b"Item %d" % k))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as labels. Expected array of strings")
 
@@ -3416,9 +3436,9 @@ cdef class PlotPieChart(plotElementWithLegend):
         self._y = 0.0
         self._radius = 1.0
         self._angle = 90.0
-        self._label_format = b"%.1f"  # Add default format string
-        self._labels = vector[string]()
-        self._labels.push_back(b"Slice 0")
+        self._label_format = string_from_bytes(b"%.1f")
+        self._labels = DCGVector[DCGString]()
+        self._labels.push_back(string_from_bytes(b"Slice 0"))
 
     @property
     def values(self):
@@ -3447,7 +3467,7 @@ cdef class PlotPieChart(plotElementWithLegend):
             self._values = np.ascontiguousarray(array, dtype=np.float64)
         cdef int32_t k
         for k in range(<int>self._labels.size(), self._values.shape[0]):
-            self._labels.push_back(string(b"Slice %d" % k))
+            self._labels.push_back(string_from_bytes(b"Slice %d" % k))
 
     @property
     def labels(self):
@@ -3456,7 +3476,11 @@ cdef class PlotPieChart(plotElementWithLegend):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return [str(v, encoding='utf-8') for v in self._labels]
+        result = []
+        cdef int i
+        for i in range(<int>self._labels.size()):
+            result.append(string_to_str(self._labels[i]))
+        return result
 
     @labels.setter
     def labels(self, value):
@@ -3468,9 +3492,9 @@ cdef class PlotPieChart(plotElementWithLegend):
             return
         if hasattr(value, '__len__'):
             for v in value:
-                self._labels.push_back(bytes(v, 'utf-8'))
+                self._labels.push_back(string_from_str(v))
             for k in range(len(value), self._values.shape[0]):
-                self._labels.push_back(string(b"Slice %d" % k))
+                self._labels.push_back(string_from_bytes(b"Slice %d" % k))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as labels. Expected array of strings")
 
@@ -3567,13 +3591,13 @@ cdef class PlotPieChart(plotElementWithLegend):
         """Format string for slice value labels. Set to empty string to disable labels."""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._label_format, encoding='utf-8')
+        return string_to_str(self._label_format)
 
     @label_format.setter
     def label_format(self, str value not None):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._label_format = bytes(value, 'utf-8')
+        self._label_format = string_from_str(value)
 
     cdef void draw_element(self) noexcept nogil:
         if self._values.shape[0] == 0:
@@ -3789,7 +3813,6 @@ cdef class PlotAnnotation(plotElement):
     def __cinit__(self):
         self._x = 0.0
         self._y = 0.0
-        self._text = b""
         self._offset = make_Vec2(0., 0.)
 
     @property
@@ -3823,13 +3846,13 @@ cdef class PlotAnnotation(plotElement):
         """Text of the annotation"""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._text, encoding='utf-8')
+        return string_to_str(self._text)
 
     @text.setter
     def text(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._text = bytes(str(value), 'utf-8')
+        self._text = string_from_str(value)
 
     @property
     def bg_color(self):
@@ -4268,7 +4291,7 @@ cdef class PlotHeatmap(plotElementWithLegend):
         self._scale_min = 0
         self._scale_max = 0
         self._auto_scale = True
-        self._label_format = b"%.1f"
+        self._label_format = string_from_bytes(b"%.1f")
         self._bounds_min = [0., 0.]
         self._bounds_max = [1., 1.]
 
@@ -4344,13 +4367,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
         """Format string for cell labels. Set to empty string to disable labels."""
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._label_format, encoding='utf-8')
+        return string_to_str(self._label_format)
 
     @label_format.setter
     def label_format(self, str value not None):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._label_format = bytes(value, 'utf-8')
+        self._label_format = string_from_str(value)
 
     @property
     def bounds_min(self):

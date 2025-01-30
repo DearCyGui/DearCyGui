@@ -1,7 +1,5 @@
-from libcpp.string cimport string
 from libcpp cimport bool
 from libcpp.atomic cimport atomic
-from libcpp.vector cimport vector
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 from libc.stdint cimport uint32_t, int32_t, int64_t
 cimport numpy as cnp
@@ -59,7 +57,7 @@ cdef inline void lock_gil_friendly(unique_lock[recursive_mutex] &m,
     lock_gil_friendly_block(m)
 
 
-cdef inline void clear_obj_vector(vector[PyObject *] &items):
+cdef inline void clear_obj_vector(DCGVector[PyObject *] &items):
     cdef int32_t i
     cdef object obj
     for i in range(<int>items.size()):
@@ -67,7 +65,7 @@ cdef inline void clear_obj_vector(vector[PyObject *] &items):
         Py_DECREF(obj)
     items.clear()
 
-cdef inline void append_obj_vector(vector[PyObject *] &items, item_list):
+cdef inline void append_obj_vector(DCGVector[PyObject *] &items, item_list):
     for item in item_list:
         Py_INCREF(item)
         items.push_back(<PyObject*>item)
@@ -109,7 +107,7 @@ cdef class Context:
     cdef void queue_callback_arg4int(self, Callback, baseItem, baseItem, int32_t, int32_t, int32_t, int32_t) noexcept nogil
     cdef void queue_callback_arg3long1int(self, Callback, baseItem, baseItem, int64_t, int64_t, int64_t, int32_t) noexcept nogil
     cdef void queue_callback_argdoubletriplet(self, Callback, baseItem, baseItem, double, double, double, double, double, double) noexcept nogil
-    cdef void queue_callback_arg1int1stringvector(self, Callback, baseItem, baseItem, int32_t, vector[string]) noexcept nogil
+    cdef void queue_callback_arg1int1stringvector(self, Callback, baseItem, baseItem, int32_t, DCGVector[DCGString]) noexcept nogil
     cpdef void push_next_parent(self, baseItem next_parent)
     cpdef void pop_next_parent(self)
     cpdef object fetch_parent_queue_back(self)
@@ -181,7 +179,7 @@ cdef class baseItem:
     cdef int32_t element_child_category
     cdef itemState* p_state # pointer to the itemState. set to NULL if the item doesn't have any.
     ### protected variables ###
-    cdef vector[PyObject*] _handlers # type baseHandler. Always empty if p_state is NULL.
+    cdef DCGVector[PyObject*] _handlers # type baseHandler. Always empty if p_state is NULL.
     ### private variables ###
     cdef int32_t _external_lock
     cdef object __weakref__
@@ -289,7 +287,7 @@ cdef class Viewport(baseItem):
     cdef float size_multiplier # scale for the size of all Draw* elements.
     cdef bint[6] enabled_axes # <int>implot.ImAxis_COUNT. Enabled plot axes.
     cdef int32_t start_pending_theme_actions # Used when applying theme actions
-    cdef vector[theme_action] pending_theme_actions # Used when applying theme actions
+    cdef DCGVector[theme_action] pending_theme_actions # Used when applying theme actions
     ### private variables ###
     cdef recursive_mutex _mutex_backend
     cdef void *_platform # platformViewport
@@ -303,10 +301,10 @@ cdef class Viewport(baseItem):
     cdef baseTheme _theme
     cdef bint _disable_close
     cdef bint _drop_is_file_type
-    cdef vector[string] _drop_data
+    cdef DCGVector[DCGString] _drop_data
     cdef int32_t _cursor # imgui.ImGuiMouseCursor
-    cdef vector[theme_action] _applied_theme_actions
-    cdef vector[int32_t] _applied_theme_actions_count
+    cdef DCGVector[theme_action] _applied_theme_actions
+    cdef DCGVector[int32_t] _applied_theme_actions_count
     cdef ThemeEnablers _current_theme_activation_condition_enabled
     cdef ThemeCategories _current_theme_activation_condition_category
     cdef float _scale
@@ -566,7 +564,7 @@ cdef class uiItem(baseItem):
     cdef bint can_be_disabled
     cdef SharedValue _value
     ### Protected variables. Managed by uiItem by should be read by subclasses to alter rendering ###
-    cdef string _imgui_label # The hidden unique imgui label for this item
+    cdef DCGString _imgui_label # The hidden unique imgui label for this item
     cdef str _user_label # Label assigned by the user
     cdef bool _show # If False, rendering should not occur.
     cdef bint _show_update_requested # Filled by uiItem on show value change 
@@ -580,7 +578,7 @@ cdef class uiItem(baseItem):
     cdef Callback _dropCallback
     cdef baseFont _font
     cdef baseTheme _theme
-    cdef vector[PyObject*] _callbacks # type Callback
+    cdef DCGVector[PyObject*] _callbacks # type Callback
     cdef float _scaling_factor
     cdef Vec2 _content_pos
 
@@ -661,7 +659,7 @@ For custom plots, it is usually better to subclass
 drawingItem.
 """
 cdef class plotElement(baseItem):
-    cdef string _imgui_label
+    cdef DCGString _imgui_label
     cdef str _user_label
     cdef int32_t _flags
     cdef bint _show
@@ -677,7 +675,7 @@ cdef class AxisTag(baseItem):
     ### Public read-only variables ###
     cdef bint show
     cdef double coord
-    cdef string text
+    cdef DCGString text
     cdef uint32_t bg_color # imgui.U32
 
 """
@@ -722,8 +720,8 @@ In that case the caller handles the pops
 
 cdef class baseTheme(baseItem):
     cdef bint _enabled
-    cdef vector[int32_t] _last_push_size
+    cdef DCGVector[int32_t] _last_push_size
     cdef void push(self) noexcept nogil
-    cdef void push_to_list(self, vector[theme_action]&) noexcept nogil
+    cdef void push_to_list(self, DCGVector[theme_action]&) noexcept nogil
     cdef void pop(self) noexcept nogil
 

@@ -1,7 +1,7 @@
 from libc.stdint cimport int32_t
 from libcpp.deque cimport deque
-from libcpp.vector cimport vector
 from cpython.ref cimport PyObject
+from .c_types cimport DCGVector
 from .types cimport *
 from .core cimport baseItem, baseFont, Texture
 
@@ -10,15 +10,15 @@ cdef class Font(baseFont):
     cdef FontTexture _container
     cdef bint _dpi_scaling
     cdef float _scale
-    cdef vector[float] _scales_backup
+    cdef DCGVector[float] _scales_backup
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
 
 cdef class FontMultiScales(baseFont):
-    cdef vector[PyObject*] _fonts # type Font
+    cdef DCGVector[PyObject*] _fonts # type Font
     cdef deque[float] _stored_scales # Store last 10 scales
-    cdef vector[PyObject*] _callbacks # type Callback
-    cdef vector[PyObject*] _applied_fonts # type Font
+    cdef DCGVector[PyObject*] _callbacks # type Callback
+    cdef DCGVector[PyObject*] _applied_fonts # type Font
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
 

@@ -29,6 +29,7 @@ from libcpp.cmath cimport atan, atan2, sin, cos, sqrt, trunc, floor, round as cr
 from libc.math cimport M_PI, INFINITY
 from libc.stdint cimport uint32_t, int32_t
 from libcpp cimport bool
+from libcpp.vector cimport vector
 
 import scipy
 import scipy.spatial
@@ -3320,12 +3321,12 @@ cdef class DrawText(drawingItem):
     def text(self):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._text, encoding='utf-8')
+        return string_to_str(self._text)
     @text.setter
     def text(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._text = bytes(value, 'utf-8')
+        self._text = string_from_str(value)
     @property
     def size(self):
         """
@@ -3555,7 +3556,7 @@ cdef class DrawValue(drawingItem):
         shareable_value (SharedValue): SharedValue to display
     """
     def __cinit__(self):
-        self._print_format = b"%.3f"
+        self._print_format = string_from_bytes(b"%.3f")
         self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
         self._type = 2
         self._color = 4294967295 # 0xffffffff
@@ -3610,16 +3611,6 @@ cdef class DrawValue(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._font = value
 
-    @property
-    def text(self):
-        cdef unique_lock[recursive_mutex] m
-        lock_gil_friendly(m, self.mutex)
-        return str(self._text, encoding='utf-8')
-    @text.setter
-    def text(self, str value):
-        cdef unique_lock[recursive_mutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._text = bytes(value, 'utf-8')
     @property
     def size(self):
         """
@@ -3703,13 +3694,13 @@ cdef class DrawValue(drawingItem):
         """
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(bytes(self._print_format), encoding="utf-8")
+        return string_to_str(self._print_format)
 
     @print_format.setter
     def print_format(self, str value):
         cdef unique_lock[recursive_mutex] m
         lock_gil_friendly(m, self.mutex)
-        self._print_format = bytes(value, 'utf-8')
+        self._print_format = string_from_str(value)
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
@@ -3738,7 +3729,7 @@ cdef class DrawValue(drawingItem):
         cdef int32_t[4] value_int4
         cdef float[4] value_float4
         cdef double[4] value_double4
-        cdef string value_str
+        cdef DCGString value_str
 
         cdef int32_t ret
 

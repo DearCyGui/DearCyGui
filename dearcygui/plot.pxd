@@ -1,10 +1,9 @@
 from .core cimport baseItem, baseFont, itemState, \
     plotElement, uiItem, Callback, baseHandler
 from .types cimport *
+from .c_types cimport DCGString, DCGVector
 
 from libc.stdint cimport int32_t
-from libcpp.string cimport string
-from libcpp.vector cimport vector
 
 cimport numpy as cnp
 
@@ -18,7 +17,7 @@ cdef class AxesResizeHandler(baseHandler):
 cdef class PlotAxisConfig(baseItem):
     cdef bint _enabled
     cdef int32_t _scale # AxisScale
-    cdef string _tick_format
+    cdef DCGString _tick_format
     cdef int32_t _flags # implot.ImPlotAxisFlags
     cdef double _min
     cdef double _max
@@ -33,11 +32,11 @@ cdef class PlotAxisConfig(baseItem):
     cdef bint _to_fit
     cdef itemState state
     cdef Callback _resize_callback
-    cdef string _label
-    cdef string _format
-    cdef vector[string] _labels
-    cdef vector[const char*] _labels_cstr
-    cdef vector[double] _labels_coord
+    cdef DCGString _label
+    cdef DCGString _format
+    cdef DCGVector[DCGString] _labels
+    cdef DCGVector[const char*] _labels_cstr
+    cdef DCGVector[double] _labels_coord
     cdef bint _keep_default_ticks
     cdef void setup(self, int32_t) noexcept nogil # implot.ImAxis
     cdef void after_setup(self, int32_t) noexcept nogil # implot.ImAxis
@@ -127,26 +126,26 @@ cdef class DrawInPlot(plotElementWithLegend):
 cdef class Subplots(uiItem):
     cdef int32_t _rows 
     cdef int32_t _cols
-    cdef vector[float] _row_ratios
-    cdef vector[float] _col_ratios
+    cdef DCGVector[float] _row_ratios
+    cdef DCGVector[float] _col_ratios
     cdef int32_t _flags # implot.ImPlotSubplotFlags
     cdef bint draw_item(self) noexcept nogil
 
 cdef class PlotBarGroups(plotElementWithLegend):
     cdef cnp.ndarray _values
-    cdef vector[string] _labels
+    cdef DCGVector[DCGString] _labels
     cdef double _group_size
     cdef double _shift
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotPieChart(plotElementWithLegend):
     cdef cnp.ndarray _values
-    cdef vector[string] _labels
+    cdef DCGVector[DCGString] _labels
     cdef double _x
     cdef double _y
     cdef double _radius
     cdef double _angle
-    cdef string _label_format
+    cdef DCGString _label_format
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotDigital(plotElementXY):
@@ -158,7 +157,7 @@ cdef class PlotErrorBars(plotElementXY):
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotAnnotation(plotElement):
-    cdef string _text
+    cdef DCGString _text
     cdef double _x
     cdef double _y
     cdef int32_t _bg_color
@@ -192,7 +191,7 @@ cdef class PlotHeatmap(plotElementWithLegend):
     cdef double _scale_min
     cdef double _scale_max
     cdef bint _auto_scale
-    cdef string _label_format
+    cdef DCGString _label_format
     cdef double[2] _bounds_min
     cdef double[2] _bounds_max
     cdef void draw_element(self) noexcept nogil

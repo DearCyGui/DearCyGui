@@ -1,10 +1,8 @@
 from .core cimport baseItem, uiItem, drawingItem, itemState, \
     baseHandler, Texture, SharedValue
-from .c_types cimport Vec2, Vec4
+from .c_types cimport Vec2, Vec4, DCGVector, DCGString
 
 from libc.stdint cimport uint32_t, int32_t
-from libcpp.string cimport string
-from libcpp.vector cimport vector
 
 cimport numpy as cnp
 
@@ -31,7 +29,7 @@ cdef class DrawInWindow(uiItem):
     cdef bint draw_item(self) noexcept nogil
 
 cdef class SimplePlot(uiItem):
-    cdef string _overlay
+    cdef DCGString _overlay
     cdef float _scale_min
     cdef float _scale_max
     cdef bint _histogram
@@ -50,8 +48,8 @@ cdef class Button(uiItem):
 
 cdef class Combo(uiItem):
     cdef int32_t _flags # imgui.ImGuiComboFlags
-    cdef vector[string] _items
-    cdef string _disabled_value
+    cdef DCGVector[DCGString] _items
+    cdef DCGString _disabled_value
     cdef bint draw_item(self) noexcept nogil
 
 
@@ -66,26 +64,26 @@ cdef class Slider(uiItem):
     cdef float _drag_speed
     cdef double _min
     cdef double _max
-    cdef string _print_format
+    cdef DCGString _print_format
     cdef bint _vertical
     cdef int32_t _flags # imgui.ImGuiSliderFlags
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class ListBox(uiItem):
-    cdef vector[string] _items
+    cdef DCGVector[DCGString] _items
     cdef int32_t _num_items_shown_when_open
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class RadioButton(uiItem):
-    cdef vector[string] _items
+    cdef DCGVector[DCGString] _items
     cdef bint _horizontal
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class InputText(uiItem):
-    cdef string _hint
+    cdef DCGString _hint
     cdef bint _multiline
     cdef int32_t _max_characters
     cdef char* _buffer
@@ -101,7 +99,7 @@ cdef class InputValue(uiItem):
     cdef double _step_fast
     cdef double _min
     cdef double _max
-    cdef string _print_format
+    cdef DCGString _print_format
     cdef int32_t _flags # imgui.ImGuiInputTextFlags
     cdef bint draw_item(self) noexcept nogil
 
@@ -114,7 +112,7 @@ cdef class Text(uiItem):
     cdef bint draw_item(self) noexcept nogil
 
 cdef class TextValue(uiItem):
-    cdef string _print_format
+    cdef DCGString _print_format
     cdef int32_t _type
     cdef bint draw_item(self) noexcept nogil
 
@@ -123,13 +121,13 @@ cdef class Selectable(uiItem):
     cdef bint draw_item(self) noexcept nogil
 
 cdef class MenuItem(uiItem):
-    cdef string _shortcut
+    cdef DCGString _shortcut
     cdef bint _check
     cdef bint draw_item(self) noexcept nogil
 
 
 cdef class ProgressBar(uiItem):
-    cdef string _overlay
+    cdef DCGString _overlay
     cdef bint draw_item(self) noexcept nogil
 
 
@@ -239,9 +237,9 @@ cdef class SharedDouble(SharedValue):
     cdef void set(self, double) noexcept nogil
 
 cdef class SharedStr(SharedValue):
-    cdef string _value
-    cdef void get(self, string&) noexcept nogil
-    cdef void set(self, string) noexcept nogil
+    cdef DCGString _value
+    cdef void get(self, DCGString&) noexcept nogil
+    cdef void set(self, DCGString) noexcept nogil
 
 cdef class SharedFloat4(SharedValue):
     cdef float[4] _value

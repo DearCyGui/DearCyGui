@@ -46,7 +46,7 @@ cdef inline void push_theme_children(baseItem item) noexcept nogil:
         (<baseTheme>child).push()
         child = <PyObject *>(<baseItem>child).next_sibling
 
-cdef inline void push_to_list_children(baseItem item, vector[theme_action]& v) noexcept nogil:
+cdef inline void push_to_list_children(baseItem item, DCGVector[theme_action]& v) noexcept nogil:
     if item.last_theme_child is None:
         return
     cdef PyObject *child = <PyObject*> item.last_theme_child
@@ -964,7 +964,7 @@ cdef class ThemeColorImGui(baseThemeColor):
             imgui.PushStyleColor(<imgui.ImGuiCol>element_content.first, <imgui.ImU32>element_content.second)
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef pair[int32_t, uint32_t] element_content
         cdef theme_action action
@@ -1319,7 +1319,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
             implot.PushStyleColor(<implot.ImPlotCol>element_content.first, <imgui.ImU32>element_content.second)
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef pair[int32_t, uint32_t] element_content
         cdef theme_action action
@@ -1495,7 +1495,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
             imnodes.PushColorStyle(<imnodes.ImNodesCol>element_content.first, <imgui.ImU32>element_content.second)
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef pair[int32_t, imgui.ImU32] element_content
         cdef theme_action action
@@ -1703,7 +1703,7 @@ cdef class baseThemeStyle(baseTheme):
                     element_content.second.value.value_float2[1] = round(element_content.second.value.value_float2[1])
             self._index_to_value_for_dpi.insert(element_content)
 
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef pair[int32_t, theme_value_info] element_content
         cdef theme_action action
@@ -2970,7 +2970,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
                 imnodes_PushStyleVar2(element_content.first, element_content.second)
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef pair[int32_t, imgui.ImVec2] element_content
         cdef theme_action action
@@ -3027,7 +3027,7 @@ cdef class ThemeList(baseTheme):
         pop_theme_children(self)
         self.mutex.unlock()
     
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         push_to_list_children(self, v)
 
@@ -3144,7 +3144,7 @@ cdef class ThemeListWithCondition(baseTheme):
             self.context.viewport.pop_applied_pending_theme_actions()
         self.mutex.unlock()
     
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
         cdef int32_t prev_size, i, new_size
         cdef ThemeEnablers condition_enabled
@@ -3192,7 +3192,7 @@ cdef class ThemeStopCondition(baseTheme):
         self.context.viewport.start_pending_theme_actions = self._start_pending_theme_actions_backup.back()
         self._start_pending_theme_actions_backup.pop_back()
         self.mutex.unlock()
-    cdef void push_to_list(self, vector[theme_action]& v) noexcept nogil:
+    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         return
 
 '''
@@ -3223,7 +3223,7 @@ cdef object extract_theme_value(baseTheme theme, str name, type target_class):
 
 
 # UNFINISHED
-cdef object apply_theme_conditions(string name, vector[theme_action] &current_theme_conditions, baseItem item, type target_class):
+cdef object apply_theme_conditions(string name, DCGVector[theme_action] &current_theme_conditions, baseItem item, type target_class):
     """
     Helper function that applies the theme conditions to the item and returns the value if conditions are met.
     """
@@ -3276,7 +3276,7 @@ cdef object apply_theme_conditions(string name, vector[theme_action] &current_th
     return None
 
 
-cdef void update_theme_conditions(baseTheme theme, vector[theme_action] &current_theme_conditions):
+cdef void update_theme_conditions(baseTheme theme, DCGVector[theme_action] &current_theme_conditions):
     """
     Helper function that updates the list of theme conditions based on the current theme.
     """
@@ -3325,7 +3325,7 @@ def resolve_theme(baseItem item, str name, type target_class) -> object:
     # the theme lists with conditions, (stop if a ThemeStopCondition
     # is found), and then apply the theme list without conditions
     # Deduce the final value for the target name
-    cdef vector[theme_action] current_theme_conditions = vector[theme_action]()
+    cdef DCGVector[theme_action] current_theme_conditions = DCGVector[theme_action]()
     current_target_value = None
     for item in parent_tree:
         theme = item.theme
