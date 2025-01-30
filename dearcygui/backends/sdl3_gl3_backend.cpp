@@ -432,9 +432,9 @@ SDLViewport* SDLViewport::create(render_fun render,
             printf("Error: SDL_Init(): %s\n", SDL_GetError());
             return nullptr;
         }
-        sdlMainThreadId = SDL_ThreadID();
+        sdlMainThreadId = SDL_GetCurrentThreadID();
         sdlInitialized = true;
-    } else if (SDL_ThreadID() != sdlMainThreadId) {
+    } else if (SDL_GetCurrentThreadID() != sdlMainThreadId) {
         fprintf(stderr, "Error: Contexts creation must be performed in the same thread\n");
         return nullptr;
     }
@@ -1394,5 +1394,5 @@ bool SDLViewport::downloadTexture(void* texture,
 }
 
 bool SDLViewport::checkPrimaryThread() {
-    return SDL_ThreadID() == sdlMainThreadId;
+    return SDL_GetCurrentThreadID() == sdlMainThreadId;
 }
