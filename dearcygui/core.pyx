@@ -1940,6 +1940,80 @@ cdef class baseItem:
             self.prev_sibling.unlock_and_previous_siblings()
         self.mutex.unlock()
 
+
+    def copy(self, target_context=None):
+        """
+        Shallow copy of the item to the target context.
+        Performs a deep copy of the child tree.
+
+        Parameters:
+        target_context : Context, optional
+            Target context for the copy. Defaults to None.
+            (None = source's context)
+
+        Returns:
+        baseItem
+            Copy of the item in the target context.
+        """
+        cdef baseItem target
+        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[recursive_mutex] m2
+        lock_gil_friendly(m, self.mutex)
+        if target_context is None:
+            target_context = self.context
+        target = self.__class__.__new__(self.__class__, target_context)
+        lock_gil_friendly(m2, target.mutex)
+
+        # if the class does not implement _copy itself,
+        # revert to using getstate/setstate
+        target.__setstate__(self.__getstate__())
+
+        # copy children
+        self._copy_children(target)
+
+        return target
+
+    '''
+    cdef void _copy(self, object target):
+        """
+        Shallow copy of the item to the target item.
+
+        Assumes both self and target are locked.
+        """
+        # We assume the item is already initialized
+        # by __cinit__, thus capabilities, context, etc
+        # are already set.
+        cdef PyObject *handler
+        cdef baseItem target_base = <baseItem>target
+
+        if type(self) is not baseItem:
+            self._copy_default(target)
+            return
+
+        # Copy handlers
+        clear_obj_vector(target_base._handlers)
+        for handler in self._handlers:
+            Py_INCREF(<object>handler)
+            target_base._handlers.push_back(handler)
+
+        # copy user data
+        target_base._user_data = self._user_data
+
+        # copy children
+        self._copy_children(target_base)
+    '''
+
+    cdef void _copy_children(self, baseItem target):
+        """
+        Copy children from source to target.
+        Assumes both source and target are locked.
+        """
+        cdef baseItem child, new_child
+        for child in self.children:
+            new_child = child.__class__.__new__(child.__class__, target.context)
+            child._copy(new_child)
+            new_child.attach_to_parent(target)
+
     cdef bint _check_rendered(self):
         """
         Returns if an item is rendered
@@ -3303,6 +3377,9 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m, self.mutex)
         self._close_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
+    def copy(self, target_context=None):
+        raise TypeError("The viewport cannot be copied")
+
     @property
     def metrics(self):
         cdef unique_lock[recursive_mutex] m
@@ -4030,6 +4107,16 @@ cdef class drawingItem(baseItem):
         if not(value) and self._show:
             self.set_hidden_and_propagate_to_children_no_handlers()
         self._show = value
+
+    '''
+    cdef void _copy(self, object target):
+        cdef drawingItem target_base = <drawingItem>target
+        if type(self) is not drawingItem:
+            self._copy_default(target)
+            return
+        target_base._show = self._show
+        baseItem._copy(self, target_base)
+    '''
 
     cdef void draw(self, void* l) noexcept nogil:
         cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)

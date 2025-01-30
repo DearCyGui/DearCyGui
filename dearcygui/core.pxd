@@ -203,7 +203,10 @@ cdef class baseItem:
     cdef void set_hidden_and_propagate_to_siblings_no_handlers(self) noexcept
     cdef void set_hidden_no_handler_and_propagate_to_children_with_handlers(self) noexcept nogil
     cdef void set_hidden_and_propagate_to_children_no_handlers(self) noexcept
+    ### protected methods ###
+    #cdef void _copy(self, object)
     ### private methods ###
+    cdef void _copy_children(self, baseItem)
     cdef bint _check_rendered(self)
     cdef void _detach_item_and_lock(self, unique_lock[recursive_mutex]&)
     cdef void _delete_and_siblings(self)
@@ -411,6 +414,7 @@ Drawing Items
 
 cdef class drawingItem(baseItem):
     cdef bint _show
+    #cdef void _copy(self, object)
     cdef void draw(self, void *) noexcept nogil # imgui.ImDrawList*
     pass
 
