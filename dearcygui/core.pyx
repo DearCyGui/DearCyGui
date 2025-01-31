@@ -42,7 +42,7 @@ from libc.stdint cimport uintptr_t, uint32_t, int32_t, int64_t
 
 cimport dearcygui.backends.time as ctime
 
-from .c_types cimport unique_lock, recursive_mutex, mutex, defer_lock_t
+from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t
 from .imgui_types cimport *
 from .types cimport *
 from .types import ChildType, Key, KeyMod, KeyOrMod
@@ -167,7 +167,7 @@ cdef class SharedGLContext:
         shared_context.gl_context = gl_context
         return shared_context
 
-cdef void lock_gil_friendly_block(unique_lock[recursive_mutex] &m) noexcept:
+cdef void lock_gil_friendly_block(unique_lock[DCGMutex] &m) noexcept:
     """
     Same as lock_gil_friendly, but blocks until the job is done.
     We inline the fast path, but not this one as it generates
@@ -351,7 +351,7 @@ cdef class Context:
         """
         Destructor for Context.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._on_close_callback is not None:
             self._started = True
@@ -444,7 +444,7 @@ cdef class Context:
         Returns:
             SharedGLContext instance
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.imgui_mutex)
         return SharedGLContext.from_context(self, (<platformViewport*>self.viewport._platform).createSharedContext(major, minor))
 
@@ -898,7 +898,7 @@ cdef class Context:
         bool
             True if the key is down, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if key is None or not(isinstance(key, Key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         if keymod is not None and not(isinstance(keymod, KeyMod)):
@@ -929,7 +929,7 @@ cdef class Context:
         bool
             True if the key was pressed, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if key is None or not(isinstance(key, Key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         if keymod is not None and not(isinstance(keymod, KeyMod)):
@@ -958,7 +958,7 @@ cdef class Context:
         bool
             True if the key was released, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if key is None or not(isinstance(key, Key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         if keymod is not None and not(isinstance(keymod, KeyMod)):
@@ -985,7 +985,7 @@ cdef class Context:
         bool
             True if the mouse button is down, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1009,7 +1009,7 @@ cdef class Context:
         bool
             True if the mouse button was clicked, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1028,7 +1028,7 @@ cdef class Context:
         bool
             True if the mouse button was double-clicked, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1050,7 +1050,7 @@ cdef class Context:
         int
             Number of times the mouse button is clicked in a row.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1072,7 +1072,7 @@ cdef class Context:
         bool
             True if the mouse button was released, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1098,7 +1098,7 @@ cdef class Context:
         KeyError
             If there is no mouse.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         ensure_correct_imgui_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         cdef imgui.ImVec2 pos = imgui.GetMousePos()
@@ -1124,7 +1124,7 @@ cdef class Context:
         bool
             True if the mouse is dragging, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1148,7 +1148,7 @@ cdef class Context:
         tuple
             Tuple containing the drag delta (dx, dy).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1165,7 +1165,7 @@ cdef class Context:
         button : MouseButton
             Mouse button constant.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1180,7 +1180,7 @@ cdef class Context:
         key : Key
             Key constant.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if key is None or not(isinstance(key, Key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         cdef imgui.ImGuiKey keycode = key
@@ -1196,7 +1196,7 @@ cdef class Context:
         key : Key
             Key constant.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if key is None or not(isinstance(key, Key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         cdef imgui.ImGuiKey keycode = key
@@ -1212,7 +1212,7 @@ cdef class Context:
         button : MouseButton
             Mouse button constant.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1227,7 +1227,7 @@ cdef class Context:
         button : MouseButton
             Mouse button constant.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_imgui_context(self)
@@ -1244,7 +1244,7 @@ cdef class Context:
         wheel_y : float
             Vertical wheel movement in pixels.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         ensure_correct_imgui_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMouseWheelEvent(wheel_x, wheel_y)
@@ -1259,7 +1259,7 @@ cdef class Context:
         y : float
             Y position of the mouse in pixels.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         ensure_correct_imgui_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMousePosEvent(x, y)
@@ -1273,13 +1273,13 @@ cdef class Context:
         bool
             True if the context is running, False otherwise.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._started
 
     @running.setter
     def running(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._started = value
 
@@ -1295,7 +1295,7 @@ cdef class Context:
         str
             Current content of the system clipboard
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if not(self.viewport._initialized):
             return ""
         ensure_correct_imgui_context(self)
@@ -1305,7 +1305,7 @@ cdef class Context:
     @clipboard.setter
     def clipboard(self, str value):
         cdef string value_str = bytes(value, 'utf-8')
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if not(self.viewport._initialized):
             return
         ensure_correct_imgui_context(self)
@@ -1521,13 +1521,13 @@ cdef class baseItem:
         """
         User data of any type.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._user_data
 
     @user_data.setter
     def user_data(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._user_data = value
 
@@ -1540,7 +1540,7 @@ cdef class baseItem:
         previous_sibling=, next_sibling= arguments, but it is
         preferred to pass the objects directly. 
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return int(self.uuid)
 
@@ -1578,7 +1578,7 @@ cdef class baseItem:
         If you set None, the item will be removed from its parent's children
         list.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.parent
 
@@ -1607,13 +1607,13 @@ cdef class baseItem:
         Note that a parent can have several child queues, and thus
         child elements are not guaranteed to be siblings of each other.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.prev_sibling
 
     @previous_sibling.setter
     def previous_sibling(self, baseItem target not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, target.mutex)
         # Convert into an attach_before or attach_to_parent
         next_sibling = target.next_sibling
@@ -1641,7 +1641,7 @@ cdef class baseItem:
         to be inserted just before the target item.
         In case of failure, the item remains in a detached state.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.next_sibling
 
@@ -1661,7 +1661,7 @@ cdef class baseItem:
         mistakes, as users might not realize the children were
         unattached from their former parents.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         # Note: the children structure is not allowed
@@ -1709,8 +1709,8 @@ cdef class baseItem:
     def children(self, value):
         if not(hasattr(value, "__len__")):
             raise TypeError("children must be a array of child items")
-        cdef unique_lock[recursive_mutex] item_m
-        cdef unique_lock[recursive_mutex] child_m
+        cdef unique_lock[DCGMutex] item_m
+        cdef unique_lock[DCGMutex] child_m
         lock_gil_friendly(item_m, self.mutex)
         cdef long long uuid, prev_uuid
         cdef cpp_set[long long] already_attached
@@ -1881,8 +1881,8 @@ cdef class baseItem:
         return False # Do not catch exceptions
 
     cdef void lock_parent_and_item_mutex(self,
-                                         unique_lock[recursive_mutex] &parent_m,
-                                         unique_lock[recursive_mutex] &item_m):
+                                         unique_lock[DCGMutex] &parent_m,
+                                         unique_lock[DCGMutex] &item_m):
         # We must make sure we lock the correct parent mutex, and for that
         # we must access self.parent and thus hold the item mutex
         cdef bint locked = False
@@ -1900,7 +1900,7 @@ cdef class baseItem:
             if locked:
                 if self.parent is not None:
                     # Transfert the lock
-                    parent_m = unique_lock[recursive_mutex](self.parent.mutex)
+                    parent_m = unique_lock[DCGMutex](self.parent.mutex)
                     self.parent.mutex.unlock()
                 return
             item_m.unlock()
@@ -1957,8 +1957,8 @@ cdef class baseItem:
             Copy of the item in the target context.
         """
         cdef baseItem target
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.mutex)
         if target_context is None:
             target_context = self.context
@@ -2096,9 +2096,9 @@ cdef class baseItem:
         if not(compatible):
             raise TypeError("Instance of type {} cannot be attached to {}".format(type(self), type(target_parent)))
 
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
-        cdef unique_lock[recursive_mutex] m3
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        cdef unique_lock[DCGMutex] m3
         # We must ensure a single thread attaches at a given time.
         # _detach_item_and_lock will lock both the item lock
         # and the parent lock.
@@ -2225,9 +2225,9 @@ cdef class baseItem:
         if target_before is None:
             raise ValueError("target before cannot be None")
 
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] target_before_m
-        cdef unique_lock[recursive_mutex] target_parent_m
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] target_before_m
+        cdef unique_lock[DCGMutex] target_parent_m
          # We must ensure a single thread attaches at a given time.
         # _detach_item_and_lock will lock both the item lock
         # and the parent lock.
@@ -2261,7 +2261,7 @@ cdef class baseItem:
         # Potential deadlocks are avoided by the fact that we hold the parent
         # mutex and any lock of a next sibling must hold the parent
         # mutex.
-        cdef unique_lock[recursive_mutex] prev_m
+        cdef unique_lock[DCGMutex] prev_m
         if prev_sibling is not None:
             lock_gil_friendly(prev_m, prev_sibling.mutex)
             prev_sibling.next_sibling = self
@@ -2271,13 +2271,13 @@ cdef class baseItem:
         if not(self.parent._check_rendered()):
             self.set_hidden_and_propagate_to_children_no_handlers()
 
-    cdef void _detach_item_and_lock(self, unique_lock[recursive_mutex]& m):
+    cdef void _detach_item_and_lock(self, unique_lock[DCGMutex]& m):
         # NOTE: the mutex is not locked if we raise an exception.
         # Detach the item from its parent and siblings
         # We are going to change the tree structure, we must lock
         # the parent mutex first and foremost
-        cdef unique_lock[recursive_mutex] parent_m
-        cdef unique_lock[recursive_mutex] sibling_m
+        cdef unique_lock[DCGMutex] parent_m
+        cdef unique_lock[DCGMutex] sibling_m
         self.lock_parent_and_item_mutex(parent_m, m)
         # Use unique lock for the mutexes to
         # simplify handling (parent will change)
@@ -2330,8 +2330,8 @@ cdef class baseItem:
         and the information propagated to the
         children.
         """
-        cdef unique_lock[recursive_mutex] m0
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m0
+        cdef unique_lock[DCGMutex] m
         self._detach_item_and_lock(m)
         # Mark as hidden. Useful for OtherItemHandler
         # when we want to detect loss of hover, render, etc
@@ -2348,9 +2348,9 @@ cdef class baseItem:
         items. As a result, items with no more references
         will be freed immediately.
         """
-        cdef unique_lock[recursive_mutex] sibling_m
+        cdef unique_lock[DCGMutex] sibling_m
 
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         self._detach_item_and_lock(m)
         # retaining the lock enables to ensure the item is
         # still detached
@@ -2392,7 +2392,7 @@ cdef class baseItem:
     cdef void _delete_and_siblings(self):
         # Must only be called from delete_item or itself.
         # Assumes the parent mutex is already held
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         # delete all its children recursively
         if self.last_drawings_child is not None:
@@ -2466,7 +2466,7 @@ cdef class baseItem:
 
         Used also to avoid duplication in the functions below.
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if self.last_window_child is not None:
             (<baseItem>self.last_window_child).set_hidden_and_propagate_to_siblings_with_handlers()
         if self.last_widgets_child is not None:
@@ -2501,7 +2501,7 @@ cdef class baseItem:
         Called during rendering, thus we call the handlers, in order to help
         users catch an item getting hidden.
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Skip propagating and handlers if already hidden.
         if self.p_state == NULL or \
@@ -2540,7 +2540,7 @@ cdef class baseItem:
           required for instance for items that should destroy when
           an item is not rendered anymore. 
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
 
         # Skip propagating and handlers if already hidden.
@@ -2557,7 +2557,7 @@ cdef class baseItem:
         The item is hidden, wants its state to be set to hidden, but
         manages itself his previous state and his handlers.
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Skip propagating and handlers if already hidden.
         if self.p_state == NULL or \
@@ -2810,8 +2810,8 @@ cdef class Viewport(baseItem):
 
     def __dealloc__(self):
         # NOTE: Called BEFORE the context is released.
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self._mutex_backend) # To not release while we render a frame
         ensure_correct_im_context(self.context)
@@ -2838,9 +2838,9 @@ cdef class Viewport(baseItem):
         at the documentation of the FontTexture class, as well
         as AutoFont.
         """
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
-        cdef unique_lock[recursive_mutex] m3
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        cdef unique_lock[DCGMutex] m3
         self.configure(**kwargs)
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
@@ -2880,7 +2880,7 @@ cdef class Viewport(baseItem):
 
     @property
     def clear_color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return ((<platformViewport*>self._platform).clearColor[0],
                 (<platformViewport*>self._platform).clearColor[1],
@@ -2889,33 +2889,33 @@ cdef class Viewport(baseItem):
 
     @clear_color.setter
     def clear_color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color((<platformViewport*>self._platform).clearColor, parse_color(value))
 
     @property
     def small_icon(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return str((<platformViewport*>self._platform).iconSmall)
 
     @small_icon.setter
     def small_icon(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         self.__check_not_initialized()
         cdef string icon = value.encode("utf-8")
         (<platformViewport*>self._platform).iconSmall = icon
 
     @property
     def large_icon(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return str((<platformViewport*>self._platform).iconLarge)
 
     @large_icon.setter
     def large_icon(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.__check_not_initialized()
         cdef string icon = value.encode("utf-8")
@@ -2923,13 +2923,13 @@ cdef class Viewport(baseItem):
 
     @property
     def x_pos(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).positionX
 
     @x_pos.setter
     def x_pos(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value == (<platformViewport*>self._platform).positionX:
             return
@@ -2938,13 +2938,13 @@ cdef class Viewport(baseItem):
 
     @property
     def y_pos(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).positionY
 
     @y_pos.setter
     def y_pos(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value == (<platformViewport*>self._platform).positionY:
             return
@@ -2953,52 +2953,52 @@ cdef class Viewport(baseItem):
 
     @property
     def width(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).frameWidth
 
     @width.setter
     def width(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).frameWidth = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
     @property
     def height(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).frameHeight
 
     @height.setter
     def height(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).frameHeight = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
     @property
     def resizable(self) -> bool:
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).windowResizable
 
     @resizable.setter
     def resizable(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).windowResizable = value
         (<platformViewport*>self._platform).windowPropertyChangeRequested = True
 
     @property
     def vsync(self) -> bool:
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).hasVSync
 
     @vsync.setter
     def vsync(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).hasVSync = value
 
@@ -3016,7 +3016,7 @@ cdef class Viewport(baseItem):
         as if the DPI is 1. This behaviour can be disabled
         using the related scaling settings.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).dpiScale
 
@@ -3029,90 +3029,90 @@ cdef class Viewport(baseItem):
 
         Defaults to 1.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale
 
     @scale.setter
     def scale(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scale = value
 
     @property
     def min_width(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).minWidth
 
     @min_width.setter
     def min_width(self, uint32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).minWidth = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
     @property
     def max_width(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).maxWidth
 
     @max_width.setter
     def max_width(self, uint32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).maxWidth = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
     @property
     def min_height(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).minHeight
 
     @min_height.setter
     def min_height(self, uint32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).minHeight = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
     @property
     def max_height(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).maxHeight
 
     @max_height.setter
     def max_height(self, uint32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).maxHeight = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
     @property
     def always_on_top(self) -> bool:
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).windowAlwaysOnTop
 
     @always_on_top.setter
     def always_on_top(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).windowAlwaysOnTop = value
         (<platformViewport*>self._platform).windowPropertyChangeRequested = True
 
     @property
     def decorated(self) -> bool:
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).windowDecorated
 
     @decorated.setter
     def decorated(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).windowDecorated = value
         (<platformViewport*>self._platform).windowPropertyChangeRequested = True
@@ -3125,7 +3125,7 @@ cdef class Viewport(baseItem):
         Only Key and Mouse handlers are compatible.
         Handlers that check item states won't work.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -3137,7 +3137,7 @@ cdef class Viewport(baseItem):
 
     @handlers.setter
     def handlers(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
         cdef int32_t i
@@ -3162,13 +3162,13 @@ cdef class Viewport(baseItem):
         Change the mouse cursor to one of MouseCursor.
         The mouse cursor is reset every frame.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <MouseCursor>self._cursor
 
     @cursor.setter
     def cursor(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < imgui.ImGuiMouseCursor_None or \
            value >= imgui.ImGuiMouseCursor_COUNT:
@@ -3180,13 +3180,13 @@ cdef class Viewport(baseItem):
         """
         Writable attribute: global font
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._font
 
     @font.setter
     def font(self, baseFont value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._font = value
 
@@ -3195,53 +3195,53 @@ cdef class Viewport(baseItem):
         """
         Writable attribute: global theme
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._theme
 
     @theme.setter
     def theme(self, baseTheme value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._theme = value
 
     @property
     def title(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef string title = (<platformViewport*>self._platform).windowTitle
         return str(title, "utf-8")
 
     @title.setter
     def title(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef string title = value.encode("utf-8")
         (<platformViewport*>self._platform).windowTitle = title
 
     @property
     def disable_close(self) -> bool:
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._disable_close
 
     @disable_close.setter
     def disable_close(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._disable_close = value
 
     @property
     def fullscreen(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).isFullScreen
 
     @fullscreen.setter
     def fullscreen(self, bint value):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
-        cdef unique_lock[recursive_mutex] m3
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        cdef unique_lock[DCGMutex] m3
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
         lock_gil_friendly(m3, self._mutex_backend)
@@ -3253,15 +3253,15 @@ cdef class Viewport(baseItem):
             (<platformViewport*>self._platform).shouldFullscreen = True
     @property
     def minimized(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).isMinimized
 
     @minimized.setter
     def minimized(self, bint value):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
-        cdef unique_lock[recursive_mutex] m3
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        cdef unique_lock[DCGMutex] m3
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
         lock_gil_friendly(m3, self._mutex_backend)
@@ -3273,15 +3273,15 @@ cdef class Viewport(baseItem):
 
     @property
     def maximized(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).isMaximized
 
     @maximized.setter
     def maximized(self, bint value):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
-        cdef unique_lock[recursive_mutex] m3
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        cdef unique_lock[DCGMutex] m3
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
         lock_gil_friendly(m3, self._mutex_backend)
@@ -3296,15 +3296,15 @@ cdef class Viewport(baseItem):
         """State to control whether the viewport is associated to a window.
         If False, no window will be displayed for the viewport (offscreen rendering).
         Defaults to True"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).isVisible
 
     @visible.setter
     def visible(self, bint value):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
-        cdef unique_lock[recursive_mutex] m3
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        cdef unique_lock[DCGMutex] m3
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
         lock_gil_friendly(m3, self._mutex_backend)
@@ -3328,7 +3328,7 @@ cdef class Viewport(baseItem):
 
     @wait_for_input.setter
     def wait_for_input(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.wait_for_input = value
 
@@ -3338,7 +3338,7 @@ cdef class Viewport(baseItem):
         Whether the viewport window has been created by the
         operating system.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._initialized
 
@@ -3353,13 +3353,13 @@ cdef class Viewport(baseItem):
         . The width according to the OS (OS dependent)
         . The height according to the OS (OS dependent)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._resize_callback
 
     @resize_callback.setter
     def resize_callback(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._resize_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
@@ -3368,13 +3368,13 @@ cdef class Viewport(baseItem):
         """
         Callback to be issued when the viewport is closed.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._close_callback
 
     @close_callback.setter
     def close_callback(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._close_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
@@ -3383,8 +3383,8 @@ cdef class Viewport(baseItem):
 
     @property
     def metrics(self):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
 
@@ -3428,19 +3428,19 @@ cdef class Viewport(baseItem):
         If set to true, the framebuffer field will be
         populated. This has a performance cost.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._retrieve_framebuffer
 
     @retrieve_framebuffer.setter
     def retrieve_framebuffer(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._retrieve_framebuffer = value
 
     @property
     def framebuffer(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._frame_buffer
 
@@ -3450,7 +3450,7 @@ cdef class Viewport(baseItem):
             setattr(self, key, value)
 
     cdef void __on_resize(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.context.queue_callback_arg4int(self._resize_callback,
                                             self,
@@ -3461,7 +3461,7 @@ cdef class Viewport(baseItem):
                                             (<platformViewport*>self._platform).windowHeight)
 
     cdef void __on_close(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(self._disable_close):
             self.context._started = False
@@ -3472,7 +3472,7 @@ cdef class Viewport(baseItem):
         Drop operations are received in several pieces,
         we concatenate them before calling the user callback.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef DCGString data_str
         if type == 0:
@@ -3500,7 +3500,7 @@ cdef class Viewport(baseItem):
 
 
     cdef void __render(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint any_change = False
         self.last_t_before_rendering = ctime.monotonic_ns()
         # Initialize drawing state
@@ -3763,9 +3763,9 @@ cdef class Viewport(baseItem):
             False else (can_skip_presenting)
         """
         # to lock in this order
-        cdef unique_lock[recursive_mutex] imgui_m = unique_lock[recursive_mutex](self.context.imgui_mutex, defer_lock_t()) # TODO: probably needs to protect processEvents and GetIO
-        cdef unique_lock[recursive_mutex] self_m
-        cdef unique_lock[recursive_mutex] backend_m = unique_lock[recursive_mutex](self._mutex_backend, defer_lock_t())
+        cdef unique_lock[DCGMutex] imgui_m = unique_lock[DCGMutex](self.context.imgui_mutex, defer_lock_t()) # TODO: probably needs to protect processEvents and GetIO
+        cdef unique_lock[DCGMutex] self_m
+        cdef unique_lock[DCGMutex] backend_m = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
         lock_gil_friendly(self_m, self.mutex)
         self.__check_initialized()
         if not (<platformViewport*>self._platform).checkPrimaryThread():
@@ -3906,8 +3906,8 @@ cdef class Viewport(baseItem):
         This is useful if you have updated the content asynchronously
         and want to show the update
         """
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
         (<platformViewport*>self._platform).wakeRendering()
@@ -3919,8 +3919,8 @@ cdef class Viewport(baseItem):
         still occur before the target, in which case, the function
         should be called again.
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.context.imgui_mutex)
-        cdef unique_lock[recursive_mutex] m2 = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.context.imgui_mutex)
+        cdef unique_lock[DCGMutex] m2 = unique_lock[DCGMutex](self.mutex)
         self._target_refresh_time = min(self._target_refresh_time, monotonic)
 
     cdef void force_present(self) noexcept nogil:
@@ -3932,11 +3932,11 @@ cdef class Viewport(baseItem):
         visual is detected, but in which case a new frame will
         be redrawn and presented right after.
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         (<platformViewport*>self._platform).needsRefresh.store(True)
 
     cdef Vec2 get_size(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef Vec2 size
         size.x = (<platformViewport*>self._platform).frameWidth
         size.y = (<platformViewport*>self._platform).frameHeight
@@ -4098,12 +4098,12 @@ cdef class drawingItem(baseItem):
         In the case of items that can be closed,
         show is set to False automatically on close.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._show
     @show.setter
     def show(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(value) and self._show:
             self.set_hidden_and_propagate_to_children_no_handlers()
@@ -4120,7 +4120,7 @@ cdef class drawingItem(baseItem):
     '''
 
     cdef void draw(self, void* l) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return
 
 
@@ -4460,18 +4460,18 @@ cdef class SharedValue:
         return self._num_attached
 
     cdef void on_update(self, bint changed) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         # TODO: figure out if not using mutex is ok
         self._last_frame_update = self.context.viewport.frame_count
         if changed:
             self._last_frame_change = self.context.viewport.frame_count
 
     cdef void inc_num_attached(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._num_attached += 1
 
     cdef void dec_num_attached(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._num_attached -= 1
 
 
@@ -4493,34 +4493,34 @@ cdef class baseHandler(baseItem):
         self.element_child_category = child_type.cat_handler
     @property
     def enabled(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled
     @enabled.setter
     def enabled(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._enabled = value
     # for backward compatibility
     @property
     def show(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled
     @show.setter
     def show(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._enabled = value
 
     @property
     def callback(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._callback
     @callback.setter
     def callback(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
@@ -4529,7 +4529,7 @@ cdef class baseHandler(baseItem):
         Must raise en error if the handler cannot be bound for the
         target item.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return
 
@@ -4544,14 +4544,14 @@ cdef class baseHandler(baseItem):
         return False
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._enabled):
             return
         if self.check_state(item):
             self.run_callback(item)
 
     cdef void run_callback(self, baseItem item) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self.context.queue_callback_arg1obj(self._callback, self, item, item)
 
 
@@ -4752,7 +4752,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_active):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.active
 
@@ -4765,7 +4765,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_active):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.active and not(self.state.prev.active)
 
@@ -4780,7 +4780,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_clicked):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return tuple(self.state.cur.clicked)
 
@@ -4795,7 +4795,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_clicked):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.double_clicked
 
@@ -4808,7 +4808,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_active):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self.state.cur.active) and self.state.prev.active
 
@@ -4822,7 +4822,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_deactivated_after_edited):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.deactivated_after_edited
 
@@ -4835,7 +4835,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_edited):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.edited
 
@@ -4848,7 +4848,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_focused):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.focused
 
@@ -4861,7 +4861,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_focused):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.state.cur.focused = value
         self._focus_update_requested = True
@@ -4875,7 +4875,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_hovered):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.hovered
 
@@ -4888,7 +4888,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.has_rect_size):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.rect_size.x != self.state.prev.rect_size.x or \
                self.state.cur.rect_size.y != self.state.prev.rect_size.y
@@ -4902,7 +4902,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.can_be_toggled):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.open and not(self.state.prev.open)
 
@@ -4913,7 +4913,7 @@ cdef class uiItem(baseItem):
         for the item and its ancestors). Note when an item is not visible,
         rendering is skipped (as well as running their handlers, etc).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.rendered
 
@@ -4925,7 +4925,7 @@ cdef class uiItem(baseItem):
         If read, always returns a list of callbacks. This enables
         to do item.callbacks += [new_callback]
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -4937,7 +4937,7 @@ cdef class uiItem(baseItem):
 
     @callbacks.setter
     def callbacks(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
         cdef int32_t i
@@ -4962,13 +4962,13 @@ cdef class uiItem(baseItem):
         an object.
         A disabled item does not react to hovering or clicking.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled
 
     @enabled.setter
     def enabled(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(self.can_be_disabled) and value != True:
             raise AttributeError(f"Objects of type {type(self)} cannot be disabled")
@@ -4982,13 +4982,13 @@ cdef class uiItem(baseItem):
         Writable attribute: font used for the text rendered
         of this item and its subitems
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._font
 
     @font.setter
     def font(self, baseFont value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._font = value
 
@@ -4998,13 +4998,13 @@ cdef class uiItem(baseItem):
         Writable attribute: label assigned to the item.
         Used for text fields, window titles, etc
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._user_label
 
     @label.setter
     def label(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._user_label = ""
@@ -5028,13 +5028,13 @@ cdef class uiItem(baseItem):
         To share a value attribute among objects, one should use
         the shareable_value attribute
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._value.value
 
     @value.setter
     def value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._value.value = value
 
@@ -5047,13 +5047,13 @@ cdef class uiItem(baseItem):
         can be passed to other items using an internal value of the same
         type to share it.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._value
 
     @shareable_value.setter
     def shareable_value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._value is value:
             return
@@ -5073,13 +5073,13 @@ cdef class uiItem(baseItem):
         In the case of items that can be closed,
         show is set to False automatically on close.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <bint>self._show
 
     @show.setter
     def show(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._show == value:
             return
@@ -5096,7 +5096,7 @@ cdef class uiItem(baseItem):
         a handler or a list of handlers as input.
         This enables to do item.handlers += [new_handler].
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -5108,7 +5108,7 @@ cdef class uiItem(baseItem):
 
     @handlers.setter
     def handlers(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
         cdef int32_t i
@@ -5132,13 +5132,13 @@ cdef class uiItem(baseItem):
         """
         Writable attribute: bound theme for the item
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._theme
 
     @theme.setter
     def theme(self, baseTheme value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._theme = value
 
@@ -5152,13 +5152,13 @@ cdef class uiItem(baseItem):
         viewport/window scale.
         If set, disables this automated scaling.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self._dpi_scaling)
 
     @no_scaling.setter
     def no_scaling(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._dpi_scaling = not(value)
 
@@ -5173,13 +5173,13 @@ cdef class uiItem(baseItem):
         that were applied by a parent are unaffected.
         Defaults to 1.0.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scaling_factor
 
     @scaling_factor.setter
     def scaling_factor(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scaling_factor = value
 
@@ -5209,7 +5209,7 @@ cdef class uiItem(baseItem):
         and update the positioning policy for this component
         only.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_viewport)
 
@@ -5234,7 +5234,7 @@ cdef class uiItem(baseItem):
         Setting None to one of component will ignore the update
         of this component.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_window)
 
@@ -5259,7 +5259,7 @@ cdef class uiItem(baseItem):
         Setting None to one of component will ignore the update
         of this component.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_parent)
 
@@ -5280,7 +5280,7 @@ cdef class uiItem(baseItem):
         Setting None to one of component will ignore the update
         of this component.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_default)
 
@@ -5299,7 +5299,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.has_rect_size):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.rect_size)
 
@@ -5317,7 +5317,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.has_content_region):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.content_region_size)
 
@@ -5333,7 +5333,7 @@ cdef class uiItem(baseItem):
         """
         if not(self.state.cap.has_content_region):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self._content_pos)
 
@@ -5414,7 +5414,7 @@ cdef class uiItem(baseItem):
         In this case, the height may be changed back by setting again the value
         of this field.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.requested_size.y
 
@@ -5446,7 +5446,7 @@ cdef class uiItem(baseItem):
         In this case, the width may be changed back by setting again the value
         of this field.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.requested_size.x
 
@@ -5459,7 +5459,7 @@ cdef class uiItem(baseItem):
         A value < 0 indicates an indentation of the default size
         according to the style policy.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._indent
 
@@ -5472,7 +5472,7 @@ cdef class uiItem(baseItem):
 
         Might be modified by the layout
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.no_newline
 
@@ -5480,7 +5480,7 @@ cdef class uiItem(baseItem):
 
     @pos_to_viewport.setter
     def pos_to_viewport(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if len(value) != 2:
             raise ValueError("Expected tuple for pos: (x, y)")
@@ -5495,7 +5495,7 @@ cdef class uiItem(baseItem):
 
     @pos_to_window.setter
     def pos_to_window(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if len(value) != 2:
             raise ValueError("Expected tuple for pos: (x, y)")
@@ -5510,7 +5510,7 @@ cdef class uiItem(baseItem):
 
     @pos_to_parent.setter
     def pos_to_parent(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if len(value) != 2:
             raise ValueError("Expected tuple for pos: (x, y)")
@@ -5525,7 +5525,7 @@ cdef class uiItem(baseItem):
 
     @pos_to_default.setter
     def pos_to_default(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if len(value) != 2:
             raise ValueError("Expected tuple for pos: (x, y)")
@@ -5552,27 +5552,27 @@ cdef class uiItem(baseItem):
 
     @height.setter
     def height(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.requested_size.y = value
         self.size_update_requested = True
 
     @width.setter
     def width(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.requested_size.x = value
         self.size_update_requested = True
 
     @indent.setter
     def indent(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._indent = value
 
     @no_newline.setter
     def no_newline(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.no_newline = value
 
@@ -5593,7 +5593,7 @@ cdef class uiItem(baseItem):
         return requested_size
 
     cdef void draw(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         if not(self._show):
             if self._show_update_requested:
@@ -5783,7 +5783,7 @@ cdef class TimeWatcher(uiItem):
         self.can_have_widget_child = True
 
     cdef void draw(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef long long time_start = ctime.monotonic_ns()
         draw_ui_children(self)
         cdef long long time_end = ctime.monotonic_ns()
@@ -5873,13 +5873,13 @@ cdef class Window(uiItem):
     @property
     def no_title_bar(self):
         """Writable attribute to disable the title-bar"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoTitleBar) else False
 
     @no_title_bar.setter
     def no_title_bar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoTitleBar
         if value:
@@ -5888,13 +5888,13 @@ cdef class Window(uiItem):
     @property
     def no_resize(self):
         """Writable attribute to block resizing"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoResize) else False
 
     @no_resize.setter
     def no_resize(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoResize
         if value:
@@ -5903,13 +5903,13 @@ cdef class Window(uiItem):
     @property
     def no_move(self):
         """Writable attribute the window to be move with interactions"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoMove) else False
 
     @no_move.setter
     def no_move(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoMove
         if value:
@@ -5920,13 +5920,13 @@ cdef class Window(uiItem):
         """Writable attribute to indicate the window should have no scrollbar
            Does not disable scrolling via mouse or keyboard
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoScrollbar) else False
 
     @no_scrollbar.setter
     def no_scrollbar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoScrollbar
         if value:
@@ -5937,13 +5937,13 @@ cdef class Window(uiItem):
         """Writable attribute to indicate the mouse wheel
            should have no effect on scrolling of this window
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoScrollWithMouse) else False
 
     @no_scroll_with_mouse.setter
     def no_scroll_with_mouse(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoScrollWithMouse
         if value:
@@ -5953,13 +5953,13 @@ cdef class Window(uiItem):
     def no_collapse(self):
         """Writable attribute to disable user collapsing window by double-clicking on it
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoCollapse) else False
 
     @no_collapse.setter
     def no_collapse(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoCollapse
         if value:
@@ -5970,13 +5970,13 @@ cdef class Window(uiItem):
         """Writable attribute to tell the window should
            automatically resize to fit its content
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_AlwaysAutoResize) else False
 
     @autosize.setter
     def autosize(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_AlwaysAutoResize
         if value:
@@ -5988,13 +5988,13 @@ cdef class Window(uiItem):
         Writable attribute to disable drawing background
         color and outside border
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoBackground) else False
 
     @no_background.setter
     def no_background(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoBackground
         if value:
@@ -6005,13 +6005,13 @@ cdef class Window(uiItem):
         """
         Writable attribute to never load/save settings in .ini file
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoSavedSettings) else False
 
     @no_saved_settings.setter
     def no_saved_settings(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoSavedSettings
         if value:
@@ -6024,13 +6024,13 @@ cdef class Window(uiItem):
         Events such as clicked, hovering, etc will be passed to items behind the
         window.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoMouseInputs) else False
 
     @no_mouse_inputs.setter
     def no_mouse_inputs(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoMouseInputs
         if value:
@@ -6043,13 +6043,13 @@ cdef class Window(uiItem):
         The window will not take focus of the keyboard.
         Does not affect items inside the window.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoNav) else False
 
     @no_keyboard_inputs.setter
     def no_keyboard_inputs(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoNav
         if value:
@@ -6063,13 +6063,13 @@ cdef class Window(uiItem):
         There will be menubar if either the user has asked for it,
         or there is a menubar child.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self.last_menubar_child is not None) or (self._window_flags & imgui.ImGuiWindowFlags_MenuBar) != 0
 
     @menubar.setter
     def menubar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_MenuBar
         if value:
@@ -6080,13 +6080,13 @@ cdef class Window(uiItem):
         """
         Writable attribute to enable having an horizontal scrollbar
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_HorizontalScrollbar) else False
 
     @horizontal_scrollbar.setter
     def horizontal_scrollbar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_HorizontalScrollbar
         if value:
@@ -6099,13 +6099,13 @@ cdef class Window(uiItem):
         an un-shown to a shown item shouldn't be made automatically
         focused
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoFocusOnAppearing) else False
 
     @no_focus_on_appearing.setter
     def no_focus_on_appearing(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoFocusOnAppearing
         if value:
@@ -6117,13 +6117,13 @@ cdef class Window(uiItem):
         Writable attribute to indicate when the window takes focus (click on it, etc)
         it shouldn't be shown in front of other windows
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoBringToFrontOnFocus) else False
 
     @no_bring_to_front_on_focus.setter
     def no_bring_to_front_on_focus(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoBringToFrontOnFocus
         if value:
@@ -6135,13 +6135,13 @@ cdef class Window(uiItem):
         Writable attribute to tell to always show a vertical scrollbar
         even when the size does not require it
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_AlwaysVerticalScrollbar) else False
 
     @always_show_vertical_scrollvar.setter
     def always_show_vertical_scrollvar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_AlwaysVerticalScrollbar
         if value:
@@ -6154,13 +6154,13 @@ cdef class Window(uiItem):
         even when the size does not require it (only if horizontal scrollbar
         are enabled)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_AlwaysHorizontalScrollbar) else False
 
     @always_show_horizontal_scrollvar.setter
     def always_show_horizontal_scrollvar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_AlwaysHorizontalScrollbar
         if value:
@@ -6172,13 +6172,13 @@ cdef class Window(uiItem):
         Writable attribute to display a dot next to the title, as if the window
         contains unsaved changes.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_UnsavedDocument) else False
 
     @unsaved_document.setter
     def unsaved_document(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_UnsavedDocument
         if value:
@@ -6190,13 +6190,13 @@ cdef class Window(uiItem):
         """
         Writable attribute to disable docking for the window
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoDocking) else False
 
     @disallow_docking.setter
     def disallow_docking(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoDocking
         if value:
@@ -6209,13 +6209,13 @@ cdef class Window(uiItem):
         Writable attribute for modal and popup windows to prevent them from
         showing if there is already an existing popup/modal window
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_open_over_existing_popup
 
     @no_open_over_existing_popup.setter
     def no_open_over_existing_popup(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_open_over_existing_popup = value
 
@@ -6227,13 +6227,13 @@ cdef class Window(uiItem):
         button and are not closed by clicking outside.
         Clicking has no effect of items outside the modal window until it is closed.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._modal
 
     @modal.setter
     def modal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._modal = value
 
@@ -6245,13 +6245,13 @@ cdef class Window(uiItem):
         close button, and are closed when they lose focus (clicking outside the
         window).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._popup
 
     @popup.setter
     def popup(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._popup = value
 
@@ -6261,13 +6261,13 @@ cdef class Window(uiItem):
         Writable attribute to indicate the window has a close button.
         Has effect only for normal and modal windows.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._has_close_button and not(self._popup)
 
     @has_close_button.setter
     def has_close_button(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._has_close_button = value
 
@@ -6276,13 +6276,13 @@ cdef class Window(uiItem):
         """
         Writable attribute to collapse (~minimize) or uncollapse the window
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self.state.cur.open)
 
     @collapsed.setter
     def collapsed(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.state.cur.open = not(value)
         self._collapse_update_requested = True
@@ -6294,13 +6294,13 @@ cdef class Window(uiItem):
         Note closing the window does not destroy or unattach the item.
         Instead it is switched to a show=False state.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._on_close_callback
 
     @on_close.setter
     def on_close(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._on_close_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
@@ -6316,13 +6316,13 @@ cdef class Window(uiItem):
         type of dropped data, and the second is a list of
         strings corresponding to the dropped content.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._on_drop_callback
 
     @on_drop.setter
     def on_drop(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._on_drop_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
@@ -6340,15 +6340,15 @@ cdef class Window(uiItem):
         no_title_bar
         and running item.focused = True on all the other windows
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._main_window
 
     @primary.setter
     def primary(self, bint value):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
-        cdef unique_lock[recursive_mutex] m3
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        cdef unique_lock[DCGMutex] m3
         # If window has a parent, it is the viewport
         lock_gil_friendly(m, self.context.viewport.mutex)
         lock_gil_friendly(m2, self.mutex)
@@ -6401,13 +6401,13 @@ cdef class Window(uiItem):
         """
         Writable attribute to indicate the minimum window size
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self._min_size)
 
     @min_size.setter
     def min_size(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._min_size.x = max(1, value[0])
         self._min_size.y = max(1, value[1])
@@ -6417,19 +6417,19 @@ cdef class Window(uiItem):
         """
         Writable attribute to indicate the maximum window size
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self._max_size)
 
     @max_size.setter
     def max_size(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._max_size.x = max(1, value[0])
         self._max_size.y = max(1, value[1])
 
     cdef void draw(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         if not(self._show):
             if self._show_update_requested:
@@ -6710,13 +6710,13 @@ cdef class plotElement(baseItem):
         In the case of items that can be closed,
         show is set to False automatically on close.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._show
 
     @show.setter
     def show(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(value) and self._show:
             self.set_hidden_and_propagate_to_children_no_handlers()
@@ -6729,13 +6729,13 @@ cdef class plotElement(baseItem):
         used for this plot element.
         Default is (X1, Y1)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._axes[0], self._axes[1])
 
     @axes.setter
     def axes(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t axis_x, axis_y
         try:
@@ -6756,13 +6756,13 @@ cdef class plotElement(baseItem):
         """
         Writable attribute: label assigned to the element
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._user_label
 
     @label.setter
     def label(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._user_label = ""
@@ -6778,18 +6778,18 @@ cdef class plotElement(baseItem):
         """
         Writable attribute: theme for the legend and plot
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._theme
 
     @theme.setter
     def theme(self, baseTheme value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._theme = value
 
     cdef void draw(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Check the axes are enabled
         if not(self._show) or \
@@ -6841,13 +6841,13 @@ cdef class AxisTag(baseItem):
         """
         Writable attribute: Should the object be drawn/shown ?
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.show
 
     @show.setter
     def show(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.show = value
 
@@ -6862,7 +6862,7 @@ cdef class AxisTag(baseItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self.bg_color)
@@ -6870,7 +6870,7 @@ cdef class AxisTag(baseItem):
 
     @bg_color.setter
     def bg_color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.bg_color = parse_color(value)
 
@@ -6879,13 +6879,13 @@ cdef class AxisTag(baseItem):
         """
         Writable attribute: Coordinate of the tag.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.coord
 
     @coord.setter
     def coord(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.coord = value
 
@@ -6894,13 +6894,13 @@ cdef class AxisTag(baseItem):
         """
         Writable attribute: Text of the tag.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self.text)
 
     @text.setter
     def text(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.text = string_from_str(value)
 
@@ -6932,7 +6932,7 @@ cdef class Texture(baseItem):
         self._filtering_mode = 0
 
     def __dealloc__(self):
-        cdef unique_lock[recursive_mutex] imgui_m
+        cdef unique_lock[DCGMutex] imgui_m
         # Note: textures might be referenced during imgui rendering.
         # Thus we should wait there is no rendering to free a texture.
         # However, doing so would stall python's garbage collection,
@@ -6961,12 +6961,12 @@ cdef class Texture(baseItem):
         frequently.
         Must be set before set_value/allocate.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._hint_dynamic
     @hint_dynamic.setter
     def hint_dynamic(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._hint_dynamic = value
     @property
@@ -6976,30 +6976,30 @@ cdef class Texture(baseItem):
         instead of bilinear interpolation when upscaling
         the texture. Must be set before set_value/allocate.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if self._filtering_mode == 1 else 0
     @nearest_neighbor_upsampling.setter
     def nearest_neighbor_upsampling(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._filtering_mode = 1 if value else 0
     @property
     def width(self):
         """ Width of the current texture content """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.width
     @property
     def height(self):
         """ Height of the current texture content """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.height
     @property
     def num_chans(self):
         """ Number of channels of the current texture content """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.num_chans
 
@@ -7102,8 +7102,8 @@ cdef class Texture(baseItem):
     cdef void set_content(self, cnp.ndarray content): # TODO: deadlock when held by external lock
         # The write mutex is to ensure order of processing of set_content
         # as we might release the item mutex to wait for imgui to render
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] m2
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self._write_mutex)
         lock_gil_friendly(m2, self.mutex)
         cdef int32_t ndim = cnp.PyArray_NDIM(content)
@@ -7224,7 +7224,7 @@ cdef class Texture(baseItem):
         Returns:
         - numpy array: the texture content
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t width = self.width
         cdef int32_t height = self.height
@@ -7263,7 +7263,7 @@ cdef class Texture(baseItem):
         """
         Same as gl_begin_read, but for cython item draw subclassing
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         (<platformViewport*>self.context.viewport._platform).beginExternalRead(<uintptr_t>self.allocated_texture)
 
     def gl_begin_read(self):
@@ -7276,7 +7276,7 @@ cdef class Texture(baseItem):
         DearCyGui rendering or upload finishes before the texture
         is read.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.c_gl_begin_read()
 
@@ -7284,7 +7284,7 @@ cdef class Texture(baseItem):
         """
         Same as gl_end_read, but for cython item draw subclassing
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         (<platformViewport*>self.context.viewport._platform).endExternalRead(<uintptr_t>self.allocated_texture)
 
     def gl_end_read(self):
@@ -7297,7 +7297,7 @@ cdef class Texture(baseItem):
         DearCyGui to ensure the texture is not written to
         before the read operation has finished.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.c_gl_end_read()
 
@@ -7305,7 +7305,7 @@ cdef class Texture(baseItem):
         """
         Same as gl_begin_write, but for cython item draw subclassing
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         (<platformViewport*>self.context.viewport._platform).beginExternalWrite(<uintptr_t>self.allocated_texture)
 
     def gl_begin_write(self):
@@ -7318,7 +7318,7 @@ cdef class Texture(baseItem):
         DearCyGui rendering reading from the texture finishes
         before the texture is written to.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.c_gl_begin_write()
 
@@ -7326,7 +7326,7 @@ cdef class Texture(baseItem):
         """
         Same as gl_end_write, but for cython item draw subclassing
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         (<platformViewport*>self.context.viewport._platform).endExternalWrite(<uintptr_t>self.allocated_texture)
 
     def gl_end_write(self):
@@ -7339,7 +7339,7 @@ cdef class Texture(baseItem):
         DearCyGui to ensure the texture is not read from
         before the write operation has finished.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.c_gl_end_write()
 
@@ -7372,12 +7372,12 @@ cdef class baseTheme(baseItem):
         return super().configure(**kwargs)
     @property
     def enabled(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled
     @enabled.setter
     def enabled(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._enabled = value
     # should be always defined by subclass

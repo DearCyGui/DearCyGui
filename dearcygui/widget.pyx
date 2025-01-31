@@ -117,13 +117,13 @@ cdef class DrawInvisibleButton(drawingItem):
         16: X2
         (See also MouseButtonMask)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <MouseButtonMask>self._button
 
     @button.setter
     def button(self, MouseButtonMask value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>value < 0 or <int>value > 31:
             raise ValueError(f"Invalid button mask {value} passed to {self}")
@@ -135,13 +135,13 @@ cdef class DrawInvisibleButton(drawingItem):
         Corner of the invisible button in plot/drawing
         space
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
 
     @p1.setter
     def p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[double](self._p1, value)
 
@@ -151,13 +151,13 @@ cdef class DrawInvisibleButton(drawingItem):
         Opposite corner of the invisible button in plot/drawing
         space
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
 
     @p2.setter
     def p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[double](self._p2, value)
 
@@ -170,13 +170,13 @@ cdef class DrawInvisibleButton(drawingItem):
         such that the width/height are at least min_side.
         Retains original ratio.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._min_side
 
     @min_side.setter
     def min_side(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
             value = 0
@@ -191,13 +191,13 @@ cdef class DrawInvisibleButton(drawingItem):
         such that the width/height are at max max_side.
         Retains original ratio.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._max_side
 
     @max_side.setter
     def max_side(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
             value = 0
@@ -211,7 +211,7 @@ cdef class DrawInvisibleButton(drawingItem):
         a handler or a list of handlers as input.
         This enables to do item.handlers += [new_handler].
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -223,7 +223,7 @@ cdef class DrawInvisibleButton(drawingItem):
 
     @handlers.setter
     def handlers(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
         cdef int32_t i
@@ -247,7 +247,7 @@ cdef class DrawInvisibleButton(drawingItem):
         """
         Readonly attribute: has the button just been pressed
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.active and not(self.state.prev.active)
 
@@ -256,7 +256,7 @@ cdef class DrawInvisibleButton(drawingItem):
         """
         Readonly attribute: is the button held
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.active
 
@@ -269,7 +269,7 @@ cdef class DrawInvisibleButton(drawingItem):
         If True, the attribute is reset the next frame. It's better to rely
         on handlers to catch this event.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return tuple(self.state.cur.clicked)
 
@@ -282,7 +282,7 @@ cdef class DrawInvisibleButton(drawingItem):
         If True, the attribute is reset the next frame. It's better to rely
         on handlers to catch this event.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.double_clicked
 
@@ -291,7 +291,7 @@ cdef class DrawInvisibleButton(drawingItem):
         """
         Readonly attribute: has the button just been unpressed
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.prev.active and not(self.state.cur.active)
 
@@ -300,7 +300,7 @@ cdef class DrawInvisibleButton(drawingItem):
         """
         Readonly attribute: Is the mouse inside area
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.hovered
 
@@ -312,7 +312,7 @@ cdef class DrawInvisibleButton(drawingItem):
         of the item's rectangle. Basically the coordinate relative
         to the top left of the viewport.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_viewport)
 
@@ -323,7 +323,7 @@ cdef class DrawInvisibleButton(drawingItem):
         Relative position to the window's starting inner
         content area.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_window)
 
@@ -333,7 +333,7 @@ cdef class DrawInvisibleButton(drawingItem):
         Readonly attribute:
         Relative position to latest non-drawing parent
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_parent)
 
@@ -342,7 +342,7 @@ cdef class DrawInvisibleButton(drawingItem):
         """
         Readonly attribute: actual (width, height) in pixels of the item on screen
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.rect_size)
 
@@ -353,7 +353,7 @@ cdef class DrawInvisibleButton(drawingItem):
         If True, the attribute is reset the next frame. It's better to rely
         on handlers to catch this event.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.rect_size.x != self.state.prev.rect_size.x or \
                self.state.cur.rect_size.y != self.state.prev.rect_size.y
@@ -369,13 +369,13 @@ cdef class DrawInvisibleButton(drawingItem):
         if you want to still have handlers run if the item
         is in the visible region.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_input
 
     @no_input.setter
     def no_input(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_input = value
 
@@ -394,19 +394,19 @@ cdef class DrawInvisibleButton(drawingItem):
         Default is True on creation. Thus creating an item
         in front of the mouse will capture it.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._capture_mouse
 
     @capture_mouse.setter
     def capture_mouse(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._capture_mouse = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -615,13 +615,13 @@ cdef class DrawInWindow(uiItem):
         If False (default), clicks and the hovered status
         will be forwarded to the window underneath.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.button
 
     @button.setter
     def button(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.button = value
 
@@ -631,13 +631,13 @@ cdef class DrawInWindow(uiItem):
         Writable attribute: Whether the item has a frame.
         By default the frame is disabled for DrawInWindow.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.has_frame
 
     @frame.setter
     def frame(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.has_frame = value
 
@@ -646,13 +646,13 @@ cdef class DrawInWindow(uiItem):
         """
         Starting X coordinate inside the item (top-left)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.orig_x
 
     @orig_x.setter
     def orig_x(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.orig_x = value
 
@@ -661,13 +661,13 @@ cdef class DrawInWindow(uiItem):
         """
         Starting Y coordinate inside the item (top-left)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.orig_x
 
     @orig_y.setter
     def orig_y(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.orig_y = value
 
@@ -681,13 +681,13 @@ cdef class DrawInWindow(uiItem):
         That is, the coordinate of the end of the visible area
         corresponds to item.width
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.scale_x
 
     @scale_x.setter
     def scale_x(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.scale_x = value
 
@@ -701,13 +701,13 @@ cdef class DrawInWindow(uiItem):
         That is, the coordinate of end of the visible area
         corresponds to item.height
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.scale_y
 
     @scale_y.setter
     def scale_y(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.scale_y = value
 
@@ -719,13 +719,13 @@ cdef class DrawInWindow(uiItem):
         coordinate of the end of the visible area
         is (orig_x, orig_y) + (scale_x, scale_y)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.relative_scaling
 
     @relative.setter
     def relative(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.relative_scaling = value
 
@@ -739,13 +739,13 @@ cdef class DrawInWindow(uiItem):
         When False, this is the top left, and y
         increases when going down.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.invert_y
 
     @invert_y.setter
     def invert_y(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.invert_y = value
 
@@ -859,13 +859,13 @@ cdef class SimplePlot(uiItem):
         """
         Writable attribute: value corresponding to the minimum value of plot scale
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_min
 
     @scale_min.setter
     def scale_min(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scale_min = value
 
@@ -874,13 +874,13 @@ cdef class SimplePlot(uiItem):
         """
         Writable attribute: value corresponding to the maximum value of plot scale
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_max
 
     @scale_max.setter
     def scale_max(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scale_max = value
 
@@ -889,13 +889,13 @@ cdef class SimplePlot(uiItem):
         """
         Writable attribute: Whether the data should be plotted as an histogram
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._histogram
 
     @histogram.setter
     def histogram(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._histogram = value
 
@@ -905,13 +905,13 @@ cdef class SimplePlot(uiItem):
         Writable attribute: Whether scale_min and scale_max should be deduced
         from the data
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._autoscale
 
     @autoscale.setter
     def autoscale(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._autoscale = value
 
@@ -920,13 +920,13 @@ cdef class SimplePlot(uiItem):
         """
         Writable attribute: Overlay text
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._overlay)
 
     @overlay.setter
     def overlay(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._overlay = string_from_str(value)
 
@@ -986,13 +986,13 @@ cdef class Button(uiItem):
         """
         Writable attribute: Direction of the arrow if any
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <ButtonDirection>self._direction
 
     @direction.setter
     def direction(self, ButtonDirection value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <imgui.ImGuiDir>value < imgui.ImGuiDir_None or <imgui.ImGuiDir>value >= imgui.ImGuiDir_COUNT:
             raise ValueError("Invalid direction {value}")
@@ -1003,13 +1003,13 @@ cdef class Button(uiItem):
         """
         Writable attribute: Whether to display a small button
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._small
 
     @small.setter
     def small(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._small = value
 
@@ -1019,13 +1019,13 @@ cdef class Button(uiItem):
         Writable attribute: Whether to display an arrow.
         Not compatible with small
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._arrow
 
     @arrow.setter
     def arrow(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._arrow = value
 
@@ -1035,13 +1035,13 @@ cdef class Button(uiItem):
         Writable attribute: Whether to generate many clicked events
         when the button is held repeatedly, instead of a single.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._repeat
 
     @repeat.setter
     def repeat(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._repeat = value
 
@@ -1080,7 +1080,7 @@ cdef class Combo(uiItem):
         """
         Writable attribute: List of text values to select
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -1090,8 +1090,8 @@ cdef class Combo(uiItem):
 
     @items.setter
     def items(self, value):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] value_m
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1120,7 +1120,7 @@ cdef class Combo(uiItem):
         "large"
         "largest"
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiComboFlags_HeightSmall) != 0:
             return "small"
@@ -1132,7 +1132,7 @@ cdef class Combo(uiItem):
 
     @height_mode.setter
     def height_mode(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiComboFlags_HeightSmall |
                         imgui.ImGuiComboFlags_HeightRegular |
@@ -1155,13 +1155,13 @@ cdef class Combo(uiItem):
         """
         Writable attribute: Whether to align left
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiComboFlags_PopupAlignLeft) != 0
 
     @popup_align_left.setter
     def popup_align_left(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiComboFlags_PopupAlignLeft
         if value:
@@ -1172,13 +1172,13 @@ cdef class Combo(uiItem):
         """
         Writable attribute: Whether the combo should not display an arrow on top
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiComboFlags_NoArrowButton) != 0
 
     @no_arrow_button.setter
     def no_arrow_button(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiComboFlags_NoArrowButton
         if value:
@@ -1189,13 +1189,13 @@ cdef class Combo(uiItem):
         """
         Writable attribute: Whether the preview should be disabled
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiComboFlags_NoPreview) != 0
 
     @no_preview.setter
     def no_preview(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiComboFlags_NoPreview
         if value:
@@ -1206,13 +1206,13 @@ cdef class Combo(uiItem):
         """
         Writable attribute: Whether the combo should fit available width
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiComboFlags_WidthFitPreview) != 0
 
     @fit_width.setter
     def fit_width(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiComboFlags_WidthFitPreview
         if value:
@@ -1337,7 +1337,7 @@ cdef class Slider(uiItem):
         Note that float here means the 32 bits version.
         The python float corresponds to a double.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._format == 1:
             return "float"
@@ -1347,7 +1347,7 @@ cdef class Slider(uiItem):
 
     @format.setter
     def format(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t target_format
         if value == "int":
@@ -1392,14 +1392,14 @@ cdef class Slider(uiItem):
         with a vector of 4 elements (even for
         size 2 and 3)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._size
         
 
     @size.setter
     def size(self, int32_t target_size):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if target_size < 0 or target_size > 4:
             raise ValueError(f"Expected 1, 2, 3, or 4 for size. Got {target_size}")
@@ -1433,13 +1433,13 @@ cdef class Slider(uiItem):
         """
         Writable attribute: Whether the slider value should be clamped even when keyboard set
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSliderFlags_AlwaysClamp) != 0
 
     @clamped.setter
     def clamped(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiSliderFlags_AlwaysClamp
         if value:
@@ -1452,13 +1452,13 @@ cdef class Slider(uiItem):
         slider rather than a regular one.
         Incompatible with 'vertical'.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._drag
 
     @drag.setter
     def drag(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._drag = value
         if value:
@@ -1470,13 +1470,13 @@ cdef class Slider(uiItem):
         Writable attribute: Make the slider logarithmic.
         Disables round_to_format if enabled
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSliderFlags_Logarithmic) != 0
 
     @logarithmic.setter
     def logarithmic(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiSliderFlags_Logarithmic | imgui.ImGuiSliderFlags_NoRoundToFormat)
         if value:
@@ -1488,13 +1488,13 @@ cdef class Slider(uiItem):
         Writable attribute: Minimum value the slider
         will be clamped to.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._min
 
     @min_value.setter
     def min_value(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._min = value
 
@@ -1504,13 +1504,13 @@ cdef class Slider(uiItem):
         Writable attribute: Maximum value the slider
         will be clamped to.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._max
 
     @max_value.setter
     def max_value(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._max = value
 
@@ -1520,13 +1520,13 @@ cdef class Slider(uiItem):
         Writable attribute: Disable Ctrl+Click and Enter key to
         manually set the value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSliderFlags_NoInput) != 0
 
     @no_input.setter
     def no_input(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiSliderFlags_NoInput
         if value:
@@ -1541,13 +1541,13 @@ cdef class Slider(uiItem):
         enabled, the value is converted
         back and thus appears rounded.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._print_format)
 
     @print_format.setter
     def print_format(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._print_format = string_from_str(value)
 
@@ -1558,13 +1558,13 @@ cdef class Slider(uiItem):
         the value will not have more digits precision
         than the requested format string for display.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSliderFlags_NoRoundToFormat) == 0
 
     @round_to_format.setter
     def round_to_format(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value and (self._flags & imgui.ImGuiSliderFlags_Logarithmic) != 0:
             # Note this is not a limitation from imgui, but they strongly
@@ -1581,13 +1581,13 @@ cdef class Slider(uiItem):
         Writable attribute: When drag is true,
         this attributes sets the drag speed.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._drag_speed
 
     @speed.setter
     def speed(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._drag_speed = value
 
@@ -1598,13 +1598,13 @@ cdef class Slider(uiItem):
         slider. Only sliders of size 1 and drag False
         are supported.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._vertical
 
     @vertical.setter
     def vertical(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._size != 1:
             return
@@ -1763,7 +1763,7 @@ cdef class ListBox(uiItem):
         """
         Writable attribute: List of text values to select
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -1773,8 +1773,8 @@ cdef class ListBox(uiItem):
 
     @items.setter
     def items(self, value):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] value_m
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1799,19 +1799,19 @@ cdef class ListBox(uiItem):
         Writable attribute: Number of items
         shown when the menu is opened
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._num_items_shown_when_open
 
     @num_items_shown_when_open.setter
     def num_items_shown_when_open(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._num_items_shown_when_open = value
 
     cdef bint draw_item(self) noexcept nogil:
         # TODO: Merge with ComboBox
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint visible
         cdef int32_t i
         cdef DCGString current_value
@@ -1890,7 +1890,7 @@ cdef class RadioButton(uiItem):
         """
         Writable attribute: List of text values to select
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -1900,8 +1900,8 @@ cdef class RadioButton(uiItem):
 
     @items.setter
     def items(self, value):
-        cdef unique_lock[recursive_mutex] m
-        cdef unique_lock[recursive_mutex] value_m
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1925,18 +1925,18 @@ cdef class RadioButton(uiItem):
         """
         Writable attribute: Horizontal vs vertical placement
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._horizontal
 
     @horizontal.setter
     def horizontal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._horizontal = value
 
     cdef bint draw_item(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint open
         cdef int32_t i
         cdef DCGString current_value
@@ -2003,13 +2003,13 @@ cdef class InputText(uiItem):
         Writable attribute: text hint.
         Doesn't work with multiline.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._hint)
 
     @hint.setter
     def hint(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._hint = string_from_str(value)
         if len(value) > 0:
@@ -2021,13 +2021,13 @@ cdef class InputText(uiItem):
         Writable attribute: multiline text input.
         Doesn't work with non-empty hint.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._multiline
 
     @multiline.setter
     def multiline(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._multiline = value
         if value:
@@ -2039,13 +2039,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Maximal number of characters that can be written
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._max_characters
 
     @max_characters.setter
     def max_characters(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 1:
             raise ValueError("There must be at least space for one character")
@@ -2068,13 +2068,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Allow 0123456789.+-
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CharsDecimal) != 0
 
     @decimal.setter
     def decimal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CharsDecimal
         if value:
@@ -2085,13 +2085,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute:  Allow 0123456789ABCDEFabcdef
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CharsHexadecimal) != 0
 
     @hexadecimal.setter
     def hexadecimal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CharsHexadecimal
         if value:
@@ -2102,13 +2102,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Allow 0123456789.+-*/eE
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CharsScientific) != 0
 
     @scientific.setter
     def scientific(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CharsScientific
         if value:
@@ -2119,13 +2119,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Turn a..z into A..Z
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CharsUppercase) != 0
 
     @uppercase.setter
     def uppercase(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CharsUppercase
         if value:
@@ -2136,13 +2136,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Filter out spaces, tabs
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CharsNoBlank) != 0
 
     @no_spaces.setter
     def no_spaces(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CharsNoBlank
         if value:
@@ -2153,13 +2153,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Pressing TAB input a '\t' character into the text field
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_AllowTabInput) != 0
 
     @tab_input.setter
     def tab_input(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_AllowTabInput
         if value:
@@ -2171,13 +2171,13 @@ cdef class InputText(uiItem):
         Writable attribute: Callback called everytime Enter is pressed,
         not just when the value is modified.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_EnterReturnsTrue) != 0
 
     @on_enter.setter
     def on_enter(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_EnterReturnsTrue
         if value:
@@ -2190,13 +2190,13 @@ cdef class InputText(uiItem):
         and deactivate otherwise
         (contrast to default behavior of Escape to revert)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_EscapeClearsAll) != 0
 
     @escape_clears_all.setter
     def escape_clears_all(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_EscapeClearsAll
         if value:
@@ -2209,13 +2209,13 @@ cdef class InputText(uiItem):
         add new line with Ctrl+Enter
         (default is opposite: validate with Ctrl+Enter, add line with Enter).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CtrlEnterForNewLine) != 0
 
     @ctrl_enter_for_new_line.setter
     def ctrl_enter_for_new_line(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CtrlEnterForNewLine
         if value:
@@ -2226,13 +2226,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Read-only mode
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_ReadOnly) != 0
 
     @readonly.setter
     def readonly(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_ReadOnly
         if value:
@@ -2243,13 +2243,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Password mode, display all characters as '*', disable copy
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_Password) != 0
 
     @password.setter
     def password(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_Password
         if value:
@@ -2260,13 +2260,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Overwrite mode
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_AlwaysOverwrite) != 0
 
     @always_overwrite.setter
     def always_overwrite(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_AlwaysOverwrite
         if value:
@@ -2277,13 +2277,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Select entire text when first taking mouse focus
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_AutoSelectAll) != 0
 
     @auto_select_all.setter
     def auto_select_all(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_AutoSelectAll
         if value:
@@ -2294,13 +2294,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Disable following the scroll horizontally
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_NoHorizontalScroll) != 0
 
     @no_horizontal_scroll.setter
     def no_horizontal_scroll(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_NoHorizontalScroll
         if value:
@@ -2311,13 +2311,13 @@ cdef class InputText(uiItem):
         """
         Writable attribute: Disable undo/redo.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_NoUndoRedo) != 0
 
     @no_undo_redo.setter
     def no_undo_redo(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_NoUndoRedo
         if value:
@@ -2438,7 +2438,7 @@ cdef class InputValue(uiItem):
         Note that float here means the 32 bits version.
         The python float corresponds to a double.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._format == 1:
             return "float"
@@ -2448,7 +2448,7 @@ cdef class InputValue(uiItem):
 
     @format.setter
     def format(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t target_format
         if value == "int":
@@ -2493,14 +2493,14 @@ cdef class InputValue(uiItem):
         with a vector of 4 elements (even for
         size 2 and 3)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._size
         
 
     @size.setter
     def size(self, int32_t target_size):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if target_size < 0 or target_size > 4:
             raise ValueError(f"Expected 1, 2, 3, or 4 for size. Got {target_size}")
@@ -2534,13 +2534,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: 
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._step
 
     @step.setter
     def step(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._step = value
 
@@ -2549,13 +2549,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: 
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._step_fast
 
     @step_fast.setter
     def step_fast(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._step_fast = value
 
@@ -2565,13 +2565,13 @@ cdef class InputValue(uiItem):
         Writable attribute: Minimum value the input
         will be clamped to.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._min
 
     @min_value.setter
     def min_value(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._min = value
 
@@ -2581,13 +2581,13 @@ cdef class InputValue(uiItem):
         Writable attribute: Maximum value the input
         will be clamped to.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._max
 
     @max_value.setter
     def max_value(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._max = value
 
@@ -2600,13 +2600,13 @@ cdef class InputValue(uiItem):
         enabled, the value is converted
         back and thus appears rounded.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._print_format)
 
     @print_format.setter
     def print_format(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._print_format = string_from_str(value)
 
@@ -2615,13 +2615,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: Allow 0123456789.+-
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CharsDecimal) != 0
 
     @decimal.setter
     def decimal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CharsDecimal
         if value:
@@ -2632,13 +2632,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute:  Allow 0123456789ABCDEFabcdef
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CharsHexadecimal) != 0
 
     @hexadecimal.setter
     def hexadecimal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CharsHexadecimal
         if value:
@@ -2649,13 +2649,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: Allow 0123456789.+-*/eE
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_CharsScientific) != 0
 
     @scientific.setter
     def scientific(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_CharsScientific
         if value:
@@ -2667,13 +2667,13 @@ cdef class InputValue(uiItem):
         Writable attribute: Callback called everytime Enter is pressed,
         not just when the value is modified.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_EnterReturnsTrue) != 0
 
     @on_enter.setter
     def on_enter(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_EnterReturnsTrue
         if value:
@@ -2686,13 +2686,13 @@ cdef class InputValue(uiItem):
         and deactivate otherwise
         (contrast to default behavior of Escape to revert)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_EscapeClearsAll) != 0
 
     @escape_clears_all.setter
     def escape_clears_all(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_EscapeClearsAll
         if value:
@@ -2703,13 +2703,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: Read-only mode
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_ReadOnly) != 0
 
     @readonly.setter
     def readonly(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_ReadOnly
         if value:
@@ -2720,13 +2720,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: Password mode, display all characters as '*', disable copy
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_Password) != 0
 
     @password.setter
     def password(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_Password
         if value:
@@ -2737,13 +2737,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: Overwrite mode
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_AlwaysOverwrite) != 0
 
     @always_overwrite.setter
     def always_overwrite(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_AlwaysOverwrite
         if value:
@@ -2754,13 +2754,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: Select entire text when first taking mouse focus
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_AutoSelectAll) != 0
 
     @auto_select_all.setter
     def auto_select_all(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_AutoSelectAll
         if value:
@@ -2771,13 +2771,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: parse empty string as zero value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_ParseEmptyRefVal) != 0
 
     @empty_as_zero.setter
     def empty_as_zero(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_ParseEmptyRefVal
         if value:
@@ -2788,13 +2788,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: when value is zero, do not display it
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_DisplayEmptyRefVal) != 0
 
     @empty_if_zero.setter
     def empty_if_zero(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_DisplayEmptyRefVal
         if value:
@@ -2805,13 +2805,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: Disable following the scroll horizontally
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_NoHorizontalScroll) != 0
 
     @no_horizontal_scroll.setter
     def no_horizontal_scroll(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_NoHorizontalScroll
         if value:
@@ -2822,13 +2822,13 @@ cdef class InputValue(uiItem):
         """
         Writable attribute: Disable undo/redo.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_NoUndoRedo) != 0
 
     @no_undo_redo.setter
     def no_undo_redo(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_NoUndoRedo
         if value:
@@ -2976,19 +2976,19 @@ cdef class Text(uiItem):
         full transparent text, use the
         default value given by the style
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <int>self._color
 
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
 
     @property
     def label(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         """
         Writable attribute: label assigned to the item.
@@ -2997,7 +2997,7 @@ cdef class Text(uiItem):
         return self._user_label
     @label.setter
     def label(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._user_label = ""
@@ -3016,13 +3016,13 @@ cdef class Text(uiItem):
         The width is multiplied by the global scale
         unless the no_scaling option is set.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <int>self._wrap
 
     @wrap.setter
     def wrap(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._wrap = value
 
@@ -3032,13 +3032,13 @@ cdef class Text(uiItem):
         Writable attribute: Whether to add a bullet
         before the text
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._bullet
 
     @bullet.setter
     def bullet(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._bullet = value
 
@@ -3048,13 +3048,13 @@ cdef class Text(uiItem):
         Writable attribute: Whether to display the
         label next to the text stored in value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._show_label
 
     @show_label.setter
     def show_label(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._show_label = value
 
@@ -3126,13 +3126,13 @@ cdef class TextValue(uiItem):
         can be passed to other items using an internal value of the same
         type to share it.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._value
 
     @shareable_value.setter
     def shareable_value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._value is value:
             return
@@ -3183,13 +3183,13 @@ cdef class TextValue(uiItem):
         One exception of SharedFloatVect, as the size is not known.
         In this case the print_format is applied separately to each value.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._print_format)
 
     @print_format.setter
     def print_format(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._print_format = string_from_str(value)
 
@@ -3262,13 +3262,13 @@ cdef class Selectable(uiItem):
         """
         Writable attribute: Clicking this doesn't close parent popup window
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSelectableFlags_NoAutoClosePopups) != 0
 
     @disable_popup_close.setter
     def disable_popup_close(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiSelectableFlags_NoAutoClosePopups
         if value:
@@ -3279,13 +3279,13 @@ cdef class Selectable(uiItem):
         """
         Writable attribute: Frame will span all columns of its container table (text will still fit in current column)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSelectableFlags_SpanAllColumns) != 0
 
     @span_columns.setter
     def span_columns(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiSelectableFlags_SpanAllColumns
         if value:
@@ -3296,13 +3296,13 @@ cdef class Selectable(uiItem):
         """
         Writable attribute: call callbacks on double clicks too
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSelectableFlags_AllowDoubleClick) != 0
 
     @on_double_click.setter
     def on_double_click(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiSelectableFlags_AllowDoubleClick
         if value:
@@ -3313,13 +3313,13 @@ cdef class Selectable(uiItem):
         """
         Writable attribute: highlighted as if hovered
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSelectableFlags_Highlight) != 0
 
     @highlighted.setter
     def highlighted(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiSelectableFlags_Highlight
         if value:
@@ -3358,13 +3358,13 @@ cdef class MenuItem(uiItem):
         """
         Writable attribute:
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._check
 
     @check.setter
     def check(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._check = value
 
@@ -3373,13 +3373,13 @@ cdef class MenuItem(uiItem):
         """
         Writable attribute:
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._shortcut)
 
     @shortcut.setter
     def shortcut(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._shortcut = string_from_str(value)
 
@@ -3408,13 +3408,13 @@ cdef class ProgressBar(uiItem):
         """
         Writable attribute:
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._overlay)
 
     @overlay.setter
     def overlay(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._overlay = string_from_str(value)
 
@@ -3442,55 +3442,55 @@ cdef class Image(uiItem):
 
     @property
     def texture(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._texture
     @texture.setter
     def texture(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(isinstance(value, Texture)):
             raise TypeError("texture must be a Texture")
         self._texture = value
     @property
     def uv(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv)
     @uv.setter
     def uv(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_vec4[float](self._uv, value)
     @property
     def color_multiplier(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_multiplier
         unparse_color(color_multiplier, self._color_multiplier)
         return list(color_multiplier)
     @color_multiplier.setter
     def color_multiplier(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_multiplier = parse_color(value)
     @property
     def border_color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] border_color
         unparse_color(border_color, self._border_color)
         return list(border_color)
     @border_color.setter
     def border_color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._border_color = parse_color(value)
 
     cdef bint draw_item(self) noexcept nogil:
         if self._texture is None:
             return False
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self._texture.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self._texture.mutex)
         if self._texture.allocated_texture == NULL:
             return False
         cdef Vec2 size = self.scaled_requested_size()
@@ -3526,65 +3526,65 @@ cdef class ImageButton(uiItem):
 
     @property
     def texture(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._texture
     @texture.setter
     def texture(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(isinstance(value, Texture)):
             raise TypeError("texture must be a Texture")
         self._texture = value
     @property
     def frame_padding(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._frame_padding
     @frame_padding.setter
     def frame_padding(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._frame_padding = value
     @property
     def uv(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv)
     @uv.setter
     def uv(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_vec4[float](self._uv, value)
     @property
     def color_multiplier(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_multiplier
         unparse_color(color_multiplier, self._color_multiplier)
         return list(color_multiplier)
     @color_multiplier.setter
     def color_multiplier(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_multiplier = parse_color(value)
     @property
     def background_color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] background_color
         unparse_color(background_color, self._background_color)
         return list(background_color)
     @background_color.setter
     def background_color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._background_color = parse_color(value)
 
     cdef bint draw_item(self) noexcept nogil:
         if self._texture is None:
             return False
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self._texture.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self._texture.mutex)
         if self._texture.allocated_texture == NULL:
             return False
         cdef Vec2 size = self.scaled_requested_size()
@@ -3618,7 +3618,7 @@ cdef class Separator(uiItem):
     # TODO: is label override really needed ?
     @property
     def label(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         """
         Writable attribute: label assigned to the item.
@@ -3627,7 +3627,7 @@ cdef class Separator(uiItem):
         return self._user_label
     @label.setter
     def label(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._user_label = ""
@@ -3671,7 +3671,7 @@ cdef class MenuBar(uiItem):
         self.state.cap.has_content_region = True # TODO
 
     cdef void draw(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         if not(self._show):
             if self._show_update_requested:
@@ -3828,13 +3828,13 @@ cdef class Tooltip(uiItem):
         If no target is set, the previous sibling
         is the target.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._target
 
     @target.setter
     def target(self, baseItem target):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._target = None
         if target is None:
@@ -3855,13 +3855,13 @@ cdef class Tooltip(uiItem):
         the target hovering check. It will
         apply to target, which must be set.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._secondary_handler
 
     @condition_from_handler.setter
     def condition_from_handler(self, baseHandler handler):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._target is not None:
             handler.check_bind(self._target)
@@ -3874,13 +3874,13 @@ cdef class Tooltip(uiItem):
         -1: Use imgui defaults
         Defaults to 0.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._delay
 
     @delay.setter
     def delay(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._delay = value
 
@@ -3889,13 +3889,13 @@ cdef class Tooltip(uiItem):
         """
         Hide the tooltip when the mouse moves
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._hide_on_activity
 
     @hide_on_activity.setter
     def hide_on_activity(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._hide_on_activity = value
 
@@ -3977,13 +3977,13 @@ cdef class TabButton(uiItem):
         Writable attribute: Disable reordering this tab or
         having another tab cross over this tab
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabItemFlags_NoReorder) != 0
 
     @no_reorder.setter
     def no_reorder(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabItemFlags_NoReorder
         if value:
@@ -3995,13 +3995,13 @@ cdef class TabButton(uiItem):
         Writable attribute: Enforce the tab position to the
         left of the tab bar (after the tab list popup button)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabItemFlags_Leading) != 0
 
     @leading.setter
     def leading(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabItemFlags_Leading
         if value:
@@ -4014,13 +4014,13 @@ cdef class TabButton(uiItem):
         Writable attribute: Enforce the tab position to the
         right of the tab bar (before the scrolling buttons)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabItemFlags_Trailing) != 0
 
     @trailing.setter
     def trailing(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabItemFlags_Trailing
         if value:
@@ -4032,13 +4032,13 @@ cdef class TabButton(uiItem):
         """
         Writable attribute: Disable tooltip for the given tab
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabItemFlags_NoTooltip) != 0
 
     @no_tooltip.setter
     def no_tooltip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabItemFlags_NoTooltip
         if value:
@@ -4072,13 +4072,13 @@ cdef class Tab(uiItem):
         """
         Writable attribute: Can the tab be closed
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._closable 
 
     @closable.setter
     def closable(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._closable = value
 
@@ -4088,13 +4088,13 @@ cdef class Tab(uiItem):
         Writable attribute: Disable reordering this tab or
         having another tab cross over this tab
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabItemFlags_NoReorder) != 0
 
     @no_reorder.setter
     def no_reorder(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabItemFlags_NoReorder
         if value:
@@ -4106,13 +4106,13 @@ cdef class Tab(uiItem):
         Writable attribute: Enforce the tab position to the
         left of the tab bar (after the tab list popup button)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabItemFlags_Leading) != 0
 
     @leading.setter
     def leading(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabItemFlags_Leading
         if value:
@@ -4125,13 +4125,13 @@ cdef class Tab(uiItem):
         Writable attribute: Enforce the tab position to the
         right of the tab bar (before the scrolling buttons)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabItemFlags_Trailing) != 0
 
     @trailing.setter
     def trailing(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabItemFlags_Trailing
         if value:
@@ -4143,13 +4143,13 @@ cdef class Tab(uiItem):
         """
         Writable attribute: Disable tooltip for the given tab
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabItemFlags_NoTooltip) != 0
 
     @no_tooltip.setter
     def no_tooltip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabItemFlags_NoTooltip
         if value:
@@ -4210,13 +4210,13 @@ cdef class TabBar(uiItem):
         Writable attribute: Allow manually dragging tabs
         to re-order them + New tabs are appended at the end of list
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_Reorderable) != 0
 
     @reorderable.setter
     def reorderable(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_Reorderable
         if value:
@@ -4228,13 +4228,13 @@ cdef class TabBar(uiItem):
         Writable attribute: Automatically select new
         tabs when they appear
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_AutoSelectNewTabs) != 0
 
     @autoselect_new_tabs.setter
     def autoselect_new_tabs(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_AutoSelectNewTabs
         if value:
@@ -4245,13 +4245,13 @@ cdef class TabBar(uiItem):
         """
         Writable attribute: Disable buttons to open the tab list popup
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_TabListPopupButton) != 0
 
     @no_tab_list_popup_button.setter
     def no_tab_list_popup_button(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_TabListPopupButton
         if value:
@@ -4262,13 +4262,13 @@ cdef class TabBar(uiItem):
         """
         Writable attribute: Disable behavior of closing tabs with middle mouse button.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) != 0
 
     @no_close_with_middle_mouse_button.setter
     def no_close_with_middle_mouse_button(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_NoCloseWithMiddleMouseButton
         if value:
@@ -4279,13 +4279,13 @@ cdef class TabBar(uiItem):
         """
         Writable attribute: Disable scrolling buttons
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_NoTabListScrollingButtons) != 0
 
     @no_scrolling_button.setter
     def no_scrolling_button(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_NoTabListScrollingButtons
         if value:
@@ -4296,13 +4296,13 @@ cdef class TabBar(uiItem):
         """
         Writable attribute: Disable tooltip for all tabs
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_NoTooltip) != 0
 
     @no_tooltip.setter
     def no_tooltip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_NoTooltip
         if value:
@@ -4313,13 +4313,13 @@ cdef class TabBar(uiItem):
         """
         Writable attribute: Draw selected overline markers over selected tab
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_DrawSelectedOverline) != 0
 
     @selected_overline.setter
     def selected_overline(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_DrawSelectedOverline
         if value:
@@ -4330,13 +4330,13 @@ cdef class TabBar(uiItem):
         """
         Writable attribute: Resize tabs when they don't fit
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_FittingPolicyResizeDown) != 0
 
     @resize_to_fit.setter
     def resize_to_fit(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_FittingPolicyResizeDown
         if value:
@@ -4347,13 +4347,13 @@ cdef class TabBar(uiItem):
         """
         Writable attribute: Add scroll buttons when tabs don't fit
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTabBarFlags_FittingPolicyScroll) != 0
 
     @allow_tab_scroll.setter
     def allow_tab_scroll(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTabBarFlags_FittingPolicyScroll
         if value:
@@ -4406,13 +4406,13 @@ cdef class TreeNode(uiItem):
         """
         Writable attribute: Draw the TreeNode as selected when opened
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._selectable
 
     @selectable.setter
     def selectable(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._selectable = value
 
@@ -4421,13 +4421,13 @@ cdef class TreeNode(uiItem):
         """
         Writable attribute: Default node to be open
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_DefaultOpen) != 0
 
     @default_open.setter
     def default_open(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_DefaultOpen
         if value:
@@ -4438,13 +4438,13 @@ cdef class TreeNode(uiItem):
         """
         Writable attribute: Need double-click to open node
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_OpenOnDoubleClick) != 0
 
     @open_on_double_click.setter
     def open_on_double_click(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_OpenOnDoubleClick
         if value:
@@ -4457,13 +4457,13 @@ cdef class TreeNode(uiItem):
         If ImGuiTreeNodeFlags_OpenOnDoubleClick is also set,
         single-click arrow or double-click all box to open.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_OpenOnArrow) != 0
 
     @open_on_arrow.setter
     def open_on_arrow(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_OpenOnArrow
         if value:
@@ -4474,13 +4474,13 @@ cdef class TreeNode(uiItem):
         """
         Writable attribute: No collapsing, no arrow (use as a convenience for leaf nodes).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_Leaf) != 0
 
     @leaf.setter
     def leaf(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_Leaf
         if value:
@@ -4493,13 +4493,13 @@ cdef class TreeNode(uiItem):
         IMPORTANT: node can still be marked open/close if
         you don't set the _Leaf flag!
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_Bullet) != 0
 
     @bullet.setter
     def bullet(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_Bullet
         if value:
@@ -4511,13 +4511,13 @@ cdef class TreeNode(uiItem):
         Writable attribute: Narrow hit box + narrow hovering
         highlight, will only cover the label text.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_SpanTextWidth) != 0
 
     @span_text_width.setter
     def span_text_width(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_SpanTextWidth
         if value:
@@ -4529,13 +4529,13 @@ cdef class TreeNode(uiItem):
         Writable attribute: Extend hit box to the left-most
         and right-most edges (cover the indent area).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_SpanFullWidth) != 0
 
     @span_full_width.setter
     def span_full_width(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_SpanFullWidth
         if value:
@@ -4605,13 +4605,13 @@ cdef class CollapsingHeader(uiItem):
         """
         Writable attribute: Display a close button
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._closable
 
     @closable.setter
     def closable(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._closable = value
 
@@ -4620,13 +4620,13 @@ cdef class CollapsingHeader(uiItem):
         """
         Writable attribute: Need double-click to open node
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_OpenOnDoubleClick) != 0
 
     @open_on_double_click.setter
     def open_on_double_click(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_OpenOnDoubleClick
         if value:
@@ -4639,13 +4639,13 @@ cdef class CollapsingHeader(uiItem):
         If ImGuiTreeNodeFlags_OpenOnDoubleClick is also set,
         single-click arrow or double-click all box to open.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_OpenOnArrow) != 0
 
     @open_on_arrow.setter
     def open_on_arrow(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_OpenOnArrow
         if value:
@@ -4656,13 +4656,13 @@ cdef class CollapsingHeader(uiItem):
         """
         Writable attribute: No collapsing, no arrow (use as a convenience for leaf nodes).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_Leaf) != 0
 
     @leaf.setter
     def leaf(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_Leaf
         if value:
@@ -4675,13 +4675,13 @@ cdef class CollapsingHeader(uiItem):
         IMPORTANT: node can still be marked open/close if
         you don't set the _Leaf flag!
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTreeNodeFlags_Bullet) != 0
 
     @bullet.setter
     def bullet(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTreeNodeFlags_Bullet
         if value:
@@ -4797,13 +4797,13 @@ cdef class ChildWindow(uiItem):
         Writable attribute to tell to always show a vertical scrollbar
         even when the size does not require it
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_AlwaysVerticalScrollbar) else False
 
     @always_show_vertical_scrollvar.setter
     def always_show_vertical_scrollvar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_AlwaysVerticalScrollbar
         if value:
@@ -4816,13 +4816,13 @@ cdef class ChildWindow(uiItem):
         even when the size does not require it (only if horizontal scrollbar
         are enabled)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_AlwaysHorizontalScrollbar) else False
 
     @always_show_horizontal_scrollvar.setter
     def always_show_horizontal_scrollvar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_AlwaysHorizontalScrollbar
         if value:
@@ -4833,13 +4833,13 @@ cdef class ChildWindow(uiItem):
         """Writable attribute to indicate the window should have no scrollbar
            Does not disable scrolling via mouse or keyboard
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoScrollbar) else False
 
     @no_scrollbar.setter
     def no_scrollbar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoScrollbar
         if value:
@@ -4850,13 +4850,13 @@ cdef class ChildWindow(uiItem):
         """
         Writable attribute to enable having an horizontal scrollbar
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_HorizontalScrollbar) else False
 
     @horizontal_scrollbar.setter
     def horizontal_scrollbar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_HorizontalScrollbar
         if value:
@@ -4870,13 +4870,13 @@ cdef class ChildWindow(uiItem):
         There will be menubar if either the user has asked for it,
         or there is a menubar child.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self.last_menubar_child is not None) or (self._window_flags & imgui.ImGuiWindowFlags_MenuBar) != 0
 
     @menubar.setter
     def menubar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_MenuBar
         if value:
@@ -4888,13 +4888,13 @@ cdef class ChildWindow(uiItem):
         Writable attribute: mouse wheel will be forwarded to the parent
         unless NoScrollbar is also set.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._window_flags & imgui.ImGuiWindowFlags_NoScrollWithMouse) != 0
 
     @no_scroll_with_mouse.setter
     def no_scroll_with_mouse(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoScrollWithMouse
         if value:
@@ -4908,13 +4908,13 @@ cdef class ChildWindow(uiItem):
         between sibling child windows.
         Defaults to True.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_NavFlattened) != 0
 
     @flattened_navigation.setter
     def flattened_navigation(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_NavFlattened
         if value:
@@ -4926,13 +4926,13 @@ cdef class ChildWindow(uiItem):
         Writable attribute: show an outer border and enable WindowPadding.
         Defaults to True.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_Borders) != 0
 
     @border.setter
     def border(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_Borders
         if value:
@@ -4945,13 +4945,13 @@ cdef class ChildWindow(uiItem):
         Always measure size even when child is hidden,
         Note the item will render its children even if hidden.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_AlwaysAutoResize) != 0
 
     @always_auto_resize.setter
     def always_auto_resize(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_AlwaysAutoResize
         if value:
@@ -4964,13 +4964,13 @@ cdef class ChildWindow(uiItem):
         no border are drawn (no padding by default for non-bordered
         child windows)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_AlwaysUseWindowPadding) != 0
 
     @always_use_window_padding.setter
     def always_use_window_padding(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_AlwaysUseWindowPadding
         if value:
@@ -4982,13 +4982,13 @@ cdef class ChildWindow(uiItem):
         Writable attribute: enable auto-resizing width based on the content
         Set instead width to 0 to use the remaining size of the parent
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_AutoResizeX) != 0
 
     @auto_resize_x.setter
     def auto_resize_x(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_AutoResizeX
         if value:
@@ -5000,13 +5000,13 @@ cdef class ChildWindow(uiItem):
         Writable attribute: enable auto-resizing height based on the content
         Set instead height to 0 to use the remaining size of the parent
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_AutoResizeY) != 0
 
     @auto_resize_y.setter
     def auto_resize_y(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_AutoResizeY
         if value:
@@ -5019,13 +5019,13 @@ cdef class ChildWindow(uiItem):
         That is: use FrameBg, FrameRounding, FrameBorderSize, FramePadding
         instead of ChildBg, ChildRounding, ChildBorderSize, WindowPadding.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_FrameStyle) != 0
 
     @frame_style.setter
     def frame_style(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_FrameStyle
         if value:
@@ -5036,13 +5036,13 @@ cdef class ChildWindow(uiItem):
         """
         Writable attribute: allow resize from right border (layout direction).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_ResizeX) != 0
 
     @resizable_x.setter
     def resizable_x(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_ResizeX
         if value:
@@ -5053,13 +5053,13 @@ cdef class ChildWindow(uiItem):
         """
         Writable attribute: allow resize from bottom border (layout direction).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._child_flags & imgui.ImGuiChildFlags_ResizeY) != 0
 
     @resizable_y.setter
     def resizable_y(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._child_flags &= ~imgui.ImGuiChildFlags_ResizeY
         if value:
@@ -5132,13 +5132,13 @@ cdef class ColorButton(uiItem):
         """
         Writable attribute: ignore Alpha component (will only read 3 components from the input pointer)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoAlpha) != 0
 
     @no_alpha.setter
     def no_alpha(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoAlpha
         if value:
@@ -5149,13 +5149,13 @@ cdef class ColorButton(uiItem):
         """
         Writable attribute: disable default tooltip when hovering the preview
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoTooltip) != 0
 
     @no_tooltip.setter
     def no_tooltip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoTooltip
         if value:
@@ -5166,13 +5166,13 @@ cdef class ColorButton(uiItem):
         """
         Writable attribute: disable drag and drop source
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoDragDrop) != 0
 
     @no_drag_drop.setter
     def no_drag_drop(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoDragDrop
         if value:
@@ -5183,13 +5183,13 @@ cdef class ColorButton(uiItem):
         """
         Writable attribute: disable the default border
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoBorder) != 0
 
     @no_border.setter
     def no_border(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoBorder
         if value:
@@ -5200,7 +5200,7 @@ cdef class ColorButton(uiItem):
         """
         Writable attribute: Show preview with either full alpha or checker pattern
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
             return "half" 
@@ -5210,7 +5210,7 @@ cdef class ColorButton(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
         if value == "half":
@@ -5225,13 +5225,13 @@ cdef class ColorButton(uiItem):
         """
         Writable attribute: Data type: float vs uint8
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return "uint8" if (self._flags & imgui.ImGuiColorEditFlags_Uint8) != 0 else "float" 
 
     @data_type.setter
     def data_type(self, str value):  
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_Float | imgui.ImGuiColorEditFlags_Uint8)
         if value == "uint8":
@@ -5270,13 +5270,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: ignore Alpha component (will only read 3 components from the input pointer)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoAlpha) != 0
 
     @no_alpha.setter
     def no_alpha(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoAlpha
         if value:
@@ -5287,13 +5287,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: disable picker when clicking on color square.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoPicker) != 0
 
     @no_picker.setter
     def no_picker(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoPicker
         if value:
@@ -5304,13 +5304,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: disable toggling options menu when right-clicking on inputs/small preview.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoOptions) != 0
 
     @no_options.setter
     def no_options(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoOptions
         if value:
@@ -5321,13 +5321,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: disable color square preview next to the inputs. (e.g. to show only the inputs)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoSmallPreview) != 0
 
     @no_small_preview.setter
     def no_small_preview(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoSmallPreview
         if value:
@@ -5338,13 +5338,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: disable inputs sliders/text widgets (e.g. to show only the small preview color square).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoInputs) != 0
 
     @no_inputs.setter
     def no_inputs(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoInputs
         if value:
@@ -5355,13 +5355,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: disable default tooltip when hovering the preview
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoTooltip) != 0
 
     @no_tooltip.setter
     def no_tooltip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoTooltip
         if value:
@@ -5372,13 +5372,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: disable display of inline text label (the label is still forwarded to the tooltip and picker).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoLabel) != 0
 
     @no_label.setter
     def no_label(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoLabel
         if value:
@@ -5389,13 +5389,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: disable drag and drop target
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoDragDrop) != 0
 
     @no_drag_drop.setter
     def no_drag_drop(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoDragDrop
         if value:
@@ -5406,13 +5406,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: Show vertical alpha bar/gradient
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_AlphaBar) != 0
 
     @alpha_bar.setter 
     def alpha_bar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_AlphaBar
         if value:
@@ -5423,7 +5423,7 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: Show preview with either full alpha or checker pattern
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
             return "half" 
@@ -5433,7 +5433,7 @@ cdef class ColorEdit(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
         if value == "half":
@@ -5448,7 +5448,7 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: Color display mode: RGB/HSV/Hex
         """  
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiColorEditFlags_DisplayRGB) != 0:
             return "rgb"
@@ -5460,7 +5460,7 @@ cdef class ColorEdit(uiItem):
 
     @display_mode.setter 
     def display_mode(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_DisplayRGB | imgui.ImGuiColorEditFlags_DisplayHSV | imgui.ImGuiColorEditFlags_DisplayHex)
         if value == "rgb":
@@ -5477,13 +5477,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: Color input mode: RGB/HSV
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return "hsv" if (self._flags & imgui.ImGuiColorEditFlags_InputHSV) != 0 else "rgb"
 
     @input_mode.setter
     def input_mode(self, str value):
-        cdef unique_lock[recursive_mutex] m  
+        cdef unique_lock[DCGMutex] m  
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_InputRGB | imgui.ImGuiColorEditFlags_InputHSV)
         if value == "rgb":
@@ -5498,13 +5498,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: Data type: float vs uint8
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return "uint8" if (self._flags & imgui.ImGuiColorEditFlags_Uint8) != 0 else "float" 
 
     @data_type.setter
     def data_type(self, str value):  
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_Float | imgui.ImGuiColorEditFlags_Uint8)
         if value == "uint8":
@@ -5519,13 +5519,13 @@ cdef class ColorEdit(uiItem):
         """
         Writable attribute: Support HDR colors (multiplier can go beyond 1.0f and values can go above 1.0)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_HDR) != 0
 
     @hdr.setter
     def hdr(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_HDR
         if value:
@@ -5559,13 +5559,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: ignore Alpha component (will only read 3 components from the input pointer)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoAlpha) != 0
 
     @no_alpha.setter
     def no_alpha(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoAlpha
         if value:
@@ -5576,13 +5576,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: disable color square preview next to the inputs. (e.g. to show only the inputs)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoSmallPreview) != 0
 
     @no_small_preview.setter
     def no_small_preview(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoSmallPreview
         if value:
@@ -5593,13 +5593,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: disable inputs sliders/text widgets (e.g. to show only the small preview color square).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoInputs) != 0
 
     @no_inputs.setter
     def no_inputs(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoInputs
         if value:
@@ -5610,13 +5610,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: disable default tooltip when hovering the preview
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoTooltip) != 0
 
     @no_tooltip.setter
     def no_tooltip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoTooltip
         if value:
@@ -5627,13 +5627,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: disable display of inline text label (the label is still forwarded to the tooltip and picker).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoLabel) != 0
 
     @no_label.setter
     def no_label(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoLabel
         if value:
@@ -5644,13 +5644,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: disable bigger color preview on right side of the picker
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_NoSidePreview) != 0
 
     @no_side_preview.setter  
     def no_side_preview(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_NoSidePreview
         if value:
@@ -5661,13 +5661,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: Color picker mode: bar vs wheel
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)  
         return "wheel" if (self._flags & imgui.ImGuiColorEditFlags_PickerHueWheel) != 0 else "bar"
 
     @picker_mode.setter
     def picker_mode(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_PickerHueBar | imgui.ImGuiColorEditFlags_PickerHueWheel)
         if value == "bar":
@@ -5682,13 +5682,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: Show vertical alpha bar/gradient
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiColorEditFlags_AlphaBar) != 0
 
     @alpha_bar.setter 
     def alpha_bar(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiColorEditFlags_AlphaBar
         if value:
@@ -5699,7 +5699,7 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: Show preview with either full alpha or checker pattern
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
             return "half" 
@@ -5709,7 +5709,7 @@ cdef class ColorPicker(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
         if value == "half":
@@ -5724,7 +5724,7 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: Color display mode: RGB/HSV/Hex
         """  
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiColorEditFlags_DisplayRGB) != 0:
             return "rgb"
@@ -5736,7 +5736,7 @@ cdef class ColorPicker(uiItem):
 
     @display_mode.setter 
     def display_mode(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_DisplayRGB | imgui.ImGuiColorEditFlags_DisplayHSV | imgui.ImGuiColorEditFlags_DisplayHex)
         if value == "rgb":
@@ -5753,13 +5753,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: Color input mode: RGB/HSV
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return "hsv" if (self._flags & imgui.ImGuiColorEditFlags_InputHSV) != 0 else "rgb"
 
     @input_mode.setter
     def input_mode(self, str value):
-        cdef unique_lock[recursive_mutex] m  
+        cdef unique_lock[DCGMutex] m  
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_InputRGB | imgui.ImGuiColorEditFlags_InputHSV)
         if value == "rgb":
@@ -5774,13 +5774,13 @@ cdef class ColorPicker(uiItem):
         """
         Writable attribute: Data type: float vs uint8
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return "uint8" if (self._flags & imgui.ImGuiColorEditFlags_Uint8) != 0 else "float" 
 
     @data_type.setter
     def data_type(self, str value):  
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~(imgui.ImGuiColorEditFlags_Float | imgui.ImGuiColorEditFlags_Uint8)
         if value == "uint8":
@@ -5811,21 +5811,21 @@ cdef class SharedBool(SharedValue):
         self._num_attached = 0
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._value
     @value.setter
     def value(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
     cdef bint get(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return self._value
     cdef void set(self, bint value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
@@ -5836,21 +5836,21 @@ cdef class SharedFloat(SharedValue):
         self._num_attached = 0
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._value
     @value.setter
     def value(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
     cdef float get(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return self._value
     cdef void set(self, float value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
@@ -5861,21 +5861,21 @@ cdef class SharedInt(SharedValue):
         self._num_attached = 0
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._value
     @value.setter
     def value(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
     cdef int32_t get(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return self._value
     cdef void set(self, int32_t value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
@@ -5887,7 +5887,7 @@ cdef class SharedColor(SharedValue):
         self._num_attached = 0
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         #"Color data is an int32 (rgba, little endian),\n" \
         #"If you pass an array of int (r, g, b, a), or float\n" \
@@ -5895,24 +5895,24 @@ cdef class SharedColor(SharedValue):
         return <int>self._value
     @value.setter
     def value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._value = parse_color(value)
         self._value_asfloat4 = ImVec4Vec4(imgui.ColorConvertU32ToFloat4(self._value))
         self.on_update(True)
     cdef uint32_t getU32(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return self._value
     cdef Vec4 getF4(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return self._value_asfloat4
     cdef void setU32(self, uint32_t value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value = value
         self._value_asfloat4 = ImVec4Vec4(imgui.ColorConvertU32ToFloat4(self._value))
         self.on_update(True)
     cdef void setF4(self, Vec4 value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value_asfloat4 = value
         self._value = imgui.ColorConvertFloat4ToU32(Vec4ImVec4(self._value_asfloat4))
         self.on_update(True)
@@ -5923,21 +5923,21 @@ cdef class SharedDouble(SharedValue):
         self._num_attached = 0
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._value
     @value.setter
     def value(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
     cdef double get(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return self._value
     cdef void set(self, double value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
@@ -5948,20 +5948,20 @@ cdef class SharedStr(SharedValue):
         self._num_attached = 0
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._value)
     @value.setter
     def value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._value = string_from_str(str(value))
         self.on_update(True)
     cdef void get(self, DCGString& out) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         out = self._value
     cdef void set(self, DCGString value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value = value
         self.on_update(True)
 
@@ -5971,23 +5971,23 @@ cdef class SharedFloat4(SharedValue):
         self._num_attached = 0
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._value)
     @value.setter
     def value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_vec4[float](self._value, value)
         self.on_update(True)
     cdef void get(self, float *dst) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         dst[0] = self._value[0]
         dst[1] = self._value[1]
         dst[2] = self._value[2]
         dst[3] = self._value[3]
     cdef void set(self, float[4] value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value[0] = value[0]
         self._value[1] = value[1]
         self._value[2] = value[2]
@@ -6000,23 +6000,23 @@ cdef class SharedInt4(SharedValue):
         self._num_attached = 0
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._value)
     @value.setter
     def value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_vec4[int32_t](self._value, value)
         self.on_update(True)
     cdef void get(self, int32_t *dst) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         dst[0] = self._value[0]
         dst[1] = self._value[1]
         dst[2] = self._value[2]
         dst[3] = self._value[3]
     cdef void set(self, int32_t[4] value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value[0] = value[0]
         self._value[1] = value[1]
         self._value[2] = value[2]
@@ -6028,23 +6028,23 @@ cdef class SharedDouble4(SharedValue):
         read_vec4[double](self._value, value)
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._value)
     @value.setter
     def value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_vec4[double](self._value, value)
         self.on_update(True)
     cdef void get(self, double *dst) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         dst[0] = self._value[0]
         dst[1] = self._value[1]
         dst[2] = self._value[2]
         dst[3] = self._value[3]
     cdef void set(self, double[4] value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value[0] = value[0]
         self._value[1] = value[1]
         self._value[2] = value[2]
@@ -6059,23 +6059,23 @@ cdef class SharedFloatVect(SharedValue):
         self._value = self._value_np
     @property
     def value(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._value_np is None:
             return None
         return np.copy(self._value)
     @value.setter
     def value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._value_np = np.array(value, dtype=np.float32)
         self._value = self._value_np
         self.on_update(True)
     cdef float[:] get(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return self._value
     cdef void set(self, float[:] value) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value = value
         self.on_update(True)
 

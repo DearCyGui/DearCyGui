@@ -110,14 +110,14 @@ cdef class Font(baseFont):
 
     @property
     def scale(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         """Writable attribute: multiplicative factor to scale the font when used"""
         return self._scale
 
     @scale.setter
     def scale(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value <= 0.:
             raise ValueError(f"Invalid scale {value}")
@@ -131,13 +131,13 @@ cdef class Font(baseFont):
         scale value for this font.
         The manual user-set scale is still applied.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self._dpi_scaling)
 
     @no_scaling.setter
     def no_scaling(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._dpi_scaling = not(value)
 
@@ -188,7 +188,7 @@ cdef class FontMultiScales(baseFont):
         """
         List of attached fonts. Each font should have a different scale.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -198,7 +198,7 @@ cdef class FontMultiScales(baseFont):
 
     @fonts.setter 
     def fonts(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             clear_obj_vector(self._fonts)
@@ -223,7 +223,7 @@ cdef class FontMultiScales(baseFont):
         List of up to 10 most recent global scales encountered during rendering.
         The scales are not in a particular order
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return [s for s in self._stored_scales]
 
@@ -233,7 +233,7 @@ cdef class FontMultiScales(baseFont):
         Callbacks that get triggered when a new scale is stored.
         Each callback receives the new scale value that was added.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -243,7 +243,7 @@ cdef class FontMultiScales(baseFont):
 
     @callbacks.setter 
     def callbacks(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             clear_obj_vector(self._callbacks)
@@ -257,7 +257,7 @@ cdef class FontMultiScales(baseFont):
         append_obj_vector(self._callbacks, items)
 
     cdef void push(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self.mutex.lock()
         if self._fonts.empty():
             return
@@ -357,7 +357,7 @@ cdef class AutoFont(FontMultiScales):
     def _on_new_scale(self, sender, target, float scale) -> None:
         """Called when a new global scale is encountered"""
         # Only queue font creation if we don't have it pending already
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if scale in self._pending_fonts:
             return
@@ -367,7 +367,7 @@ cdef class AutoFont(FontMultiScales):
         
     cpdef void _create_font_at_scale(self, float scale, bint no_fail):
         """Create a new font at the given scale"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         # Create texture and font
         cdef FontTexture texture = FontTexture(self.context)
         cdef Font font = None
@@ -401,7 +401,7 @@ cdef class AutoFont(FontMultiScales):
 
     cdef void _add_new_font_to_list(self, Font new_font):
         """Add new font and prune fonts list to keep best matches"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         # Get recent scales we want to optimize for
         cdef vector[float] target_scales = vector[float]()
@@ -496,7 +496,7 @@ cdef class FontTexture(baseItem):
             between characters might appear slightly odd as
             a result, so don't enable when not needed.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef imgui.ImFontAtlas *atlas = <imgui.ImFontAtlas*>self._atlas
         if self._built:
@@ -632,7 +632,7 @@ cdef class FontTexture(baseItem):
 
     @property
     def built(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._built
 
@@ -642,14 +642,14 @@ cdef class FontTexture(baseItem):
         Readonly texture containing the font data.
         build() must be called first
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(self._built):
             raise ValueError("Texture not yet built")
         return self._texture
 
     def __len__(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(self._built):
             return 0
@@ -657,7 +657,7 @@ cdef class FontTexture(baseItem):
         return <int>atlas.Fonts.size()
 
     def __getitem__(self, index):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(self._built):
             raise ValueError("Texture not yet built")
@@ -671,7 +671,7 @@ cdef class FontTexture(baseItem):
         Packs all the fonts appended with add_font_file
         into a readonly texture. 
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._built:
             return

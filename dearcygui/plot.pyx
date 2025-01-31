@@ -88,13 +88,13 @@ cdef class AxesResizeHandler(baseHandler):
         used for this handler.
         Default is (X1, Y1)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._axes[0], self._axes[1])
 
     @axes.setter
     def axes(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t axis_x, axis_y
         try:
@@ -111,7 +111,7 @@ cdef class AxesResizeHandler(baseHandler):
         self._axes[1] = axis_y
 
     cdef void check_bind(self, baseItem item):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(isinstance(item, Plot)):
             raise TypeError(f"Cannot only bind handler {self} to a plot, not {item}")
@@ -147,7 +147,7 @@ cdef class AxesResizeHandler(baseHandler):
         return changed
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef itemState *state = item.p_state
         if not(self._enabled):
             return
@@ -211,13 +211,13 @@ cdef class PlotAxisConfig(baseItem):
         Whether elements using this axis should
         be drawn.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled
 
     @enabled.setter
     def enabled(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._enabled = value
 
@@ -227,13 +227,13 @@ cdef class PlotAxisConfig(baseItem):
         Current AxisScale.
         Default is AxisScale.linear
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <AxisScale>self._scale
 
     @scale.setter
     def scale(self, AxisScale value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value == AxisScale.LINEAR or \
            value == AxisScale.TIME or \
@@ -250,13 +250,13 @@ cdef class PlotAxisConfig(baseItem):
         Do not set max <= min. Set invert to change
         the axis order.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._min
 
     @min.setter
     def min(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._min = value
         self._dirty_minmax = True
@@ -268,13 +268,13 @@ cdef class PlotAxisConfig(baseItem):
         Do not set max <= min. Set invert to change
         the axis order.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._max
 
     @max.setter
     def max(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._max = value
         self._dirty_minmax = True
@@ -285,13 +285,13 @@ cdef class PlotAxisConfig(baseItem):
         Constraint on the minimum value
         of min.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._constraint_min
 
     @constraint_min.setter
     def constraint_min(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._constraint_min = value
 
@@ -301,13 +301,13 @@ cdef class PlotAxisConfig(baseItem):
         Constraint on the maximum value
         of max.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._constraint_max
 
     @constraint_max.setter
     def constraint_max(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._constraint_max = value
 
@@ -317,13 +317,13 @@ cdef class PlotAxisConfig(baseItem):
         Constraint on the minimum value
         of the zoom
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._zoom_min
 
     @zoom_min.setter
     def zoom_min(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._zoom_min = value
 
@@ -333,13 +333,13 @@ cdef class PlotAxisConfig(baseItem):
         Constraint on the maximum value
         of the zoom
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._zoom_max
 
     @zoom_max.setter
     def zoom_max(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._zoom_max = value
 
@@ -348,13 +348,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         Writable attribute to not render the axis label
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_NoLabel) != 0
 
     @no_label.setter
     def no_label(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_NoLabel
         if value:
@@ -365,13 +365,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         Writable attribute to not render grid lines
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_NoGridLines) != 0
 
     @no_gridlines.setter
     def no_gridlines(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_NoGridLines
         if value:
@@ -382,13 +382,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         Writable attribute to not render tick marks
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_NoTickMarks) != 0
 
     @no_tick_marks.setter
     def no_tick_marks(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_NoTickMarks
         if value:
@@ -399,13 +399,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         Writable attribute to not render tick labels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_NoTickLabels) != 0
 
     @no_tick_labels.setter
     def no_tick_labels(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_NoTickLabels
         if value:
@@ -417,13 +417,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to disable fitting the extent
         of the axis to the data on the first frame.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_NoInitialFit) != 0
 
     @no_initial_fit.setter
     def no_initial_fit(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_NoInitialFit
         if value:
@@ -436,13 +436,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to prevent right-click to
         open context menus.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_NoMenus) != 0
 
     @no_menus.setter
     def no_menus(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_NoMenus
         if value:
@@ -454,13 +454,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to prevent the user from switching
         the axis by dragging it.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_NoSideSwitch) != 0
 
     @no_side_switch.setter
     def no_side_switch(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_NoSideSwitch
         if value:
@@ -472,13 +472,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to not highlight the axis background
         when hovered or held
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_NoHighlight) != 0
 
     @no_highlight.setter
     def no_highlight(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_NoHighlight
         if value:
@@ -490,13 +490,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to render ticks and labels on
         the opposite side.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_Opposite) != 0
 
     @opposite.setter
     def opposite(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_Opposite
         if value:
@@ -508,13 +508,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to render gridlines on top of
         the data rather than behind.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_Foreground) != 0
 
     @foreground_grid.setter
     def foreground_grid(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_Foreground
         if value:
@@ -525,13 +525,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         Writable attribute to invert the values of the axis
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_Invert) != 0
 
     @invert.setter
     def invert(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_Invert
         if value:
@@ -543,13 +543,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to force the axis to fit its range
         to the data every frame.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_AutoFit) != 0
 
     @auto_fit.setter
     def auto_fit(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_AutoFit
         if value:
@@ -562,13 +562,13 @@ cdef class PlotAxisConfig(baseItem):
         the visible region of the opposite axis when fitting
         this axis.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_RangeFit) != 0
 
     @restrict_fit_to_range.setter
     def restrict_fit_to_range(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_RangeFit
         if value:
@@ -581,13 +581,13 @@ cdef class PlotAxisConfig(baseItem):
         constrained state, will cause the axis to stretch
         if possible.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_PanStretch) != 0
 
     @pan_stretch.setter
     def pan_stretch(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_PanStretch
         if value:
@@ -599,13 +599,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to lock the axis minimum value
         when panning/zooming
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_LockMin) != 0
 
     @lock_min.setter
     def lock_min(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_LockMin
         if value:
@@ -617,13 +617,13 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute to lock the axis maximum value
         when panning/zooming
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_LockMax) != 0
 
     @lock_max.setter
     def lock_max(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotAxisFlags_LockMax
         if value:
@@ -634,7 +634,7 @@ cdef class PlotAxisConfig(baseItem):
         """
         Readonly attribute: Is the mouse inside the axis label area
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.hovered
 
@@ -647,7 +647,7 @@ cdef class PlotAxisConfig(baseItem):
         If True, the attribute is reset the next frame. It's better to rely
         on handlers to catch this event.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return tuple(self.state.cur.clicked)
 
@@ -663,7 +663,7 @@ cdef class PlotAxisConfig(baseItem):
         The mouse position is updated everytime the plot is
         drawn and the axis is enabled.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._mouse_coord
 
@@ -673,7 +673,7 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute: bound handlers for the axis.
         Only visible, hovered and clicked handlers are compatible.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -685,7 +685,7 @@ cdef class PlotAxisConfig(baseItem):
 
     @handlers.setter
     def handlers(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
         cdef int32_t i
@@ -708,7 +708,7 @@ cdef class PlotAxisConfig(baseItem):
         """
         Request for a fit of min/max to the data the next time the plot is drawn
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._to_fit = True
 
@@ -717,13 +717,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         Writable attribute: axis name
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._label)
 
     @label.setter
     def label(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._label = string_from_str(value)
 
@@ -732,13 +732,13 @@ cdef class PlotAxisConfig(baseItem):
         """
         Writable attribute: format string to display axis values
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._format)
 
     @format.setter
     def format(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._format = string_from_str(value)
 
@@ -747,7 +747,7 @@ cdef class PlotAxisConfig(baseItem):
         """
         Writable attribute: array of strings to display as labels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -757,7 +757,7 @@ cdef class PlotAxisConfig(baseItem):
 
     @labels.setter
     def labels(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         cdef int32_t i
         lock_gil_friendly(m, self.mutex)
         self._labels.clear()
@@ -778,7 +778,7 @@ cdef class PlotAxisConfig(baseItem):
         Writable attribute: coordinate for each label in labels at
         which to display the labels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -788,7 +788,7 @@ cdef class PlotAxisConfig(baseItem):
 
     @labels_coord.setter
     def labels_coord(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._labels_coord.clear()
         if value is None:
@@ -806,13 +806,13 @@ cdef class PlotAxisConfig(baseItem):
         the default ticks will be kept in addition to the custom labels.
         Default is False.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._keep_default_ticks
 
     @keep_default_ticks.setter
     def keep_default_ticks(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._keep_default_ticks = value
 
@@ -982,13 +982,13 @@ cdef class PlotLegendConfig(baseItem):
         """
         Whether the legend is shown or hidden
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._show
 
     @show.setter
     def show(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(value) and self._show:
             self.set_hidden_and_propagate_to_siblings_no_handlers()
@@ -1001,13 +1001,13 @@ cdef class PlotLegendConfig(baseItem):
         Position of the legend.
         Default is LegendLocation.northwest
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <LegendLocation>self._location
 
     @location.setter
     def location(self, LegendLocation value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value == LegendLocation.CENTER or \
            value == LegendLocation.NORTH or \
@@ -1028,13 +1028,13 @@ cdef class PlotLegendConfig(baseItem):
         Writable attribute to prevent legend icons
         to function as hide/show buttons
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLegendFlags_NoButtons) != 0
 
     @no_buttons.setter
     def no_buttons(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLegendFlags_NoButtons
         if value:
@@ -1046,13 +1046,13 @@ cdef class PlotLegendConfig(baseItem):
         Writable attribute to disable highlighting plot items
         when their legend entry is hovered
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLegendFlags_NoHighlightItem) != 0
 
     @no_highlight_item.setter
     def no_highlight_item(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLegendFlags_NoHighlightItem
         if value:
@@ -1065,13 +1065,13 @@ cdef class PlotLegendConfig(baseItem):
         when their legend entry is hovered
         (only relevant if x/y-axis count > 1)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLegendFlags_NoHighlightAxis) != 0
 
     @no_highlight_axis.setter
     def no_highlight_axis(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLegendFlags_NoHighlightAxis
         if value:
@@ -1083,13 +1083,13 @@ cdef class PlotLegendConfig(baseItem):
         Writable attribute to disable right-clicking
         to open context menus.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLegendFlags_NoMenus) != 0
 
     @no_menus.setter
     def no_menus(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLegendFlags_NoMenus
         if value:
@@ -1101,13 +1101,13 @@ cdef class PlotLegendConfig(baseItem):
         Writable attribute to render the legend outside
         of the plot area
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLegendFlags_Outside) != 0
 
     @outside.setter
     def outside(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLegendFlags_Outside
         if value:
@@ -1119,13 +1119,13 @@ cdef class PlotLegendConfig(baseItem):
         Writable attribute to display the legend entries
         horizontally rather than vertically
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLegendFlags_Horizontal) != 0
 
     @horizontal.setter
     def horizontal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLegendFlags_Horizontal
         if value:
@@ -1137,13 +1137,13 @@ cdef class PlotLegendConfig(baseItem):
         Writable attribute to display the legend entries
         in alphabetical order
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLegendFlags_Sort) != 0
 
     @sorted.setter
     def sorted(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLegendFlags_Sort
         if value:
@@ -1211,73 +1211,73 @@ cdef class Plot(uiItem):
 
     @property
     def X1(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X1
 
     @X1.setter
     def X1(self, PlotAxisConfig value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._X1 = value
 
     @property
     def X2(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X2
 
     @X2.setter
     def X2(self, PlotAxisConfig value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._X2 = value
 
     @property
     def X3(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X3
 
     @X3.setter
     def X3(self, PlotAxisConfig value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._X3 = value
 
     @property
     def Y1(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y1
 
     @Y1.setter
     def Y1(self, PlotAxisConfig value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._Y1 = value
 
     @property
     def Y2(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y2
 
     @Y2.setter
     def Y2(self, PlotAxisConfig value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._Y2 = value
 
     @property
     def Y3(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y3
 
     @Y3.setter
     def Y3(self, PlotAxisConfig value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._Y3 = value
 
@@ -1287,20 +1287,20 @@ cdef class Plot(uiItem):
         Helper read-only property to retrieve the 6 axes
         in an array [X1, X2, X3, Y1, Y2, Y3]
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return [self._X1, self._X2, self._X3, \
                 self._Y1, self._Y2, self._Y3]
 
     @property
     def legend_config(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._legend
 
     @legend_config.setter
     def legend_config(self, PlotLegendConfig value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._legend = value
 
@@ -1310,13 +1310,13 @@ cdef class Plot(uiItem):
         Button that when held enables to navigate inside the plot
         Default is the left mouse button.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <MouseButton>self._pan_button
 
     @pan_button.setter
     def pan_button(self, MouseButton button):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
@@ -1329,13 +1329,13 @@ cdef class Plot(uiItem):
         pressed for pan_button to have effect.
         Default is no modifier.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return KeyMod(self._pan_modifier)
 
     @pan_mod.setter
     def pan_mod(self, modifier : KeyMod):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(isinstance(modifier, KeyMod)):
             raise ValueError(f"pan_mod must be a combinaison of modifiers (KeyMod), not {modifier}")
@@ -1348,13 +1348,13 @@ cdef class Plot(uiItem):
         a fit of the axes to the displayed data.
         Default is the left mouse button.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <MouseButton>self._fit_button
 
     @fit_button.setter
     def fit_button(self, MouseButton button):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
@@ -1367,13 +1367,13 @@ cdef class Plot(uiItem):
         (if enabled) when clicked.
         Default is the right mouse button.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <MouseButton>self._menu_button
 
     @menu_button.setter
     def menu_button(self, MouseButton button):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
@@ -1387,13 +1387,13 @@ cdef class Plot(uiItem):
         of the plot.
         Default is no modifier.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return KeyMod(self._zoom_mod)
 
     @zoom_mod.setter
     def zoom_mod(self, modifier : KeyMod):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(isinstance(modifier, KeyMod)):
             raise ValueError(f"zoom_mod must be a combinaison of modifiers (KeyMod), not {modifier}")
@@ -1407,13 +1407,13 @@ cdef class Plot(uiItem):
         make negative to invert.
         Default is 0.1
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._zoom_rate
 
     @zoom_rate.setter
     def zoom_rate(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._zoom_rate = value
 
@@ -1428,7 +1428,7 @@ cdef class Plot(uiItem):
 
     @use_local_time.setter
     def use_local_time(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._use_local_time = value
 
@@ -1444,7 +1444,7 @@ cdef class Plot(uiItem):
 
     @use_ISO8601.setter
     def use_ISO8601(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._use_ISO8601 = value
 
@@ -1458,7 +1458,7 @@ cdef class Plot(uiItem):
 
     @use_24hour_clock.setter
     def use_24hour_clock(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._use_24hour_clock = value
 
@@ -1468,13 +1468,13 @@ cdef class Plot(uiItem):
         Writable attribute to disable the display of the
         plot title
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotFlags_NoTitle) != 0
 
     @no_title.setter
     def no_title(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotFlags_NoTitle
         if value:
@@ -1486,13 +1486,13 @@ cdef class Plot(uiItem):
         Writable attribute to disable the user interactions
         to open the context menus
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotFlags_NoMenus) != 0
 
     @no_menus.setter
     def no_menus(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotFlags_NoMenus
         if value:
@@ -1504,13 +1504,13 @@ cdef class Plot(uiItem):
         Writable attribute to disable the display of the
         mouse position
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotFlags_NoMouseText) != 0
 
     @no_mouse_pos.setter
     def no_mouse_pos(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotFlags_NoMouseText
         if value:
@@ -1522,13 +1522,13 @@ cdef class Plot(uiItem):
         Writable attribute to replace the default mouse
         cursor by a crosshair when hovered
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotFlags_Crosshairs) != 0
 
     @crosshairs.setter
     def crosshairs(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotFlags_Crosshairs
         if value:
@@ -1540,13 +1540,13 @@ cdef class Plot(uiItem):
         Writable attribute to constrain x/y axes
         pairs to have the same units/pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotFlags_Equal) != 0
 
     @equal_aspects.setter
     def equal_aspects(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotFlags_Equal
         if value:
@@ -1558,13 +1558,13 @@ cdef class Plot(uiItem):
         Writable attribute to disable user interactions with
         the plot.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotFlags_NoInputs) != 0
 
     @no_inputs.setter
     def no_inputs(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotFlags_NoInputs
         if value:
@@ -1576,13 +1576,13 @@ cdef class Plot(uiItem):
         Writable attribute to disable the drawing of the
         imgui frame.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotFlags_NoFrame) != 0
 
     @no_frame.setter
     def no_frame(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotFlags_NoFrame
         if value:
@@ -1594,13 +1594,13 @@ cdef class Plot(uiItem):
         Writable attribute to disable the display of the
         legend
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotFlags_NoLegend) != 0
 
     @no_legend.setter
     def no_legend(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotFlags_NoLegend
         if value:
@@ -1612,13 +1612,13 @@ cdef class Plot(uiItem):
         Location where the mouse position text will be displayed.
         Default is LegendLocation.southeast.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <LegendLocation>self._mouse_location
 
     @mouse_location.setter
     def mouse_location(self, LegendLocation value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value == LegendLocation.CENTER or \
            value == LegendLocation.NORTH or \
@@ -1759,13 +1759,13 @@ cdef class plotElementWithLegend(plotElement):
         Writable attribute to disable the legend for this plot
         element
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self._legend)
 
     @no_legend.setter
     def no_legend(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._legend = not(value)
         # unsure if needed
@@ -1779,13 +1779,13 @@ cdef class plotElementWithLegend(plotElement):
         Writable attribute to make this element
         be ignored during plot fits
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotItemFlags_NoFit) != 0
 
     @ignore_fit.setter
     def ignore_fit(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotItemFlags_NoFit
         if value:
@@ -1798,13 +1798,13 @@ cdef class plotElementWithLegend(plotElement):
         the item while still having a toggable
         entry in the menu.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled
 
     @enabled.setter
     def enabled(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value != self._enabled:
             self._enabled_dirty = True
@@ -1816,13 +1816,13 @@ cdef class plotElementWithLegend(plotElement):
         Writable attribute: font used for the text rendered
         of this item and its subitems
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._font
 
     @font.setter
     def font(self, baseFont value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._font = value
 
@@ -1833,13 +1833,13 @@ cdef class plotElementWithLegend(plotElement):
         this element.
         Default is the right mouse button.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <MouseButton>self._legend_button
 
     @legend_button.setter
     def legend_button(self, MouseButton button):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
@@ -1854,7 +1854,7 @@ cdef class plotElementWithLegend(plotElement):
         To detect if the plot element is hovered, check
         the hovered state of the plot.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -1866,7 +1866,7 @@ cdef class plotElementWithLegend(plotElement):
 
     @legend_handlers.setter
     def legend_handlers(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
         cdef int32_t i
@@ -1891,12 +1891,12 @@ cdef class plotElementWithLegend(plotElement):
         Readonly attribute: Is the legend of this
         item hovered.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.hovered
 
     cdef void draw(self) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Check the axes are enabled
         if not(self._show) or \
@@ -1984,13 +1984,13 @@ cdef class plotElementXY(plotElementWithLegend):
         Supported types for no copy are np.int32,
         np.float32, np.float64.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X
 
     @X.setter
     def X(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value).reshape([-1])
         # We don't support array of pointers. Must be data,
@@ -2006,13 +2006,13 @@ cdef class plotElementXY(plotElementWithLegend):
 
     @property
     def Y(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y
 
     @Y.setter
     def Y(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value).reshape([-1])
         # We don't support array of pointers. Must be data,
@@ -2043,13 +2043,13 @@ cdef class PlotLine(plotElementXY):
         """
         Plot segments rather than a full line
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLineFlags_Segments) != 0
 
     @segments.setter
     def segments(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLineFlags_Segments
         if value:
@@ -2060,13 +2060,13 @@ cdef class PlotLine(plotElementXY):
         """
         Connect the first and last points
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLineFlags_Loop) != 0
 
     @loop.setter
     def loop(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLineFlags_Loop
         if value:
@@ -2078,13 +2078,13 @@ cdef class PlotLine(plotElementXY):
         A NaN data point will be ignored instead of
         being rendered as missing data.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLineFlags_SkipNaN) != 0
 
     @skip_nan.setter
     def skip_nan(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLineFlags_SkipNaN
         if value:
@@ -2095,13 +2095,13 @@ cdef class PlotLine(plotElementXY):
         """
         Markers (if displayed) on the edge of a plot will not be clipped.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLineFlags_NoClip) != 0
 
     @no_clip.setter
     def no_clip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLineFlags_NoClip
         if value:
@@ -2113,13 +2113,13 @@ cdef class PlotLine(plotElementXY):
         A filled region between the line and horizontal
         origin will be rendered.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotLineFlags_Shaded) != 0
 
     @shaded.setter
     def shaded(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotLineFlags_Shaded
         if value:
@@ -2171,13 +2171,13 @@ cdef class plotElementXYY(plotElementWithLegend):
         Supported types for no copy are np.int32,
         np.float32, np.float64.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X
 
     @X.setter
     def X(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value).reshape([-1])
         # We don't support array of pointers. Must be data,
@@ -2193,13 +2193,13 @@ cdef class plotElementXYY(plotElementWithLegend):
 
     @property
     def Y1(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y1
 
     @Y1.setter
     def Y1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value).reshape([-1])
         # We don't support array of pointers. Must be data,
@@ -2215,13 +2215,13 @@ cdef class plotElementXYY(plotElementWithLegend):
 
     @property
     def Y2(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y2
 
     @Y2.setter
     def Y2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value).reshape([-1])
         # We don't support array of pointers. Must be data,
@@ -2291,13 +2291,13 @@ cdef class PlotStems(plotElementXY):
         """
         Stems will be rendered horizontally
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotStemsFlags_Horizontal) != 0
 
     @horizontal.setter
     def horizontal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotStemsFlags_Horizontal
         if value:
@@ -2346,13 +2346,13 @@ cdef class PlotBars(plotElementXY):
         """
         bar_size. TODO better document
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._weight
 
     @weight.setter
     def weight(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._weight = value
 
@@ -2361,13 +2361,13 @@ cdef class PlotBars(plotElementXY):
         """
         Bars will be rendered horizontally
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotBarsFlags_Horizontal) != 0
 
     @horizontal.setter
     def horizontal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotBarsFlags_Horizontal
         if value:
@@ -2415,13 +2415,13 @@ cdef class PlotStairs(plotElementXY):
         from every x position, i.e. the interval
         (x[i-1], x[i]] has the value y[i].
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotStairsFlags_PreStep) != 0
 
     @pre_step.setter
     def pre_step(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotStairsFlags_PreStep
         if value:
@@ -2434,13 +2434,13 @@ cdef class PlotStairs(plotElementXY):
         origin will be rendered; use PlotShadedLine for
         more advanced cases.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotStairsFlags_Shaded) != 0
 
     @shaded.setter
     def shaded(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotStairsFlags_Shaded
         if value:
@@ -2490,13 +2490,13 @@ cdef class plotElementX(plotElementWithLegend):
         Supported types for no copy are np.int32,
         np.float32, np.float64.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X
 
     @X.setter
     def X(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value).reshape([-1])
         # We don't support array of pointers. Must be data,
@@ -2524,13 +2524,13 @@ cdef class PlotInfLines(plotElementX):
         """
         Plot horizontal lines rather than plots
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotInfLinesFlags_Horizontal) != 0
 
     @horizontal.setter
     def horizontal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotInfLinesFlags_Horizontal
         if value:
@@ -2570,13 +2570,13 @@ cdef class PlotScatter(plotElementXY):
         """
         Markers on the edge of a plot will not be clipped
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotScatterFlags_NoClip) != 0
 
     @no_clip.setter
     def no_clip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotScatterFlags_NoClip
         if value:
@@ -2632,13 +2632,13 @@ cdef class plotDraggable(plotElement):
         full transparent text, use the
         default value given by the style
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return <int>self._color
 
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
 
@@ -2648,13 +2648,13 @@ cdef class plotDraggable(plotElement):
         Writable attribute to make drag tools
         not change cursor icons when hovered or held.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotDragToolFlags_NoCursors) != 0
 
     @no_cursors.setter
     def no_cursors(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotDragToolFlags_NoCursors
         if value:
@@ -2666,13 +2666,13 @@ cdef class plotDraggable(plotElement):
         Writable attribute to make the drag tool
         not considered for plot fits.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotDragToolFlags_NoFit) != 0
 
     @ignore_fit.setter
     def ignore_fit(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotDragToolFlags_NoFit
         if value:
@@ -2683,13 +2683,13 @@ cdef class plotDraggable(plotElement):
         """
         Writable attribute to lock the tool from user inputs
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotDragToolFlags_NoInputs) != 0
 
     @ignore_inputs.setter
     def ignore_inputs(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotDragToolFlags_NoInputs
         if value:
@@ -2703,13 +2703,13 @@ cdef class plotDraggable(plotElement):
 
         One use case is position-contraints.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotDragToolFlags_Delayed) != 0
 
     @delayed.setter
     def delayed(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotDragToolFlags_Delayed
         if value:
@@ -2720,7 +2720,7 @@ cdef class plotDraggable(plotElement):
         """
         Readonly attribute: is the drag tool held
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.active
 
@@ -2733,7 +2733,7 @@ cdef class plotDraggable(plotElement):
         If True, the attribute is reset the next frame. It's better to rely
         on handlers to catch this event.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return tuple(self.state.cur.clicked)
 
@@ -2746,7 +2746,7 @@ cdef class plotDraggable(plotElement):
         If True, the attribute is reset the next frame. It's better to rely
         on handlers to catch this event.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.double_clicked
 
@@ -2755,13 +2755,13 @@ cdef class plotDraggable(plotElement):
         """
         Readonly attribute: Is the item hovered.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.hovered
 
     cdef void draw(self) noexcept nogil:
         cdef int32_t i
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Check the axes are enabled
         if not(self._show) or \
@@ -2818,13 +2818,13 @@ cdef class DrawInPlot(plotElementWithLegend):
         Writable attribute to make this element
         be ignored during plot fits
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._ignore_fit
 
     @ignore_fit.setter
     def ignore_fit(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._ignore_fit = value
 
@@ -2951,13 +2951,13 @@ cdef class Subplots(uiItem):
     @property
     def rows(self):
         """Number of subplot rows"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex) 
         return self._rows
 
     @rows.setter 
     def rows(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 1:
             raise ValueError("Rows must be > 0")
@@ -2966,13 +2966,13 @@ cdef class Subplots(uiItem):
     @property
     def cols(self):
         """Number of subplot columns"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._cols
 
     @cols.setter
     def cols(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 1:
             raise ValueError("Columns must be > 0")
@@ -2981,7 +2981,7 @@ cdef class Subplots(uiItem):
     @property
     def row_ratios(self):
         """Size ratios for subplot rows"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -2991,7 +2991,7 @@ cdef class Subplots(uiItem):
 
     @row_ratios.setter
     def row_ratios(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._row_ratios.clear()
         cdef float v
@@ -3006,7 +3006,7 @@ cdef class Subplots(uiItem):
     @property
     def col_ratios(self):
         """Size ratios for subplot columns"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -3016,7 +3016,7 @@ cdef class Subplots(uiItem):
 
     @col_ratios.setter
     def col_ratios(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._col_ratios.clear()
         cdef float v
@@ -3031,20 +3031,20 @@ cdef class Subplots(uiItem):
     @property
     def no_legend(self):
         """Hide subplot legends"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoLegend) != 0
 
     @property 
     def no_title(self):
         """Hide subplot titles"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoTitle) != 0
 
     @no_title.setter
     def no_title(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_NoTitle
         if value:
@@ -3053,13 +3053,13 @@ cdef class Subplots(uiItem):
     @property 
     def no_menus(self):
         """Disable subplot context menus"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoMenus) != 0
 
     @no_menus.setter
     def no_menus(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex) 
         self._flags &= ~implot.ImPlotSubplotFlags_NoMenus
         if value:
@@ -3068,13 +3068,13 @@ cdef class Subplots(uiItem):
     @property
     def no_resize(self):
         """Disable subplot resize splitters"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoResize) != 0
 
     @no_resize.setter
     def no_resize(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_NoResize
         if value:
@@ -3083,13 +3083,13 @@ cdef class Subplots(uiItem):
     @property
     def no_align(self): 
         """Disable subplot edge alignment"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoAlign) != 0
 
     @no_align.setter
     def no_align(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_NoAlign
         if value:
@@ -3098,13 +3098,13 @@ cdef class Subplots(uiItem):
     @property
     def col_major(self):
         """Add plots in column-major order"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_ColMajor) != 0
 
     @col_major.setter
     def col_major(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_ColMajor
         if value:
@@ -3113,13 +3113,13 @@ cdef class Subplots(uiItem):
     @property
     def share_legends(self):
         """Share legend items across subplots"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_ShareItems) != 0
 
     @share_legends.setter
     def share_legends(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_ShareItems
         if value:
@@ -3128,13 +3128,13 @@ cdef class Subplots(uiItem):
     @property
     def share_x_all(self):
         """Link X1-axis limits across all plots"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_LinkAllX) != 0
 
     @share_x_all.setter
     def share_x_all(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_LinkAllX
         if value:
@@ -3143,13 +3143,13 @@ cdef class Subplots(uiItem):
     @property
     def share_rows(self):
         """Link X1/Y1-axis limits within each row"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_LinkRows) != 0
 
     @share_rows.setter
     def share_rows(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_LinkRows
         if value:
@@ -3158,13 +3158,13 @@ cdef class Subplots(uiItem):
     @property
     def share_cols(self):
         """Link X1/Y1-axis limits within each column""" 
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_LinkCols) != 0
 
     @share_cols.setter
     def share_cols(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_LinkCols
         if value:
@@ -3173,13 +3173,13 @@ cdef class Subplots(uiItem):
     @property
     def share_y_all(self):
         """Link Y1-axis limits across all plots"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_LinkAllY) != 0
 
     @share_y_all.setter
     def share_y_all(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotSubplotFlags_LinkAllY
         if value:
@@ -3267,13 +3267,13 @@ cdef class PlotBarGroups(plotElementWithLegend):
         Supported types for no copy are np.int32,
         np.float32, np.float64.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._values
 
     @values.setter
     def values(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value)
         if array.ndim != 2:
@@ -3297,7 +3297,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
         """
         Array of item labels. Must match the number of rows in values.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -3307,7 +3307,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
 
     @labels.setter 
     def labels(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t i, k
         self._labels.clear()
@@ -3329,13 +3329,13 @@ cdef class PlotBarGroups(plotElementWithLegend):
         Portion of the reserved width used for the bars of each group.
         Default is 0.67
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._group_size
 
     @group_size.setter
     def group_size(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._group_size = value
 
@@ -3345,13 +3345,13 @@ cdef class PlotBarGroups(plotElementWithLegend):
         Shift in plot units to offset groups.
         Default is 0 
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._shift
 
     @shift.setter
     def shift(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._shift = value
 
@@ -3360,13 +3360,13 @@ cdef class PlotBarGroups(plotElementWithLegend):
         """
         Bar groups will be rendered horizontally on the current y-axis
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotBarGroupsFlags_Horizontal) != 0
 
     @horizontal.setter
     def horizontal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotBarGroupsFlags_Horizontal
         if value:
@@ -3377,13 +3377,13 @@ cdef class PlotBarGroups(plotElementWithLegend):
         """
         Items in a group will be stacked on top of each other
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotBarGroupsFlags_Stacked) != 0
 
     @stacked.setter
     def stacked(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotBarGroupsFlags_Stacked
         if value:
@@ -3449,13 +3449,13 @@ cdef class PlotPieChart(plotElementWithLegend):
         internal backing (no copy). Supported types for no copy are 
         np.int32, np.float32, np.float64.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._values
 
     @values.setter
     def values(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value).reshape([-1])
         if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
@@ -3474,7 +3474,7 @@ cdef class PlotPieChart(plotElementWithLegend):
         """
         Array of labels for each pie slice. Must match the number of values.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -3484,7 +3484,7 @@ cdef class PlotPieChart(plotElementWithLegend):
 
     @labels.setter
     def labels(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._labels.clear()
         cdef int32_t k
@@ -3501,52 +3501,52 @@ cdef class PlotPieChart(plotElementWithLegend):
     @property
     def x(self):
         """X coordinate of pie chart center in plot units"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._x
 
     @x.setter
     def x(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._x = value
 
     @property
     def y(self):
         """Y coordinate of pie chart center in plot units"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._y
 
     @y.setter
     def y(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._y = value
 
     @property
     def radius(self):
         """Radius of pie chart in plot units"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._radius
 
     @radius.setter
     def radius(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._radius = value
 
     @property
     def angle(self):
         """Starting angle for first slice in degrees. Default is 90."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._angle
 
     @angle.setter
     def angle(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._angle = value
 
@@ -3556,13 +3556,13 @@ cdef class PlotPieChart(plotElementWithLegend):
         Force normalization of pie chart values (i.e. always make
         a full circle if sum < 0)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotPieChartFlags_Normalize) != 0
 
     @normalize.setter
     def normalize(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotPieChartFlags_Normalize
         if value:
@@ -3574,13 +3574,13 @@ cdef class PlotPieChart(plotElementWithLegend):
         Ignore hidden slices when drawing the pie chart
         (as if they were not there)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotPieChartFlags_IgnoreHidden) != 0
 
     @ignore_hidden.setter
     def ignore_hidden(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotPieChartFlags_IgnoreHidden
         if value:
@@ -3589,13 +3589,13 @@ cdef class PlotPieChart(plotElementWithLegend):
     @property
     def label_format(self):
         """Format string for slice value labels. Set to empty string to disable labels."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._label_format)
 
     @label_format.setter
     def label_format(self, str value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._label_format = string_from_str(value)
 
@@ -3696,13 +3696,13 @@ cdef class PlotErrorBars(plotElementXY):
         If negatives is set to None,
         the error bars will be symmetrical around the Y value.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._pos
 
     @positives.setter
     def positives(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value).reshape([-1])
         if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
@@ -3720,13 +3720,13 @@ cdef class PlotErrorBars(plotElementXY):
         If set to None, the error bars will be symmetrical.
         (This is equivalent to negatives=positives)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._neg
 
     @negatives.setter
     def negatives(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._neg = None
@@ -3745,13 +3745,13 @@ cdef class PlotErrorBars(plotElementXY):
         """
         Error bars will be rendered horizontally on the current y-axis
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotErrorBarsFlags_Horizontal) != 0
 
     @horizontal.setter
     def horizontal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotErrorBarsFlags_Horizontal
         if value:
@@ -3818,39 +3818,39 @@ cdef class PlotAnnotation(plotElement):
     @property
     def x(self):
         """X coordinate of the annotation in plot units"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._x
 
     @x.setter
     def x(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._x = value
 
     @property
     def y(self):
         """Y coordinate of the annotation in plot units"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._y
 
     @y.setter
     def y(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._y = value
 
     @property
     def text(self):
         """Text of the annotation"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._text)
 
     @text.setter
     def text(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._text = string_from_str(value)
 
@@ -3864,7 +3864,7 @@ cdef class PlotAnnotation(plotElement):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._bg_color)
@@ -3872,7 +3872,7 @@ cdef class PlotAnnotation(plotElement):
 
     @bg_color.setter
     def bg_color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._bg_color = parse_color(value)
 
@@ -3880,13 +3880,13 @@ cdef class PlotAnnotation(plotElement):
     def offset(self):
         """Offset in pixels from the plot coordinate
         at which to display the annotation"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._offset.x, self._offset.y)
 
     @offset.setter
     def offset(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(hasattr(value, '__len__')) or len(value) != 2:
             raise ValueError("Offset must be a 2-tuple")
@@ -3899,13 +3899,13 @@ cdef class PlotAnnotation(plotElement):
         drawn if outside the plot area. Else it is displayed
         no matter what.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._clamp
 
     @clamp.setter
     def clamp(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._clamp = value
 
@@ -3939,13 +3939,13 @@ cdef class PlotHistogram(plotElementX):
         - -3 for Rice rule: k = 2 * cuberoot(n)
         - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._bins
 
     @bins.setter 
     def bins(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < -4:
             raise ValueError("Invalid bins value")
@@ -3954,13 +3954,13 @@ cdef class PlotHistogram(plotElementX):
     @property
     def bar_scale(self):
         """Scale factor for each bar. Default is 1.0"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._bar_scale
 
     @bar_scale.setter
     def bar_scale(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._bar_scale = value
 
@@ -3968,7 +3968,7 @@ cdef class PlotHistogram(plotElementX):
     def range(self):
         """Optional (min,max) range for binning. Values outside this range are ignored.
         Returns None if no range set."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._has_range:
             return (self._range_min, self._range_max)
@@ -3976,7 +3976,7 @@ cdef class PlotHistogram(plotElementX):
 
     @range.setter
     def range(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._has_range = False
@@ -3990,13 +3990,13 @@ cdef class PlotHistogram(plotElementX):
     @property
     def horizontal(self):
         """Histogram bars will be rendered horizontally"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_Horizontal) != 0
 
     @horizontal.setter
     def horizontal(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotHistogramFlags_Horizontal
         if value:
@@ -4005,13 +4005,13 @@ cdef class PlotHistogram(plotElementX):
     @property
     def cumulative(self):
         """Each bin contains its count plus all previous bins"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_Cumulative) != 0
 
     @cumulative.setter
     def cumulative(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotHistogramFlags_Cumulative
         if value:
@@ -4020,13 +4020,13 @@ cdef class PlotHistogram(plotElementX):
     @property
     def density(self):
         """Normalize counts to form a probability density"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_Density) != 0
 
     @density.setter
     def density(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotHistogramFlags_Density
         if value:
@@ -4035,13 +4035,13 @@ cdef class PlotHistogram(plotElementX):
     @property
     def no_outliers(self):
         """Exclude values outside of range from contributing to count/density"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_NoOutliers) != 0
 
     @no_outliers.setter
     def no_outliers(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotHistogramFlags_NoOutliers
         if value:
@@ -4112,13 +4112,13 @@ cdef class PlotHistogram2D(plotElementXY):
         - -3 for Rice rule: k = 2 * cuberoot(n)
         - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._x_bins
 
     @x_bins.setter
     def x_bins(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < -4:
             raise ValueError("Invalid x_bins value")
@@ -4133,13 +4133,13 @@ cdef class PlotHistogram2D(plotElementXY):
         - -3 for Rice rule: k = 2 * cuberoot(n)
         - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._y_bins
 
     @y_bins.setter
     def y_bins(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < -4:
             raise ValueError("Invalid y_bins value")
@@ -4149,7 +4149,7 @@ cdef class PlotHistogram2D(plotElementXY):
     def range_x(self):
         """Optional (min,max) range for X-axis binning. Values outside this range are ignored.
         Returns None if no range set."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._has_range_x:
             return (self._range_min_x, self._range_max_x)
@@ -4157,7 +4157,7 @@ cdef class PlotHistogram2D(plotElementXY):
 
     @range_x.setter
     def range_x(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._has_range_x = False
@@ -4172,7 +4172,7 @@ cdef class PlotHistogram2D(plotElementXY):
     def range_y(self):
         """Optional (min,max) range for Y-axis binning. Values outside this range are ignored.
         Returns None if no range set."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._has_range_y:
             return (self._range_min_y, self._range_max_y)
@@ -4180,7 +4180,7 @@ cdef class PlotHistogram2D(plotElementXY):
 
     @range_y.setter 
     def range_y(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._has_range_y = False
@@ -4194,13 +4194,13 @@ cdef class PlotHistogram2D(plotElementXY):
     @property
     def density(self):
         """Normalize counts to form a probability density"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_Density) != 0
 
     @density.setter
     def density(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotHistogramFlags_Density
         if value:
@@ -4209,13 +4209,13 @@ cdef class PlotHistogram2D(plotElementXY):
     @property
     def no_outliers(self):
         """Exclude values outside of range from contributing to count/density"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_NoOutliers) != 0
 
     @no_outliers.setter
     def no_outliers(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotHistogramFlags_NoOutliers
         if value:
@@ -4306,13 +4306,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
         internal backing (no copy). Supported types for no copy are 
         np.int32, np.float32, np.float64.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._values
 
     @values.setter
     def values(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef cnp.ndarray array = np.asarray(value)
         if array.ndim != 2:
@@ -4337,13 +4337,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
     @property
     def scale_min(self):
         """Minimum value for color scaling. Set to 0 for auto-scaling."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_min
 
     @scale_min.setter
     def scale_min(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scale_min = value
         self._auto_scale = (value == 0 and self._scale_max == 0)
@@ -4351,13 +4351,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
     @property
     def scale_max(self):
         """Maximum value for color scaling. Set to 0 for auto-scaling."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_max
 
     @scale_max.setter
     def scale_max(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scale_max = value
         self._auto_scale = (value == 0 and self._scale_min == 0)
@@ -4365,26 +4365,26 @@ cdef class PlotHeatmap(plotElementWithLegend):
     @property
     def label_format(self):
         """Format string for cell labels. Set to empty string to disable labels."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._label_format)
 
     @label_format.setter
     def label_format(self, str value not None):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._label_format = string_from_str(value)
 
     @property
     def bounds_min(self):
         """Lower-left corner coordinates of the heatmap in plot space"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._bounds_min[0], self._bounds_min[1])
 
     @bounds_min.setter
     def bounds_min(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not hasattr(value, '__len__') or len(value) != 2:
             raise ValueError("bounds_min must be a 2-tuple")
@@ -4394,13 +4394,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
     @property
     def bounds_max(self):
         """Upper-right corner coordinates of the heatmap in plot space"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._bounds_max[0], self._bounds_max[1])
 
     @bounds_max.setter
     def bounds_max(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not hasattr(value, '__len__') or len(value) != 2:
             raise ValueError("bounds_max must be a 2-tuple")
@@ -4410,13 +4410,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
     @property
     def col_major(self):
         """If True, values array is interpreted in column-major order"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHeatmapFlags_ColMajor) != 0
 
     @col_major.setter
     def col_major(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~implot.ImPlotHeatmapFlags_ColMajor
         if value:

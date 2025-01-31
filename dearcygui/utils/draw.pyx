@@ -2,7 +2,7 @@ cimport dearcygui as dcg
 import dearcygui as dcg
 
 
-from dearcygui.c_types cimport unique_lock, recursive_mutex
+from dearcygui.c_types cimport unique_lock, DCGMutex
 from cpython.ref cimport PyObject
 cimport dearcygui.backends.time as ctime
 from libcpp.map cimport pair
@@ -402,13 +402,13 @@ cdef class DrawStream(dcg.DrawingList):
 
         If False (default), always keep at least one child.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         return self._allow_no_children
 
     @allow_no_children.setter
     def allow_no_children(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         self._allow_no_children = value
 
@@ -419,13 +419,13 @@ cdef class DrawStream(dcg.DrawingList):
         at least one frame, even if their
         expiration time is reached.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         return self._no_skip_children
 
     @no_skip_children.setter
     def no_skip_children(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         self._no_skip_children = value
 
@@ -436,13 +436,13 @@ cdef class DrawStream(dcg.DrawingList):
         time will be applied this value as
         modulus, and the queue will loop back.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         return self._time_modulus
 
     @time_modulus.setter
     def time_modulus(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         self._time_modulus = value
 
@@ -452,7 +452,7 @@ cdef class DrawStream(dcg.DrawingList):
         if only_updated is True, only items
         with past timestamps are removed
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         if not only_outdated:
             self._expiry_times.clear()
@@ -521,7 +521,7 @@ cdef class DrawStream(dcg.DrawingList):
                 should move on to the next one in the queue.
                 The time clock corresponds to time.monotonic().
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         if child.parent is not self:
             child.attach_to_parent(self)
@@ -534,7 +534,7 @@ cdef class DrawStream(dcg.DrawingList):
 
     cdef void draw(self, void* draw_list) noexcept nogil:
         """Draw the first unexpired child in the stream."""
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         # Find index to show
         cdef int32_t  index_to_show = self._get_index_to_show()
 

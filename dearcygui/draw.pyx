@@ -58,18 +58,18 @@ cdef class ViewportDrawList(drawingItem):
     @property
     def front(self):
         """Writable attribute: Display the drawings in front of all items (rather than behind)"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._front
     @front.setter
     def front(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._front = value
 
     cdef void draw(self, void* unused) noexcept nogil:
         # drawlist is an unused argument set to NULL
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
         if self.last_drawings_child is None:
@@ -107,7 +107,7 @@ cdef class DrawingList(drawingItem):
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
         draw_drawing_children(self, drawlist)
@@ -155,12 +155,12 @@ cdef class DrawingClip(drawingItem):
         (xmin, ymin) corner of the rect that
         must be on screen for the children to be rendered.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._pmin)
     @pmin.setter
     def pmin(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmin, value)
     @property
@@ -169,12 +169,12 @@ cdef class DrawingClip(drawingItem):
         (xmax, ymax) corner of the rect that
         must be on screen for the children to be rendered.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._pmax)
     @pmax.setter
     def pmax(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmax, value)
 
@@ -186,12 +186,12 @@ cdef class DrawingClip(drawingItem):
         between the coordinate (x=0, y=0) and (x=1, y=0))
         for the children to be rendered.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_min
     @scale_min.setter
     def scale_min(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scale_min = value
     @property
@@ -202,12 +202,12 @@ cdef class DrawingClip(drawingItem):
         between the coordinate (x=0, y=0) and (x=1, y=0))
         for the children to be rendered.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_max
     @scale_max.setter
     def scale_max(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scale_max = value
 
@@ -220,19 +220,19 @@ cdef class DrawingClip(drawingItem):
 
         Setting to True this field disables that.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_global_scale
 
     @no_global_scaling.setter
     def no_global_scaling(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_global_scale = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
         if self.last_drawings_child is None:
@@ -300,7 +300,7 @@ cdef class DrawingScale(drawingItem):
         when applied, scales multiplies any previous
         scales already set (including plot scales).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._scales)
 
@@ -308,7 +308,7 @@ cdef class DrawingScale(drawingItem):
     def scales(self, values):
         if not(hasattr(values, '__len__')) or len(values) != 2:
             raise ValueError(f"Expected tuple, got {values}")
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scales[0] = values[0]
         self._scales[1] = values[1]
@@ -321,7 +321,7 @@ cdef class DrawingScale(drawingItem):
 
         Default is (0., 0.)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._shifts)
 
@@ -329,7 +329,7 @@ cdef class DrawingScale(drawingItem):
     def origin(self, values):
         if not(hasattr(values, '__len__')) or len(values) != 2:
             raise ValueError(f"Expected tuple, got {values}")
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._shifts[0] = values[0]
         self._shifts[1] = values[1]
@@ -346,13 +346,13 @@ cdef class DrawingScale(drawingItem):
         impacts the scaling. Use no_global_scaling to
         disable this behaviour.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_parent_scale
 
     @no_parent_scaling.setter
     def no_parent_scaling(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_parent_scale = value
 
@@ -361,19 +361,19 @@ cdef class DrawingScale(drawingItem):
         """
         Disables the global scale when no_parent_scaling is True.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_global_scale
 
     @no_global_scaling.setter
     def no_global_scaling(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_global_scale = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
         if self.last_drawings_child is None:
@@ -520,31 +520,31 @@ cdef class DrawArc(drawingItem):
     @property
     def center(self):
         """Center point"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._center)
     @center.setter
     def center(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
         
     @property
     def radius(self):
         """X and Y radii"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._radius)
 
     @radius.setter
     def radius(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._radius, value)
 
     @property
     def fill(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
         unparse_color(fill, self._fill)
@@ -552,25 +552,25 @@ cdef class DrawArc(drawingItem):
 
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
 
     @property
     def thickness(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
 
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
 
     @property
     def color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
@@ -578,49 +578,49 @@ cdef class DrawArc(drawingItem):
 
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
 
     @property
     def start_angle(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._start_angle
 
     @start_angle.setter
     def start_angle(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._start_angle = value
 
     @property
     def end_angle(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._end_angle
 
     @end_angle.setter
     def end_angle(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._end_angle = value
 
     @property
     def rotation(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._rotation
 
     @rotation.setter
     def rotation(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._rotation = value
 
 
     cdef void draw(self, void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -684,57 +684,57 @@ cdef class DrawArrow(drawingItem):
         self._size = 4.
     @property
     def p1(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._end)
     @p1.setter
     def p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._end, value)
         self.__compute_tip()
     @property
     def p2(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._start)
     @p2.setter
     def p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._start, value)
         self.__compute_tip()
     @property
     def color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
     def thickness(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
         self.__compute_tip()
     @property
     def size(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._size
     @size.setter
     def size(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._size = value
         self.__compute_tip()
@@ -771,7 +771,7 @@ cdef class DrawArrow(drawingItem):
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -821,80 +821,80 @@ cdef class DrawBezierCubic(drawingItem):
 
     @property
     def p1(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
     @p1.setter
     def p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
     @property
     def p2(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
     @p2.setter
     def p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
     @property
     def p3(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p3)
     @p3.setter
     def p3(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
     @property
     def p4(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p4)
     @p4.setter
     def p4(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p4, value)
     @property
     def color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
     def thickness(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
     @property
     def segments(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._segments
     @segments.setter
     def segments(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._segments = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -940,70 +940,70 @@ cdef class DrawBezierQuadratic(drawingItem):
 
     @property
     def p1(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
     @p1.setter
     def p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
     @property
     def p2(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
     @p2.setter
     def p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
     @property
     def p3(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p3)
     @p3.setter
     def p3(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
     @property
     def color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
     def thickness(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
     @property
     def segments(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._segments
     @segments.setter
     def segments(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._segments = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -1048,72 +1048,72 @@ cdef class DrawCircle(drawingItem):
 
     @property
     def center(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._center)
     @center.setter
     def center(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
     @property
     def radius(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._radius
     @radius.setter
     def radius(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._radius = value
     @property
     def color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
     def fill(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
         unparse_color(fill, self._fill)
         return list(fill)
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
     @property
     def thickness(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
     @property
     def segments(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._segments
     @segments.setter
     def segments(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._segments = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -1168,12 +1168,12 @@ cdef class DrawEllipse(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._pmin)
     @pmin.setter
     def pmin(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmin, value)
         self.__fill_points()
@@ -1185,12 +1185,12 @@ cdef class DrawEllipse(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._pmax)
     @pmax.setter
     def pmax(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmax, value)
         self.__fill_points()
@@ -1202,14 +1202,14 @@ cdef class DrawEllipse(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -1220,14 +1220,14 @@ cdef class DrawEllipse(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
         unparse_color(fill, self._fill)
         return list(fill)
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
     @property
@@ -1238,12 +1238,12 @@ cdef class DrawEllipse(drawingItem):
         Returns:
             float: Thickness value in pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
     @property
@@ -1254,12 +1254,12 @@ cdef class DrawEllipse(drawingItem):
         Returns:
             int: Number of segments
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._segments
     @segments.setter
     def segments(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._segments = value
         self.__fill_points()
@@ -1286,7 +1286,7 @@ cdef class DrawEllipse(drawingItem):
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show) or self._points.size() < 3:
             return
 
@@ -1347,12 +1347,12 @@ cdef class DrawImage(drawingItem):
     @property
     def texture(self):
         """Image content"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._texture
     @texture.setter
     def texture(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(isinstance(value, Texture)) and value is not None:
             raise TypeError("texture must be a Texture")
@@ -1365,12 +1365,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
     @pmin.setter
     def pmin(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
         self._p2[1] = self._p1[1]
@@ -1384,12 +1384,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p3)
     @pmax.setter
     def pmax(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
         self._p2[0] = self._p3[0]
@@ -1403,7 +1403,7 @@ cdef class DrawImage(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._center)
     @center.setter
@@ -1411,7 +1411,7 @@ cdef class DrawImage(drawingItem):
         """
         Center of pmin/pmax
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
         self.update_extremities()
@@ -1423,12 +1423,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             float: Height value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._height
     @height.setter
     def height(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._height = value
         self.update_extremities()
@@ -1440,12 +1440,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             float: Width value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._width
     @width.setter
     def width(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._width = value
         self.update_extremities()
@@ -1457,12 +1457,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             float: Angle in radians
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._direction
     @direction.setter
     def direction(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._direction = value
     @property
@@ -1473,12 +1473,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
     @p1.setter
     def p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
         self.update_center()
@@ -1490,12 +1490,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
     @p2.setter
     def p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
     @property
@@ -1506,12 +1506,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p3)
     @p3.setter
     def p3(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
         self.update_center()
@@ -1523,12 +1523,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p4)
     @p4.setter
     def p4(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p4, value)
     @property
@@ -1539,12 +1539,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             list: UV coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv1)
     @uv_min.setter
     def uv_min(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv1, value)
         self._uv2[1] = self._uv1[0]
@@ -1557,12 +1557,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             list: UV coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv3)
     @uv_max.setter
     def uv_max(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv3, value)
         self._uv2[0] = self._uv3[0]
@@ -1575,12 +1575,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             list: UV coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv1)
     @uv1.setter
     def uv1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv1, value)
     @property
@@ -1591,12 +1591,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             list: UV coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv2)
     @uv2.setter
     def uv2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv2, value)
     @property
@@ -1607,12 +1607,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             list: UV coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv3)
     @uv3.setter
     def uv3(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv3, value)
     @property
@@ -1623,12 +1623,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             list: UV coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv4)
     @uv4.setter
     def uv4(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv4, value)
     @property
@@ -1639,14 +1639,14 @@ cdef class DrawImage(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_multiplier
         unparse_color(color_multiplier, self._color_multiplier)
         return list(color_multiplier)
     @color_multiplier.setter
     def color_multiplier(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_multiplier = parse_color(value)
     @property
@@ -1661,12 +1661,12 @@ cdef class DrawImage(drawingItem):
         Returns:
             float: Rounding radius
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._rounding
     @rounding.setter
     def rounding(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._rounding = value
 
@@ -1707,12 +1707,12 @@ cdef class DrawImage(drawingItem):
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
         if self._texture is None:
             return
-        cdef unique_lock[recursive_mutex] m2 = unique_lock[recursive_mutex](self._texture.mutex)
+        cdef unique_lock[DCGMutex] m2 = unique_lock[DCGMutex](self._texture.mutex)
         if self._texture.allocated_texture == NULL:
             return
 
@@ -1812,7 +1812,7 @@ cdef class DrawLine(drawingItem):
 
     @property
     def p1(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         """
         Coordinates of one of the extremities of the line segment
         
@@ -1823,7 +1823,7 @@ cdef class DrawLine(drawingItem):
         return Coord.build(self._p1)
     @p1.setter
     def p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
         self.update_center()
@@ -1835,12 +1835,12 @@ cdef class DrawLine(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
     @p2.setter
     def p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
         self.update_center()
@@ -1858,7 +1858,7 @@ cdef class DrawLine(drawingItem):
 
     @property
     def center(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         """
         Coordinates of the center of the line segment
         
@@ -1869,7 +1869,7 @@ cdef class DrawLine(drawingItem):
         return Coord.build(self._center)
     @center.setter
     def center(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
         self.update_extremities()
@@ -1881,12 +1881,12 @@ cdef class DrawLine(drawingItem):
         Returns:
             float: Length value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._length
     @length.setter
     def length(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._length = value
         self.update_extremities()
@@ -1898,12 +1898,12 @@ cdef class DrawLine(drawingItem):
         Returns:
             float: Angle in radians
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._direction
     @direction.setter
     def direction(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._direction = value
         self.update_extremities()
@@ -1924,7 +1924,7 @@ cdef class DrawLine(drawingItem):
 
     @property
     def color(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         """
         Color of the drawing outline.
         
@@ -1937,12 +1937,12 @@ cdef class DrawLine(drawingItem):
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
     def thickness(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         """
         Line thickness of the drawing outline.
         
@@ -1953,13 +1953,13 @@ cdef class DrawLine(drawingItem):
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -2016,7 +2016,7 @@ cdef class DrawPolyline(drawingItem):
         Returns:
             list: List of (x,y) coordinate tuples
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         res = []
         cdef double2 p
@@ -2026,7 +2026,7 @@ cdef class DrawPolyline(drawingItem):
         return res
     @points.setter
     def points(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef double2 p
         cdef int32_t i
@@ -2042,14 +2042,14 @@ cdef class DrawPolyline(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -2060,12 +2060,12 @@ cdef class DrawPolyline(drawingItem):
         Returns:
             bool: True if shape is closed
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._closed
     @closed.setter
     def closed(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._closed = value
     @property
@@ -2076,18 +2076,18 @@ cdef class DrawPolyline(drawingItem):
         Returns:
             float: Thickness value in pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show) or self._points.size() < 2:
             return
 
@@ -2157,7 +2157,7 @@ cdef class DrawPolygon(drawingItem):
         Returns:
             list: List of (x,y) coordinate tuples
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         res = []
         cdef double2 p
@@ -2167,7 +2167,7 @@ cdef class DrawPolygon(drawingItem):
         return res
     @points.setter
     def points(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef double2 p
         cdef int32_t i
@@ -2184,14 +2184,14 @@ cdef class DrawPolygon(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -2202,14 +2202,14 @@ cdef class DrawPolygon(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
         unparse_color(fill, self._fill)
         return list(fill)
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
     @property
@@ -2220,12 +2220,12 @@ cdef class DrawPolygon(drawingItem):
         Returns:
             float: Thickness value in pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
 
@@ -2245,7 +2245,7 @@ cdef class DrawPolygon(drawingItem):
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show) or self._points.size() < 2:
             return
 
@@ -2326,12 +2326,12 @@ cdef class DrawQuad(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
     @p1.setter
     def p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
     @property
@@ -2342,12 +2342,12 @@ cdef class DrawQuad(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
     @p2.setter
     def p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
     @property
@@ -2358,12 +2358,12 @@ cdef class DrawQuad(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p3)
     @p3.setter
     def p3(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
     @property
@@ -2374,12 +2374,12 @@ cdef class DrawQuad(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p4)
     @p4.setter
     def p4(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p4, value)
     @property
@@ -2390,14 +2390,14 @@ cdef class DrawQuad(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -2408,14 +2408,14 @@ cdef class DrawQuad(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
         unparse_color(fill, self._fill)
         return list(fill)
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
     @property
@@ -2426,18 +2426,18 @@ cdef class DrawQuad(drawingItem):
         Returns:
             float: Thickness value in pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -2526,12 +2526,12 @@ cdef class DrawRect(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._pmin)
     @pmin.setter
     def pmin(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmin, value)
     @property
@@ -2542,12 +2542,12 @@ cdef class DrawRect(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._pmax)
     @pmax.setter
     def pmax(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmax, value)
     @property
@@ -2558,14 +2558,14 @@ cdef class DrawRect(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -2576,14 +2576,14 @@ cdef class DrawRect(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
         unparse_color(fill, self._fill)
         return list(fill)
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
         self._color_upper_left = self._fill
@@ -2599,14 +2599,14 @@ cdef class DrawRect(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_upper_left
         unparse_color(color_upper_left, self._color_upper_left)
         return list(color_upper_left)
     @fill_p1.setter
     def fill_p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_upper_left = parse_color(value)
         self._multicolor = True
@@ -2618,14 +2618,14 @@ cdef class DrawRect(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_upper_right
         unparse_color(color_upper_right, self._color_upper_right)
         return list(color_upper_right)
     @fill_p2.setter
     def fill_p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_upper_right = parse_color(value)
         self._multicolor = True
@@ -2637,14 +2637,14 @@ cdef class DrawRect(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_bottom_right
         unparse_color(color_bottom_right, self._color_bottom_right)
         return list(color_bottom_right)
     @fill_p3.setter
     def fill_p3(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_bottom_right = parse_color(value)
         self._multicolor = True
@@ -2656,14 +2656,14 @@ cdef class DrawRect(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_bottom_left
         unparse_color(color_bottom_left, self._color_bottom_left)
         return list(color_bottom_left)
     @fill_p4.setter
     def fill_p4(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_bottom_left = parse_color(value)
         self._multicolor = True
@@ -2675,12 +2675,12 @@ cdef class DrawRect(drawingItem):
         Returns:
             float: Thickness value in pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
     @property
@@ -2691,18 +2691,18 @@ cdef class DrawRect(drawingItem):
         Returns:
             float: Rounding radius
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._rounding
     @rounding.setter
     def rounding(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._rounding = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -2789,7 +2789,7 @@ cdef class DrawRegularPolygon(drawingItem):
 
     @property
     def center(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         """
         Coordinates of the center of the shape
         
@@ -2800,7 +2800,7 @@ cdef class DrawRegularPolygon(drawingItem):
         return Coord.build(self._center)
     @center.setter
     def center(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
     @property
@@ -2811,12 +2811,12 @@ cdef class DrawRegularPolygon(drawingItem):
         Returns:
             float: Radius value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._radius
     @radius.setter
     def radius(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._radius = value
     @property
@@ -2829,12 +2829,12 @@ cdef class DrawRegularPolygon(drawingItem):
         Returns:
             float: Angle in radians
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._direction
     @direction.setter
     def direction(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._direction = value
         self._dirty = True
@@ -2847,12 +2847,12 @@ cdef class DrawRegularPolygon(drawingItem):
         Returns:
             int: Number of points
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._num_points
     @num_points.setter
     def num_points(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._num_points = value
         self._dirty = True
@@ -2864,14 +2864,14 @@ cdef class DrawRegularPolygon(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -2882,14 +2882,14 @@ cdef class DrawRegularPolygon(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._fill)
         return list(color)
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
     @property
@@ -2900,18 +2900,18 @@ cdef class DrawRegularPolygon(drawingItem):
         Returns:
             float: Thickness value in pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -3005,7 +3005,7 @@ cdef class DrawStar(drawingItem):
 
     @property
     def center(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         """
         Coordinates of the center of the shape
         
@@ -3016,7 +3016,7 @@ cdef class DrawStar(drawingItem):
         return Coord.build(self._center)
     @center.setter
     def center(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
     @property
@@ -3027,12 +3027,12 @@ cdef class DrawStar(drawingItem):
         Returns:
             float: Radius value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._radius
     @radius.setter
     def radius(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._radius = value
     @property
@@ -3043,12 +3043,12 @@ cdef class DrawStar(drawingItem):
         Returns:
             float: Inner radius value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._inner_radius
     @inner_radius.setter
     def inner_radius(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._inner_radius = value
     @property
@@ -3061,12 +3061,12 @@ cdef class DrawStar(drawingItem):
         Returns:
             float: Angle in radians
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._direction
     @direction.setter
     def direction(self, double value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._direction = value
         self._dirty = True
@@ -3079,12 +3079,12 @@ cdef class DrawStar(drawingItem):
         Returns:
             int: Number of points
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._num_points
     @num_points.setter
     def num_points(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._num_points = value
         self._dirty = True
@@ -3096,14 +3096,14 @@ cdef class DrawStar(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -3114,14 +3114,14 @@ cdef class DrawStar(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._fill)
         return list(color)
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
     @property
@@ -3132,18 +3132,18 @@ cdef class DrawStar(drawingItem):
         Returns:
             float: Thickness value in pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -3276,12 +3276,12 @@ cdef class DrawText(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._pos)
     @pos.setter
     def pos(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pos, value)
     @property
@@ -3292,14 +3292,14 @@ cdef class DrawText(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -3307,24 +3307,24 @@ cdef class DrawText(drawingItem):
         """
         Writable attribute: font used for the text rendered
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._font
 
     @font.setter
     def font(self, baseFont value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._font = value
 
     @property
     def text(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._text)
     @text.setter
     def text(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._text = string_from_str(value)
     @property
@@ -3335,18 +3335,18 @@ cdef class DrawText(drawingItem):
         Returns:
             float: Size value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._size
     @size.setter
     def size(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._size = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -3400,12 +3400,12 @@ cdef class DrawTriangle(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
     @p1.setter
     def p1(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
     @property
@@ -3416,12 +3416,12 @@ cdef class DrawTriangle(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
     @p2.setter
     def p2(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
     @property
@@ -3432,12 +3432,12 @@ cdef class DrawTriangle(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p3)
     @p3.setter
     def p3(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
     @property
@@ -3448,14 +3448,14 @@ cdef class DrawTriangle(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -3466,14 +3466,14 @@ cdef class DrawTriangle(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
         unparse_color(fill, self._fill)
         return list(fill)
     @fill.setter
     def fill(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
     @property
@@ -3484,18 +3484,18 @@ cdef class DrawTriangle(drawingItem):
         Returns:
             float: Thickness value in pixels
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
     def thickness(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
@@ -3570,12 +3570,12 @@ cdef class DrawValue(drawingItem):
         Returns:
             tuple: (x, y) coordinates
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._pos)
     @pos.setter
     def pos(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pos, value)
     @property
@@ -3586,14 +3586,14 @@ cdef class DrawValue(drawingItem):
         Returns:
             list: RGBA values in [0,1] range
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
     @color.setter
     def color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
     @property
@@ -3601,13 +3601,13 @@ cdef class DrawValue(drawingItem):
         """
         Writable attribute: font used for the text rendered
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._font
 
     @font.setter
     def font(self, baseFont value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._font = value
 
@@ -3619,12 +3619,12 @@ cdef class DrawValue(drawingItem):
         Returns:
             float: Size value
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._size
     @size.setter
     def size(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._size = value
 
@@ -3637,13 +3637,13 @@ cdef class DrawValue(drawingItem):
         can be passed to other items using an internal value of the same
         type to share it.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._value
 
     @shareable_value.setter
     def shareable_value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._value is value:
             return
@@ -3692,19 +3692,19 @@ cdef class DrawValue(drawingItem):
         (%f, %f, %f, %f) for a SharedFloat4 or a SharedColor (which are displayed as floats)
         %s for a SharedStr
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._print_format)
 
     @print_format.setter
     def print_format(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._print_format = string_from_str(value)
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 

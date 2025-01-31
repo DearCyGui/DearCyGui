@@ -74,7 +74,7 @@ cdef class Layout(uiItem):
 
     def update_layout(self):
         cdef int32_t i
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         for i in range(<int>self._callbacks.size()):
             self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
@@ -213,13 +213,13 @@ cdef class HorizontalLayout(Layout):
         be used to control spacing between the items.
         Default is LEFT.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._alignment_mode
 
     @alignment_mode.setter
     def alignment_mode(self, Alignment value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>value < 0 or value > Alignment.MANUAL:
             raise ValueError("Invalid alignment value")
@@ -234,13 +234,13 @@ cdef class HorizontalLayout(Layout):
         Disable wrapping to the next row when the
         elements cannot fit in the available region.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_wrap
 
     @no_wrap.setter
     def no_wrap(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value == self._no_wrap:
             return
@@ -259,13 +259,13 @@ cdef class HorizontalLayout(Layout):
         a significant negative value will bring back to
         the start of the window.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._wrap_x
 
     @wrap_x.setter
     def wrap_x(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._wrap_x = value
 
@@ -287,7 +287,7 @@ cdef class HorizontalLayout(Layout):
         Setting this field sets the alignment mode to
         MANUAL.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -297,7 +297,7 @@ cdef class HorizontalLayout(Layout):
 
     @positions.setter
     def positions(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if len(value) > 0:
             self._alignment_mode = Alignment.MANUAL
@@ -312,7 +312,7 @@ cdef class HorizontalLayout(Layout):
         Force an update of the layout next time the scene
         is rendered
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._force_update = True
 
@@ -570,13 +570,13 @@ cdef class VerticalLayout(Layout):
         be used to control spacing between the items.
         Default is TOP.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._alignment_mode
 
     @alignment_mode.setter
     def alignment_mode(self, Alignment value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>value < 0 or value > Alignment.MANUAL:
             raise ValueError("Invalid alignment value")
@@ -600,7 +600,7 @@ cdef class VerticalLayout(Layout):
         Setting this field sets the alignment mode to
         MANUAL.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -610,7 +610,7 @@ cdef class VerticalLayout(Layout):
 
     @positions.setter
     def positions(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if len(value) > 0:
             self._alignment_mode = Alignment.MANUAL
@@ -624,7 +624,7 @@ cdef class VerticalLayout(Layout):
         Force an update of the layout next time the scene
         is rendered
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._force_update = True
 
@@ -784,7 +784,7 @@ cdef class WindowLayout(uiItem):
 
     def update_layout(self):
         cdef int32_t i
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         for i in range(<int>self._callbacks.size()):
             self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
@@ -983,13 +983,13 @@ cdef class WindowHorizontalLayout(WindowLayout):
 
         The default is LEFT.
         """
-        cdef unique_lock[recursive_mutex] m 
+        cdef unique_lock[DCGMutex] m 
         lock_gil_friendly(m, self.mutex)
         return self._alignment_mode
 
     @alignment_mode.setter
     def alignment_mode(self, Alignment value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>value < 0 or value > Alignment.MANUAL:
             raise ValueError("Invalid alignment value")
@@ -1004,13 +1004,13 @@ cdef class WindowHorizontalLayout(WindowLayout):
         Disable wrapping to the next row when the
         windows cannot fit in the available region.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_wrap
 
     @no_wrap.setter
     def no_wrap(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value == self._no_wrap:
             return
@@ -1028,13 +1028,13 @@ cdef class WindowHorizontalLayout(WindowLayout):
         a significant negative value will bring back to
         the start of the viewport.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._wrap_y
 
     @wrap_y.setter
     def wrap_y(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._wrap_y = value
 
@@ -1055,7 +1055,7 @@ cdef class WindowHorizontalLayout(WindowLayout):
         Setting this field sets the alignment mode to
         MANUAL.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -1065,7 +1065,7 @@ cdef class WindowHorizontalLayout(WindowLayout):
 
     @positions.setter
     def positions(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if len(value) > 0:
             self._alignment_mode = Alignment.MANUAL
@@ -1214,13 +1214,13 @@ cdef class WindowVerticalLayout(WindowLayout):
         be used to control spacing between the windows.
         Default is TOP.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._alignment_mode
 
     @alignment_mode.setter
     def alignment_mode(self, Alignment value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if <int>value < 0 or value > Alignment.MANUAL:
             raise ValueError("Invalid alignment value")
@@ -1247,7 +1247,7 @@ cdef class WindowVerticalLayout(WindowLayout):
         Setting this field sets the alignment mode to
         MANUAL.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
@@ -1257,7 +1257,7 @@ cdef class WindowVerticalLayout(WindowLayout):
 
     @positions.setter
     def positions(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if len(value) > 0:
             self._alignment_mode = Alignment.MANUAL

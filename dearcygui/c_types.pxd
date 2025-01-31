@@ -345,13 +345,13 @@ cdef extern from * nogil:
     #include <atomic>
     #include <thread>
 
-    class recursive_mutex {
+    class DCGMutex {
     private:
         alignas(8) std::atomic<std::thread::id> owner_{std::thread::id()};
         alignas(4) std::atomic<int32_t> count_{0};
 
     public:
-        recursive_mutex() noexcept = default;
+        DCGMutex() noexcept = default;
         
         void lock() noexcept {
             const auto self = std::this_thread::get_id();
@@ -403,15 +403,15 @@ cdef extern from * nogil:
             }
         }
         
-        ~recursive_mutex() = default;
-        recursive_mutex(const recursive_mutex&) = delete;
-        recursive_mutex& operator=(const recursive_mutex&) = delete;
+        ~DCGMutex() = default;
+        DCGMutex(const DCGMutex&) = delete;
+        DCGMutex& operator=(const DCGMutex&) = delete;
     };
     """
-    cppclass recursive_mutex:
-        recursive_mutex()
-        recursive_mutex(recursive_mutex&)
-        recursive_mutex& operator=(recursive_mutex&)
+    cppclass DCGMutex:
+        DCGMutex()
+        DCGMutex(DCGMutex&)
+        DCGMutex& operator=(DCGMutex&)
         void lock()
         bint try_lock()
         void unlock()

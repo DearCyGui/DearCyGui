@@ -85,7 +85,7 @@ cdef class baseThemeColor(baseTheme):
 
     def __getitem__(self, key):
         """Get color by string name or numeric index"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t color_index
         if isinstance(key, str):
@@ -100,7 +100,7 @@ cdef class baseThemeColor(baseTheme):
 
     def __setitem__(self, key, value):
         """Set color by string name or numeric index"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t color_index
         if isinstance(key, str):
@@ -115,7 +115,7 @@ cdef class baseThemeColor(baseTheme):
 
     def __iter__(self):
         """Iterate over (color_name, color_value) pairs"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
         cdef pair[int32_t, uint32_t] element_content
@@ -125,7 +125,7 @@ cdef class baseThemeColor(baseTheme):
         return iter(result)
 
     cdef object __common_getter(self, int32_t index):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef unordered_map[int32_t, uint32_t].iterator element_content = self._index_to_value.find(index)
         if element_content == self._index_to_value.end():
@@ -135,7 +135,7 @@ cdef class baseThemeColor(baseTheme):
         return value
 
     cdef void __common_setter(self, int32_t index, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._index_to_value.erase(index)
@@ -965,7 +965,7 @@ cdef class ThemeColorImGui(baseThemeColor):
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
     cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef pair[int32_t, uint32_t] element_content
         cdef theme_action action
         if not(self._enabled):
@@ -1320,7 +1320,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
     cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef pair[int32_t, uint32_t] element_content
         cdef theme_action action
         if not(self._enabled):
@@ -1388,7 +1388,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         return self._names + dir(baseTheme)
 
     def __getattr__(self, name):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef string name_str = bytes(name, 'utf-8')
         cdef unordered_map[string, int32_t].iterator element = self.name_to_index.find(name_str)
@@ -1403,7 +1403,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         return value
 
     def __getitem__(self, key):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef unordered_map[string, int32_t].iterator element
         cdef int32_t color_index
@@ -1429,7 +1429,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         return value
 
     def __setattr__(self, name, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint found
         cdef string name_str
@@ -1451,7 +1451,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         self._index_to_value[color_index] = color
 
     def __setitem__(self, key, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef unordered_map[string, int32_t].iterator element
         cdef int32_t color_index
@@ -1475,7 +1475,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         self._index_to_value[color_index] = color
 
     def __iter__(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
         cdef pair[int32_t, imgui.ImU32] element_content
@@ -1496,7 +1496,7 @@ cdef class ThemeColorImNodes(baseThemeColor):
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
     cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef pair[int32_t, imgui.ImU32] element_content
         cdef theme_action action
         if not(self._enabled):
@@ -1535,13 +1535,13 @@ cdef class baseThemeStyle(baseTheme):
         If set, disables the automated scaling to the dpi
         scale value for this theme
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self._dpi_scaling)
 
     @no_scaling.setter
     def no_scaling(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._dpi_scaling = not(value)
 
@@ -1554,18 +1554,18 @@ cdef class baseThemeStyle(baseTheme):
         applied to parameters which impact item positioning
         in a way that would prevent a pixel perfect result.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self._round_after_scale)
 
     @no_rounding.setter
     def no_rounding(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._round_after_scale = not(value)
 
     def __getitem__(self, key):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t style_index
         if isinstance(key, str):
@@ -1578,7 +1578,7 @@ cdef class baseThemeStyle(baseTheme):
         raise TypeError("%s is an invalid index type" % str(type(key)))
 
     def __setitem__(self, key, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t style_index
         if isinstance(key, str):
@@ -1592,7 +1592,7 @@ cdef class baseThemeStyle(baseTheme):
             raise TypeError("%s is an invalid index type" % str(type(key)))
 
     def __iter__(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
         cdef pair[int32_t, theme_value_info] element_content
@@ -1614,7 +1614,7 @@ cdef class baseThemeStyle(baseTheme):
         return iter(result)
 
     cdef object __common_getter(self, int32_t index, theme_value_types type):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef unordered_map[int32_t, theme_value_info].iterator element_content = self._index_to_value.find(index)
         if element_content == self._index_to_value.end():
@@ -1637,7 +1637,7 @@ cdef class baseThemeStyle(baseTheme):
         return None
 
     cdef void __common_setter(self, int32_t index, theme_value_types type, bint should_scale, bint should_round, py_value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if py_value is None:
             # Delete the value
@@ -1704,7 +1704,7 @@ cdef class baseThemeStyle(baseTheme):
             self._index_to_value_for_dpi.insert(element_content)
 
     cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef pair[int32_t, theme_value_info] element_content
         cdef theme_action action
         if not(self._enabled):
@@ -2825,7 +2825,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         return self._names + dir(baseTheme)
 
     def __getattr__(self, name):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef string name_str = bytes(name, 'utf-8')
         cdef unordered_map[string, int32_t].iterator element = self.name_to_index.find(name_str)
@@ -2842,7 +2842,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         return value.x
 
     def __getitem__(self, key):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef unordered_map[string, int32_t].iterator element
         cdef int32_t style_index
@@ -2870,7 +2870,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         return value.x
 
     def __setattr__(self, name, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint found
         cdef string name_str
@@ -2906,7 +2906,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         self._index_to_value[style_index] = value_to_store
 
     def __setitem__(self, key, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef unordered_map[string, int32_t].iterator element
         cdef int32_t style_index
@@ -2943,7 +2943,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         self._index_to_value[style_index] = value_to_store
 
     def __iter__(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
         cdef pair[int32_t, imgui.ImVec2] element_content
@@ -2971,7 +2971,7 @@ cdef class ThemeStyleImNodes(baseThemeStyle):
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
     cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef pair[int32_t, imgui.ImVec2] element_content
         cdef theme_action action
         if not(self._enabled):
@@ -3028,7 +3028,7 @@ cdef class ThemeList(baseTheme):
         self.mutex.unlock()
     
     cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         push_to_list_children(self, v)
 
 
@@ -3062,13 +3062,13 @@ cdef class ThemeListWithCondition(baseTheme):
         waits to be applied that the conditions are met.
         enabled condition: 0: no condition. 1: enabled must be true. 2: enabled must be false
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._activation_condition_enabled
 
     @condition_enabled.setter
     def condition_enabled(self, ThemeEnablers value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         # TODO: check bounds
         self._activation_condition_enabled = value
@@ -3080,13 +3080,13 @@ cdef class ThemeListWithCondition(baseTheme):
         waits to be applied that the conditions are met.
         category condition: 0: no condition. other value: see list
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._activation_condition_category
 
     @condition_category.setter
     def condition_category(self, ThemeCategories value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         # TODO: check bounds
         self._activation_condition_category = value
@@ -3145,7 +3145,7 @@ cdef class ThemeListWithCondition(baseTheme):
         self.mutex.unlock()
     
     cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef int32_t prev_size, i, new_size
         cdef ThemeEnablers condition_enabled
         cdef ThemeCategories condition_category
@@ -3202,7 +3202,7 @@ cdef object extract_theme_value(baseTheme theme, str name, type target_class):
     attached to the target name/class if this baseTheme is pushed. Returns None if the
     target name/class is not present at all.
     """
-    cdef unique_lock[recursive_mutex] m
+    cdef unique_lock[DCGMutex] m
     lock_gil_friendly(m, theme.mutex)
     if isinstance(theme, ThemeListWithCondition):
         return None # handled in another function

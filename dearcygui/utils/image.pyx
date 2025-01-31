@@ -1,7 +1,7 @@
 cimport dearcygui as dcg
 
 from dearcygui.core cimport lock_gil_friendly
-from dearcygui.c_types cimport unique_lock, recursive_mutex
+from dearcygui.c_types cimport unique_lock, DCGMutex
 from libc.stdint cimport int32_t
 from libcpp.cmath cimport round as cround
 from libcpp.map cimport map, pair
@@ -129,7 +129,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         Outputs:
             Unique uuid of the tile.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         content = np.asarray(content)
         assert content.ndim == 2 or content.ndim == 3
         if content.ndim == 3:
@@ -157,7 +157,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         Py_INCREF(<dcg.Texture>texture)
         tile.texture = <PyObject*>texture
         # No need to block rendering before adding the tile
-        m = unique_lock[recursive_mutex](self.mutex)
+        m = unique_lock[DCGMutex](self.mutex)
         cdef pair[long long, TileData] tile_data
         tile_data.first = uuid
         tile_data.second = tile
@@ -170,7 +170,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         Inputs:
             uuid: the unique identifier of the tile.
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef map[long long, TileData].iterator tile_data = self._tiles.find(uuid)
         if tile_data != self._tiles.end():
             Py_DECREF(<dcg.Texture>dereference(tile_data).second.texture)
@@ -186,7 +186,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
             visible: Whether the tile should be visible or not.
         By default tiles start visible.
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef map[long long, TileData].iterator tile_data = self._tiles.find(uuid)
         if tile_data != self._tiles.end():
             dereference(tile_data).second.show = visible
@@ -200,7 +200,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
             uuid: the unique identifier of the tile.
             content: the new content of the tile.
         """
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef map[long long, TileData].iterator tile_data = self._tiles.find(uuid)
         cdef pair[long long, TileData] tile
         if tile_data != self._tiles.end():
@@ -210,7 +210,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
             raise KeyError("Tile not found")
 
     cdef void draw(self, void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         # Retrieve min/max visible area
 
         cdef double xmin, xmax, ymin, ymax
@@ -567,13 +567,13 @@ cdef class DrawSVG(dcg.drawingItem):
     @property
     def svg_path(self):
         """Path to SVG file"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return str(self._svg_path, encoding='utf-8')
 
     @svg_path.setter
     def svg_path(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         # Store path and create renderer
         self._svg_path = value
@@ -582,39 +582,39 @@ cdef class DrawSVG(dcg.drawingItem):
     @property
     def pmin(self):
         """Top-left position in coordinate space"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return dcg.Coord.build(self._pmin)
 
     @pmin.setter
     def pmin(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         dcg.read_coord(self._pmin, value)
 
     @property 
     def pmax(self):
         """Bottom-right position in coordinate space"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return dcg.Coord.build(self._pmax)
 
     @pmax.setter
     def pmax(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         dcg.read_coord(self._pmax, value)
 
     @property
     def no_preserve_ratio(self):
         """Whether to preserve aspect ratio when fitting"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self._preserve_ratio)
 
     @no_preserve_ratio.setter 
     def no_preserve_ratio(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._preserve_ratio = not(value)
 
@@ -622,13 +622,13 @@ cdef class DrawSVG(dcg.drawingItem):
     @property
     def no_fill_area(self):
         """Whether to avoid scaling up the SVG to fill the area"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_fill_area
 
     @no_fill_area.setter
     def no_fill_area(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_fill_area = value
     '''
@@ -636,18 +636,18 @@ cdef class DrawSVG(dcg.drawingItem):
     @property
     def no_centering(self):
         """Whether to align SVG to top-left instead of centering"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_centering
 
     @no_centering.setter
     def no_centering(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_centering = value
 
     cdef void draw(self, void* drawlist) noexcept nogil:
-        cdef unique_lock[recursive_mutex] m = unique_lock[recursive_mutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show) or self._renderer is None:
             return
 

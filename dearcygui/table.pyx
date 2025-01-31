@@ -100,7 +100,7 @@ cdef class TableColConfig(baseItem):
         """
         if not(self.state.cap.can_be_clicked):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return tuple(self.state.cur.clicked)
 
@@ -115,7 +115,7 @@ cdef class TableColConfig(baseItem):
         """
         if not(self.state.cap.can_be_clicked):
             raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.double_clicked
 
@@ -126,7 +126,7 @@ cdef class TableColConfig(baseItem):
         Only one element is hovered at a time, thus
         subitems/subwindows take priority over their parent.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.hovered
 
@@ -135,7 +135,7 @@ cdef class TableColConfig(baseItem):
         """
         True if the column is not clipped and is enabled.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.rendered
 
@@ -148,13 +148,13 @@ cdef class TableColConfig(baseItem):
         the latter can be changed by user interaction.
         Defaults to True.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_Disabled) == 0
 
     @show.setter
     def show(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_Disabled
         if not(value):
@@ -167,13 +167,13 @@ cdef class TableColConfig(baseItem):
         Whether the table is hidden (user can control this
         in the context menu).
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.state.cur.open
 
     @enabled.setter
     def enabled(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.state.cur.open = value
 
@@ -185,7 +185,7 @@ cdef class TableColConfig(baseItem):
         False: Fixed width, using the width value.
         None: Default depending on Table policy.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._stretch:
             return True
@@ -195,7 +195,7 @@ cdef class TableColConfig(baseItem):
 
     @stretch.setter
     def stretch(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._stretch = False
@@ -213,13 +213,13 @@ cdef class TableColConfig(baseItem):
         """
         Writable attribute: Default hide state for the column.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_DefaultHide) != 0
 
     @default_hide.setter
     def default_hide(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_DefaultHide
         if value:
@@ -231,13 +231,13 @@ cdef class TableColConfig(baseItem):
         """
         Writable attribute: Default as a sorting column.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_DefaultSort) != 0
 
     @default_sort.setter
     def default_sort(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_DefaultSort
         if value:
@@ -246,13 +246,13 @@ cdef class TableColConfig(baseItem):
     @property
     def no_resize(self):
         """Disable manual resizing"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoResize) != 0
 
     @no_resize.setter
     def no_resize(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoResize
         if value:
@@ -261,13 +261,13 @@ cdef class TableColConfig(baseItem):
     @property
     def no_hide(self):
         """Disable ability to hide this column"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoHide) != 0 
 
     @no_hide.setter
     def no_hide(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoHide
         if value:
@@ -276,13 +276,13 @@ cdef class TableColConfig(baseItem):
     @property 
     def no_clip(self):
         """Disable clipping for this column"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoClip) != 0
 
     @no_clip.setter
     def no_clip(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoClip
         if value:
@@ -291,13 +291,13 @@ cdef class TableColConfig(baseItem):
     @property
     def no_sort(self):
         """Disable sorting for this column"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoSort) != 0
 
     @no_sort.setter
     def no_sort(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoSort
         if value:
@@ -306,13 +306,13 @@ cdef class TableColConfig(baseItem):
     @property
     def prefer_sort_ascending(self):
         """Make the initial sort direction ascending when first sorting"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_PreferSortAscending) != 0
 
     @prefer_sort_ascending.setter  
     def prefer_sort_ascending(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_PreferSortAscending
         if value:
@@ -321,13 +321,13 @@ cdef class TableColConfig(baseItem):
     @property
     def prefer_sort_descending(self):
         """Make the initial sort direction descending when first sorting"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_PreferSortDescending) != 0
 
     @prefer_sort_descending.setter
     def prefer_sort_descending(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_PreferSortDescending
         if value:
@@ -336,13 +336,13 @@ cdef class TableColConfig(baseItem):
     @property
     def no_sort_ascending(self):
         """Disable ability to sort in ascending order"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoSortAscending) != 0
 
     @no_sort_ascending.setter
     def no_sort_ascending(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoSortAscending
         if value:
@@ -351,13 +351,13 @@ cdef class TableColConfig(baseItem):
     @property
     def no_sort_descending(self):
         """Disable ability to sort in descending order"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoSortDescending) != 0
 
     @no_sort_descending.setter
     def no_sort_descending(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoSortDescending
         if value:
@@ -366,13 +366,13 @@ cdef class TableColConfig(baseItem):
     @property
     def no_header_label(self):
         """Don't display column header for this column"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoHeaderLabel) != 0
 
     @no_header_label.setter
     def no_header_label(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoHeaderLabel
         if value:
@@ -381,13 +381,13 @@ cdef class TableColConfig(baseItem):
     @property
     def no_header_width(self):
         """Don't display column width when hovered"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoHeaderWidth) != 0
 
     @no_header_width.setter
     def no_header_width(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoHeaderWidth
         if value:
@@ -401,13 +401,13 @@ cdef class TableColConfig(baseItem):
 
         Note the width is used only when the column
         is initialized, and is not updated with resizes."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._width
 
     @width.setter
     def width(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._width = value
 
@@ -421,26 +421,26 @@ cdef class TableColConfig(baseItem):
         viewport/window scale.
         If set, disables this automated scaling.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self._dpi_scaling)
 
     @no_scaling.setter
     def no_scaling(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._dpi_scaling = not(value)
 
     @property 
     def stretch_weight(self):
         """Weight used when stretching this column. Must be >= 0."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._stretch_weight
 
     @stretch_weight.setter
     def stretch_weight(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
             raise ValueError("stretch_weight must be >= 0")
@@ -449,13 +449,13 @@ cdef class TableColConfig(baseItem):
     @property
     def no_reorder(self): 
         """Disable manual reordering"""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoReorder) != 0
 
     @no_reorder.setter
     def no_reorder(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiTableColumnFlags_NoReorder
         if value:
@@ -466,13 +466,13 @@ cdef class TableColConfig(baseItem):
         """
         Label in the header for the column
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return str(self._label, encoding='utf-8')
 
     @label.setter
     def label(self, str value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._label = bytes(value, encoding='utf-8')
 
@@ -484,7 +484,7 @@ cdef class TableColConfig(baseItem):
         a handler or a list of handlers as input.
         This enables to do item.handlers += [new_handler].
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -496,7 +496,7 @@ cdef class TableColConfig(baseItem):
 
     @handlers.setter
     def handlers(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
         cdef int32_t i
@@ -614,13 +614,13 @@ cdef class TableRowConfig(baseItem):
         """
         Writable attribute: Show the row.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.show
 
     @show.setter
     def show(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.show = value
 
@@ -633,7 +633,7 @@ cdef class TableRowConfig(baseItem):
         of any row background color defined by
         the theme (blending)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self.bg_color)
@@ -641,19 +641,19 @@ cdef class TableRowConfig(baseItem):
 
     @bg_color.setter
     def bg_color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex) 
         self.bg_color = parse_color(value)
 
     @property
     def min_height(self):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.min_height
 
     @min_height.setter
     def min_height(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex) 
         self.min_height = value
 
@@ -665,7 +665,7 @@ cdef class TableRowConfig(baseItem):
         a handler or a list of handlers as input.
         This enables to do item.handlers += [new_handler].
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int32_t i
@@ -677,7 +677,7 @@ cdef class TableRowConfig(baseItem):
 
     @handlers.setter
     def handlers(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list items = []
         cdef int32_t i
@@ -758,7 +758,7 @@ cdef class TableElement:
 
     A table element can be hidden, stretched, resized, etc.
     """
-    cdef recursive_mutex mutex
+    cdef DCGMutex mutex
     cdef TableElementData element
 
     def __init__(self, *args, **kwargs):
@@ -794,7 +794,7 @@ cdef class TableElement:
         """
         Writable attribute: The item to display in the table cell.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self.element.ui_item != NULL:
             return <uiItem>self.element.ui_item
@@ -804,7 +804,7 @@ cdef class TableElement:
 
     @content.setter
     def content(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         # clear previous content
         if self.element.ui_item != NULL:
@@ -823,7 +823,7 @@ cdef class TableElement:
         """
         Writable attribute: The tooltip configuration for the item.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self.element.tooltip_ui_item != NULL:
             return <uiItem>self.element.tooltip_ui_item
@@ -833,7 +833,7 @@ cdef class TableElement:
 
     @tooltip.setter
     def tooltip(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self.element.tooltip_ui_item != NULL:
             Py_DECREF(<object>self.element.tooltip_ui_item)
@@ -853,7 +853,7 @@ cdef class TableElement:
         Note ordering_value is automatically set to the value
         set in content when set to a string or number.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self.element.ordering_value != NULL:
             return <object>self.element.ordering_value
@@ -863,7 +863,7 @@ cdef class TableElement:
 
     @ordering_value.setter
     def ordering_value(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self.element.ordering_value != NULL:
             Py_DECREF(<object>self.element.ordering_value)
@@ -875,7 +875,7 @@ cdef class TableElement:
         """
         Writable attribute: The background color for the cell.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self.element.bg_color)
@@ -883,7 +883,7 @@ cdef class TableElement:
 
     @bg_color.setter
     def bg_color(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.element.bg_color = parse_color(value)
 
@@ -1083,7 +1083,7 @@ cdef class Table(uiItem):
         Retrieve the configuration of a column,
         and create a default one if we didn't have any yet.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if col_idx < 0:
             raise ValueError(f"Invalid column index {col_idx}")
@@ -1102,7 +1102,7 @@ cdef class Table(uiItem):
         """
         Set the configuration of a column.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if col_idx < 0:
             raise ValueError(f"Invalid column index {col_idx}")
@@ -1118,7 +1118,7 @@ cdef class Table(uiItem):
         Retrieve the configuration of a row,
         and create a default one if we didn't have any yet.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if row_idx < 0:
             raise ValueError(f"Invalid row index {row_idx}")
@@ -1137,7 +1137,7 @@ cdef class Table(uiItem):
         """
         Set the configuration of a row.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if row_idx < 0:
             raise ValueError(f"Invalid row index {row_idx}")
@@ -1167,7 +1167,7 @@ cdef class Table(uiItem):
         """
         Get the table flags.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return TableFlag(<int>self._flags)
 
@@ -1181,7 +1181,7 @@ cdef class Table(uiItem):
         """
         if not isinstance(value, TableFlag):
             raise TypeError("flags must be a TableFlag value")
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags = <imgui.ImGuiTableFlags>value
 
@@ -1203,13 +1203,13 @@ cdef class Table(uiItem):
 
         Defaults to 0.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._inner_width
 
     @inner_width.setter
     def inner_width(self, float value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._inner_width = value
 
@@ -1219,13 +1219,13 @@ cdef class Table(uiItem):
         boolean. Defaults to True.
         Produce a table header based on the column labels.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._header
 
     @header.setter
     def header(self, bint value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._header = value
 
@@ -1237,7 +1237,7 @@ cdef class Table(uiItem):
         This corresponds to the maximum row
         index used in the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._dirty_num_rows_cols:
             self._update_row_col_counts()
@@ -1251,7 +1251,7 @@ cdef class Table(uiItem):
         This corresponds to the maximum column
         index used in the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._dirty_num_rows_cols:
             self._update_row_col_counts()
@@ -1265,7 +1265,7 @@ cdef class Table(uiItem):
         By default (None), the number of visible rows
         is the same as the number of rows in the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._num_rows_visible < 0:
             return None
@@ -1273,7 +1273,7 @@ cdef class Table(uiItem):
 
     @num_rows_visible.setter
     def num_rows_visible(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._num_rows_visible = -1
@@ -1294,7 +1294,7 @@ cdef class Table(uiItem):
         By default (None), the number of visible columns
         is the same as the number of columns in the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._num_cols_visible < 0:
             return None
@@ -1302,7 +1302,7 @@ cdef class Table(uiItem):
 
     @num_cols_visible.setter
     def num_cols_visible(self, value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._num_cols_visible = -1
@@ -1324,13 +1324,13 @@ cdef class Table(uiItem):
         with scroll frozen.
         Default is 0.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._num_rows_frozen
 
     @num_rows_frozen.setter
     def num_rows_frozen(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
             raise ValueError("num_rows_frozen must be a non-negative integer")
@@ -1345,13 +1345,13 @@ cdef class Table(uiItem):
         with scroll frozen.
         Default is 0.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._num_cols_frozen
 
     @num_cols_frozen.setter
     def num_cols_frozen(self, int32_t value):
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value < 0:
             raise ValueError("num_cols_frozen must be a non-negative integer")
@@ -1460,7 +1460,7 @@ cdef class Table(uiItem):
         """
         Get item at specific target
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
         lock_gil_friendly(m, self.mutex)
         cdef map[pair[int32_t, int32_t], TableElementData].iterator it
@@ -1485,7 +1485,7 @@ cdef class Table(uiItem):
         """
         Set items at specific target
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         if isinstance(value, dict):
             value = TableElement(**value)
         cdef TableElementData element
@@ -1549,7 +1549,7 @@ cdef class Table(uiItem):
         """
         Delete items at specific target
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(hasattr(key, "__len__")) or not(len(key) == 2):
             raise ValueError("value must be a list of length 2")
@@ -1562,7 +1562,7 @@ cdef class Table(uiItem):
         """
         Iterate over the keys in the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         for key_element in self._items:
@@ -1572,7 +1572,7 @@ cdef class Table(uiItem):
         """
         Get the number of items in the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._items.size()
 
@@ -1580,7 +1580,7 @@ cdef class Table(uiItem):
         """
         Check if a key is in the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(hasattr(key, "__len__")) or not(len(key) == 2):
             raise ValueError("key must be a list of length 2")
@@ -1595,7 +1595,7 @@ cdef class Table(uiItem):
         """
         Get the keys of the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         for key_element in self._items:
@@ -1605,7 +1605,7 @@ cdef class Table(uiItem):
         """
         Get the values of the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         for key_element in self._items:
@@ -1616,7 +1616,7 @@ cdef class Table(uiItem):
         """
         Get the value at a specific key.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(hasattr(key, "__len__")) or not(len(key) == 2):
             raise ValueError("key must be a list of length 2")
@@ -1689,7 +1689,7 @@ cdef class Table(uiItem):
 
         But much more efficient
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(hasattr(key1, "__len__")) or not(len(key1) == 2):
             raise ValueError("key1 must be a list of length 2")
@@ -1705,7 +1705,7 @@ cdef class Table(uiItem):
         """
         Swaps the rows at the two indices.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         cdef int32_t i
@@ -1718,7 +1718,7 @@ cdef class Table(uiItem):
         """
         Swaps the cols at the two indices.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         cdef int32_t i
@@ -1731,7 +1731,7 @@ cdef class Table(uiItem):
         """
         Removes the row at the given index.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         cdef int32_t i
@@ -1746,7 +1746,7 @@ cdef class Table(uiItem):
         """
         Inserts a row at the given index.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         cdef int32_t i
@@ -1764,7 +1764,7 @@ cdef class Table(uiItem):
         """
         Sets the row at the given index.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         if not hasattr(items, '__len__'):
@@ -1780,7 +1780,7 @@ cdef class Table(uiItem):
         """
         Appends a row at the end of the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         if not hasattr(items, '__len__'):
@@ -1794,7 +1794,7 @@ cdef class Table(uiItem):
         """
         Removes the column at the given index.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         cdef int32_t i
@@ -1809,7 +1809,7 @@ cdef class Table(uiItem):
         """
         Inserts a column at the given index.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         cdef int32_t i
@@ -1827,7 +1827,7 @@ cdef class Table(uiItem):
         """
         Sets the column at the given index.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         if not hasattr(items, '__len__'):
@@ -1843,7 +1843,7 @@ cdef class Table(uiItem):
         """
         Appends a column at the end of the table.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         if not hasattr(items, '__len__'):
@@ -1873,7 +1873,7 @@ cdef class Table(uiItem):
 
     def row(self, int32_t idx):
         """Get a view of the specified row."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex) 
         self._update_row_col_counts()
         if idx < 0:
@@ -1882,7 +1882,7 @@ cdef class Table(uiItem):
 
     def col(self, int32_t idx):
         """Get a view of the specified column."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         if idx < 0:
@@ -1892,7 +1892,7 @@ cdef class Table(uiItem):
     @property
     def next_row(self):
         """Get a view of the next row."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         return TableRowView.create(self, self._num_rows)
@@ -1900,7 +1900,7 @@ cdef class Table(uiItem):
     @property
     def next_col(self):
         """Get a view of the next column."""
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         return TableColView.create(self, self._num_cols)
@@ -1946,7 +1946,7 @@ cdef class Table(uiItem):
         - The content before its conversion into string
         - If content is an uiItem, it defaults to the UUID (item creation order)
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
         cdef int32_t num_rows = self._num_rows
@@ -2010,7 +2010,7 @@ cdef class Table(uiItem):
                 Sort in ascending order if True, descending if False.
                 Defaults to True.
         """
-        cdef unique_lock[recursive_mutex] m
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
 

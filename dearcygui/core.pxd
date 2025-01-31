@@ -42,14 +42,14 @@ Variable naming convention:
   (except for subclasses).
 """
 
-cdef void lock_gil_friendly_block(unique_lock[recursive_mutex] &m) noexcept
+cdef void lock_gil_friendly_block(unique_lock[DCGMutex] &m) noexcept
 
-cdef inline void lock_gil_friendly(unique_lock[recursive_mutex] &m,
-                                   recursive_mutex &mutex) noexcept:
+cdef inline void lock_gil_friendly(unique_lock[DCGMutex] &m,
+                                   DCGMutex &mutex) noexcept:
     """
     Must be called to lock our mutexes whenever we hold the gil
     """
-    m = unique_lock[recursive_mutex](mutex, defer_lock_t())
+    m = unique_lock[DCGMutex](mutex, defer_lock_t())
     # Fast path which will be hit almost always
     if m.try_lock():
         return
@@ -72,10 +72,10 @@ cdef inline void append_obj_vector(DCGVector[PyObject *] &items, item_list):
 
 cdef class Context:
     ### Read-only public variables ###
-    cdef recursive_mutex mutex
+    cdef DCGMutex mutex
     # Mutex that must be held for any
     # call to imgui, glfw, etc
-    cdef recursive_mutex imgui_mutex
+    cdef DCGMutex imgui_mutex
     cdef atomic[int64_t] next_uuid
     cdef Viewport viewport
     cdef void* imgui_context # imgui.ImGuiContext
@@ -150,7 +150,7 @@ cdef class baseItem:
     ### Read-only public variables managed by this class ###
     cdef Context context
     cdef int64_t uuid
-    cdef recursive_mutex mutex
+    cdef DCGMutex mutex
     cdef baseItem parent
     cdef baseItem prev_sibling
     cdef baseItem next_sibling
@@ -185,7 +185,7 @@ cdef class baseItem:
     cdef object __weakref__
     cdef object _user_data
     ### public methods ###
-    cdef void lock_parent_and_item_mutex(self, unique_lock[recursive_mutex]&, unique_lock[recursive_mutex]&)
+    cdef void lock_parent_and_item_mutex(self, unique_lock[DCGMutex]&, unique_lock[DCGMutex]&)
     cdef void lock_and_previous_siblings(self) noexcept nogil
     cdef void unlock_and_previous_siblings(self) noexcept nogil
     cpdef void attach_to_parent(self, target_parent)
@@ -206,7 +206,7 @@ cdef class baseItem:
     ### private methods ###
     cdef void _copy_children(self, baseItem)
     cdef bint _check_rendered(self)
-    cdef void _detach_item_and_lock(self, unique_lock[recursive_mutex]&)
+    cdef void _detach_item_and_lock(self, unique_lock[DCGMutex]&)
     cdef void _delete_and_siblings(self)
 
 
@@ -289,7 +289,7 @@ cdef class Viewport(baseItem):
     cdef int32_t start_pending_theme_actions # Used when applying theme actions
     cdef DCGVector[theme_action] pending_theme_actions # Used when applying theme actions
     ### private variables ###
-    cdef recursive_mutex _mutex_backend
+    cdef DCGMutex _mutex_backend
     cdef void *_platform # platformViewport
     cdef void *_platform_window # SDL_Window
     cdef bint _initialized
@@ -599,7 +599,7 @@ Shared values (sources)
 """
 cdef class SharedValue:
     # Public read-only variables
-    cdef recursive_mutex mutex
+    cdef DCGMutex mutex
     cdef Context context
     cdef int32_t _last_frame_update # Last frame count the value was updated
     cdef int32_t _last_frame_change # Last frame count the value changed (>= updated)
@@ -689,7 +689,7 @@ cdef class Texture(baseItem):
     cdef int32_t height
     cdef int32_t num_chans
     ### private variables ###
-    cdef recursive_mutex _write_mutex
+    cdef DCGMutex _write_mutex
     cdef bint _hint_dynamic
     cdef bint _dynamic
     cdef unsigned _buffer_type
