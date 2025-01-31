@@ -331,6 +331,91 @@ cdef extern from * nogil:
         T& back()
         T& front()
 
+"""
+Since our use case is that most of the case
+the recursive mutex will be uncontended - and 
+the recursive mutex property is rarely hit. We
+use a spinlock with an non-negligible wait to not
+hog the cpu.
+Another advantage is that skipping std::mutex avoids
+ABI issues.
+"""
+cdef extern from * nogil:
+    """
+    #include <atomic>
+    #include <thread>
+
+    class recursive_mutex {
+    private:
+        alignas(8) std::atomic<std::thread::id> owner_{std::thread::id()};
+        alignas(4) std::atomic<int32_t> count_{0};
+
+    public:
+        recursive_mutex() noexcept = default;
+        
+        void lock() noexcept {
+            const auto self = std::this_thread::get_id();
+            
+            while (true) {
+                // Try to acquire if unowned
+                auto expected = std::thread::id();
+                if (owner_.compare_exchange_strong(expected, self)) {
+                    count_.store(1);
+                    return;
+                }
+                
+                // Check if we already own it
+                if (expected == self) {
+                    count_.fetch_add(1);
+                    return;
+                }
+                
+                // Spin wait with sleep
+                std::this_thread::sleep_for(std::chrono::microseconds(10));
+            }
+        }
+        
+        bool try_lock() noexcept {
+            const auto self = std::this_thread::get_id();
+            
+            auto expected = std::thread::id();
+            if (owner_.compare_exchange_strong(expected, self)) {
+                count_.store(1);
+                return true;
+            }
+            
+            if (expected == self) {
+                count_.fetch_add(1);
+                return true;
+            }
+            
+            return false;
+        }
+        
+        void unlock() noexcept {
+            const auto self = std::this_thread::get_id();
+            if (owner_.load() != self) {
+                return;
+            }
+            
+            if (count_.fetch_sub(1) == 1) {
+                owner_.store(std::thread::id());
+            }
+        }
+        
+        ~recursive_mutex() = default;
+        recursive_mutex(const recursive_mutex&) = delete;
+        recursive_mutex& operator=(const recursive_mutex&) = delete;
+    };
+    """
+    cppclass recursive_mutex:
+        recursive_mutex()
+        recursive_mutex(recursive_mutex&)
+        recursive_mutex& operator=(recursive_mutex&)
+        void lock()
+        bint try_lock()
+        void unlock()
+
 # generated with pxdgen /usr/include/c++/11/mutex -x c++
 
 cdef extern from "<mutex>" namespace "std" nogil:
@@ -356,13 +441,13 @@ cdef extern from "<mutex>" namespace "std" nogil:
         try_to_lock_t()
     cppclass adopt_lock_t:
         adopt_lock_t()
-    cppclass recursive_mutex:
-        recursive_mutex()
-        recursive_mutex(recursive_mutex&)
-        recursive_mutex& operator=(recursive_mutex&)
-        void lock()
-        bint try_lock()
-        void unlock()
+    #cppclass recursive_mutex:
+    #    recursive_mutex()
+    #    recursive_mutex(recursive_mutex&)
+    #    recursive_mutex& operator=(recursive_mutex&)
+    #    void lock()
+    #    bint try_lock()
+    #    void unlock()
     #int try_lock[_Lock1, _Lock2, _Lock3](_Lock1&, _Lock2&, _Lock3 &...)
     #void lock[_L1, _L2, _L3](_L1&, _L2&, _L3 &...)
     cppclass lock_guard[_Mutex]:
