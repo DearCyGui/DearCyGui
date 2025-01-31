@@ -1048,9 +1048,13 @@ cdef class Table(uiItem):
     text, images, buttons, etc. The table can be used to
     display data, but also to interact with the user.
     """
-    cdef map[pair[int32_t, int32_t], TableElementData] _items
-    cdef map[int32_t, PyObject*] _col_configs # TableColConfig
-    cdef map[int32_t, PyObject*] _row_configs # TableRowConfig
+    # We use pointers to maintain a fixed structure size,
+    # even if map implementation changes.
+    # Do not use these fields as they may be implemented
+    # with a different map implementation than your compiler.
+    cdef map[pair[int32_t, int32_t], TableElementData] *_items
+    cdef map[int32_t, PyObject*] *_col_configs # TableColConfig
+    cdef map[int32_t, PyObject*] *_row_configs # TableRowConfig
     cdef imgui.ImGuiTableFlags _flags
     cdef bint _dirty_num_rows_cols
     cdef int32_t _num_rows
@@ -1077,6 +1081,9 @@ cdef class Table(uiItem):
         self._num_rows_frozen = 0
         self._num_cols_frozen = 0
         self.can_have_widget_child = True
+        self._items = new map[pair[int32_t, int32_t], TableElementData]()
+        self._col_configs = new map[int32_t, PyObject*]()
+        self._row_configs = new map[int32_t, PyObject*]()
 
     cdef TableColConfig get_col_config(self, int32_t col_idx):
         """
@@ -1092,7 +1099,7 @@ cdef class Table(uiItem):
         if it == self._col_configs.end():
             config = TableColConfig(self.context)
             Py_INCREF(config)
-            self._col_configs[col_idx] = <PyObject*>config
+            dereference(self._col_configs)[col_idx] = <PyObject*>config
             return config
         cdef PyObject* item = dereference(it).second
         cdef TableColConfig found_config = <TableColConfig>item
@@ -1111,7 +1118,7 @@ cdef class Table(uiItem):
         if it != self._col_configs.end():
             Py_DECREF(<object>dereference(it).second)
         Py_INCREF(config)
-        self._col_configs[col_idx] = <PyObject*>config
+        dereference(self._col_configs)[col_idx] = <PyObject*>config
 
     cdef TableRowConfig get_row_config(self, int32_t row_idx):
         """
@@ -1127,7 +1134,7 @@ cdef class Table(uiItem):
         if it == self._row_configs.end():
             config = TableRowConfig(self.context)
             Py_INCREF(config)
-            self._row_configs[row_idx] = <PyObject*>config
+            dereference(self._row_configs)[row_idx] = <PyObject*>config
             return config
         cdef PyObject* item = dereference(it).second
         cdef TableRowConfig found_config = <TableRowConfig>item
@@ -1146,7 +1153,7 @@ cdef class Table(uiItem):
         if it != self._row_configs.end():
             Py_DECREF(<object>dereference(it).second)
         Py_INCREF(config)
-        self._row_configs[row_idx] = <PyObject*>config
+        dereference(self._row_configs)[row_idx] = <PyObject*>config
 
     @property
     def col_config(self):
@@ -1368,7 +1375,7 @@ cdef class Table(uiItem):
         cdef bint found = False
         cdef uiItem ui_item
         if isinstance(<object>item, uiItem):
-            for key_element in self._items:
+            for key_element in dereference(self._items):
                 element = key_element.second
                 if element.ui_item == item:
                     found = True
@@ -1395,7 +1402,7 @@ cdef class Table(uiItem):
 
     cdef void clear_items(self):
         cdef pair[pair[int32_t, int32_t], TableElementData] key_element
-        for key_element in self._items:
+        for key_element in dereference(self._items):
             # No need to iterate the table
             # to see if the item is several times
             # in the table. We will detach it
@@ -1423,12 +1430,18 @@ cdef class Table(uiItem):
     def __dealloc__(self):
         self.clear_items()
         cdef pair[int32_t, PyObject*] key_value
-        for key_value in self._col_configs:
+        for key_value in dereference(self._col_configs):
             Py_DECREF(<object>key_value.second)
-        for key_value in self._row_configs:
+        for key_value in dereference(self._row_configs):
             Py_DECREF(<object>key_value.second)
         self._col_configs.clear()
         self._row_configs.clear()
+        if self._items != NULL:
+            del self._items
+        if self._col_configs != NULL:
+            del self._col_configs
+        if self._row_configs != NULL:
+            del self._row_configs
 
     cpdef void delete_item(self):
         uiItem.delete_item(self)
@@ -1526,7 +1539,7 @@ cdef class Table(uiItem):
         cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
         # delete previous element if any
         self._dirty_num_rows_cols |= not(self._delete_item(map_key))
-        self._items[map_key] = element
+        dereference(self._items)[map_key] = element
         # _delete_item may have detached ourselves
         # from the children list. We need to reattach
         # ourselves.
@@ -1565,7 +1578,7 @@ cdef class Table(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef pair[pair[int32_t, int32_t], TableElementData] key_element
-        for key_element in self._items:
+        for key_element in dereference(self._items):
             yield key_element.first
 
     def __len__(self):
@@ -1598,7 +1611,7 @@ cdef class Table(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef pair[pair[int32_t, int32_t], TableElementData] key_element
-        for key_element in self._items:
+        for key_element in dereference(self._items):
             yield key_element.first
 
     def values(self):
@@ -1608,7 +1621,7 @@ cdef class Table(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef pair[pair[int32_t, int32_t], TableElementData] key_element
-        for key_element in self._items:
+        for key_element in dereference(self._items):
             element_config = TableElement.from_element(key_element.second)
             yield element_config
 
@@ -1644,7 +1657,7 @@ cdef class Table(uiItem):
         if it1 == it2:
             return
         if it1 == self._items.end() and it2 != self._items.end():
-            self._items[key1] = dereference(it2).second
+            dereference(self._items)[key1] = dereference(it2).second
             self._items.erase(it2)
             self._dirty_num_rows_cols |= \
                 row2 == self._num_rows - 1 or \
@@ -1653,7 +1666,7 @@ cdef class Table(uiItem):
                 col1 == self._num_cols - 1
             return
         if it1 != self._items.end() and it2 == self._items.end():
-            self._items[key2] = dereference(it1).second
+            dereference(self._items)[key2] = dereference(it1).second
             self._items.erase(it1)
             self._dirty_num_rows_cols |= \
                 row2 == self._num_rows - 1 or \
@@ -1662,8 +1675,8 @@ cdef class Table(uiItem):
                 col1 == self._num_cols - 1
             return
         cdef TableElementData tmp = dereference(it1).second
-        self._items[key1] = dereference(it2).second
-        self._items[key2] = tmp
+        dereference(self._items)[key1] = dereference(it2).second
+        dereference(self._items)[key2] = tmp
 
     cdef void _swap_items(self, int32_t row1, int32_t col1, int32_t row2, int32_t col2) noexcept nogil:
         """
@@ -1863,7 +1876,7 @@ cdef class Table(uiItem):
         cdef int32_t max_col = -1
         
         # Find max row/col indices
-        for key_element in self._items:
+        for key_element in dereference(self._items):
             max_row = max(max_row, key_element.first.first)
             max_col = max(max_col, key_element.first.second) 
 
@@ -1969,7 +1982,7 @@ cdef class Table(uiItem):
         if not(ascending):
             order = order[::-1]
 
-        cdef map[pair[int32_t, int32_t], TableElementData] items_copy = self._items
+        cdef map[pair[int32_t, int32_t], TableElementData] items_copy = dereference(self._items)
         cdef pair[pair[int32_t, int32_t], TableElementData] element_key
         self._items.clear()
 
@@ -1992,7 +2005,7 @@ cdef class Table(uiItem):
             target_row = inverse_order[src_row]
             target_key.first = target_row
             target_key.second = element_key.first.second
-            self._items[target_key] = element_key.second
+            dereference(self._items)[target_key] = element_key.second
 
     def sort_cols(self, int32_t ref_row, bint ascending=True):
         """Sort the columns using the value in ref_row as index.
@@ -2030,7 +2043,7 @@ cdef class Table(uiItem):
             order = order[::-1]
 
         # Same as for rows
-        cdef map[pair[int32_t, int32_t], TableElementData] items_copy = self._items
+        cdef map[pair[int32_t, int32_t], TableElementData] items_copy = dereference(self._items)
         cdef pair[pair[int32_t, int32_t], TableElementData] element_key
         self._items.clear()
 
@@ -2049,7 +2062,7 @@ cdef class Table(uiItem):
             target_col = inverse_order[src_col]
             target_key.first = element_key.first.first
             target_key.second = target_col
-            self._items[target_key] = element_key.second
+            dereference(self._items)[target_key] = element_key.second
 
 
     cdef bint draw_item(self) noexcept nogil:
@@ -2098,7 +2111,7 @@ cdef class Table(uiItem):
         # re-enable them.
         # In addition, lock the column configurations
         cdef int32_t num_cols_disabled = 0
-        for col_data in self._col_configs:
+        for col_data in dereference(self._col_configs):
             if col_data.first >= actual_num_cols:
                 break
             (<TableColConfig>col_data.second).mutex.lock()
@@ -2106,13 +2119,13 @@ cdef class Table(uiItem):
                 num_cols_disabled += 1
 
         if num_cols_disabled == actual_num_cols and num_cols_disabled > 0:
-            for col_data in self._col_configs:
+            for col_data in dereference(self._col_configs):
                 if col_data.first >= actual_num_cols:
                     break
                 (<TableColConfig>col_data.second).state.cur.open = True
 
         # Lock row configuration
-        for row_data in self._row_configs:
+        for row_data in dereference(self._row_configs):
             if row_data.first >= actual_num_rows:
                 break
             (<TableRowConfig>row_data.second).mutex.lock()
@@ -2123,7 +2136,7 @@ cdef class Table(uiItem):
                             Vec2ImVec2(requested_size),
                             self._inner_width):
             # Set column configurations
-            for col_data in self._col_configs:
+            for col_data in dereference(self._col_configs):
                 if col_data.first >= actual_num_cols:
                     break
                 for j in range(prev_col+1, col_data.first):
@@ -2141,7 +2154,7 @@ cdef class Table(uiItem):
             pos_p_backup = self.context.viewport.parent_pos
             pos_w_backup = self.context.viewport.window_pos
             parent_size_backup = self.context.viewport.parent_size
-            for key_element in self._items:
+            for key_element in dereference(self._items):
                 key = key_element.first
                 element = key_element.second
                 row = key.first
@@ -2208,7 +2221,7 @@ cdef class Table(uiItem):
                 imgui.TableSetBgColor(imgui.ImGuiTableBgTarget_RowBg1,
                     (<TableRowConfig>dereference(it_row).second).bg_color, -1)
             # Update column states
-            for col_data in self._col_configs:
+            for col_data in dereference(self._col_configs):
                 if col_data.first >= actual_num_cols:
                     break
                 (<TableColConfig>col_data.second).after_draw(col_data.first)
@@ -2234,13 +2247,13 @@ cdef class Table(uiItem):
             imgui.EndTable()
 
         # Release the row configurations
-        for row_data in self._row_configs:
+        for row_data in dereference(self._row_configs):
             if row_data.first >= actual_num_rows:
                 break
             (<TableRowConfig>row_data.second).mutex.unlock()
 
         # Release the column configurations
-        for col_data in self._col_configs:
+        for col_data in dereference(self._col_configs):
             if col_data.first >= actual_num_cols:
                 break
             (<TableColConfig>col_data.second).mutex.unlock()

@@ -247,7 +247,7 @@ public:
     void prepareTexturesForRender(const std::unordered_set<GLuint>& tex_ids);
     void finishTextureRender(const std::unordered_set<GLuint>& tex_ids);
 
-    bool downloadTexture(void* texture,
+    virtual bool downloadTexture(void* texture,
                          int x,
                          int y,
                          unsigned sub_width,
@@ -255,7 +255,7 @@ public:
                          unsigned num_chans,
                          unsigned type,
                          void* dst,
-                         unsigned dst_stride);
+                         unsigned dst_stride) override;
 
     virtual bool backBufferToTexture(void* texture, unsigned width, unsigned height,
                                      unsigned num_chans, unsigned type) override;

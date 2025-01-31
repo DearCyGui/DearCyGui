@@ -2,13 +2,14 @@ cimport dearcygui as dcg
 
 from dearcygui.core cimport lock_gil_friendly
 from dearcygui.c_types cimport unique_lock, DCGMutex
-from libc.stdint cimport int32_t
+from libc.stdint cimport int32_t, int64_t
 from libcpp.cmath cimport round as cround
 from libcpp.map cimport map, pair
 from libcpp.set cimport set
 from libcpp.vector cimport vector
 from cython.operator cimport dereference
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
+from libcpp.memory cimport unique_ptr
 
 
 import numpy as np
@@ -39,16 +40,24 @@ cdef class DrawTiledImage(dcg.drawingItem):
     """
 
     cdef double margin
-    cdef map[long long, TileData] _tiles
-    cdef set[pair[int32_t, int32_t]] _requested_tiles
+    # We use a pointer for fixed structure size
+    # if the map/set implementation changes.
+    cdef map[int64_t, TileData] *_tiles
+    cdef set[pair[int32_t, int32_t]] *_requested_tiles
 
     def __cinit__(self):
         self.margin = 128
+        self._tiles = new map[int64_t, TileData]()
+        self._requested_tiles = new set[pair[int32_t, int32_t]]()
 
     def __dealloc__(self):
-        cdef pair[long long, TileData] tile_data
-        for tile_data in self._tiles:
+        cdef pair[int64_t, TileData] tile_data
+        for tile_data in dereference(self._tiles):
             Py_DECREF(<dcg.Texture>tile_data.second.texture)
+        if self._tiles != NULL:
+            del self._tiles
+        if self._requested_tiles != NULL:
+            del self._requested_tiles
 
     '''
     @property
@@ -60,12 +69,12 @@ cdef class DrawTiledImage(dcg.drawingItem):
         return self.margin
     '''
 
-    def get_tile_data(self, long long uuid) -> dict:
+    def get_tile_data(self, int64_t uuid) -> dict:
         """
         Get tile information
         """
-        cdef map[long long, TileData].iterator tile_data = self._tiles.find(uuid)
-        cdef pair[long long, TileData] tile
+        cdef map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
+        cdef pair[int64_t, TileData] tile
         if tile_data != self._tiles.end():
             tile = dereference(tile_data)
             Py_INCREF(<dcg.Texture>tile.second.texture)
@@ -88,8 +97,8 @@ cdef class DrawTiledImage(dcg.drawingItem):
         Get the list of uuids of the tiles.
         """
         result = []
-        cdef pair[long long, TileData] tile_data
-        for tile_data in self._tiles:
+        cdef pair[int64_t, TileData] tile_data
+        for tile_data in dereference(self._tiles):
             result.append(tile_data.first)
         return result
 
@@ -98,10 +107,10 @@ cdef class DrawTiledImage(dcg.drawingItem):
         Get the uuid of the oldest tile (the one
         with smallest last_frame_count).
         """
-        cdef pair[long long, TileData] tile_data
-        cdef long long uuid = -1
+        cdef pair[int64_t, TileData] tile_data
+        cdef int64_t uuid = -1
         cdef int32_t worst_last_frame_count = -1
-        for tile_data in self._tiles:
+        for tile_data in dereference(self._tiles):
             if uuid == -1 or \
                tile_data.second.last_frame_count < worst_last_frame_count:
                 uuid = tile_data.first
@@ -144,7 +153,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         else:
             dcg.read_coord(bottom_right, opposite_coord)
         cdef dcg.Texture texture = dcg.Texture(self.context, content)
-        cdef long long uuid = self.context.next_uuid.fetch_add(1)
+        cdef int64_t uuid = self.context.next_uuid.fetch_add(1)
         cdef TileData tile
         tile.xmin = top_left[0]
         tile.xmax = bottom_right[0]
@@ -158,7 +167,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         tile.texture = <PyObject*>texture
         # No need to block rendering before adding the tile
         m = unique_lock[DCGMutex](self.mutex)
-        cdef pair[long long, TileData] tile_data
+        cdef pair[int64_t, TileData] tile_data
         tile_data.first = uuid
         tile_data.second = tile
         self._tiles.insert(tile_data)
@@ -171,7 +180,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
             uuid: the unique identifier of the tile.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef map[long long, TileData].iterator tile_data = self._tiles.find(uuid)
+        cdef map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
         if tile_data != self._tiles.end():
             Py_DECREF(<dcg.Texture>dereference(tile_data).second.texture)
             self._tiles.erase(tile_data)
@@ -187,7 +196,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         By default tiles start visible.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef map[long long, TileData].iterator tile_data = self._tiles.find(uuid)
+        cdef map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
         if tile_data != self._tiles.end():
             dereference(tile_data).second.show = visible
         else:
@@ -201,8 +210,8 @@ cdef class DrawTiledImage(dcg.drawingItem):
             content: the new content of the tile.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef map[long long, TileData].iterator tile_data = self._tiles.find(uuid)
-        cdef pair[long long, TileData] tile
+        cdef map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
+        cdef pair[int64_t, TileData] tile
         if tile_data != self._tiles.end():
             tile = dereference(tile_data)
             (<dcg.Texture>tile.second.texture).set_value(content)
@@ -231,9 +240,9 @@ cdef class DrawTiledImage(dcg.drawingItem):
         ymax = max(start_coord[1], end_coord[1])
 
         # Display each tile already loaded that are visible:
-        cdef pair[long long, TileData] tile_data
+        cdef pair[int64_t, TileData] tile_data
         cdef TileData tile
-        for tile_data in self._tiles:
+        for tile_data in dereference(self._tiles):
             tile = tile_data.second
             if tile.xmin < xmax and tile.xmax > xmin and tile.ymin < ymax and tile.ymax > ymin and tile.show:
                 # Draw the tile

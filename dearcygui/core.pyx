@@ -816,7 +816,7 @@ cdef class Context:
         with gil:
             try:
                 element_list = []
-                for i in range(arg2.size()):
+                for i in range(<int>arg2.size()):
                     element_list.append(string_to_str(arg2[i]))
                 self._queue.submit(callback, parent_item, target_item, (arg1, element_list))
             except Exception as e:

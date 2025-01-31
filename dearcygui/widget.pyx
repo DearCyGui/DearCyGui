@@ -1084,7 +1084,7 @@ cdef class Combo(uiItem):
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
-        for i in range(self._items.size()):
+        for i in range(<int>self._items.size()):
             result.append(string_to_str(self._items[i]))
         return result
 
@@ -1767,7 +1767,7 @@ cdef class ListBox(uiItem):
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
-        for i in range(self._items.size()):
+        for i in range(<int>self._items.size()):
             result.append(string_to_str(self._items[i]))
         return result
 
@@ -1894,7 +1894,7 @@ cdef class RadioButton(uiItem):
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
-        for i in range(self._items.size()):
+        for i in range(<int>self._items.size()):
             result.append(string_to_str(self._items[i]))
         return result
 
@@ -2333,7 +2333,7 @@ cdef class InputText(uiItem):
         cdef bint need_update = (<SharedStr>self._value)._last_frame_change >= self._last_frame_update 
 
         if need_update:
-            size = min(current_value.size(), self._max_characters)
+            size = min(<int>current_value.size(), self._max_characters)
             # Copy value to buffer
             memcpy(self._buffer, current_value.data(), size)
             self._buffer[size] = 0

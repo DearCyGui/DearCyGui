@@ -218,6 +218,7 @@ def setup_package():
 
     compile_args = ["-D_CRT_SECURE_NO_WARNINGS",
                     "-D_USE_MATH_DEFINES",
+                    "-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION"
                     "-DIMGUI_IMPL_OPENGL_LOADER_SDL3",
                     "-DIMGUI_USER_CONFIG=\"imgui_config.h\""]
     linking_args = ['-O3']
