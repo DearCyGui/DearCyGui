@@ -4621,7 +4621,7 @@ cdef class uiItem(baseItem):
     """
     def __cinit__(self):
         # mvAppItemInfo
-        self._imgui_label = string_from_bytes(b'###%ld'% self.uuid)
+        self._imgui_label = string_from_bytes(bytes(b'###%ld'% self.uuid))
         self._user_label = ""
         self._show = True
         self._enabled = True
@@ -5013,7 +5013,7 @@ cdef class uiItem(baseItem):
         # Using ### means that imgui will ignore the user_label for
         # its internal ID of the object. Indeed else the ID would change
         # when the user label would change
-        self._imgui_label = string_from_bytes(bytes(self._user_label, 'utf-8') + b'###%ld'% self.uuid)
+        self._imgui_label = string_from_bytes(bytes(self._user_label, 'utf-8') + bytes(b'###%ld'% self.uuid))
 
     @property
     def value(self):
@@ -6691,7 +6691,7 @@ cdef class plotElement(baseItem):
     - theme: Theme for the plot element.
     """
     def __cinit__(self):
-        self._imgui_label = string_from_bytes(b'###%ld'% self.uuid)
+        self._imgui_label = string_from_bytes(bytes(b'###%ld'% self.uuid))
         self._user_label = ""
         self._flags = implot.ImPlotItemFlags_None
         self.can_have_sibling = True
@@ -6771,7 +6771,7 @@ cdef class plotElement(baseItem):
         # Using ### means that imgui will ignore the user_label for
         # its internal ID of the object. Indeed else the ID would change
         # when the user label would change
-        self._imgui_label = string_from_bytes(bytes(self._user_label, 'utf-8') + b'###%ld'% self.uuid)
+        self._imgui_label = string_from_bytes(bytes(self._user_label, 'utf-8') + bytes(b'###%ld'% self.uuid))
 
     @property
     def theme(self):
