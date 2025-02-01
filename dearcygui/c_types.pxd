@@ -1,4 +1,5 @@
 cimport cpython
+from libc.stdint cimport uint64_t
 
 cdef extern from * nogil:
     """
@@ -57,112 +58,161 @@ cdef inline void swap_Vec2(Vec2 &a, Vec2 &b) noexcept nogil:
 cdef extern from * nogil:
     """
     #define MAX_STR_LEN (64*1024*1024)
+    #define SMALL_BUF_SIZE 64  // Enough for most labels + uuid
+
     struct DCGString {
+        char _small_buf[SMALL_BUF_SIZE];
         char* _data;
         size_t _length;
         size_t _capacity;
 
-        DCGString() : _data(nullptr), _length(0), _capacity(0) {}
+        DCGString() : _data(nullptr), _length(0), _capacity(SMALL_BUF_SIZE) {
+            _small_buf[0] = 0;
+        }
         
-        DCGString(const char* str) {
+        DCGString(const char* str) : _data(nullptr), _length(0), _capacity(SMALL_BUF_SIZE) {
             if (!str) {
-                _data = nullptr;
-                _length = _capacity = 0;
+                _small_buf[0] = 0;
                 return;
             }
             _length = strnlen(str, MAX_STR_LEN);
-            _capacity = _length + 1;
-            _data = (char*)malloc(_capacity);
-            memcpy(_data, str, _length);
-            _data[_length] = 0;
+            if (_length < SMALL_BUF_SIZE) {
+                memcpy(_small_buf, str, _length);
+                _small_buf[_length] = 0;
+            } else {
+                _capacity = _length + 1;
+                _data = (char*)malloc(_capacity);
+                memcpy(_data, str, _length);
+                _data[_length] = 0;
+            }
         }
 
-        DCGString(const char* str, size_t len) {
+        DCGString(const char* str, size_t len) : _data(nullptr), _length(0), _capacity(SMALL_BUF_SIZE) {
             if (!str || len <= 0) {
-                _data = nullptr;
-                _length = _capacity = 0;
+                _small_buf[0] = 0;
                 return;
             }
             if (len > MAX_STR_LEN) {
-                // Raise exception
-                _data = nullptr;
-                _length = _capacity = 0;
+                _small_buf[0] = 0;
                 throw std::runtime_error("String too long");
             }
 
             _length = len;
-            _capacity = _length + 1;
-            _data = (char*)malloc(_capacity);
-            memcpy(_data, str, _length);
-            _data[_length] = 0;
+            if (_length < SMALL_BUF_SIZE) {
+                memcpy(_small_buf, str, _length);
+                _small_buf[_length] = 0;
+            } else {
+                _capacity = _length + 1;
+                _data = (char*)malloc(_capacity);
+                memcpy(_data, str, _length);
+                _data[_length] = 0;
+            }
         }
 
-        DCGString(const DCGString& other) {
-            _length = other.size();
-            _capacity = other.capacity();
-            if (!other.empty()) {
-                _data = (char*)malloc(_capacity);
-                memcpy(_data, other.c_str(), _length);
-                _data[_length] = 0;
+        DCGString(const DCGString& other) : _data(nullptr), _length(other._length), _capacity(SMALL_BUF_SIZE) {
+            if (_length < SMALL_BUF_SIZE) {
+                memcpy(_small_buf, other._small_buf, _length + 1);
             } else {
-                _data = nullptr;
+                _capacity = other._capacity;
+                _data = (char*)malloc(_capacity);
+                memcpy(_data, other._data, _length + 1);
             }
         }
 
         DCGString& operator=(const DCGString& other) {
             if (this != &other) {
-                if (!other.empty()) {
-                    if (other.size() > MAX_STR_LEN) {
-                        throw std::runtime_error("String size exceeds maximum allowed length");
-                    }
-                    if (_capacity < other.size() + 1) {
-                        char* new_data = (char*)malloc(other.size() + 1);
-                        if (_data) free(_data);
-                        _data = new_data;
-                        _capacity = other.size() + 1;
-                    }
-                    _length = other.size();
-                    memcpy(_data, other.c_str(), _length);
-                    _data[_length] = 0;
-                } else {
-                    if (_data) free(_data);
+                if (_data) {
+                    free(_data);
                     _data = nullptr;
-                    _length = _capacity = 0;
+                }
+                _length = other._length;
+                
+                if (_length < SMALL_BUF_SIZE) {
+                    _capacity = SMALL_BUF_SIZE;
+                    memcpy(_small_buf, other._small_buf, _length + 1);
+                } else {
+                    _capacity = other._capacity;
+                    _data = (char*)malloc(_capacity);
+                    memcpy(_data, other._data, _length + 1);
                 }
             }
             return *this;
         }
 
         bool operator==(const DCGString& other) const {
-            if (_length != other.size()) return false;
-            for(size_t i = 0; i < _length; ++i) {
-                if (_data[i] != other.c_str()[i]) return false;
-            }
-            return true;
+            if (_length != other._length) return false;
+            const char* this_str = _data ? _data : _small_buf;
+            const char* other_str = other._data ? other._data : other._small_buf;
+            return memcmp(this_str, other_str, _length) == 0;
         }
 
         ~DCGString() {
             if (_data) free(_data);
         }
 
-        bool empty() const {
-            return _length == 0;
-        }
-
-        size_t size() const {
-            return _length;
-        }
-
-        size_t capacity() const {
-            return _capacity;
-        }
+        bool empty() const { return _length == 0; }
+        size_t size() const { return _length; }
+        size_t capacity() const { return _capacity; }
 
         const char* c_str() const {
-            return _data ? _data : "";
+            return _data ? _data : _small_buf;
         }
 
         char* data() {
-            return _data;
+            return _data ? _data : _small_buf;
+        }
+
+        // Modify label to contain only uuid
+        void set_uuid_label(uint64_t uuid) {
+            if (_data) {
+                free(_data);
+                _data = nullptr;
+            }
+            _length = snprintf(_small_buf, SMALL_BUF_SIZE, "###%lu", uuid);
+            _capacity = SMALL_BUF_SIZE;
+        }
+
+        // Modify label to contain user label + uuid
+        void set_composite_label(const char* user_label, size_t label_len, uint64_t uuid) {
+            if (!user_label || label_len <= 0) {
+                set_uuid_label(uuid);
+                return;
+            }
+            
+            size_t total_len = label_len + 32;  // 32 is more than enough for "###" + uuid
+            
+            if (total_len <= SMALL_BUF_SIZE) {
+                if (_data) {
+                    free(_data);
+                    _data = nullptr;
+                }
+                memcpy(_small_buf, user_label, label_len);
+                _length = label_len + snprintf(
+                    _small_buf + label_len,
+                    SMALL_BUF_SIZE - label_len,
+                    "###%lu",
+                    uuid
+                );
+                _capacity = SMALL_BUF_SIZE;
+            } else {
+                if (total_len > MAX_STR_LEN) {
+                    throw std::runtime_error("Label too long");
+                }
+                char* new_data = (char*)malloc(total_len);
+                memcpy(new_data, user_label, label_len);
+                size_t uuid_len = snprintf(
+                    new_data + label_len,
+                    total_len - label_len,
+                    "###%lu",
+                    uuid
+                );
+                if (_data) {
+                    free(_data);
+                }
+                _data = new_data;
+                _length = label_len + uuid_len;
+                _capacity = total_len;
+            }
         }
     };
     """
@@ -177,6 +227,8 @@ cdef extern from * nogil:
         size_t size()
         const char* c_str()
         char *data()
+        void set_uuid_label(uint64_t) except +
+        void set_composite_label(const char*, size_t, uint64_t) except +
 
 cdef inline DCGString string_from_bytes(bytes b) except *:
     return DCGString(<const char*>b, <size_t>len(b))
@@ -190,6 +242,15 @@ cdef inline bytes string_to_bytes(DCGString &s):
 
 cdef inline str string_to_str(DCGString &s):
     return string_to_bytes(s).decode(encoding='utf-8')
+
+cdef inline void set_uuid_label(DCGString &s, uint64_t uuid) except +:
+    """Equivalent to = string_from_bytes(bytes(b'###%ld'% self.uuid))"""
+    s.set_uuid_label(uuid)
+
+cdef inline void set_composite_label(DCGString &s, str user_label, uint64_t uuid) except +:
+    """Equivalent to string_from_bytes(bytes(self._user_label, 'utf-8') + bytes(b'###%ld'% self.uuid))"""
+    cdef bytes b = user_label.encode('utf-8')
+    s.set_composite_label(<const char*>b, len(b), uuid)
 
 cdef extern from * nogil:
     """
