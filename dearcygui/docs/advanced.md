@@ -94,8 +94,7 @@ Here is a list of the advantages of Cython subclassing
 - No lag to impact the visual. You have access to the latest states of the item and can affect the rendering of the frame directly. For instance changing the color of a button when hovered can be done without any delay with Cython subclassing, while using callbacks will introduce at least one frame delay.
 
 But some significant disadvantages are present
-- Less portable code. Your code will need to be compiled (dynamically with pyximport or statically with a setup.py or similar). The compilation has to occur everytime DearCyGui is updated, which complicates code distribution.
-- Right now C++ items of the standard library are included in the main items of DearCyGui, which means that for the subclassing to work, you need the same compiler version as was used to compile DearCyGui. That's fine for internal projects, but not for libraries that would want do depend on DearCyGui. If you want to contribute items, the best would be to package them with DearCyGui in utils.
+- Less portable code. Your code will need to be compiled (dynamically with pyximport or statically with a setup.py or similar). The compilation has to occur everytime DearCyGui is updated, which complicates code distribution. Note however that in future releases, improvements will be brough to this area, introducing stable ABI, with compiled code compatibility for minor releases.
 - More care is needed when writing the code. You have access to *DearCyGui* internals, and thus you must use it correctly. No checks will occur.
 
 For examples and documentation of the available API, please refer to the related demo, but also to the cython codes in DearCyGui's utils directory. The cython codes in this directory have exactly the same API access as you would have for your own Cython subclassing.
