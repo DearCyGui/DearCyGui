@@ -214,6 +214,16 @@ cdef extern from * nogil:
                 _capacity = total_len;
             }
         }
+
+        void clear() {
+            if (_data) {
+                free(_data);
+                _data = nullptr;
+            }
+            _length = 0;
+            _capacity = SMALL_BUF_SIZE;
+            _small_buf[0] = 0;
+        }
     };
     """
     cdef cppclass DCGString:
@@ -229,6 +239,7 @@ cdef extern from * nogil:
         char *data()
         void set_uuid_label(uint64_t) except +
         void set_composite_label(const char*, size_t, uint64_t) except +
+        void clear()
 
 cdef inline DCGString string_from_bytes(bytes b) except *:
     return DCGString(<const char*>b, <size_t>len(b))
