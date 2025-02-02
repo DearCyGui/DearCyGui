@@ -6944,7 +6944,8 @@ cdef class Texture(baseItem):
         # while it is still in use (there will just be an artefact),
         # plus we delay texture deletion for a few frames,
         # so it should be fine.
-        if self.allocated_texture != NULL:
+        if self.allocated_texture != NULL and self.context is not None \
+           and self.context.viewport is not None:
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
             (<platformViewport*>self.context.viewport._platform).freeTexture(self.allocated_texture)
             (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
