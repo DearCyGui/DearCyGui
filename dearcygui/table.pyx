@@ -14,13 +14,14 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
-
 from dearcygui.wrapper cimport imgui
+from libc.stdlib cimport malloc, free
 from libcpp.map cimport map, pair
 from libcpp.vector cimport vector
 from libc.stdint cimport uint32_t, int32_t
 
-from cython.operator cimport dereference
+cimport cython
+from cython.operator cimport dereference, preincrement
 
 from .core cimport baseItem, baseHandler, uiItem, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector, \
@@ -342,6 +343,15 @@ cdef class baseTable(uiItem):
         self._num_cols_frozen = 0
         self.can_have_widget_child = True
         self._items = new map[pair[int32_t, int32_t], TableElementData]()
+        self._iter_state = NULL  # Initialize iterator state to NULL
+
+    def __dealloc__(self):
+        self.clear_items()
+        if self._items != NULL:
+            del self._items
+        if self._iter_state != NULL:
+            free(self._iter_state)
+            self._iter_state = NULL
 
     @property
     def num_rows(self):
@@ -534,12 +544,9 @@ cdef class baseTable(uiItem):
         self.clear_items()
         self.children = []
 
-    def __dealloc__(self):
-        self.clear_items()
-        if self._items != NULL:
-            del self._items
-
     cpdef void delete_item(self):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         uiItem.delete_item(self)
         self.clear()
 
@@ -736,6 +743,7 @@ cdef class baseTable(uiItem):
             return TableElement.from_element(dereference(it).second)
         return default
 
+    @cython.final
     cdef void _swap_items_from_it(self,
                              int32_t row1, int32_t col1, int32_t row2, int32_t col2,
                              map[pair[int32_t, int32_t], TableElementData].iterator &it1,
@@ -1158,6 +1166,40 @@ cdef class baseTable(uiItem):
             target_key.second = target_col
             dereference(self._items)[target_key] = element_key.second
 
+    cdef void _items_iter_prepare(self) noexcept nogil:
+        """Start iterating over items."""
+        if self._iter_state == NULL:
+            self._iter_state = <TableIterState*>malloc(sizeof(TableIterState))
+        self._iter_state.started = False
+        self._iter_state.it = self._items.begin()
+        self._iter_state.end = self._items.end()
+
+    cdef bint _items_iter_next(self, int32_t* row, int32_t* col, TableElementData** element) noexcept nogil:
+        """Get next item in iteration. Returns False when done."""
+        if self._iter_state.started:
+            preincrement(self._iter_state.it)
+        self._iter_state.started = True
+            
+        if self._iter_state.it == self._iter_state.end:
+            return False
+            
+        row[0] = dereference(self._iter_state.it).first.first
+        col[0] = dereference(self._iter_state.it).first.second
+        element[0] = &dereference(self._iter_state.it).second
+        return True
+
+    cdef void _items_iter_finish(self) noexcept nogil:
+        """Clean up iteration state."""
+        pass # No need to free, we keep the allocated memory for reuse
+
+    cdef size_t _get_num_items(self) noexcept nogil:
+        """Get total number of items."""
+        return self._items.size()
+
+    cdef bint _items_contains(self, int32_t row, int32_t col) noexcept nogil:
+        """Check if an item exists at the given position."""
+        cdef pair[int32_t, int32_t] key = pair[int32_t, int32_t](row, col)
+        return self._items.find(key) != self._items.end()
 
 cdef class TableColConfig(baseItem):
     """
@@ -1182,7 +1224,7 @@ cdef class TableColConfig(baseItem):
         #self.state.cap.can_be_active = True # sort request
         #self.state.cap.has_position = True
         #self.state.cap.has_content_region = True
-        self._flags = imgui.ImGuiTableColumnFlags_None
+        self._flags = <uint32_t>imgui.ImGuiTableColumnFlags_None
         self._width = 0.0
         self._stretch_weight = 1.0
         self._fixed = False
@@ -2037,7 +2079,7 @@ cdef class Table(baseTable):
 
         cdef pair[pair[int32_t, int32_t], TableElementData] key_element
         cdef pair[int32_t, int32_t] key
-        cdef TableElementData element
+        cdef TableElementData *element
         cdef int32_t row, col
         cdef int32_t prev_row = -1
         cdef int32_t prev_col = -1
@@ -2102,13 +2144,14 @@ cdef class Table(baseTable):
             pos_p_backup = self.context.viewport.parent_pos
             pos_w_backup = self.context.viewport.window_pos
             parent_size_backup = self.context.viewport.parent_size
-            for key_element in dereference(self._items):
-                key = key_element.first
-                element = key_element.second
-                row = key.first
-                col = key.second
+
+            # Prepare iteration
+            self._items_iter_prepare()
+
+            while self._items_iter_next(&row, &col, &element):
                 if row >= actual_num_rows or col >= actual_num_cols:
                     continue
+
                 if row != prev_row:
                     for j in range(prev_row, row):
                         row_hidden = False
@@ -2123,14 +2166,16 @@ cdef class Table(baseTable):
                         imgui.TableSetBgColor(imgui.ImGuiTableBgTarget_RowBg1,
                             (<TableRowConfig>dereference(it_row).second).bg_color, -1)
                     prev_row = row
+
                 if row_hidden:
                     continue
+
                 imgui.TableSetColumnIndex(col)
 
                 if element.bg_color != 0:
                     imgui.TableSetBgColor(imgui.ImGuiTableBgTarget_CellBg, element.bg_color, -1)
 
-                # Draw the element
+                # Draw element content
                 if element.ui_item is not NULL:
                     # We lock because we check the parent field.
                     # Probably not needed though, as the parent
@@ -2157,6 +2202,10 @@ cdef class Table(baseTable):
                         if imgui.BeginTooltip():
                             imgui.TextUnformatted(element.str_tooltip.c_str())
                             imgui.EndTooltip()
+
+            # Clean up iteration
+            self._items_iter_finish()
+
             # Submit empty rows if any
             for j in range(prev_row+1, actual_num_rows):
                 it_row = self._row_configs.find(j)

@@ -2,6 +2,7 @@ cimport dearcygui as dcg
 
 from dearcygui.core cimport lock_gil_friendly
 from dearcygui.c_types cimport unique_lock, DCGMutex
+from dearcygui.imgui cimport draw_image_quad, t_draw_image_quad
 from libc.stdint cimport int32_t, int64_t
 from libcpp.cmath cimport round as cround
 from libcpp.map cimport map, pair
@@ -246,18 +247,18 @@ cdef class DrawTiledImage(dcg.drawingItem):
             tile = tile_data.second
             if tile.xmin < xmax and tile.xmax > xmin and tile.ymin < ymax and tile.ymax > ymin and tile.show:
                 # Draw the tile
-                dcg.imgui.draw_image_quad(self.context,
-                                          drawlist,
-                                          (<dcg.Texture>tile.texture).allocated_texture,
-                                          tile.xmin, tile.ymin,
-                                          tile.xmax, tile.ymin,
-                                          tile.xmax, tile.ymax,
-                                          tile.xmin, tile.ymax,
-                                          0., 0.,
-                                          1., 0.,
-                                          1., 1.,
-                                          0., 1.,
-                                          4294967295)
+                draw_image_quad(self.context,
+                                drawlist,
+                                (<dcg.Texture>tile.texture).allocated_texture,
+                                tile.xmin, tile.ymin,
+                                tile.xmax, tile.ymin,
+                                tile.xmax, tile.ymax,
+                                tile.xmin, tile.ymax,
+                                0., 0.,
+                                1., 0.,
+                                1., 1.,
+                                0., 1.,
+                                4294967295)
                 tile.last_frame_count = self.context.viewport.frame_count
         return
 
@@ -816,15 +817,15 @@ cdef class DrawSVG(dcg.drawingItem):
         if flip_y:
             v0, v1 = v1, v0
 
-        dcg.imgui.t_draw_image_quad(self.context,
-                                    drawlist,
-                                    self._texture.allocated_texture,
-                                    x, y,
-                                    x+w, y,
-                                    x+w, y+h,
-                                    x, y+h,
-                                    u0, v0,
-                                    u1, v0,
-                                    u1, v1,
-                                    u0, v1,
-                                    4294967295)
+        t_draw_image_quad(self.context,
+                          drawlist,
+                          self._texture.allocated_texture,
+                          x, y,
+                          x+w, y,
+                          x+w, y+h,
+                          x, y+h,
+                          u0, v0,
+                          u1, v0,
+                          u1, v1,
+                          u0, v1,
+                          4294967295)

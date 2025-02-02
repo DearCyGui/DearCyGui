@@ -1,4 +1,3 @@
-from dearcygui.wrapper cimport imgui
 from libcpp.map cimport map, pair
 from libc.stdint cimport uint32_t, int32_t
 
@@ -7,6 +6,8 @@ from .core cimport baseItem, uiItem, \
 from .c_types cimport *
 
 from cpython.ref cimport PyObject
+
+cimport cython
 
 # Base structure for table data
 cdef struct TableElementData:
@@ -24,6 +25,15 @@ cdef struct TableElementData:
     # for the tooltip
     DCGString str_tooltip
     uint32_t bg_color
+
+# Iterator state for table items
+cdef struct TableIterState:
+    # Current iterator position
+    map[pair[int32_t, int32_t], TableElementData].iterator it
+    # End iterator for comparison
+    map[pair[int32_t, int32_t], TableElementData].iterator end
+    # Whether iteration has started
+    bint started
 
 cdef class TableElement:
     """
@@ -73,20 +83,24 @@ cdef class baseTable(uiItem):
     and the basic structure of the table. The actual rendering
     is done by the derived classes.
     """
-    # We use pointers to maintain a fixed structure size,
-    # even if map implementation changes.
-    # Do not use these fields as they may be implemented
-    # with a different map implementation than your compiler.
-    cdef map[pair[int32_t, int32_t], TableElementData] *_items
-    cdef bint _dirty_num_rows_cols
+    # protected variables
     cdef int32_t _num_rows
     cdef int32_t _num_cols
     cdef int32_t _num_rows_visible
     cdef int32_t _num_cols_visible
     cdef int32_t _num_rows_frozen
     cdef int32_t _num_cols_frozen
+    # private variables
+    cdef bint _dirty_num_rows_cols
+    cdef TableIterState* _iter_state  # New: store iterator state
+    # We use pointers to maintain a fixed structure size,
+    # even if map implementation changes.
+    # Do not use these fields as they may be implemented
+    # with a different map implementation than your compiler.
+    cdef map[pair[int32_t, int32_t], TableElementData] *_items
 
-    cdef void clear_items(self)
+    # public API
+    cdef void clear_items(self) # assumes mutex is held
     cpdef void delete_item(self)
     cpdef void swap_rows(self, int32_t row1, int32_t row2)
     cpdef void swap_cols(self, int32_t col1, int32_t col2)
@@ -97,6 +111,12 @@ cdef class baseTable(uiItem):
     cdef TableElement _get_single_item(self, int32_t row, int32_t col)
     cdef void _swap_items(self, int32_t row1, int32_t col1, int32_t row2, int32_t col2) noexcept nogil
     cdef void _update_row_col_counts(self) noexcept nogil
+    # Protected iterator helpers for derived classes
+    cdef void _items_iter_prepare(self) noexcept nogil
+    cdef bint _items_iter_next(self, int32_t* row, int32_t* col, TableElementData** element) noexcept nogil
+    cdef void _items_iter_finish(self) noexcept nogil
+    cdef size_t _get_num_items(self) noexcept nogil
+    cdef bint _items_contains(self, int32_t row, int32_t col) noexcept nogil
     # private do not call outside (map ABI)
     cdef void _swap_items_from_it(self,
                              int32_t row1, int32_t col1, int32_t row2, int32_t col2,
@@ -119,7 +139,7 @@ cdef class TableColConfig(baseItem):
     - HoveredHandler to listen if the user hovers the column.
     """
     cdef itemState state
-    cdef imgui.ImGuiTableColumnFlags _flags
+    cdef uint32_t _flags # imgui.ImGuiTableColumnFlags
     cdef float _width
     cdef float _stretch_weight
     cdef DCGString _label
@@ -174,7 +194,7 @@ cdef class Table(baseTable):
     cdef map[int32_t, PyObject*] *_row_configs # TableRowConfig
     cdef float _inner_width
     cdef bint _header
-    cdef imgui.ImGuiTableFlags _flags
+    cdef uint32_t _flags # imgui.ImGuiTableFlags
 
     cdef TableColConfig get_col_config(self, int32_t col_idx)
     cdef void set_col_config(self, int32_t col_idx, TableColConfig config)
