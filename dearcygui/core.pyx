@@ -247,15 +247,20 @@ cdef class Context:
     ----------
     queue : Executor
         Executor for managing thread-pooled callbacks. Defaults to ThreadPoolExecutor with max_workers=1.
-    
+
     item_creation_callback : callable, optional
         Callback function called when any new item is created, before configuration.
         Signature: func(item)
-    
-    item_unused_configure_args_callback : callable, optional  
-        Callback function called when unused configuration arguments are found.
-        Signature: func(item, unused_args_dict)
-    
+
+    item_configure_start_callback : callable, optional  
+        Callback function called at the start of configure().
+        Can be used to change the arguments dictionary before configuration.
+        Signature: func(item, args_dict) -> args_dict
+
+    item_configure_end_callback : callable, optional  
+        Callback function called at the end of configure().
+        Signature: func(item, unhandled_args_dict)
+
     item_deletion_callback : callable, optional
         Callback function called when any item is deleted.
         Signature: func(item)
@@ -266,7 +271,7 @@ cdef class Context:
 
     running : bool
         Whether the context is currently running and processing frames.
-        
+
     clipboard : str
         Content of the system clipboard. Can be read/written.
 
@@ -281,7 +286,8 @@ cdef class Context:
     def __init__(self,
                  queue=None, 
                  item_creation_callback=None,
-                 item_unused_configure_args_callback=None,
+                 item_configure_start_callback=None,
+                 item_configure_end_callback=None,
                  item_deletion_callback=None):
         """Initialize the Context.
 
@@ -295,7 +301,12 @@ cdef class Context:
             Function called during item creation before configuration.
             Signature: func(item)
 
-        item_unused_configure_args_callback : callable, optional  
+        item_configure_start_callback : callable, optional  
+            Callback function called at the start of configure().
+            Can be used to change the arguments dictionary before configuration.
+            Signature: func(item, args_dict) -> args_dict
+
+        item_configure_end_callback : callable, optional  
             Function called when configure() has unused arguments.
             Signature: func(item, unused_args_dict)
 
@@ -317,9 +328,10 @@ cdef class Context:
             if not(isinstance(queue, Executor)):
                 raise TypeError("queue must be a subclass of concurrent.futures.Executor")
             self._queue = queue
-        self._item_creation_callback = item_creation_callback
-        self._item_unused_configure_args_callback = item_unused_configure_args_callback
-        self._item_deletion_callback = item_deletion_callback
+        self.item_creation_callback = item_creation_callback
+        self.item_configure_start_callback = item_configure_start_callback
+        self.item_configure_end_callback = item_configure_end_callback
+        self.item_deletion_callback = item_deletion_callback
         C = self
 
     def __cinit__(self):
@@ -411,14 +423,21 @@ cdef class Context:
         """
         Callback called during item creation before configuration.
         """
-        return self._item_creation_callback
+        return self.item_creation_callback
 
     @property
-    def item_unused_configure_args_callback(self) -> Viewport:
+    def item_configure_start_callback(self) -> Viewport:
         """
-        Callback called during item creation before configuration.
+        Callback called before item configuration
         """
-        return self._item_unused_configure_args_callback
+        return self.item_configure_start_callback
+
+    @property
+    def item_configure_end_callback(self) -> Viewport:
+        """
+        Callback called after item configuration.
+        """
+        return self.item_configure_end_callback
 
     @property
     def item_deletion_callback(self) -> Viewport:
@@ -429,7 +448,7 @@ cdef class Context:
         this callback is called, as the item might have lost its
         pointer on the context.
         """
-        return self._item_deletion_callback
+        return self.item_deletion_callback
 
     def create_new_shared_gl_context(self, int32_t major, int32_t minor):
         """
@@ -1357,8 +1376,8 @@ cdef class baseItem:
     """
 
     def __init__(self, context, *args, **kwargs):
-        if self.context._item_creation_callback is not None:
-            self.context._item_creation_callback(self)
+        if self.context.item_creation_callback is not None:
+            self.context.item_creation_callback(self)
         self.configure(*args, **kwargs)
 
     def __cinit__(self, context, *args, **kwargs):
@@ -1377,6 +1396,8 @@ cdef class baseItem:
         cdef bint ignore_if_fail
         cdef bint should_attach
         cdef bint default_behaviour = True
+        if self.context.item_configure_start_callback is not None:
+            kwargs = self.context.item_configure_start_callback(self, kwargs)
         # The most common case is neither
         # attach, parent, nor before as set.
         # The code is optimized with this case
@@ -1430,21 +1451,12 @@ cdef class baseItem:
                     if parent is not None:
                         try:
                             self.attach_to_parent(parent)
-                        except ValueError as e:
-                            # Needed for tag support
-                            if self.context._item_unused_configure_args_callback is not None and \
-                                isinstance(parent, str):
-                                self.context._item_unused_configure_args_callback(self, {"parent": parent})
-                                pass
-                            else:
-                                if not(ignore_if_fail):
-                                    raise(e)
-                        except TypeError as e:
+                        except (ValueError, TypeError) as e:
                             if not(ignore_if_fail):
                                 raise(e)
 
         # Fast path for this common case
-        if self.context._item_unused_configure_args_callback is None:
+        if self.context.item_configure_end_callback is None:
             for (key, value) in kwargs.items():
                 setattr(self, key, value)
             return
@@ -1455,12 +1467,12 @@ cdef class baseItem:
             except AttributeError as e:
                 remaining[key] = value
         if len(remaining) > 0:
-            self.context._item_unused_configure_args_callback(self, remaining)
+            self.context.item_configure_end_callback(self, remaining)
 
     def __del__(self):
         if self.context is not None:
-            if self.context._item_deletion_callback is not None:
-                self.context._item_deletion_callback(self)
+            if self.context.item_deletion_callback is not None:
+                self.context.item_deletion_callback(self)
 
     def __dealloc__(self):
         clear_obj_vector(self._handlers)

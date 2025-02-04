@@ -543,7 +543,8 @@ class DPGContext(dcg.Context):
     def __init__(self):
         super().__init__(
             item_creation_callback=self.on_item_creation,
-            item_unused_configure_args_callback=self.on_item_unused_configure_args,
+            item_configure_start_callback=self.on_item_configure_start,
+            item_configure_end_callback=self.on_item_configure_end,
             item_deletion_callback=self.on_item_deletion
         )
         self.items = weakref.WeakValueDictionary()
@@ -563,27 +564,40 @@ class DPGContext(dcg.Context):
         if item.children_types != dcg.ChildType.NOCHILD:
             self.threadlocal_data.last_container_uuid = uuid
 
-    def on_item_unused_configure_args(self, item, kwargs : dict):
+    def on_item_configure_start(self, item, kwargs : dict):
         if not(hasattr(item, "uuid")):
-            return
+            print(item, "no uuid ?,?", kwargs)
+            return kwargs
         if "tag" in kwargs:
             uuid = item.uuid
             tag = kwargs.pop("tag")
             old_tag = self.uuid_to_tag.get(uuid, None)
-            if old_tag == tag:
-                return
-            if tag in self.tag_to_uuid:
-                raise KeyError(f"Tag {tag} already in use")
-            if old_tag is not None:
-                del self.tag_to_uuid[old_tag]
-                del self.uuid_to_tag[uuid]
-            if tag is not None:
-                self.uuid_to_tag[uuid] = tag
-                self.tag_to_uuid[tag] = uuid
+            if old_tag != tag:
+                if tag in self.tag_to_uuid:
+                    raise KeyError(f"Tag {tag} already in use")
+                if old_tag is not None:
+                    del self.tag_to_uuid[old_tag]
+                    del self.uuid_to_tag[uuid]
+                if tag is not None:
+                    self.uuid_to_tag[uuid] = tag
+                    self.tag_to_uuid[tag] = uuid
+        if "parent" in kwargs:
+            if kwargs["parent"] is None or kwargs["parent"] == 0:
+                kwargs.pop("parent")
+            else:
+                kwargs["parent"] = self.get(kwargs["parent"])
+        if "before" in kwargs:
+            if kwargs["before"] is None or kwargs["before"] == 0:
+                kwargs.pop("before")
+            else:
+                kwargs["before"] = self.get(kwargs["before"])
         if "source" in kwargs:
             source = kwargs.pop("source")
             if source is not None and (not(isinstance(source, int)) or (source > 0)):
-                item.shareable_value = self.get(source).shareable_value
+                kwargs["shareable_value"] = self.get(source).shareable_value
+        return kwargs
+
+    def on_item_configure_end(self, item, kwargs : dict):
         if len(kwargs) > 0:
             defaults = {'payload_type': '$$DPG_PAYLOAD',
                         'drag_callback': None,
