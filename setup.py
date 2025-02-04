@@ -12,7 +12,7 @@ import numpy as np
 import shutil
 import subprocess
 
-wip_version = "0.0.10"
+wip_version = "0.0.11"
 
 def version_number():
     return wip_version
