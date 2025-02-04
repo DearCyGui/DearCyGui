@@ -122,38 +122,49 @@ cdef class DrawTiledImage(dcg.drawingItem):
             return None
 
     def add_tile(self,
-                 content,
+                 content : np.ndarray | dcg.Texture,
                  coord,
                  opposite_coord=None,
+                 nearest_neighbor_upsampling=False,
                  visible=True) -> None:
         """
         Add a tile to the list of tiles.
         Inputs:
-            content: numpy array, the content of the tile
+            content: numpy array, the content of the tile.
+                Alternatively a dcg.Texture object, in which
+                case nearest_neighbor_upsampling is ignored.
             coord: the top-left coordinate of the tile
             opposite_coord (optional): if not given,
                 defaults to coord + content.shape.
                 Else corresponds to the opposite coordinate
                 of the tile.
             visible (optional): whether the tile should start visible or not.
+            nearest_neighbor_upsampling: whether to use nearest neighbor
+                upsampling when rendering the tile.
         Outputs:
             Unique uuid of the tile.
         """
         cdef unique_lock[DCGMutex] m
-        content = np.asarray(content)
-        assert content.ndim == 2 or content.ndim == 3
-        if content.ndim == 3:
-            assert content.shape[2] <= 4
-
+        cdef dcg.Texture texture
         cdef double[2] top_left
         cdef double[2] bottom_right
+        if isinstance(content, dcg.Texture):
+            texture = content
+        else:
+            content = np.asarray(content)
+            assert content.ndim == 2 or content.ndim == 3
+            if content.ndim == 3:
+                assert content.shape[2] <= 4
+            texture = dcg.Texture(self.context,
+                                  content,
+                                  nearest_neighbor_upsampling=nearest_neighbor_upsampling)
+
         dcg.read_coord(top_left, coord)
         if opposite_coord is None:
-            bottom_right[0] = top_left[0] + content.shape[1]
-            bottom_right[1] = top_left[1] + content.shape[0]
+            bottom_right[0] = top_left[0] + texture.width
+            bottom_right[1] = top_left[1] + texture.height
         else:
             dcg.read_coord(bottom_right, opposite_coord)
-        cdef dcg.Texture texture = dcg.Texture(self.context, content)
         cdef int64_t uuid = self.context.next_uuid.fetch_add(1)
         cdef TileData tile
         tile.xmin = top_left[0]

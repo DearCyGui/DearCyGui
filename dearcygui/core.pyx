@@ -4668,7 +4668,7 @@ cdef class uiItem(baseItem):
                 self.state.cur.pos_to_viewport = self.state.cur.pos_to_window # for windows TODO move to own configure
         if 'callback' in kwargs:
             self.callbacks = kwargs.pop("callback")
-        return super().configure(**kwargs)
+        baseItem.configure(self, **kwargs)
 
     cdef void update_current_state(self) noexcept nogil:
         """
@@ -6951,12 +6951,12 @@ cdef class Texture(baseItem):
             (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
 
     def configure(self, *args, **kwargs):
+        # set parameters before set_content
+        baseItem.configure(self, **kwargs)
         if len(args) == 1:
             self.set_content(np.ascontiguousarray(args[0]))
         elif len(args) != 0:
             raise ValueError("Invalid arguments passed to Texture. Expected content")
-        self._filtering_mode = 1 if kwargs.pop("nearest_neighbor_upsampling", False) else 0
-        return super().configure(**kwargs)
 
     @property
     def hint_dynamic(self):
@@ -7374,7 +7374,7 @@ cdef class baseTheme(baseItem):
     def configure(self, **kwargs):
         self._enabled = kwargs.pop("enabled", self._enabled)
         self._enabled = kwargs.pop("show", self._enabled)
-        return super().configure(**kwargs)
+        baseItem.configure(self, **kwargs)
     @property
     def enabled(self):
         cdef unique_lock[DCGMutex] m
