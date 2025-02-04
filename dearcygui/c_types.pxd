@@ -241,10 +241,10 @@ cdef extern from * nogil:
         void set_composite_label(const char*, size_t, uint64_t) except +
         void clear()
 
-cdef inline DCGString string_from_bytes(bytes b) except *:
+cdef inline DCGString string_from_bytes(bytes b):
     return DCGString(<const char*>b, <size_t>len(b))
 
-cdef inline DCGString string_from_str(str s) except *:
+cdef inline DCGString string_from_str(str s):
     cdef bytes b = s.encode(encoding='utf-8')
     return string_from_bytes(b)
 
@@ -254,11 +254,11 @@ cdef inline bytes string_to_bytes(DCGString &s):
 cdef inline str string_to_str(DCGString &s):
     return string_to_bytes(s).decode(encoding='utf-8')
 
-cdef inline void set_uuid_label(DCGString &s, uint64_t uuid) except +:
+cdef inline void set_uuid_label(DCGString &s, uint64_t uuid):
     """Equivalent to = string_from_bytes(bytes(b'###%ld'% self.uuid))"""
     s.set_uuid_label(uuid)
 
-cdef inline void set_composite_label(DCGString &s, str user_label, uint64_t uuid) except +:
+cdef inline void set_composite_label(DCGString &s, str user_label, uint64_t uuid):
     """Equivalent to string_from_bytes(bytes(self._user_label, 'utf-8') + bytes(b'###%ld'% self.uuid))"""
     cdef bytes b = user_label.encode('utf-8')
     s.set_composite_label(<const char*>b, len(b), uuid)
