@@ -541,6 +541,8 @@ cdef class baseTable(uiItem):
         Does now clear row and column configurations.
         These are cleared only when the Table is released.
         """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         self.clear_items()
         self.children = []
 
