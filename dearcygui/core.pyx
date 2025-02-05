@@ -1509,7 +1509,12 @@ cdef class baseItem:
                 continue
             if key.startswith("__"):
                 continue
-            value = getattr(self, key)
+            try:
+                value = getattr(self, key)
+            except AttributeError:
+                # Some attributes are not available,
+                # for instance uitem states.
+                continue
             if key in whitelist:
                 result[key] = value
                 continue
