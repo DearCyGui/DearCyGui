@@ -406,7 +406,11 @@ def get_pyi_for_classes(C):
         elif issubclass(object_class, dcg.baseFont):
             instance = object_class(C)
         else:
-            instance = object_class(C, attach=False)
+            try:
+                instance = object_class(C, attach=False)
+            except:
+                print(f"Could not create instance for {name}")
+                continue
         result += generate_docstring_for_class(object_class, instance)
     return "\n".join(result)
 

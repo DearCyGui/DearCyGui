@@ -2985,7 +2985,7 @@ cdef class Subplots(uiItem):
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
-        for i in range(self._rows):
+        for i in range(<int>self._row_ratios.size()):
             result.append(self._row_ratios[i])
         return result
 
@@ -3010,7 +3010,7 @@ cdef class Subplots(uiItem):
         lock_gil_friendly(m, self.mutex)
         result = []
         cdef int i
-        for i in range(self._cols):
+        for i in range(<int>self._col_ratios.size()):
             result.append(self._col_ratios[i])
         return result
 

@@ -1466,8 +1466,7 @@ cdef class baseItem:
                 setattr(self, key, value)
             except AttributeError as e:
                 remaining[key] = value
-        if len(remaining) > 0:
-            self.context.item_configure_end_callback(self, remaining)
+        self.context.item_configure_end_callback(self, remaining)
 
     def __del__(self):
         if self.context is not None:
@@ -3983,6 +3982,11 @@ cdef class Callback:
         self.num_args = callback.__code__.co_argcount - num_defaults
         if hasattr(callback, '__self__'):
             self.num_args -= 1
+
+    @property
+    def callback(self):
+        """Wrapped callback"""
+        return self.callback
 
     def __call__(self, source_item, target_item, call_info):
         try:

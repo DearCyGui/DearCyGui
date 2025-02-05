@@ -57,6 +57,7 @@ cdef inline void swap_Vec2(Vec2 &a, Vec2 &b) noexcept nogil:
 
 cdef extern from * nogil:
     """
+    #include <inttypes.h>
     #define MAX_STR_LEN (64*1024*1024)
     #define SMALL_BUF_SIZE 64  // Enough for most labels + uuid
 
@@ -168,7 +169,7 @@ cdef extern from * nogil:
                 free(_data);
                 _data = nullptr;
             }
-            _length = snprintf(_small_buf, SMALL_BUF_SIZE, "###%lu", uuid);
+            _length = snprintf(_small_buf, SMALL_BUF_SIZE, "###%" PRIu64, uuid);
             _capacity = SMALL_BUF_SIZE;
         }
 
@@ -190,7 +191,7 @@ cdef extern from * nogil:
                 _length = label_len + snprintf(
                     _small_buf + label_len,
                     SMALL_BUF_SIZE - label_len,
-                    "###%lu",
+                    "###%" PRIu64,
                     uuid
                 );
                 _capacity = SMALL_BUF_SIZE;
@@ -203,7 +204,7 @@ cdef extern from * nogil:
                 size_t uuid_len = snprintf(
                     new_data + label_len,
                     total_len - label_len,
-                    "###%lu",
+                    "###%" PRIu64,
                     uuid
                 );
                 if (_data) {
