@@ -418,10 +418,11 @@ cdef extern from * nogil:
     #include <atomic>
     #include <thread>
 
-    class DCGMutex {
+    struct DCGMutex {
     private:
         alignas(8) std::atomic<std::thread::id> owner_{std::thread::id()};
         alignas(4) std::atomic<int32_t> count_{0};
+        char _padding[4]{};
 
     public:
         DCGMutex() noexcept = default;
