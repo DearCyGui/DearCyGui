@@ -3863,7 +3863,7 @@ cdef class Tooltip(uiItem):
     def condition_from_handler(self, baseHandler handler):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if self._target is not None:
+        if self._target is not None and handler is not None:
             handler.check_bind(self._target)
         self._secondary_handler = handler
 
