@@ -1496,6 +1496,12 @@ cdef class baseItem:
             "context", "uuid", "mutex", "shareable_value"
         ])
 
+        # items for which we want to avoid setattr
+        whitelist = set([
+            "pos_to_parent", "pos_to_viewport", "pos_to_window",
+            "pos_to_default", "pos_policy"
+        ])
+
         # Retrieve the attributes of the item
         # that are not methods.
         for key in dir(self):
@@ -1504,6 +1510,9 @@ cdef class baseItem:
             if key.startswith("__"):
                 continue
             value = getattr(self, key)
+            if key in whitelist:
+                result[key] = value
+                continue
             try:
                 setattr(self, key, value)
             except (AttributeError, TypeError):
