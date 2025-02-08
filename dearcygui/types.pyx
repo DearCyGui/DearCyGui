@@ -1190,3 +1190,6 @@ cdef object make_PlotMarker(int32_t marker):
 
 cdef object make_Positioning(Positioning positioning):
     return Positioning(positioning)
+
+cdef object make_MouseButtonMask(MouseButtonMask mask):
+    return MouseButtonMask(mask)

@@ -339,7 +339,7 @@ class DebugMixin:
 
     def _wrapped_delitem(self, key):
         self._log(4, f"DELITEM {self.__class__.__name__}[{key}]")
-        super().__delitem__(key, value)
+        super().__delitem__(key)
 
     def _wrapped_init(self, *args, **kwargs):
         self._log(4, f"INIT {self.__class__.__name__}")
@@ -367,8 +367,8 @@ def create_debug_wrapper(func: Callable) -> Callable:
         start = time.perf_counter()
         
         # Log call
-        print(f"[{time.time():.6f}] [{thread.name}] CALL {func.__name__}")
         if _VERBOSITY >= 2:
+            print(f"[{time.time():.6f}] [{thread.name}] CALL {func.__name__}")
             # Skip logging self argument for instance methods
             arg_start = 1 if args else 0
             for i, arg in enumerate(args[arg_start:], start=arg_start):
@@ -384,8 +384,8 @@ def create_debug_wrapper(func: Callable) -> Callable:
                 result = func(*args, **kwargs)
 
             duration = (time.perf_counter() - start) * 1000
-            
-            print(f"[{time.time():.6f}] [{thread.name}] RETURN {func.__name__} -> {type(result).__name__} ({duration:.2f}ms)")
+            if _VERBOSITY >= 2:
+                print(f"[{time.time():.6f}] [{thread.name}] RETURN {func.__name__} -> {type(result).__name__} ({duration:.2f}ms)")
             if _VERBOSITY >= 3:
                 print(f"[{time.time():.6f}] [{thread.name}]   Value: {result}")
                 
@@ -393,7 +393,13 @@ def create_debug_wrapper(func: Callable) -> Callable:
             
         except Exception as e:
             duration = (time.perf_counter() - start) * 1000
-            print(f"[{time.time():.6f}] [{thread.name}] ERROR {func.__name__} -> {type(e).__name__}: {e} ({duration:.2f}ms)")
+            if func.__name__ == "attach_to_parent":
+                # Errors are expected for this function when the parent is incompatible
+                if _VERBOSITY >= 2:
+                    print(f"[{time.time():.6f}] [{thread.name}] INFO {func.__name__}: {type(e).__name__}: {e} ({duration:.2f}ms)")
+                    print("This warning can be safely ignored if you didn't intend to attach this item to this parent")
+            else:
+                print(f"[{time.time():.6f}] [{thread.name}] ERROR {func.__name__} -> {type(e).__name__}: {e} ({duration:.2f}ms)")
             raise
             
     # Preserve classmethod decoration

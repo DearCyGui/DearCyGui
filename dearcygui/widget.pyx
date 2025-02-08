@@ -87,7 +87,7 @@ cdef class DrawInvisibleButton(drawingItem):
     where top left is (0, 0) and bottom right is (1, 1).
     """
     def __cinit__(self):
-        self._button = 31
+        self._button = <int32_t>MouseButtonMask.ANY
         self.state.cap.can_be_active = True
         self.state.cap.can_be_clicked = True
         self.state.cap.can_be_dragged = True
@@ -119,15 +119,13 @@ cdef class DrawInvisibleButton(drawingItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return <MouseButtonMask>self._button
+        return make_MouseButtonMask(<MouseButtonMask>self._button)
 
     @button.setter
-    def button(self, MouseButtonMask value):
+    def button(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if <int>value < 0 or <int>value > 31:
-            raise ValueError(f"Invalid button mask {value} passed to {self}")
-        self._button = <imgui.ImGuiButtonFlags>value
+        self._button = <int32_t>make_MouseButtonMask(value)
 
     @property
     def p1(self):

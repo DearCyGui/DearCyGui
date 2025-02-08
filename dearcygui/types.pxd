@@ -43,6 +43,7 @@ cpdef enum class MouseButtonMask:
 #    X2 = 16,
 #    ANY = 31
 
+cdef object make_MouseButtonMask(MouseButtonMask mask)
 
 cpdef enum class MouseCursor:
     CursorNone = -1,
