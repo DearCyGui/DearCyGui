@@ -1,7 +1,7 @@
 from .core cimport baseItem, baseFont, itemState, \
     plotElement, uiItem, Callback, baseHandler
 from .types cimport *
-from .c_types cimport DCGString, DCGVector
+from .c_types cimport DCGString, DCGVector, DCG1DArrayView
 
 from libc.stdint cimport int32_t
 
@@ -83,17 +83,17 @@ cdef class plotElementWithLegend(plotElement):
     cdef void draw_element(self) noexcept nogil
 
 cdef class plotElementXY(plotElementWithLegend):
-    cdef cnp.ndarray _X
-    cdef cnp.ndarray _Y
+    cdef DCG1DArrayView _X
+    cdef DCG1DArrayView _Y
     cdef void check_arrays(self) noexcept nogil
 
 cdef class PlotLine(plotElementXY):
     cdef void draw_element(self) noexcept nogil
 
 cdef class plotElementXYY(plotElementWithLegend):
-    cdef cnp.ndarray _X
-    cdef cnp.ndarray _Y1
-    cdef cnp.ndarray _Y2
+    cdef DCG1DArrayView _X
+    cdef DCG1DArrayView _Y1
+    cdef DCG1DArrayView _Y2
     cdef void check_arrays(self) noexcept nogil
 
 cdef class PlotShadedLine(plotElementXYY):
@@ -110,7 +110,7 @@ cdef class PlotStairs(plotElementXY):
     cdef void draw_element(self) noexcept nogil
 
 cdef class plotElementX(plotElementWithLegend):
-    cdef cnp.ndarray _X
+    cdef DCG1DArrayView _X
     cdef void check_arrays(self) noexcept nogil
 
 cdef class PlotInfLines(plotElementX):
@@ -152,8 +152,8 @@ cdef class PlotDigital(plotElementXY):
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotErrorBars(plotElementXY):
-    cdef cnp.ndarray _pos
-    cdef cnp.ndarray _neg
+    cdef DCG1DArrayView _pos
+    cdef DCG1DArrayView _neg
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotAnnotation(plotElement):

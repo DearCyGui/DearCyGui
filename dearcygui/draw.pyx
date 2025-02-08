@@ -2251,7 +2251,7 @@ cdef class DrawPolygon(drawingItem):
         cdef vector[double] coords
         coords.reserve(self._points.size() * 2)
         cdef int32_t i
-        for i in range(<int>self._points.size()):
+        for i in range(<int32_t>self._points.size()):
             coords.push_back(self._points[i].p[0])
             coords.push_back(self._points[i].p[1])
 
@@ -2261,7 +2261,7 @@ cdef class DrawPolygon(drawingItem):
         # Convert to DCGVector instead
         self._triangulation_indices.clear()
         self._triangulation_indices.reserve(triangulation.size())
-        for i in range(triangulation.size()):
+        for i in range(<int32_t>triangulation.size()):
             self._triangulation_indices.push_back(triangulation[i])
 
     cdef void draw(self,
@@ -2282,7 +2282,7 @@ cdef class DrawPolygon(drawingItem):
         cdef int32_t i
         cdef bint ccw
         ipoints.reserve(self._points.size())
-        for i in range(<int>self._points.size()):
+        for i in range(<int32_t>self._points.size()):
             self.context.viewport.coordinate_to_screen(p, self._points[i].p)
             ip = imgui.ImVec2(p[0], p[1])
             ipoints.push_back(ip)
@@ -2294,7 +2294,7 @@ cdef class DrawPolygon(drawingItem):
             # but the matrix can change the order.
             # The order should be the same for all triangles, except in plot with log
             # scale.
-            for i in range(self._triangulation_indices.size()//3):
+            for i in range(<int32_t>self._triangulation_indices.size()//3):
                 ccw = is_counter_clockwise(ipoints[self._triangulation_indices[i*3+0]],
                                            ipoints[self._triangulation_indices[i*3+1]], 
                                            ipoints[self._triangulation_indices[i*3+2]])

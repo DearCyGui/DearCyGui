@@ -1972,70 +1972,58 @@ cdef class plotElementWithLegend(plotElement):
 
 cdef class plotElementXY(plotElementWithLegend):
     def __cinit__(self):
-        self._X = np.zeros(shape=(1,), dtype=np.float64)
-        self._Y = np.zeros(shape=(1,), dtype=np.float64)
+        return
+        #self._X = DCG1DArrayView() # implicit
+        #self._Y = DCG1DArrayView()
 
-    @property
+    @property 
     def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._X
+        return get_object_from_array_view(self._X)
 
     @X.setter
     def X(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        # We don't support array of pointers. Must be data,
-        # with eventually a non-standard stride
-        # type must also be one of the supported types
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._X = array
+        if value is None:
+            self._X.reset()
         else:
-            self._X = np.ascontiguousarray(array, dtype=np.float64)
+            self._X.reset(value)
 
     @property
     def Y(self):
+        """Values on the Y axis"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._Y
+        return get_object_from_array_view(self._Y)
 
     @Y.setter
     def Y(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        # We don't support array of pointers. Must be data,
-        # with eventually a non-standard stride
-        # type must also be one of the supported types
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._Y = array
+        if value is None:
+            self._Y.reset()
         else:
-            self._Y = np.ascontiguousarray(array, dtype=np.float64)
+            self._Y.reset(value)
 
     cdef void check_arrays(self) noexcept nogil:
-        # X and Y must be same type and same stride
-        if cnp.PyArray_TYPE(self._X) != cnp.PyArray_TYPE(self._Y):
+        # plot function require same type
+        # and same stride
+        if self._X.type() != self._Y.type():
             with gil:
-                self._X = np.ascontiguousarray(self._X, dtype=np.float64)
-                self._Y = np.ascontiguousarray(self._Y, dtype=np.float64)
-        if cnp.PyArray_STRIDE(self._X, 0) != cnp.PyArray_STRIDE(self._Y, 0):
+                self._X.ensure_double()
+                self._Y.ensure_double()
+        if self._X.stride() != self._Y.stride():
             with gil:
-                self._X = np.ascontiguousarray(self._X, dtype=np.float64)
-                self._Y = np.ascontiguousarray(self._Y, dtype=np.float64)
+                self._X.ensure_contiguous()
+                self._Y.ensure_contiguous()
 
 cdef class PlotLine(plotElementXY):
     @property
@@ -2127,163 +2115,143 @@ cdef class PlotLine(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.size(), self._Y.size())
         if size == 0:
             return
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotLine[int](self._imgui_label.c_str(),
-                                 <const int*>cnp.PyArray_DATA(self._X),
-                                 <const int*>cnp.PyArray_DATA(self._Y),
+        if self._X.type() == DCG_INT32:
+            implot.PlotLine[int32_t](self._imgui_label.c_str(),
+                                 self._X.data[int32_t](),
+                                 self._Y.data[int32_t](),
                                  size,
                                  self._flags,
                                  0,
-                                 cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                 self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotLine[float](self._imgui_label.c_str(),
-                                   <const float*>cnp.PyArray_DATA(self._X),
-                                   <const float*>cnp.PyArray_DATA(self._Y),
+                                   self._X.data[float](),
+                                   self._Y.data[float](),
                                    size,
                                    self._flags,
                                    0,
-                                   cnp.PyArray_STRIDE(self._X, 0))
+                                   self._X.stride())
         else:
             implot.PlotLine[double](self._imgui_label.c_str(),
-                                    <const double*>cnp.PyArray_DATA(self._X),
-                                    <const double*>cnp.PyArray_DATA(self._Y),
+                                    self._X.data[double](),
+                                    self._Y.data[double](),
                                     size,
                                     self._flags,
                                     0,
-                                    cnp.PyArray_STRIDE(self._X, 0))
+                                    self._X.stride())
 
 cdef class plotElementXYY(plotElementWithLegend):
     def __cinit__(self):
-        self._X = np.zeros(shape=(1,), dtype=np.float64)
-        self._Y1 = np.zeros(shape=(1,), dtype=np.float64)
-        self._Y2 = np.zeros(shape=(1,), dtype=np.float64)
+        return
+        #self._X = DCG1DArrayView() # implicit
+        #self._Y1 = DCG1DArrayView()
+        #self._Y2 = DCG1DArrayView()
 
-    @property
+    @property 
     def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._X
+        return get_object_from_array_view(self._X)
 
     @X.setter
     def X(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        # We don't support array of pointers. Must be data,
-        # with eventually a non-standard stride
-        # type must also be one of the supported types
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._X = array
+        if value is None:
+            self._X.reset()
         else:
-            self._X = np.ascontiguousarray(array, dtype=np.float64)
+            self._X.reset(value)
 
     @property
     def Y1(self):
+        """Values on the Y1 axis"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._Y1
+        return get_object_from_array_view(self._Y1)
 
     @Y1.setter
     def Y1(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        # We don't support array of pointers. Must be data,
-        # with eventually a non-standard stride
-        # type must also be one of the supported types
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._Y1 = array
+        if value is None:
+            self._Y1.reset()
         else:
-            self._Y1 = np.ascontiguousarray(array, dtype=np.float64)
+            self._Y1.reset(value)
 
     @property
     def Y2(self):
+        """Values on the Y2 axis"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._Y2
+        return get_object_from_array_view(self._Y2)
 
     @Y2.setter
     def Y2(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        # We don't support array of pointers. Must be data,
-        # with eventually a non-standard stride
-        # type must also be one of the supported types
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._Y2 = array
+        if value is None:
+            self._Y2.reset()
         else:
-            self._Y2 = np.ascontiguousarray(array, dtype=np.float64)
+            self._Y2.reset(value)
 
     cdef void check_arrays(self) noexcept nogil:
-        # X, Y1 and Y2 must be same type and same stride
-        if cnp.PyArray_TYPE(self._X) != cnp.PyArray_TYPE(self._Y1) or \
-           cnp.PyArray_TYPE(self._X) != cnp.PyArray_TYPE(self._Y2):
+        # plot function require same type
+        # and same stride
+        if self._X.type() != self._Y1.type() or self._X.type() != self._Y2.type():
             with gil:
-                self._X = np.ascontiguousarray(self._X, dtype=np.float64)
-                self._Y1 = np.ascontiguousarray(self._Y1, dtype=np.float64)
-                self._Y2 = np.ascontiguousarray(self._Y2, dtype=np.float64)
-        if cnp.PyArray_STRIDE(self._X, 0) != cnp.PyArray_STRIDE(self._Y1, 0) or \
-           cnp.PyArray_STRIDE(self._X, 0) != cnp.PyArray_STRIDE(self._Y2, 0):
+                self._X.ensure_double()
+                self._Y1.ensure_double()
+                self._Y2.ensure_double()
+        if self._X.stride() != self._Y1.stride() or self._X.stride() != self._Y2.stride():
             with gil:
-                self._X = np.ascontiguousarray(self._X, dtype=np.float64)
-                self._Y1 = np.ascontiguousarray(self._Y1, dtype=np.float64)
-                self._Y2 = np.ascontiguousarray(self._Y2, dtype=np.float64)
+                self._X.ensure_contiguous()
+                self._Y1.ensure_contiguous()
+                self._Y2.ensure_contiguous()
 
 cdef class PlotShadedLine(plotElementXYY):
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(min(self._X.shape[0], self._Y1.shape[0]), self._Y2.shape[0])
+        cdef int32_t size = min(min(self._X.size(), self._Y1.size()), self._Y2.size())
         if size == 0:
             return
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotShaded[int](self._imgui_label.c_str(),
-                                   <const int*>cnp.PyArray_DATA(self._X),
-                                   <const int*>cnp.PyArray_DATA(self._Y1),
-                                   <const int*>cnp.PyArray_DATA(self._Y2),
+        if self._X.type() == DCG_INT32:
+            implot.PlotShaded[int32_t](self._imgui_label.c_str(),
+                                   self._X.data[int32_t](),
+                                   self._Y1.data[int32_t](),
+                                   self._Y2.data[int32_t](),
                                    size,
                                    self._flags,
                                    0,
-                                   cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                   self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotShaded[float](self._imgui_label.c_str(),
-                                     <const float*>cnp.PyArray_DATA(self._X),
-                                     <const float*>cnp.PyArray_DATA(self._Y1),
-                                     <const float*>cnp.PyArray_DATA(self._Y2),
+                                     self._X.data[float](),
+                                     self._Y1.data[float](),
+                                     self._Y2.data[float](),
                                      size,
                                      self._flags,
                                      0,
-                                     cnp.PyArray_STRIDE(self._X, 0))
+                                     self._X.stride())
         else:
             implot.PlotShaded[double](self._imgui_label.c_str(),
-                                      <const double*>cnp.PyArray_DATA(self._X),
-                                      <const double*>cnp.PyArray_DATA(self._Y1),
-                                      <const double*>cnp.PyArray_DATA(self._Y2),
+                                      self._X.data[double](),
+                                      self._Y1.data[double](),
+                                      self._Y2.data[double](),
                                       size,
                                       self._flags,
                                       0,
-                                      cnp.PyArray_STRIDE(self._X, 0))
+                                      self._X.stride())
 
 cdef class PlotStems(plotElementXY):
     @property
@@ -2305,37 +2273,37 @@ cdef class PlotStems(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.size(), self._Y.size())
         if size == 0:
             return
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotStems[int](self._imgui_label.c_str(),
-                                 <const int*>cnp.PyArray_DATA(self._X),
-                                 <const int*>cnp.PyArray_DATA(self._Y),
+        if self._X.type() == DCG_INT32:
+            implot.PlotStems[int32_t](self._imgui_label.c_str(),
+                                 self._X.data[int32_t](),
+                                 self._Y.data[int32_t](),
                                  size,
                                  0.,
                                  self._flags,
                                  0,
-                                 cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                 self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotStems[float](self._imgui_label.c_str(),
-                                   <const float*>cnp.PyArray_DATA(self._X),
-                                   <const float*>cnp.PyArray_DATA(self._Y),
+                                   self._X.data[float](),
+                                   self._Y.data[float](),
                                    size,
                                    0.,
                                    self._flags,
                                    0,
-                                   cnp.PyArray_STRIDE(self._X, 0))
+                                   self._X.stride())
         else:
             implot.PlotStems[double](self._imgui_label.c_str(),
-                                    <const double*>cnp.PyArray_DATA(self._X),
-                                    <const double*>cnp.PyArray_DATA(self._Y),
+                                    self._X.data[double](),
+                                    self._Y.data[double](),
                                     size,
                                     0.,
                                     self._flags,
                                     0,
-                                    cnp.PyArray_STRIDE(self._X, 0))
+                                    self._X.stride())
 
 cdef class PlotBars(plotElementXY):
     def __cinit__(self):
@@ -2375,37 +2343,37 @@ cdef class PlotBars(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.size(), self._Y.size())
         if size == 0:
             return
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotBars[int](self._imgui_label.c_str(),
-                                 <const int*>cnp.PyArray_DATA(self._X),
-                                 <const int*>cnp.PyArray_DATA(self._Y),
+        if self._X.type() == DCG_INT32:
+            implot.PlotBars[int32_t](self._imgui_label.c_str(),
+                                 self._X.data[int32_t](),
+                                 self._Y.data[int32_t](),
                                  size,
                                  self._weight,
                                  self._flags,
                                  0,
-                                 cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                 self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotBars[float](self._imgui_label.c_str(),
-                                   <const float*>cnp.PyArray_DATA(self._X),
-                                   <const float*>cnp.PyArray_DATA(self._Y),
+                                   self._X.data[float](),
+                                   self._Y.data[float](),
                                    size,
                                    self._weight,
                                    self._flags,
                                    0,
-                                   cnp.PyArray_STRIDE(self._X, 0))
+                                   self._X.stride())
         else:
             implot.PlotBars[double](self._imgui_label.c_str(),
-                                    <const double*>cnp.PyArray_DATA(self._X),
-                                    <const double*>cnp.PyArray_DATA(self._Y),
+                                    self._X.data[double](),
+                                    self._Y.data[double](),
                                     size,
                                     self._weight,
                                     self._flags,
                                     0,
-                                    cnp.PyArray_STRIDE(self._X, 0))
+                                    self._X.stride())
 
 cdef class PlotStairs(plotElementXY):
     @property
@@ -2448,67 +2416,60 @@ cdef class PlotStairs(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.size(), self._Y.size())
         if size == 0:
             return
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotStairs[int](self._imgui_label.c_str(),
-                                 <const int*>cnp.PyArray_DATA(self._X),
-                                 <const int*>cnp.PyArray_DATA(self._Y),
+        if self._X.type() == DCG_INT32:
+            implot.PlotStairs[int32_t](self._imgui_label.c_str(),
+                                 self._X.data[int32_t](),
+                                 self._Y.data[int32_t](),
                                  size,
                                  self._flags,
                                  0,
-                                 cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                 self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotStairs[float](self._imgui_label.c_str(),
-                                   <const float*>cnp.PyArray_DATA(self._X),
-                                   <const float*>cnp.PyArray_DATA(self._Y),
+                                   self._X.data[float](),
+                                   self._Y.data[float](),
                                    size,
                                    self._flags,
                                    0,
-                                   cnp.PyArray_STRIDE(self._X, 0))
+                                   self._X.stride())
         else:
             implot.PlotStairs[double](self._imgui_label.c_str(),
-                                    <const double*>cnp.PyArray_DATA(self._X),
-                                    <const double*>cnp.PyArray_DATA(self._Y),
+                                    self._X.data[double](),
+                                    self._Y.data[double](),
                                     size,
                                     self._flags,
                                     0,
-                                    cnp.PyArray_STRIDE(self._X, 0))
+                                    self._X.stride())
 
 cdef class plotElementX(plotElementWithLegend):
     def __cinit__(self):
-        self._X = np.zeros(shape=(1,), dtype=np.float64)
+        return
+        #self._X = DCG1DArrayView() # Implicit
 
     @property
     def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._X
+        return get_object_from_array_view(self._X)
 
-    @X.setter
+    @X.setter 
     def X(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        # We don't support array of pointers. Must be data,
-        # with eventually a non-standard stride
-        # type must also be one of the supported types
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._X = array
+        if value is None:
+            self._X.reset()
         else:
-            self._X = np.ascontiguousarray(array, dtype=np.float64)
+            self._X.reset(value)
 
     cdef void check_arrays(self) noexcept nogil:
         return
@@ -2538,31 +2499,31 @@ cdef class PlotInfLines(plotElementX):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = self._X.shape[0]
+        cdef int32_t size = self._X.size()
         if size == 0:
             return
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotInfLines[int](self._imgui_label.c_str(),
-                                 <const int*>cnp.PyArray_DATA(self._X),
+        if self._X.type() == DCG_INT32:
+            implot.PlotInfLines[int32_t](self._imgui_label.c_str(),
+                                 self._X.data[int32_t](),
                                  size,
                                  self._flags,
                                  0,
-                                 cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                 self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotInfLines[float](self._imgui_label.c_str(),
-                                   <const float*>cnp.PyArray_DATA(self._X),
+                                   self._X.data[float](),
                                    size,
                                    self._flags,
                                    0,
-                                   cnp.PyArray_STRIDE(self._X, 0))
+                                   self._X.stride())
         else:
             implot.PlotInfLines[double](self._imgui_label.c_str(),
-                                    <const double*>cnp.PyArray_DATA(self._X),
+                                    self._X.data[double](),
                                     size,
                                     self._flags,
                                     0,
-                                    cnp.PyArray_STRIDE(self._X, 0))
+                                    self._X.stride())
 
 cdef class PlotScatter(plotElementXY):
     @property
@@ -2584,34 +2545,34 @@ cdef class PlotScatter(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.size(), self._Y.size())
         if size == 0:
             return
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotScatter[int](self._imgui_label.c_str(),
-                                 <const int*>cnp.PyArray_DATA(self._X),
-                                 <const int*>cnp.PyArray_DATA(self._Y),
+        if self._X.type() == DCG_INT32:
+            implot.PlotScatter[int32_t](self._imgui_label.c_str(),
+                                 self._X.data[int32_t](),
+                                 self._Y.data[int32_t](),
                                  size,
                                  self._flags,
                                  0,
-                                 cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                 self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotScatter[float](self._imgui_label.c_str(),
-                                   <const float*>cnp.PyArray_DATA(self._X),
-                                   <const float*>cnp.PyArray_DATA(self._Y),
+                                   self._X.data[float](),
+                                   self._Y.data[float](),
                                    size,
                                    self._flags,
                                    0,
-                                   cnp.PyArray_STRIDE(self._X, 0))
+                                   self._X.stride())
         else:
             implot.PlotScatter[double](self._imgui_label.c_str(),
-                                    <const double*>cnp.PyArray_DATA(self._X),
-                                    <const double*>cnp.PyArray_DATA(self._Y),
+                                    self._X.data[double](),
+                                    self._Y.data[double](),
                                     size,
                                     self._flags,
                                     0,
-                                    cnp.PyArray_STRIDE(self._X, 0))
+                                    self._X.stride())
 
 '''
 cdef class plotDraggable(plotElement):
@@ -3401,8 +3362,8 @@ cdef class PlotBarGroups(plotElementWithLegend):
             labels_cstr.push_back(self._labels[i].c_str())
 
         if cnp.PyArray_TYPE(self._values) == cnp.NPY_INT:
-            implot.PlotBarGroups[int](labels_cstr.data(),
-                                      <const int*>cnp.PyArray_DATA(self._values),
+            implot.PlotBarGroups[int32_t](labels_cstr.data(),
+                                      <const int32_t*>cnp.PyArray_DATA(self._values),
                                       <int>self._values.shape[0],
                                       <int>self._values.shape[1],
                                       self._group_size,
@@ -3611,8 +3572,8 @@ cdef class PlotPieChart(plotElementWithLegend):
             labels_cstr.push_back(self._labels[i].c_str())
 
         if cnp.PyArray_TYPE(self._values) == cnp.NPY_INT:
-            implot.PlotPieChart[int](labels_cstr.data(),
-                                    <const int*>cnp.PyArray_DATA(self._values),
+            implot.PlotPieChart[int32_t](labels_cstr.data(),
+                                    <const int32_t*>cnp.PyArray_DATA(self._values),
                                     <int>self._values.shape[0],
                                     self._x,
                                     self._y,
@@ -3650,34 +3611,34 @@ cdef class PlotDigital(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.size(), self._Y.size())
         if size == 0:
             return
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotDigital[int](self._imgui_label.c_str(),
-                                   <const int*>cnp.PyArray_DATA(self._X),
-                                   <const int*>cnp.PyArray_DATA(self._Y),
+        if self._X.type() == DCG_INT32:
+            implot.PlotDigital[int32_t](self._imgui_label.c_str(),
+                                   self._X.data[int32_t](),
+                                   self._Y.data[int32_t](),
                                    size,
                                    self._flags,
                                    0,
-                                   cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                   self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotDigital[float](self._imgui_label.c_str(),
-                                     <const float*>cnp.PyArray_DATA(self._X),
-                                     <const float*>cnp.PyArray_DATA(self._Y),
+                                     self._X.data[float](),
+                                     self._Y.data[float](),
                                      size,
                                      self._flags,
                                      0,
-                                     cnp.PyArray_STRIDE(self._X, 0))
+                                     self._X.stride())
         else:
             implot.PlotDigital[double](self._imgui_label.c_str(),
-                                      <const double*>cnp.PyArray_DATA(self._X),
-                                      <const double*>cnp.PyArray_DATA(self._Y),
+                                      self._X.data[double](),
+                                      self._Y.data[double](),
                                       size,
                                       self._flags,
                                       0,
-                                      cnp.PyArray_STRIDE(self._X, 0))
+                                      self._X.stride())
 
 
 cdef class PlotErrorBars(plotElementXY):
@@ -3686,59 +3647,49 @@ cdef class PlotErrorBars(plotElementXY):
     Each error bar can have a different positive/negative error value.
     """
     def __cinit__(self):
-        self._pos = np.zeros(shape=(1,), dtype=np.float64)
-        self._neg = None  # Optional negative errors
+        return
+        #self._pos = DCG1DArrayView()
+        #self._neg = DCG1DArrayView() # optional - empty when unused
 
     @property
     def positives(self):
         """Positive error values array.
-
-        If negatives is set to None,
-        the error bars will be symmetrical around the Y value.
+        
+        If negatives is empty, error bars will be symmetrical
+        around the Y value.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._pos
+        return get_object_from_array_view(self._pos)
 
     @positives.setter
     def positives(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._pos = array
+        if value is None:
+            self._pos.reset()
         else:
-            self._pos = np.ascontiguousarray(array, dtype=np.float64)
+            self._pos.reset(value)
 
     @property
     def negatives(self):
         """Negative error values array.
         
-        If set to None, the error bars will be symmetrical.
-        (This is equivalent to negatives=positives)
+        If empty, the error bars will be symmetrical
+        (equivalent to negatives=positives)
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._neg
+        return get_object_from_array_view(self._neg)
 
     @negatives.setter
     def negatives(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
-            self._neg = None
-            return
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._neg = array
-        else:
-            self._neg = np.ascontiguousarray(array, dtype=np.float64)
+            self._neg.reset()
+        else: 
+            self._neg.reset(value)
 
     @property
     def horizontal(self):
@@ -3759,51 +3710,50 @@ cdef class PlotErrorBars(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(self._X.shape[0],
-                            self._Y.shape[0],
-                            self._pos.shape[0])
-        if self._neg is not None:
-            size = min(size, self._neg.shape[0])
+        cdef int32_t size = min(<int32_t>self._X.size(),
+                              min(<int32_t>self._Y.size(), 
+                                  <int32_t>self._pos.size()))
+        if <int32_t>self._neg.size() > 0:
+            size = min(size, <int32_t>self._neg.size())
         if size == 0:
             return
-        cdef const void* neg
-        if self._neg is not None:
-            neg = cnp.PyArray_DATA(self._neg)
+        cdef const void* neg_data
+        if self._neg.size() > 0:
+            neg_data = self._neg.data[int32_t]()
         else:
-            neg = cnp.PyArray_DATA(self._pos)
+            neg_data = self._pos.data[int32_t]()
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotErrorBars[int](self._imgui_label.c_str(),
-                                      <const int*>cnp.PyArray_DATA(self._X),
-                                      <const int*>cnp.PyArray_DATA(self._Y),
-                                      <const int*>neg,
-                                      <const int*>cnp.PyArray_DATA(self._pos),
+        if self._X.type() == DCG_INT32:
+            implot.PlotErrorBars[int32_t](self._imgui_label.c_str(),
+                                      self._X.data[int32_t](),
+                                      self._Y.data[int32_t](),
+                                      <const int32_t*>neg_data,
+                                      self._pos.data[int32_t](),
                                       size,
                                       self._flags,
                                       0,
-                                      cnp.PyArray_STRIDE(self._X, 0))
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+                                      self._X.stride())
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotErrorBars[float](self._imgui_label.c_str(),
-                                        <const float*>cnp.PyArray_DATA(self._X),
-                                        <const float*>cnp.PyArray_DATA(self._Y),
-                                        <const float*>neg,
-                                        <const float*>cnp.PyArray_DATA(self._pos),
+                                        self._X.data[float](),
+                                        self._Y.data[float](),
+                                        <const float*>neg_data,
+                                        self._pos.data[float](),
                                         size,
                                         self._flags,
                                         0,
-                                        cnp.PyArray_STRIDE(self._X, 0))
+                                        self._X.stride())
             
         else:
             implot.PlotErrorBars[double](self._imgui_label.c_str(),
-                                         <const double*>cnp.PyArray_DATA(self._X),
-                                         <const double*>cnp.PyArray_DATA(self._Y),
-                                         <const double*>neg,
-                                         <const double*>cnp.PyArray_DATA(self._pos),
+                                         self._X.data[double](),
+                                         self._Y.data[double](),
+                                         <const double*>neg_data,
+                                         self._pos.data[double](),
                                          size,
                                          self._flags,
                                          0,
-                                         cnp.PyArray_STRIDE(self._X, 0))
-
+                                         self._X.stride())
 
 cdef class PlotAnnotation(plotElement):
     """
@@ -4049,7 +3999,7 @@ cdef class PlotHistogram(plotElementX):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = self._X.shape[0]
+        cdef int32_t size = self._X.size()
         if size == 0:
             return
 
@@ -4063,17 +4013,17 @@ cdef class PlotHistogram(plotElementX):
             hist_range.Min = 0
             hist_range.Max = 0
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotHistogram[int](self._imgui_label.c_str(), 
-                                     <const int*>cnp.PyArray_DATA(self._X),
+        if self._X.type() == DCG_INT32:
+            implot.PlotHistogram[int32_t](self._imgui_label.c_str(), 
+                                     self._X.data[int32_t](),
                                      size,
                                      self._bins,
                                      self._bar_scale,
                                      hist_range,
                                      self._flags)
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotHistogram[float](self._imgui_label.c_str(),
-                                       <const float*>cnp.PyArray_DATA(self._X), 
+                                       self._X.data[float](), 
                                        size,
                                        self._bins,
                                        self._bar_scale,
@@ -4081,7 +4031,7 @@ cdef class PlotHistogram(plotElementX):
                                        self._flags)
         else:
             implot.PlotHistogram[double](self._imgui_label.c_str(),
-                                        <const double*>cnp.PyArray_DATA(self._X),
+                                        self._X.data[double](),
                                         size,
                                         self._bins,
                                         self._bar_scale, 
@@ -4223,7 +4173,7 @@ cdef class PlotHistogram2D(plotElementXY):
 
     cdef void draw_element(self) noexcept nogil:
         self.check_arrays()
-        cdef int32_t size = min(self._X.shape[0], self._Y.shape[0])
+        cdef int32_t size = min(self._X.size(), self._Y.size())
         if size == 0:
             return
 
@@ -4249,19 +4199,19 @@ cdef class PlotHistogram2D(plotElementXY):
         hist_rect.X = hist_range_x
         hist_rect.Y = hist_range_y
 
-        if cnp.PyArray_TYPE(self._X) == cnp.NPY_INT:
-            implot.PlotHistogram2D[int](self._imgui_label.c_str(),
-                                        <const int*>cnp.PyArray_DATA(self._X),
-                                        <const int*>cnp.PyArray_DATA(self._Y),
+        if self._X.type() == DCG_INT32:
+            implot.PlotHistogram2D[int32_t](self._imgui_label.c_str(),
+                                        self._X.data[int32_t](),
+                                        self._Y.data[int32_t](),
                                         size,
                                         self._x_bins,
                                         self._y_bins,
                                         hist_rect,
                                         self._flags)
-        elif cnp.PyArray_TYPE(self._X) == cnp.NPY_FLOAT:
+        elif self._X.type() == DCG_FLOAT:
             implot.PlotHistogram2D[float](self._imgui_label.c_str(),
-                                          <const float*>cnp.PyArray_DATA(self._X),
-                                          <const float*>cnp.PyArray_DATA(self._Y),
+                                          self._X.data[float](),
+                                          self._Y.data[float](),
                                           size,
                                           self._x_bins,
                                           self._y_bins,
@@ -4269,8 +4219,8 @@ cdef class PlotHistogram2D(plotElementXY):
                                           self._flags)
         else:
             implot.PlotHistogram2D[double](self._imgui_label.c_str(),
-                                           <const double*>cnp.PyArray_DATA(self._X),
-                                           <const double*>cnp.PyArray_DATA(self._Y),
+                                           self._X.data[double](),
+                                           self._Y.data[double](),
                                            size,
                                            self._x_bins,
                                            self._y_bins,
@@ -4433,8 +4383,8 @@ cdef class PlotHeatmap(plotElementWithLegend):
             return
 
         if cnp.PyArray_TYPE(self._values) == cnp.NPY_INT:
-            implot.PlotHeatmap[int](self._imgui_label.c_str(),
-                                    <const int*>cnp.PyArray_DATA(self._values),
+            implot.PlotHeatmap[int32_t](self._imgui_label.c_str(),
+                                    <const int32_t*>cnp.PyArray_DATA(self._values),
                                     self._rows,
                                     self._cols,
                                     self._scale_min,
