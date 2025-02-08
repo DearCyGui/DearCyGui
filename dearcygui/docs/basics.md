@@ -182,3 +182,36 @@ It is possible to lock the internal mutex, but with special care (see the advanc
 **DearCyGui** provides .pyi files to help linters suggest code completion and show documentation.
 Alternatively you can use this program to visualize the documentation of each item and see
 available fields.
+
+## Debugging
+
+**DearCyGui** includes a debugging module that helps track item lifecycle and interactions.
+
+Simply use:
+```python
+import dearcygui.utils.debug as dcg
+dcg.set_debug_verbosity(target_level) # 0, 1, 2, 3 or 4
+```
+
+The debug modules redefine all dcg items with a wrapped version of the same name. No other modifications are required.
+
+Alternatively, one can use the debug items only for specific items
+
+```python
+import dearcygui as dcg
+import dearcygui.utils.debug as dcg_debug
+dcg_debug.set_debug_verbosity(target_level) # 0, 1, 2, 3 or 4
+...
+button_to_debug = dcg_debug.Button(C, ...)
+...
+```
+
+The debug module also provides a debug wrapper for the Context which provides debug information at the creation and deletion of all items, as well as configuration. To debug attribute accesses, the debug items are needed. The debug context also provides a debug callback queue which will log callback accesses and their time to execute. It can be manually used with a normal `Context` by passing `dcg_debug.DebugQueue()` to the `queue` parameter.
+
+The verbosity levels are:
+- 0: no debug output
+- 1: Basic callback timing
+- 2: Warnings for possible mistakes (default)
+- 3: Full item state changes and property access
+- 4: Exhaustive configuration details and special method calls
+

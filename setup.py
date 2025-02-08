@@ -365,6 +365,7 @@ def setup_package():
     metadata["package_data"]['dearcygui'] = ['*.pxd', '*.py', '*.pyi', '*ttf', '*otf', '*typed']
     metadata["package_data"]['dearcygui.docs'] = ['*.py', '*.md']
     metadata["package_data"]['dearcygui.utils'] = ['*.pxd', '*.py', '*.pyi', '*ttf', '*otf', '*typed']
+    metadata["package_data"]['dearcygui.utils.debug'] = ['*.pxd', '*.py', '*.pyi', '*ttf', '*otf', '*typed']
     metadata["package_data"]['dearcygui.backends'] = ['*.pxd', '*.py', '*.pyi', '*ttf', '*otf', '*typed']
     metadata["package_data"]['dearcygui.wrapper'] = ['*.pxd', '*.py', '*.pyi', '*ttf', '*otf', '*typed']
 
