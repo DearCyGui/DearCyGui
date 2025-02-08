@@ -1465,6 +1465,7 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._direction = value
+        self.update_extremities()
     @property
     def p1(self):
         """
@@ -1498,6 +1499,7 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
+        self.update_center()
     @property
     def p3(self):
         """
@@ -1531,6 +1533,7 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p4, value)
+        self.update_center()
     @property
     def uv_min(self):
         """
@@ -1671,22 +1674,35 @@ cdef class DrawImage(drawingItem):
         self._rounding = value
 
     cdef void update_extremities(self) noexcept nogil:
-        cdef double dx = cos(self._direction)
-        cdef double dy = sin(self._direction)
-        dx = 0.5 * self._width * dx
-        dy = 0.5 * self._height * dy
-        self._p1[0] = self._center[0] - dx
-        self._p1[1] = self._center[1] - dy
-        self._p3[0] = self._center[0] + dx
-        self._p3[1] = self._center[1] + dy
-        self._p2[1] = self._p1[0]
-        self._p4[0] = self._p1[1]
-        self._p2[0] = self._p3[0]
-        self._p4[1] = self._p3[1]
+        cdef double cos_dir = cos(self._direction)
+        cdef double sin_dir = sin(self._direction)
+        cdef double half_width = 0.5 * self._width
+        cdef double half_height = 0.5 * self._height
+
+        cdef double dx_width = half_width * cos_dir
+        cdef double dy_width = half_width * sin_dir
+        cdef double dx_height = -half_height * sin_dir
+        cdef double dy_height = half_height * cos_dir
+
+        self._p1[0] = self._center[0] - dx_width - dx_height
+        self._p1[1] = self._center[1] - dy_width - dy_height
+        
+        self._p2[0] = self._center[0] + dx_width - dx_height
+        self._p2[1] = self._center[1] + dy_width - dy_height
+        
+        self._p3[0] = self._center[0] + dx_width + dx_height
+        self._p3[1] = self._center[1] + dy_width + dy_height
+        
+        self._p4[0] = self._center[0] - dx_width + dx_height
+        self._p4[1] = self._center[1] - dy_width + dy_height
 
     cdef void update_center(self) noexcept nogil:
-        self._center[0] = (self._p1[0] + self._p3[0]) * 0.5
-        self._center[1] = (self._p1[1] + self._p3[1]) * 0.5
+        self._center[0] = (\
+            self._p1[0] + self._p3[0] +\
+            self._p2[0] + self._p4[0]) * 0.25
+        self._center[1] = (\
+            self._p1[1] + self._p3[1] +\
+            self._p2[1] + self._p4[1]) * 0.25
         cdef double width2 = (self._p1[0] - self._p2[0]) * (self._p1[0] - self._p2[0]) +\
             (self._p1[1] - self._p2[1]) * (self._p1[1] - self._p2[1])
         cdef double height2 = (self._p2[0] - self._p3[0]) * (self._p2[0] - self._p3[0]) +\

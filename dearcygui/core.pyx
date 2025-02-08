@@ -1493,7 +1493,8 @@ cdef class baseItem:
         blacklist = set([
             "parent", "previous_sibling", "next_sibling",
             "children", "children_types", "item_type",
-            "context", "uuid", "mutex", "shareable_value"
+            "context", "uuid", "mutex", "shareable_value",
+            "mutex", "parents_mutex"
         ])
 
         # items for which we want to avoid setattr
@@ -1502,17 +1503,32 @@ cdef class baseItem:
             "pos_to_default", "pos_policy"
         ])
 
+        pending_test = dict()
+
         # Retrieve the attributes of the item
         # that are not methods.
-        for key in dir(self):
+        # We use type(self) to ignore attributes of Python subclasses
+        for key in dir(type(self)):
             if key in blacklist:
                 continue
             if key.startswith("__"):
                 continue
-            value = getattr(self, key)
+            # Ignore attributes of Python subclasses
+            if hasattr(type(self), "__dict__"):
+                if key in type(self).__dict__:
+                    continue
+            try:
+                value = getattr(self, key)
+            except AttributeError:
+                continue
             if key in whitelist:
                 result[key] = value
                 continue
+            pending_test[key] = value
+
+        # We try only after retrieving all values
+        # as setting some values can impact others
+        for key, value in pending_test.items():
             try:
                 setattr(self, key, value)
             except (AttributeError, TypeError):
@@ -4761,13 +4777,13 @@ cdef class uiItem(baseItem):
     def __dir__(self):
         default_dir = dir(type(self))
         if hasattr(self, '__dict__'): # Can happen with python subclassing
-            default_dir + list(self.__dict__.keys())
+            default_dir += list(self.__dict__.keys())
         # Remove invalid ones
-        results = []
+        results = set()
         for e in default_dir:
             if hasattr(self, e):
-                results.append(e)
-        return list(set(results))
+                results.add(e)
+        return list(results)
 
     @property
     def active(self):
