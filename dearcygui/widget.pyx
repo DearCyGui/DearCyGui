@@ -23,6 +23,8 @@ from dearcygui.wrapper cimport imgui, implot
 from libcpp.cmath cimport trunc
 from libc.math cimport INFINITY
 
+import array
+from cpython cimport array
 
 from .core cimport baseHandler, drawingItem, uiItem, \
     lock_gil_friendly, read_point, clear_obj_vector, append_obj_vector, \
@@ -35,12 +37,6 @@ from .c_types cimport *
 from .imgui_types cimport unparse_color, parse_color, Vec2ImVec2, \
     Vec4ImVec4, ImVec2Vec2, ImVec4Vec4, ButtonDirection
 from .types cimport *
-
-import numpy as np
-cimport numpy as cnp
-cnp.import_array()
-
-
 
 cdef class DrawInvisibleButton(drawingItem):
     """
@@ -6051,43 +6047,36 @@ cdef class SharedDouble4(SharedValue):
 
 cdef class SharedFloatVect(SharedValue):
     def __init__(self, Context context, value):
+        value = array.array('f', value)
         self._value = value
+        self._num_attached = 0
+
     def __cinit__(self):
-        self._value_np = np.zeros([1], dtype=np.float32)
-        self._value = self._value_np
-    @property
+        # Initialize empty array
+        self._value = array.array('f')
+
+    @property 
     def value(self):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if self._value_np is None:
-            return None
-        return np.copy(self._value)
+        return array.array('f', self._value)
+
     @value.setter
     def value(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._value_np = np.array(value, dtype=np.float32)
-        self._value = self._value_np
-        self.on_update(True)
-    cdef float[:] get(self) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        return self._value
-    cdef void set(self, float[:] value) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        value = array.array('f', value)
         self._value = value
+        self._last_frame_change = self.context.viewport.frame_count
         self.on_update(True)
 
-"""
-cdef class SharedDoubleVect:
-    cdef double[:] value
-    cdef double[:] get(self) noexcept nogil
-    cdef void set(self, double[:]) noexcept nogil
+    cdef float[:] get(self) noexcept nogil:
+        return self._value
 
-cdef class SharedTime:
-    cdef tm value
-    cdef tm get(self) noexcept nogil
-    cdef void set(self, tm) noexcept nogil
-"""
+    cdef void set(self, float[:] value) noexcept nogil:
+        self._value = value
+        self._last_frame_change = self.context.viewport.frame_count
+        self.on_update(True)
 
 
 

@@ -1,6 +1,6 @@
+from array import array
 import dearcygui as dcg
 import dearcygui.utils as utils
-import numpy as np
 from collections import deque
 
 class ScrollingBuffer:
@@ -10,9 +10,8 @@ class ScrollingBuffer:
     """
     def __init__(self,
                  scrolling_size=2000, 
-                 max_size=1000000,
-                 dtype=np.float64):
-        self.data = np.zeros([max_size], dtype=dtype)
+                 max_size=1000000):
+        self.data = array('d', [0.0] * max_size)
         assert(2 * scrolling_size < max_size)
         self.size = 0
         self.scrolling_size = scrolling_size
@@ -91,7 +90,7 @@ class MetricsWindow(dcg.Window):
                 self.main_plot.Y1.auto_fit = True
                 self.main_plot.Y1.restrict_fit_to_range = True
                 with self.main_plot:
-                    self.history_bounds = np.zeros([2], dtype=np.float64)
+                    self.history_bounds = array('d', [0.0, 0.0])
                     self.history_bounds[0] = 0
                     self.history_bounds[1] = 10.
                     dcg.PlotShadedLine(c,
@@ -223,7 +222,7 @@ class MetricsWindow(dcg.Window):
         active_windows = rendering_metrics["active_windows"]
         current_time = 1e-9*rendering_metrics["last_time_before_rendering"]
         self.times.push(current_time - self.start_time)
-        time_average = np.mean(self.data["Frame"].get()[-60:])
+        time_average = sum(self.data["Frame"].get()[-60:]) / 60
         fps_average = 1e3 / (max(1e-20, time_average))
         if fps_average < 29:
             self.main_plot.theme = self.low_framerate_theme

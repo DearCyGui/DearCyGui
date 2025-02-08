@@ -1,11 +1,9 @@
 from .core cimport baseItem, baseFont, itemState, \
     plotElement, uiItem, Callback, baseHandler
 from .types cimport *
-from .c_types cimport DCGString, DCGVector, DCG1DArrayView
+from .c_types cimport DCGString, DCGVector, DCG1DArrayView, DCG2DContiguousArrayView
 
 from libc.stdint cimport int32_t
-
-cimport numpy as cnp
 
 cdef class AxesResizeHandler(baseHandler):
     cdef int[2] _axes
@@ -132,14 +130,14 @@ cdef class Subplots(uiItem):
     cdef bint draw_item(self) noexcept nogil
 
 cdef class PlotBarGroups(plotElementWithLegend):
-    cdef cnp.ndarray _values
+    cdef DCG2DContiguousArrayView _values
     cdef DCGVector[DCGString] _labels
     cdef double _group_size
     cdef double _shift
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotPieChart(plotElementWithLegend):
-    cdef cnp.ndarray _values
+    cdef DCG1DArrayView _values
     cdef DCGVector[DCGString] _labels
     cdef double _x
     cdef double _y
@@ -185,7 +183,7 @@ cdef class PlotHistogram2D(plotElementXY):
     cdef void draw_element(self) noexcept nogil
 
 cdef class PlotHeatmap(plotElementWithLegend):
-    cdef cnp.ndarray _values
+    cdef DCG2DContiguousArrayView _values
     cdef int32_t _rows
     cdef int32_t _cols
     cdef double _scale_min

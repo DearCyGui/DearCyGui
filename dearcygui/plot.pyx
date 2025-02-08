@@ -34,11 +34,6 @@ from .types cimport *
 from .types import KeyMod
 
 
-import numpy as np
-cimport numpy as cnp
-cnp.import_array()
-
-
 cdef extern from * nogil:
     """
     ImPlotAxisFlags GetAxisConfig(int axis)
@@ -1986,7 +1981,7 @@ cdef class plotElementXY(plotElementWithLegend):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return get_object_from_array_view(self._X)
+        return get_object_from_1D_array_view(self._X)
 
     @X.setter
     def X(self, value):
@@ -2002,7 +1997,7 @@ cdef class plotElementXY(plotElementWithLegend):
         """Values on the Y axis"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return get_object_from_array_view(self._Y)
+        return get_object_from_1D_array_view(self._Y)
 
     @Y.setter
     def Y(self, value):
@@ -2161,7 +2156,7 @@ cdef class plotElementXYY(plotElementWithLegend):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return get_object_from_array_view(self._X)
+        return get_object_from_1D_array_view(self._X)
 
     @X.setter
     def X(self, value):
@@ -2177,7 +2172,7 @@ cdef class plotElementXYY(plotElementWithLegend):
         """Values on the Y1 axis"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return get_object_from_array_view(self._Y1)
+        return get_object_from_1D_array_view(self._Y1)
 
     @Y1.setter
     def Y1(self, value):
@@ -2193,7 +2188,7 @@ cdef class plotElementXYY(plotElementWithLegend):
         """Values on the Y2 axis"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return get_object_from_array_view(self._Y2)
+        return get_object_from_1D_array_view(self._Y2)
 
     @Y2.setter
     def Y2(self, value):
@@ -2460,7 +2455,7 @@ cdef class plotElementX(plotElementWithLegend):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return get_object_from_array_view(self._X)
+        return get_object_from_1D_array_view(self._X)
 
     @X.setter 
     def X(self, value):
@@ -3209,7 +3204,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
     def __cinit__(self):
         self._group_size = 0.67
         self._shift = 0
-        self._values = np.zeros(shape=(1,1), dtype=np.float64)
+        #self._values = DCG2DContiguousArrayView()  # Replace numpy array
         self._labels = DCGVector[DCGString]()
         self._labels.push_back(string_from_bytes(b"Item 0"))
 
@@ -3230,28 +3225,19 @@ cdef class PlotBarGroups(plotElementWithLegend):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._values
+        return get_object_from_2D_array_view(self._values)
 
     @values.setter
     def values(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value)
-        if array.ndim != 2:
-            raise ValueError("values must be a 2D array")
-        # We don't support array of pointers. Must be data,
-        # with eventually a non-standard stride
-        # type must also be one of the supported types
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._values = array
+        if value is None:
+            self._values.reset()
         else:
-            self._values = np.ascontiguousarray(array, dtype=np.float64)
+            self._values.reset(value)
         cdef int32_t k
-        for k in range(<int>self._labels.size(), self._values.shape[0]):
-            self._labels.push_back(string_from_bytes(b"Item %d" % k))
+        for k in range(<int>self._labels.size(), <int>self._values.rows()):
+            self._labels.push_back(string_from_str(f"Item {k}"))
 
     @property
     def labels(self):
@@ -3279,7 +3265,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
             for v in value:
                 self._labels.push_back(string_from_str(v))
                 i = i + 1
-            for k in range(i, self._values.shape[0]):
+            for k in range(i, <int>self._values.rows()):
                 self._labels.push_back(string_from_bytes(b"Item %d" % k))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as labels. Expected array of strings")
@@ -3351,48 +3337,44 @@ cdef class PlotBarGroups(plotElementWithLegend):
             self._flags |= implot.ImPlotBarGroupsFlags_Stacked
 
     cdef void draw_element(self) noexcept nogil:
-        if self._values.shape[0] == 0 or self._values.shape[1] == 0:
+        if self._values.rows() == 0 or self._values.cols() == 0:
             return
 
         cdef int32_t i
-        # Note: we ensured that self._values.shape[0] <= <int>self._labels.size()
+        # Note: we ensured that self._values.rows() <= <int>self._labels.size()
 
         cdef vector[const char*] labels_cstr
-        for i in range(self._values.shape[0]):
+        for i in range(<int>self._values.rows()):
             labels_cstr.push_back(self._labels[i].c_str())
 
-        if cnp.PyArray_TYPE(self._values) == cnp.NPY_INT:
+        if self._values.type() == DCG_INT32:
             implot.PlotBarGroups[int32_t](labels_cstr.data(),
-                                      <const int32_t*>cnp.PyArray_DATA(self._values),
-                                      <int>self._values.shape[0],
-                                      <int>self._values.shape[1],
+                                      self._values.data[int32_t](),
+                                      <int>self._values.rows(),
+                                      <int>self._values.cols(),
                                       self._group_size,
                                       self._shift,
                                       self._flags)
-        elif cnp.PyArray_TYPE(self._values) == cnp.NPY_FLOAT:
+        elif self._values.type() == DCG_FLOAT:
             implot.PlotBarGroups[float](labels_cstr.data(),
-                                      <const float*>cnp.PyArray_DATA(self._values),
-                                      <int>self._values.shape[0],
-                                      <int>self._values.shape[1],
+                                      self._values.data[float](),
+                                      <int>self._values.rows(),
+                                      <int>self._values.cols(),
                                       self._group_size,
                                       self._shift,
                                       self._flags)
         else:
             implot.PlotBarGroups[double](labels_cstr.data(),
-                                       <const double*>cnp.PyArray_DATA(self._values),
-                                       <int>self._values.shape[0],
-                                       <int>self._values.shape[1],
+                                       self._values.data[double](),
+                                       <int>self._values.rows(),
+                                       <int>self._values.cols(),
                                        self._group_size,
                                        self._shift,
                                        self._flags)
 
 cdef class PlotPieChart(plotElementWithLegend):
-    """
-    Plots a pie chart with the given values and labels.
-    The pie chart is centered at (x,y) with the given radius.
-    """
     def __cinit__(self):
-        self._values = np.zeros(shape=(1,), dtype=np.float64)
+        # self._values = DCG1DArrayView()
         self._x = 0.0
         self._y = 0.0
         self._radius = 1.0
@@ -3412,23 +3394,20 @@ cdef class PlotPieChart(plotElementWithLegend):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._values
+        return get_object_from_1D_array_view(self._values)
 
     @values.setter
     def values(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value).reshape([-1])
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._values = array
+        if value is None:
+            self._values.reset()
         else:
-            self._values = np.ascontiguousarray(array, dtype=np.float64)
+            self._values.reset(value)
+            self._values.ensure_contiguous()
         cdef int32_t k
-        for k in range(<int>self._labels.size(), self._values.shape[0]):
-            self._labels.push_back(string_from_bytes(b"Slice %d" % k))
+        for k in range(<int>self._labels.size(), <int32_t>self._values.size()):
+            self._labels.push_back(string_from_str(f"Slice {k}"))
 
     @property
     def labels(self):
@@ -3454,7 +3433,7 @@ cdef class PlotPieChart(plotElementWithLegend):
         if hasattr(value, '__len__'):
             for v in value:
                 self._labels.push_back(string_from_str(v))
-            for k in range(len(value), self._values.shape[0]):
+            for k in range(len(value), <int32_t>self._values.size()):
                 self._labels.push_back(string_from_bytes(b"Slice %d" % k))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as labels. Expected array of strings")
@@ -3561,30 +3540,30 @@ cdef class PlotPieChart(plotElementWithLegend):
         self._label_format = string_from_str(value)
 
     cdef void draw_element(self) noexcept nogil:
-        if self._values.shape[0] == 0:
+        if self._values.size() == 0:
             return
 
         cdef int32_t i
-        # Note: we ensured that self._values.shape[0] <= <int>self._labels.size()
+        # Note: we ensured that self._values.size() <= <int>self._labels.size()
 
         cdef vector[const char*] labels_cstr
-        for i in range(self._values.shape[0]):
+        for i in range(<int32_t>self._values.size()):
             labels_cstr.push_back(self._labels[i].c_str())
 
-        if cnp.PyArray_TYPE(self._values) == cnp.NPY_INT:
+        if self._values.type() == DCG_INT32:
             implot.PlotPieChart[int32_t](labels_cstr.data(),
-                                    <const int32_t*>cnp.PyArray_DATA(self._values),
-                                    <int>self._values.shape[0],
+                                    self._values.data[int32_t](),
+                                    <int>self._values.size(),
                                     self._x,
                                     self._y,
                                     self._radius,
                                     self._label_format.c_str(),
                                     self._angle,
                                     self._flags)
-        elif cnp.PyArray_TYPE(self._values) == cnp.NPY_FLOAT:
+        elif self._values.type() == DCG_FLOAT:
             implot.PlotPieChart[float](labels_cstr.data(),
-                                      <const float*>cnp.PyArray_DATA(self._values),
-                                      <int>self._values.shape[0],
+                                      self._values.data[float](),
+                                      <int>self._values.size(),
                                       self._x,
                                       self._y,
                                       self._radius, 
@@ -3593,8 +3572,8 @@ cdef class PlotPieChart(plotElementWithLegend):
                                       self._flags)
         else:
             implot.PlotPieChart[double](labels_cstr.data(),
-                                       <const double*>cnp.PyArray_DATA(self._values),
-                                       <int>self._values.shape[0],
+                                       self._values.data[double](),
+                                       <int>self._values.size(),
                                        self._x,
                                        self._y,
                                        self._radius,
@@ -3660,7 +3639,7 @@ cdef class PlotErrorBars(plotElementXY):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return get_object_from_array_view(self._pos)
+        return get_object_from_1D_array_view(self._pos)
 
     @positives.setter
     def positives(self, value):
@@ -3680,7 +3659,7 @@ cdef class PlotErrorBars(plotElementXY):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return get_object_from_array_view(self._neg)
+        return get_object_from_1D_array_view(self._neg)
 
     @negatives.setter
     def negatives(self, value):
@@ -4235,7 +4214,7 @@ cdef class PlotHeatmap(plotElementWithLegend):
     scale_min/scale_max. Setting both to 0 enables automatic color scaling.
     """
     def __cinit__(self):
-        self._values = np.zeros(shape=(1,1), dtype=np.float64)
+        #self._values = DCG2DContiguousArrayView()
         self._rows = 1
         self._cols = 1
         self._scale_min = 0
@@ -4258,31 +4237,23 @@ cdef class PlotHeatmap(plotElementWithLegend):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self._values
+        return get_object_from_2D_array_view(self._values)
 
     @values.setter
     def values(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef cnp.ndarray array = np.asarray(value)
-        if array.ndim != 2:
-            raise ValueError("Values must be a 2D array") 
-        # We don't support array of pointers. Must be data,
-        # with eventually a non-standard stride
-        # type must also be one of the supported types
-        if cnp.PyArray_CHKFLAGS(array, cnp.NPY_ARRAY_ELEMENTSTRIDES) and \
-           (cnp.PyArray_TYPE(array) == cnp.NPY_INT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_FLOAT or \
-            cnp.PyArray_TYPE(array) == cnp.NPY_DOUBLE):
-            self._values = np.ascontiguousarray(array)
-        else:
-            self._values = np.ascontiguousarray(array, dtype=np.float64)
+        if value is None:
+            self._values.reset()
+            self._rows = self._cols = 0
+            return
+        self._values.reset(value)
         if self.col_major:
-            self._cols = array.shape[0]
-            self._rows = array.shape[1]
+            self._cols = self._values.rows()
+            self._rows = self._values.cols()
         else:
-            self._rows = array.shape[0]
-            self._cols = array.shape[1]
+            self._rows = self._values.rows()
+            self._cols = self._values.cols()
 
     @property
     def scale_min(self):
@@ -4372,19 +4343,19 @@ cdef class PlotHeatmap(plotElementWithLegend):
         if value:
             self._flags |= implot.ImPlotHeatmapFlags_ColMajor
             # Update dimensions if array exists
-            self._cols = self._values.shape[0]
-            self._rows = self._values.shape[1]
+            self._cols = self._values.rows()
+            self._rows = self._values.cols()
         else:
-            self._rows = self._values.shape[0] 
-            self._cols = self._values.shape[1]
+            self._rows = self._values.rows() 
+            self._cols = self._values.cols()
 
     cdef void draw_element(self) noexcept nogil:
-        if self._values.shape[0] == 0 or self._values.shape[1] == 0:
+        if self._values.rows() == 0 or self._values.cols() == 0:
             return
 
-        if cnp.PyArray_TYPE(self._values) == cnp.NPY_INT:
+        if self._values.type() == DCG_INT32:
             implot.PlotHeatmap[int32_t](self._imgui_label.c_str(),
-                                    <const int32_t*>cnp.PyArray_DATA(self._values),
+                                    self._values.data[int32_t](),
                                     self._rows,
                                     self._cols,
                                     self._scale_min,
@@ -4393,9 +4364,9 @@ cdef class PlotHeatmap(plotElementWithLegend):
                                     implot.ImPlotPoint(self._bounds_min[0], self._bounds_min[1]),
                                     implot.ImPlotPoint(self._bounds_max[0], self._bounds_max[1]),
                                     self._flags)
-        elif cnp.PyArray_TYPE(self._values) == cnp.NPY_FLOAT:
+        elif self._values.type() == DCG_FLOAT:
             implot.PlotHeatmap[float](self._imgui_label.c_str(),
-                                      <const float*>cnp.PyArray_DATA(self._values),
+                                      self._values.data[float](),
                                       self._rows,
                                       self._cols,
                                       self._scale_min,
@@ -4406,7 +4377,7 @@ cdef class PlotHeatmap(plotElementWithLegend):
                                       self._flags)
         else:
             implot.PlotHeatmap[double](self._imgui_label.c_str(),
-                                       <const double*>cnp.PyArray_DATA(self._values),
+                                       self._values.data[double](),
                                        self._rows,
                                        self._cols,
                                        self._scale_min,

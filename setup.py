@@ -8,7 +8,6 @@ import os
 from os import path
 import sys
 from glob import glob
-import numpy as np
 import shutil
 import subprocess
 
@@ -197,7 +196,6 @@ def setup_package():
                     "thirdparty/delaunator-cpp/include",
                     "thirdparty/freetype/include",
                     "thirdparty/SDL/include"]
-    include_dirs += [np.get_include()]
 
     cpp_sources = [
         "dearcygui/backends/sdl3_gl3_backend.cpp",
@@ -219,7 +217,6 @@ def setup_package():
 
     compile_args = ["-D_CRT_SECURE_NO_WARNINGS",
                     "-D_USE_MATH_DEFINES",
-                    "-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
                     "-DIMGUI_IMPL_OPENGL_LOADER_SDL3",
                     "-DIMGUI_USER_CONFIG=\"imgui_config.h\""]
     linking_args = ['-O3']
@@ -306,7 +303,6 @@ def setup_package():
             "dearcygui.utils.draw",
             ["dearcygui/utils/draw.pyx"],
             language="c++",
-            include_dirs=[np.get_include()],
             extra_compile_args=compile_args,
              libraries=libraries,
             extra_link_args=linking_args),
@@ -314,7 +310,6 @@ def setup_package():
             "dearcygui.utils.image",
             ["dearcygui/utils/image.pyx"],
             language="c++",
-            include_dirs=[np.get_include()],
             extra_compile_args=compile_args,
              libraries=libraries,
             extra_link_args=linking_args)
@@ -353,7 +348,6 @@ def setup_package():
             ],
         packages=['dearcygui', 'dearcygui.docs', 'dearcygui.utils', 'dearcygui.backends', 'dearcygui.wrapper'],
         install_requires=[
-          'numpy',
           'freetype-py'
         ],
         ext_modules = cythonize(extensions, compiler_directives={'language_level' : "3"}, nthreads=4),

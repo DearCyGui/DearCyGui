@@ -18,8 +18,9 @@ from libcpp cimport bool
 import traceback
 
 cimport cython
-cimport cython.view
+from cython.view cimport array as cython_array
 from cython.operator cimport dereference
+cimport cpython
 from libc.string cimport memset, memcpy
 from libcpp.string cimport string
 
@@ -48,9 +49,7 @@ from .types cimport *
 from .types import ChildType, Key, KeyMod, KeyOrMod
 
 import os
-import numpy as np
-cimport numpy as cnp
-cnp.import_array()
+
 
 import time as python_time
 import threading
@@ -6995,7 +6994,7 @@ cdef class Texture(baseItem):
         # set parameters before set_content
         baseItem.configure(self, **kwargs)
         if len(args) == 1:
-            self.set_content(np.ascontiguousarray(args[0]))
+            self.set_value(args[0])
         elif len(args) != 0:
             raise ValueError("Invalid arguments passed to Texture. Expected content")
 
@@ -7117,7 +7116,7 @@ cdef class Texture(baseItem):
             raise MemoryError("Failed to allocate target texture")
 
 
-    def set_value(self, value):
+    def set_value(self, src):
         """
         Pass an array as texture data.
         The currently native formats are:
@@ -7143,50 +7142,127 @@ cdef class Texture(baseItem):
         bound. The objects will automatically take
         the updated texture.
         """
-        self.set_content(np.asarray(value))
+        cdef int chan, row, col
+        cdef int num_chans, num_rows, num_cols
+        cdef double min_value = 255., max_value = 0.
+        cdef bint has_float
+        if cpython.PyObject_CheckBuffer(src):
+            value = src
+        else:
+            # Check all items are of the same size
+            try:
+                num_rows = len(src)
+                num_cols = len(src[0])
+                if hasattr(src[0][0], '__len__'):
+                    num_chans = len(src[0][0])
+                else:
+                    num_chans = 1
+                for row in range(num_rows):
+                    for col in range(num_cols):
+                        if (not(hasattr(src[0][0], '__len__')) and num_chans == 1) or \
+                           len(src[row][col]) != num_chans:
+                            raise ValueError("Inconsistent texture array size")
+                        for chan in range(num_chans):
+                            element = src[row][col]
+                            if not(isinstance(element, int)):
+                                has_float = True
+                            min_value = min(min_value, <double>element)
+                            max_value = max(max_value, <double>element)
+            except ValueError as e:
+                raise e
+            except:
+                raise ValueError(f"Invalid texture data {src}")
+            if min_value < 0:
+                raise ValueError("Texture data must be unsigned")
+            if has_float and max_value > 1.:
+                raise ValueError("Floating point texture data must be normalized between 0 and 1")
+            if not(has_float) and max_value > 255:
+                raise ValueError("Integer texture data must be between 0 and 255")
+            if num_chans > 4:
+                raise ValueError("Invalid number of texture channels")
+            if num_rows == 0 or num_cols == 0:
+                raise ValueError("Invalid texture size")
+            if num_chans == 0:
+                raise ValueError("Invalid number of texture channels")
+            # Convert to cython array
+            if has_float:
+                value = cython_array(shape=(num_rows, num_cols, num_chans), itemsize=4, format="f")
+            else:
+                value = cython_array(shape=(num_rows, num_cols, num_chans), itemsize=1, format="B")
+            for row in range(num_rows):
+                for col in range(num_cols):
+                    if hasattr(src[row][col], '__len__'):
+                        for chan in range(num_chans):
+                            value[row, col, chan] = src[row][col][chan]
+                    else:
+                        value[row, col, 0] = src[row][col]
+        self.set_content(value)
 
-    cdef void set_content(self, cnp.ndarray content): # TODO: deadlock when held by external lock
+    cdef void set_content(self, content): # TODO: deadlock when held by external lock
         # The write mutex is to ensure order of processing of set_content
         # as we might release the item mutex to wait for imgui to render
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self._write_mutex)
         lock_gil_friendly(m2, self.mutex)
-        cdef int32_t ndim = cnp.PyArray_NDIM(content)
-        if ndim > 3 or ndim == 0:
-            raise ValueError("Invalid number of texture dimensions")
         if self._readonly: # set for fonts
             raise ValueError("Target texture is read-only")
+        cdef cpython.Py_buffer buf_info
+        if cpython.PyObject_GetBuffer(content, &buf_info, cpython.PyBUF_RECORDS_RO) < 0:
+            raise TypeError("Failed to retrieve buffer information")
+        cdef int32_t ndim = buf_info.ndim
+        if ndim > 3 or ndim == 0:
+            cpython.PyBuffer_Release(&buf_info)
+            raise ValueError("Invalid number of texture dimensions")
         cdef int32_t height = 1
         cdef int32_t width = 1
         cdef int32_t num_chans = 1
         cdef int32_t stride = 1
+        cdef int32_t col_stride = buf_info.itemsize
 
         if ndim >= 1:
-            height = cnp.PyArray_DIM(content, 0)
+            height = buf_info.shape[0]
+            stride = buf_info.strides[0]
         if ndim >= 2:
-            width = cnp.PyArray_DIM(content, 1)
+            width = buf_info.shape[1]
+            col_stride = buf_info.strides[1]
         if ndim >= 3:
-            num_chans = cnp.PyArray_DIM(content, 2)
+            num_chans = buf_info.shape[2]
         if width * height * num_chans == 0:
+            cpython.PyBuffer_Release(&buf_info)
             raise ValueError("Cannot set empty texture")
-
-        # TODO: there must be a faster test
-        if not(content.dtype == np.float32 or content.dtype == np.uint8):
-            content = np.asarray(content, dtype=np.float32)
+        if buf_info.format[0] != b'B' and buf_info.format[0] != b'f':
+            cpython.PyBuffer_Release(&buf_info)
+            raise ValueError("Invalid texture format. Must be uint8[0-255] or float32[0-1]")
 
         # rows must be contiguous
-        if ndim >= 2 and cnp.PyArray_STRIDE(content, 1) != (num_chans * (1 if content.dtype == np.uint8 else 4)):
-            content = np.ascontiguousarray(content, dtype=content.dtype)
-
-        stride = cnp.PyArray_STRIDE(content, 0)
-
+        cdef cython_array copy_array
+        cdef float[:,:,::1] copy_array_float
+        cdef unsigned char[:,:,::1] copy_array_uint8
+        cdef int32_t row, col, chan
+        if col_stride != (num_chans * buf_info.itemsize):
+            copy_array = cython_array(shape=(height, width, num_chans), itemsize=buf_info.itemsize, format=buf_info.format, mode='c', allocate_buffer=True)
+            if buf_info.itemsize == 1:
+                copy_array_uint8 = copy_array
+                for row in range(height):
+                    for col in range(width):
+                        for chan in range(num_chans):
+                            copy_array_uint8[row, col, chan] = (<unsigned char*>buf_info.buf)[row * stride + col * col_stride + chan * buf_info.itemsize]
+                stride = width * num_chans
+            else:
+                copy_array_float = copy_array
+                for row in range(height):
+                    for col in range(width):
+                        for chan in range(num_chans):
+                            copy_array_float[row, col, chan] = (<float*>buf_info.buf)[row * stride + col * col_stride + chan * buf_info.itemsize]
+                stride = width * num_chans * 4
 
         cdef bint reuse = self.allocated_texture != NULL
         cdef bint success
-        cdef unsigned buffer_type = 1 if content.dtype == np.uint8 else 0
+        cdef unsigned buffer_type = 1 if buf_info.itemsize == 1 else 0
         reuse = reuse and not(self.width != width or self.height != height or self.num_chans != num_chans or self._buffer_type != buffer_type)
         if not(reuse) and self._no_realloc:
+            cpython.PyBuffer_Release(&buf_info)
             raise ValueError("Texture cannot be reallocated and upload data is not of the same size/type as the texture")
 
         with nogil:
@@ -7239,7 +7315,7 @@ cdef class Texture(baseItem):
                                                      height,
                                                      num_chans,
                                                      buffer_type,
-                                                     cnp.PyArray_DATA(content),
+                                                     buf_info.buf,
                                                      stride)
                 else:
                     success = (<platformViewport*>self.context.viewport._platform).updateStaticTexture(
@@ -7248,11 +7324,12 @@ cdef class Texture(baseItem):
                                                     height,
                                                     num_chans,
                                                     buffer_type,
-                                                    cnp.PyArray_DATA(content),
+                                                    buf_info.buf,
                                                     stride)
             (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
             m.unlock()
             m2.unlock() # Release before we get gil again
+        cpython.PyBuffer_Release(&buf_info)
         if not(success):
             raise MemoryError("Failed to upload target texture")
 
@@ -7268,7 +7345,7 @@ cdef class Texture(baseItem):
         - crop_height: height of the crop (0 for full_height)
 
         Returns:
-        - numpy array: the texture content
+        - cython array: the texture content (similar to numpy array)
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -7280,18 +7357,18 @@ cdef class Texture(baseItem):
         cdef int32_t crop_height_ = crop_height if crop_height > 0 else height
         if x0 < 0 or y0 < 0 or crop_width_ <= 0 or crop_height_ <= 0 or x0 + crop_width_ > width or y0 + crop_height_ > height:
             raise ValueError("Invalid crop coordinates")
-        cdef cnp.ndarray array
+        cdef cython_array array
         cdef void *data
         cdef bint success
 
         # allocate array
         if buffer_type == 1:
-            array = np.empty((crop_height_, crop_width_, num_chans), dtype=np.uint8)
+            array = cython_array(shape=(crop_height_, crop_width_, num_chans), itemsize=1, format='B', mode='c', allocate_buffer=True)
         else:
-            array = np.empty((crop_height_, crop_width_, num_chans), dtype=np.float32)
-        data = cnp.PyArray_DATA(array)
+            array = cython_array(shape=(crop_height_, crop_width_, num_chans), itemsize=4, format='f', mode='c', allocate_buffer=True)
+        data = array.data
 
-        cdef int32_t stride = cnp.PyArray_STRIDE(array, 0)
+        cdef int32_t stride = crop_width_ * num_chans * (1 if buffer_type == 1 else 4)
         with nogil:
             m.unlock()
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()

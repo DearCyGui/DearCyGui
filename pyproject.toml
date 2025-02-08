@@ -2,7 +2,6 @@
 requires = [
     "Cython==3.0.11",
     "freetype-py",
-    "numpy",
     "wheel",
     "click",
     "setuptools",

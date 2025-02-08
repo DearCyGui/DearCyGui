@@ -16,9 +16,11 @@
 
 from dearcygui.wrapper cimport imgui
 from libc.stdlib cimport malloc, free
+from libcpp.algorithm cimport stable_sort
 from libcpp.map cimport map, pair
 from libcpp.vector cimport vector
 from libc.stdint cimport uint32_t, int32_t
+from libcpp cimport bool
 
 cimport cython
 from cython.operator cimport dereference, preincrement
@@ -35,10 +37,6 @@ from .widget cimport Tooltip
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 
 from .types import TableFlag
-
-import numpy as np
-cimport numpy as cnp
-cnp.import_array()
 
 
 cdef class TableElement:
@@ -320,6 +318,41 @@ cdef class TableColView:
         view.table = table
         return view
 
+cdef extern from * nogil:
+    """
+    struct SortingPair {
+        int32_t first;
+        PyObject* second;
+        
+        SortingPair() : first(0), second(nullptr) {}
+        SortingPair(int32_t f, PyObject* s) : first(f), second(s) {}
+    };
+    """
+    cdef cppclass SortingPair:
+        SortingPair()
+        SortingPair(int32_t, PyObject*)
+        int32_t first
+        PyObject* second
+
+cdef bool object_lower(SortingPair a, SortingPair b):
+    if a.second == NULL:
+        return True
+    if b.second == NULL:
+        return False
+    try:
+        return <object>a.second < <object>b.second
+    except:
+        return False
+
+cdef bool object_higher(SortingPair a, SortingPair b):
+    if a.second == NULL:
+        return False
+    if b.second == NULL:
+        return True
+    try:
+        return <object>a.second > <object>b.second
+    except:
+        return False
 
 cdef class baseTable(uiItem):
     """
@@ -1071,42 +1104,49 @@ cdef class baseTable(uiItem):
         if num_rows <= 1:
             return
 
-        # Put in a list all the values to sort
-        keys = []
+        # Create vector of row indices and values to sort
+        cdef vector[SortingPair] row_values
+        cdef SortingPair sort_element
+        row_values.reserve(num_rows)
+        
+        # Get values for sorting
         cdef int32_t i
         for i in range(num_rows):
             element = self._get_single_item(i, ref_col)
+            sort_element.first = i
             if element is None:
-                keys.append(0)
-            keys.append(element.ordering_value)
+                sort_element.second = NULL
+            else:
+                value = element.ordering_value
+                # we don't need to incref as the items
+                # are kept alive during this function
+                # (due to the lock)
+                sort_element.second = <PyObject*>value
+            row_values.push_back(sort_element)
 
-        # Determine order
-        key_array = np.array(keys, dtype=object)
-        order = np.argsort(key_array, stable=True)
-        if not(ascending):
-            order = order[::-1]
+        # Sort the indices based on values
+        if ascending:
+            stable_sort(row_values.begin(), row_values.end(), object_lower)
+        else:
+            stable_sort(row_values.begin(), row_values.end(), object_higher)
 
+        # Store in a temporary map the index mapping
+        cdef vector[int32_t] row_mapping
+        row_mapping.resize(num_rows)
+        for i in range(num_rows):
+            row_mapping[row_values[i].first] = i
+
+        # Create copy of items and remap using sorted indices
         cdef map[pair[int32_t, int32_t], TableElementData] items_copy = dereference(self._items)
-        cdef pair[pair[int32_t, int32_t], TableElementData] element_key
         self._items.clear()
 
-        # We do not need to play with refcounts because each item
-        # is kept a single time. Similarly, row/col count doesn't
-        # change, so we don't need to update them.
-
-        # Create inverse permutation
-        cdef vector[int32_t] inverse_order
-        inverse_order.resize(len(order))
-        for i in range(len(order)):
-            inverse_order[order[i]] = i
-
-        # apply the invert order
-        cdef int32_t src_row
-        cdef int32_t target_row
+        # Apply new ordering
+        cdef pair[pair[int32_t, int32_t], TableElementData] element_key
+        cdef int32_t src_row, target_row
         cdef pair[int32_t, int32_t] target_key
         for element_key in items_copy:
             src_row = element_key.first.first
-            target_row = inverse_order[src_row]
+            target_row = row_mapping[src_row]
             target_key.first = target_row
             target_key.second = element_key.first.second
             dereference(self._items)[target_key] = element_key.second
@@ -1116,54 +1156,61 @@ cdef class baseTable(uiItem):
         
         The sorting order is defined using the items's ordering_value
         when ordering_value is not set, it defaults to:
-        - The content string (if it is a string) 
-        - The content before its conversion into string
+        - The content string (if it is a string)
+        - The content before its conversion into string 
         - If content is an uiItem, it defaults to the UUID (item creation order)
-        
-        Parameters:
-            ref_row : int32_t 
-                Row index to use for sorting
-            ascending : bool, optional
-                Sort in ascending order if True, descending if False.
-                Defaults to True.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
+        cdef int32_t num_cols = self._num_cols
 
-        # Put in a list all the values to sort
-        keys = []
+        if num_cols <= 1:
+            return
+
+        # Create vector of column indices and values to sort
+        cdef vector[SortingPair] col_values
+        cdef SortingPair sort_element
+        col_values.reserve(num_cols)
+        
+        # Get values for sorting
         cdef int32_t i
-        for i in range(self._num_cols):
-            element = self._get_single_item(ref_row, i) 
+        for i in range(num_cols):
+            element = self._get_single_item(ref_row, i)
+            sort_element.first = i
             if element is None:
-                keys.append(0)
-            keys.append(element.ordering_value)
+                sort_element.second = NULL
+            else:
+                value = element.ordering_value
+                # we don't need to incref as the items
+                # are kept alive during this function
+                # (due to the lock)
+                sort_element.second = <PyObject*>value
+            col_values.push_back(sort_element)
 
-        # Determine order
-        key_array = np.array(keys, dtype=object)
-        order = np.argsort(key_array, stable=True)
-        if not(ascending):
-            order = order[::-1]
+        # Sort the indices based on values
+        if ascending:
+            stable_sort(col_values.begin(), col_values.end(), object_lower)
+        else:
+            stable_sort(col_values.begin(), col_values.end(), object_higher)
 
-        # Same as for rows
+        # Store in a temporary map the index mapping
+        cdef vector[int32_t] col_mapping
+        col_mapping.resize(num_cols)
+        for i in range(num_cols):
+            col_mapping[col_values[i].first] = i
+
+        # Create copy of items and remap using sorted indices
         cdef map[pair[int32_t, int32_t], TableElementData] items_copy = dereference(self._items)
-        cdef pair[pair[int32_t, int32_t], TableElementData] element_key
         self._items.clear()
 
-        # Create inverse permutation
-        cdef vector[int32_t] inverse_order
-        inverse_order.resize(len(order))
-        for i in range(len(order)):
-            inverse_order[order[i]] = i
-
-        # apply the invert order
-        cdef int32_t src_col
-        cdef int32_t target_col
+        # Apply new ordering
+        cdef pair[pair[int32_t, int32_t], TableElementData] element_key
+        cdef int32_t src_col, target_col
         cdef pair[int32_t, int32_t] target_key
         for element_key in items_copy:
             src_col = element_key.first.second
-            target_col = inverse_order[src_col]
+            target_col = col_mapping[src_col]
             target_key.first = element_key.first.first
             target_key.second = target_col
             dereference(self._items)[target_key] = element_key.second

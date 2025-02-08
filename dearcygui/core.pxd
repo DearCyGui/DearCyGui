@@ -2,7 +2,6 @@ from libcpp cimport bool
 from libcpp.atomic cimport atomic
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 from libc.stdint cimport uint32_t, int32_t, int64_t
-cimport numpy as cnp
 from .c_types cimport *
 from .types cimport *
 
@@ -697,7 +696,7 @@ cdef class Texture(baseItem):
     cdef int32_t _filtering_mode
     cdef bint _readonly
     cdef bint _no_realloc
-    cdef void set_content(self, cnp.ndarray content)
+    cdef void set_content(self, content)
     cdef void c_gl_begin_read(self) noexcept nogil
     cdef void c_gl_end_read(self) noexcept nogil
     cdef void c_gl_begin_write(self) noexcept nogil

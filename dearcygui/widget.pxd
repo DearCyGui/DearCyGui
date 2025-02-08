@@ -4,8 +4,6 @@ from .c_types cimport Vec2, Vec4, DCGVector, DCGString
 
 from libc.stdint cimport uint32_t, int32_t
 
-cimport numpy as cnp
-
 cdef class DrawInvisibleButton(drawingItem):
     cdef itemState state
     cdef int32_t _button # imgui.ImGuiButtonFlags
@@ -257,7 +255,6 @@ cdef class SharedDouble4(SharedValue):
     cdef void set(self, double[4]) noexcept nogil
 
 cdef class SharedFloatVect(SharedValue):
-    cdef cnp.ndarray _value_np
     cdef float[:] _value
     cdef float[:] get(self) noexcept nogil
     cdef void set(self, float[:]) noexcept nogil

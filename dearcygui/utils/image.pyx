@@ -12,8 +12,6 @@ from cython.operator cimport dereference
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 from libcpp.memory cimport unique_ptr
 
-
-import numpy as np
 import pathlib
 from typing import Tuple
 
@@ -122,7 +120,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
             return None
 
     def add_tile(self,
-                 content : np.ndarray | dcg.Texture,
+                 content : dcg.Texture,
                  coord,
                  opposite_coord=None,
                  nearest_neighbor_upsampling=False,
@@ -151,10 +149,6 @@ cdef class DrawTiledImage(dcg.drawingItem):
         if isinstance(content, dcg.Texture):
             texture = content
         else:
-            content = np.asarray(content)
-            assert content.ndim == 2 or content.ndim == 3
-            if content.ndim == 3:
-                assert content.shape[2] <= 4
             texture = dcg.Texture(self.context,
                                   content,
                                   nearest_neighbor_upsampling=nearest_neighbor_upsampling)
@@ -214,7 +208,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         else:
             raise KeyError("Tile not found")
 
-    def update_tile(self, uuid, content : np.ndarray) -> None:
+    def update_tile(self, uuid, content) -> None:
         """
         Update the content of a tile.
         Inputs:
@@ -528,7 +522,7 @@ class SkiaSVGRenderer(SVGRenderer):
                 self.gl_context.release()
         else:
             # Upload to the texture
-            image = np.array(self.surface.makeImageSnapshot())
+            image = self.surface.makeImageSnapshot()
             if self.gl_context:
                 self.gl_context.release()
             self.texture.set_value(image)

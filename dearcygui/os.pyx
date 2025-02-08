@@ -60,7 +60,7 @@ cdef extern from "SDL3/SDL_dialog.h" nogil:
 # on that initialize SDL (the one for which the context was created).
 # Thus delay the command until render_frame() in a handler
 
-cdef class RenderFrameCommandSubmission(baseHandler):
+cdef class _RenderFrameCommandSubmission(baseHandler):
     cdef bint _has_run
     cdef object custom_callback
     def __cinit__(self):
@@ -222,7 +222,7 @@ cdef class _FileDialogQuery:
         with getattr(context.viewport, "mutex"):
             handlers = getattr(context.viewport, "handlers")
             handlers += [
-                RenderFrameCommandSubmission(context, self._submit_in_frame)
+                _RenderFrameCommandSubmission(context, self._submit_in_frame)
             ]
             setattr(context.viewport, "handlers", handlers)
 

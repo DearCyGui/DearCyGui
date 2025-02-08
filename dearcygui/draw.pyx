@@ -2190,7 +2190,7 @@ cdef class DrawPolygon(drawingItem):
         for i in range(len(value)):
             read_coord(p.p, value[i])
             self._points.push_back(p)
-        self.__triangulate()
+        self._triangulate()
     @property
     def color(self):
         """
@@ -2246,7 +2246,10 @@ cdef class DrawPolygon(drawingItem):
 
     # ImGui Polygon fill requires clockwise order and convex polygon.
     # We want to be more lenient -> triangulate
-    cdef void __triangulate(self):
+    cdef void _triangulate(self):
+        self._triangulation_indices.clear()
+        if self._points.size() < 3:
+            return
         # Convert points to flat coordinate array
         cdef vector[double] coords
         coords.reserve(self._points.size() * 2)
@@ -2259,7 +2262,6 @@ cdef class DrawPolygon(drawingItem):
         cdef vector[size_t] triangulation = delaunator_get_triangles(coords)
 
         # Convert to DCGVector instead
-        self._triangulation_indices.clear()
         self._triangulation_indices.reserve(triangulation.size())
         for i in range(<int32_t>triangulation.size()):
             self._triangulation_indices.push_back(triangulation[i])

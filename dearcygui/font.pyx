@@ -14,13 +14,13 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
-from libc.math cimport logf
+from libc.math cimport logf, ceil, INFINITY
 from libcpp cimport bool
 from libcpp.deque cimport deque
 from libcpp.vector cimport vector
 
 cimport cython
-cimport cython.view
+from cython.view cimport array as cython_array
 from dearcygui.wrapper cimport imgui
 
 from .core cimport baseFont, baseItem, Texture, Callback, \
@@ -28,7 +28,7 @@ from .core cimport baseFont, baseItem, Texture, Callback, \
 from .c_types cimport *
 from .types cimport *
 
-from libc.stdint cimport uintptr_t
+from libc.stdint cimport uintptr_t, int32_t
 import ctypes
 from concurrent.futures import ThreadPoolExecutor
 
@@ -64,7 +64,6 @@ What is up to you to provide:
 import freetype
 import freetype.raw
 import os
-import numpy as np
 
 def get_system_fonts():
     """
@@ -596,14 +595,11 @@ cdef class FontTexture(baseItem):
             atlas.GetTexDataAsAlpha8(&data, &width, &height, &bpp)
 
         # write our font characters at the target location
-        cdef cython.view.array data_array = cython.view.array(shape=(height, width, bpp), itemsize=1, format='B', mode='c', allocate_buffer=False)
+        cdef cython_array data_array = cython_array(shape=(height, width, bpp), itemsize=1, format='B', mode='c', allocate_buffer=False)
         data_array.data = <char*>data
-        array = np.asarray(data_array, dtype=np.uint8)
         cdef imgui.ImFontAtlasCustomRect *rect
         cdef int32_t ym, yM, xm, xM
-        if len(array.shape) == 2:
-            array = array[:,:,np.newaxis]
-        cdef unsigned char[:,:,:] array_view = array
+        cdef unsigned char[:,:,:] array_view = data_array
         cdef unsigned char[:,:,:] src_view
         for i, key in enumerate(keys):
             rect = atlas.GetCustomRectByIndex(i)
@@ -621,7 +617,7 @@ cdef class FontTexture(baseItem):
             self._texture._filtering_mode = 0 # rgba bilinear
         else:
             self._texture._filtering_mode = 2 # 111A bilinear
-        self._texture.set_value(array)
+        self._texture.set_value(data_array.get_memview())
         assert(self._texture.allocated_texture != NULL)
         self._texture._readonly = True
         atlas.SetTexID(<imgui.ImTextureID>self._texture.allocated_texture)
@@ -690,10 +686,10 @@ cdef class FontTexture(baseItem):
             atlas.GetTexDataAsAlpha8(&data, &width, &height, &bpp)
 
         # Upload texture
-        cdef cython.view.array data_array = cython.view.array(shape=(height, width, bpp), itemsize=1, format='B', mode='c', allocate_buffer=False)
+        cdef cython_array data_array = cython_array(shape=(height, width, bpp), itemsize=1, format='B', mode='c', allocate_buffer=False)
         data_array.data = <char*>data
         self._texture._filtering_mode = 2 # 111A bilinear
-        self._texture.set_value(np.asarray(data_array, dtype=np.uint8))
+        self._texture.set_value(data_array.get_memview())
         assert(self._texture.allocated_texture != NULL)
         self._texture._readonly = True
         atlas.SetTexID(<imgui.ImTextureID>self._texture.allocated_texture)
@@ -749,26 +745,29 @@ cdef class GlyphSet:
         """
         if not isinstance(unicode_key, int):
             raise TypeError("Unicode key must be an integer")
+
+        cdef memoryview image_view
+        try:
+            image_view = memoryview(image)
+        except TypeError:
+            raise TypeError("Image must be a buffer, for instance a numpy array")
             
-        if not isinstance(image, np.ndarray):
-            raise TypeError("Image must be numpy array")
-            
-        if len(image.shape) < 2:
+        if len(image_view.shape) < 2:
             raise ValueError("Image must have at least 2 dimensions")
             
-        if image.dtype != np.uint8:
+        if image_view.format != 'B':
             raise TypeError("Image must be uint8")
             
         if advance < 0.:
             raise ValueError("Advance must be non-negative")
             
         # Calculate actual glyph height including offsets
-        #glyph_height = image.shape[0] + abs(dy)
+        #glyph_height = image_view.shape[0] + abs(dy)
         #if glyph_height > self.height:
         #    raise ValueError(f"Glyph height {glyph_height} exceeds font height {self.height}")
             
         # Store the glyph data
-        self.images[unicode_key] = image
+        self.images[unicode_key] = image_view
         self.positioning[unicode_key] = (dy, dx, advance)
 
     def __getitem__(self, key):
@@ -1017,14 +1016,14 @@ cdef class FontRenderer:
         if self._face is None:
             raise ValueError("Failed to open the font")
 
-    def render_text_to_array(self, text: str,
-                             target_size : int,
+    def render_text_to_array(self, str text not None,
+                             int target_size,
                              align_to_pixels=True,
                              enable_kerning=True,
                              str hinter="light",
-                             allow_color=True) -> tuple[np.ndarray, int]:
-        """Render text string to a numpy array and return the array and bitmap_top"""
-        self._face.set_pixel_sizes(0, int(round(target_size)))
+                             allow_color=True) -> tuple[memoryview, int]:
+        """Render text string to an array and return the array and bitmap_top"""
+        self._face.set_pixel_sizes(0, <int>round(target_size))
 
         load_flags = get_freetype_load_flags(hinter, allow_color)
 
@@ -1034,23 +1033,23 @@ cdef class FontRenderer:
         )
         
         # Add margins to prevent overflow
-        margin = target_size
-        height = int(np.ceil(rough_height)) + 2 * margin
-        width = int(np.ceil(rough_width)) + 2 * margin
+        cdef int margin = target_size
+        cdef int height = <int>ceil(rough_height) + 2 * margin
+        cdef int width = <int>ceil(rough_width) + 2 * margin
         
         # Create output image array with margins
-        image = np.zeros((height, width, 4), dtype=np.uint8)
+        image = cython_array(shape=(height, width, 4), itemsize=1, format='B', mode='c', allocate_buffer=True)
         
         # Track actual bounds with local variables
-        min_x = float('inf')
-        max_x = float('-inf')
-        min_y = float('inf')
-        max_y = float('-inf')
-        max_top = float('-inf')
+        cdef double min_x = INFINITY
+        cdef double max_x = -INFINITY
+        cdef double min_y = INFINITY
+        cdef double max_y = -INFINITY
+        cdef double max_top = -INFINITY
         
         # Render each character
-        x_offset = margin
-        y_offset = margin
+        cdef double x_offset = margin
+        cdef double y_offset = margin
         previous_char = None
         kerning_mode = freetype.FT_KERNING_DEFAULT if align_to_pixels else freetype.FT_KERNING_UNFITTED
         
@@ -1079,17 +1078,17 @@ cdef class FontRenderer:
             previous_char = char
 
         # Handle empty text
-        if min_x == float('inf'):
-            return np.zeros((1, 1, 4), dtype=np.uint8), 0
+        if min_x == INFINITY:
+            return cython_array(shape=(1, 1, 4), itemsize=1, format='B', mode='c', allocate_buffer=True), 0
 
         # Crop to actual content plus small margin
-        crop_margin = 2
-        min_x = max(int(min_x) - crop_margin, 0)
-        min_y = max(int(min_y) - crop_margin, 0)
-        max_x = min(int(np.ceil(max_x)) + crop_margin, width)
-        max_y = min(int(np.ceil(max_y)) + crop_margin, height)
+        cdef int crop_margin = 2
+        cdef int crop_x1 = max(<int>min_x - crop_margin, 0)
+        cdef int crop_y1 = max(<int>min_y - crop_margin, 0)
+        cdef int crop_x2 = min(<int>(ceil(max_x)) + crop_margin, width)
+        cdef int crop_y2 = min(<int>(ceil(max_y)) + crop_margin, height)
 
-        return image[min_y:max_y, min_x:max_x], max_top
+        return image[crop_y1:crop_y2, crop_x1:crop_x2], max_top
 
     def estimate_text_dimensions(self, text: str, load_flags : int, align_to_pixels: bool, enable_kerning: bool):
         """Calculate the dimensions needed for the text"""
@@ -1118,7 +1117,7 @@ cdef class FontRenderer:
             
         return width, max_top + max_bottom, max_top, max_bottom
 
-    def _render_glyph_to_image(self, glyph, image, x_offset, y_offset, align_to_pixels):
+    cdef void _render_glyph_to_image(self, glyph, unsigned char[:,:,::1] image, double x_offset, double y_offset, bint align_to_pixels):
         """Render a single glyph to the image array"""
         if glyph.format == freetype.FT_GLYPH_FORMAT_BITMAP:
             bitmap = glyph.bitmap
@@ -1133,16 +1132,25 @@ cdef class FontRenderer:
                 bglyph = gglyph.to_bitmap(freetype.FT_RENDER_MODE_NORMAL, subpixel_offset, True)
                 self._copy_bitmap_to_image(bglyph.bitmap, image, x_offset, y_offset)
 
-    def _copy_bitmap_to_image(self, bitmap, image, x_offset, y_offset):
+    cdef void _copy_bitmap_to_image(self, bitmap, unsigned char[:,:,::1] image, double x_offset, double y_offset):
         """Copy bitmap data to the image array"""
-        for y in range(bitmap.rows):
-            for x in range(bitmap.width):
+        cdef int x, y
+        cdef int i_x_offset = <int>x_offset
+        cdef int i_y_offset = <int>y_offset
+        cdef unsigned char* buffer_ptr = <unsigned char*>bitmap.buffer
+        cdef int num_rows = bitmap.rows
+        cdef int num_cols = bitmap.width
+        cdef int pitch = bitmap.pitch
+
+        for y in range(num_rows):
+            for x in range(num_cols):
                 if bitmap.pixel_mode == freetype.FT_PIXEL_MODE_GRAY:
-                    image[y + y_offset, int(x + x_offset), 3] = bitmap.buffer[y * bitmap.pitch + x]
+                    image[y + i_y_offset, i_x_offset + x, 3] = buffer_ptr[y * pitch + x]
                 elif bitmap.pixel_mode == freetype.FT_PIXEL_MODE_BGRA:
-                    image[y + y_offset, int(x + x_offset), :] = bitmap.buffer[
-                        y * bitmap.pitch + x * 4:(y + 1) * bitmap.pitch + x * 4
-                    ]
+                    image[y + i_y_offset, i_x_offset + x, 0] = buffer_ptr[y * pitch + x * 4 + 2]  # R
+                    image[y + i_y_offset, i_x_offset + x, 1] = buffer_ptr[y * pitch + x * 4 + 1]  # G 
+                    image[y + i_y_offset, i_x_offset + x, 2] = buffer_ptr[y * pitch + x * 4]      # B
+                    image[y + i_y_offset, i_x_offset + x, 3] = buffer_ptr[y * pitch + x * 4 + 3]  # A
 
     cpdef GlyphSet render_glyph_set(self,
                                     target_pixel_height=None,
@@ -1253,7 +1261,7 @@ cdef class FontRenderer:
             # Create image array based on bitmap mode
             if rows == 0 or cols == 0:
                 # Handle empty bitmap (space character for instance)
-                image = np.zeros([1, 1, 1], dtype=np.uint8)
+                image = cython_array(shape=(1, 1, 1), itemsize=1, format='B', mode='c', allocate_buffer=True)
                 bitmap_top = 0
                 bitmap_left = 0
             elif bitmap.pixel_mode == freetype.FT_PIXEL_MODE_MONO:
@@ -1262,7 +1270,7 @@ cdef class FontRenderer:
                 #image = image[:, :bitmap.width, np.newaxis]
                 buffer_ptr = <uintptr_t>ctypes.addressof(bitmap._FT_Bitmap.buffer.contents)
                 buffer_view = <unsigned char*>buffer_ptr
-                image = np.empty((rows, cols, 1), dtype=np.uint8)
+                image = cython_array(shape=(rows, cols, 1), itemsize=1, format='B', mode='c', allocate_buffer=True)
                 image_view = image[:,:,0]
         
                 # Unpack bits
@@ -1274,7 +1282,7 @@ cdef class FontRenderer:
                 #image = image[:, :bitmap.width, np.newaxis]
                 buffer_ptr = <uintptr_t>ctypes.addressof(bitmap._FT_Bitmap.buffer.contents)
                 buffer_view = <unsigned char*>buffer_ptr
-                image = np.empty((rows, cols, 1), dtype=np.uint8)
+                image = cython_array(shape=(rows, cols, 1), itemsize=1, format='B', mode='c', allocate_buffer=True)
                 image_view = image[:,:,0]
         
                 for i in range(rows):
@@ -1286,7 +1294,7 @@ cdef class FontRenderer:
                 #image[:, :, [0, 2]] = image[:, :, [2, 0]]  # swap B and R
                 buffer_ptr = <uintptr_t>ctypes.addressof(bitmap._FT_Bitmap.buffer.contents)
                 buffer_view = <unsigned char*>buffer_ptr
-                image = np.empty((rows, cols, 4), dtype=np.uint8)
+                image = cython_array(shape=(rows, cols, 4), itemsize=1, format='B', mode='c', allocate_buffer=True)
                 color_image_view = image
                 # Copy and swap R/B channels directly
                 for i in range(rows):

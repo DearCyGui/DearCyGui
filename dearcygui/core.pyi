@@ -23255,7 +23255,7 @@ class DrawInvisibleButton(drawingItem):
     where top left is (0, 0) and bottom right is (1, 1).
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : Any = ..., capture_mouse : bool = True, children : list[drawingItem] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItem | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButtonMask = 7, capture_mouse : bool = True, children : list[drawingItem] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItem | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -23322,7 +23322,7 @@ class DrawInvisibleButton(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : Any = ..., capture_mouse : bool = True, children : list[drawingItem] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItem | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButtonMask = 7, capture_mouse : bool = True, children : list[drawingItem] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItem | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -23493,7 +23493,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def button(self):
+    def button(self) -> MouseButtonMask:
         """
         Mouse button mask that makes the invisible button
         active and triggers the item's callback.
@@ -23513,7 +23513,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @button.setter
-    def button(self, value):
+    def button(self, value : MouseButtonMask):
         ...
 
 
@@ -60668,7 +60668,7 @@ class PlotAxisConfig(baseItem):
 
 
 class PlotBarGroups(plotElementWithLegend):
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : ndarray = [[0.]]):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -60742,7 +60742,7 @@ class PlotBarGroups(plotElementWithLegend):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : ndarray = [[0.]]):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -61351,7 +61351,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @property
-    def values(self) -> ndarray:
+    def values(self):
         """
         A row-major array with item_count columns and group_size rows.
         Basically a 2D array where
@@ -61370,15 +61370,20 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @values.setter
-    def values(self, value : ndarray):
+    def values(self, value):
         ...
 
 
 class PlotBars(plotElementXY):
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -61441,9 +61446,14 @@ class PlotBars(plotElementXY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -61593,30 +61603,31 @@ class PlotBars(plotElementXY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -62032,10 +62043,15 @@ class PlotDigital(plotElementXY):
     do not respond to y axis zooming.
     
     """
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -62096,9 +62112,14 @@ class PlotDigital(plotElementXY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -62246,30 +62267,31 @@ class PlotDigital(plotElementXY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -62656,10 +62678,15 @@ class PlotErrorBars(plotElementXY):
     Each error bar can have a different positive/negative error value.
     
     """
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Any = ..., next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, positives : ndarray = [0.], previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Any = ..., next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, positives : Any = ..., previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -62686,14 +62713,17 @@ class PlotErrorBars(plotElementXY):
             the hovered state of the plot.
         negatives: Negative error values array.
             
-            If set to None, the error bars will be symmetrical.
-            (This is equivalent to negatives=positives)
+            If empty, the error bars will be symmetrical
+            (equivalent to negatives=positives)
         next_sibling: child of the parent of the item that
             is rendered just after this item.
         no_legend: Writable attribute to disable the legend for this plot
             element
         parent: parent of the item in the rendering tree.
         positives: Positive error values array.
+            
+            If negatives is empty, error bars will be symmetrical
+            around the Y value.
         previous_sibling: child of the parent of the item that
             is rendered just before this item.
         show: Should the object be drawn/shown ?
@@ -62726,9 +62756,14 @@ class PlotErrorBars(plotElementXY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Any = ..., next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, positives : ndarray = [0.], previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Any = ..., next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, positives : Any = ..., previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -62755,14 +62790,17 @@ class PlotErrorBars(plotElementXY):
             the hovered state of the plot.
         negatives: Negative error values array.
             
-            If set to None, the error bars will be symmetrical.
-            (This is equivalent to negatives=positives)
+            If empty, the error bars will be symmetrical
+            (equivalent to negatives=positives)
         next_sibling: child of the parent of the item that
             is rendered just after this item.
         no_legend: Writable attribute to disable the legend for this plot
             element
         parent: parent of the item in the rendering tree.
         positives: Positive error values array.
+            
+            If negatives is empty, error bars will be symmetrical
+            around the Y value.
         previous_sibling: child of the parent of the item that
             is rendered just before this item.
         show: Should the object be drawn/shown ?
@@ -62882,30 +62920,31 @@ class PlotErrorBars(plotElementXY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -63122,8 +63161,8 @@ class PlotErrorBars(plotElementXY):
     def negatives(self):
         """Negative error values array.
         
-        If set to None, the error bars will be symmetrical.
-        (This is equivalent to negatives=positives)
+        If empty, the error bars will be symmetrical
+        (equivalent to negatives=positives)
         
         """
         ...
@@ -63231,18 +63270,18 @@ class PlotErrorBars(plotElementXY):
 
 
     @property
-    def positives(self) -> ndarray:
+    def positives(self):
         """Positive error values array.
-
-        If negatives is set to None,
-        the error bars will be symmetrical around the Y value.
+        
+        If negatives is empty, error bars will be symmetrical
+        around the Y value.
         
         """
         ...
 
 
     @positives.setter
-    def positives(self, value : ndarray):
+    def positives(self, value):
         ...
 
 
@@ -63340,7 +63379,7 @@ class PlotHeatmap(plotElementWithLegend):
     scale_min/scale_max. Setting both to 0 enables automatic color scaling.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : list[uiItem] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : ndarray = [[0.]]):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : list[uiItem] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -63413,7 +63452,7 @@ class PlotHeatmap(plotElementWithLegend):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : list[uiItem] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : ndarray = [[0.]]):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : list[uiItem] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -64021,7 +64060,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @property
-    def values(self) -> ndarray:
+    def values(self):
         """2D array of values to plot.
         
         The array shape should be (rows, cols) for row-major order,
@@ -64036,7 +64075,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @values.setter
-    def values(self, value : ndarray):
+    def values(self, value):
         ...
 
 
@@ -64045,10 +64084,14 @@ class PlotHistogram(plotElementX):
     Plots a histogram from X,Y data points. Several binning options are available.
     
     """
-    def __init__(self, context : Context, X : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : list[uiItem] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : list[uiItem] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -64122,9 +64165,13 @@ class PlotHistogram(plotElementX):
         ...
 
 
-    def configure(self, X : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : list[uiItem] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : list[uiItem] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -64285,20 +64332,19 @@ class PlotHistogram(plotElementX):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
@@ -64776,10 +64822,15 @@ class PlotHistogram2D(plotElementXY):
     Several binning options are available.
     
     """
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -64858,9 +64909,14 @@ class PlotHistogram2D(plotElementXY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -65026,30 +65082,31 @@ class PlotHistogram2D(plotElementXY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -65522,10 +65579,14 @@ class PlotInfLines(plotElementX):
     the passed coordinates
     
     """
-    def __init__(self, context : Context, X : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -65587,9 +65648,13 @@ class PlotInfLines(plotElementX):
         ...
 
 
-    def configure(self, X : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -65738,20 +65803,19 @@ class PlotInfLines(plotElementX):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
@@ -66667,10 +66731,15 @@ class PlotLegendConfig(baseItem):
 
 
 class PlotLine(plotElementXY):
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -66738,9 +66807,14 @@ class PlotLine(plotElementXY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -66895,30 +66969,31 @@ class PlotLine(plotElementXY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -67372,12 +67447,7 @@ class PlotLine(plotElementXY):
 
 
 class PlotPieChart(plotElementWithLegend):
-    """
-    Plots a pie chart with the given values and labels.
-    The pie chart is centered at (x,y) with the given radius.
-    
-    """
-    def __init__(self, context : Context, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, normalize : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : ndarray = [0.], x : float = 0.0, y : float = 0.0):
+    def __init__(self, context : Context, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, normalize : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Any = ..., x : float = 0.0, y : float = 0.0):
         """
 
         angle: Starting angle for first slice in degrees. Default is 90.
@@ -67451,7 +67521,7 @@ class PlotPieChart(plotElementWithLegend):
         ...
 
 
-    def configure(self, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, normalize : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : ndarray = [0.], x : float = 0.0, y : float = 0.0):
+    def configure(self, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, normalize : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Any = ..., x : float = 0.0, y : float = 0.0):
         """
         angle: Starting angle for first slice in degrees. Default is 90.
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -68068,7 +68138,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @property
-    def values(self) -> ndarray:
+    def values(self):
         """
         Array of values for each pie slice.
 
@@ -68081,7 +68151,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @values.setter
-    def values(self, value : ndarray):
+    def values(self, value):
         ...
 
 
@@ -68110,10 +68180,15 @@ class PlotPieChart(plotElementWithLegend):
 
 
 class PlotScatter(plotElementXY):
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -68175,9 +68250,14 @@ class PlotScatter(plotElementXY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -68326,30 +68406,31 @@ class PlotScatter(plotElementXY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -68745,10 +68826,16 @@ class PlotScatter(plotElementXY):
 
 
 class PlotShadedLine(plotElementXYY):
-    def __init__(self, context : Context, X : ndarray = [0.], Y1 : ndarray = [0.], Y2 : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y1 : Any = ..., Y2 : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y1: Values on the Y1 axis
+        Y2: Values on the Y2 axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -68809,9 +68896,15 @@ class PlotShadedLine(plotElementXYY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y1 : ndarray = [0.], Y2 : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y1 : Any = ..., Y2 : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y1: Values on the Y1 axis
+        Y2: Values on the Y2 axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -68959,40 +69052,43 @@ class PlotShadedLine(plotElementXYY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y1(self) -> ndarray:
+    def Y1(self):
+        """Values on the Y1 axis
+        """
         ...
 
 
     @Y1.setter
-    def Y1(self, value : ndarray):
+    def Y1(self, value):
         ...
 
 
     @property
-    def Y2(self) -> ndarray:
+    def Y2(self):
+        """Values on the Y2 axis
+        """
         ...
 
 
     @Y2.setter
-    def Y2(self, value : ndarray):
+    def Y2(self, value):
         ...
 
 
@@ -69374,10 +69470,15 @@ class PlotShadedLine(plotElementXYY):
 
 
 class PlotStairs(plotElementXY):
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, pre_step : bool = False, previous_sibling : baseItem | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, pre_step : bool = False, previous_sibling : baseItem | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -69444,9 +69545,14 @@ class PlotStairs(plotElementXY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, pre_step : bool = False, previous_sibling : baseItem | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, pre_step : bool = False, previous_sibling : baseItem | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -69600,30 +69706,31 @@ class PlotStairs(plotElementXY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -70037,10 +70144,15 @@ class PlotStairs(plotElementXY):
 
 
 class PlotStems(plotElementXY):
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -70102,9 +70214,14 @@ class PlotStems(plotElementXY):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -70253,30 +70370,31 @@ class PlotStems(plotElementXY):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -76515,7 +76633,7 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class SharedFloatVect(SharedValue):
-    def __init__(self, context : Context, value : ndarray):
+    def __init__(self, context : Context, value : array):
         """
 Initialize self.  See help(type(self)) for accurate signature.
         """
@@ -76559,12 +76677,12 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
     @property
-    def value(self) -> ndarray:
+    def value(self) -> array:
         ...
 
 
     @value.setter
-    def value(self, value : ndarray):
+    def value(self, value : array):
         ...
 
 
@@ -76796,7 +76914,7 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class SimplePlot(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : ndarray = [0.], width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -76940,7 +77058,7 @@ class SimplePlot(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : ndarray = [0.], width : float = 0.0):
+    def configure(self, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         autoscale: Whether scale_min and scale_max should be deduced
@@ -77981,7 +78099,7 @@ class SimplePlot(uiItem):
 
 
     @property
-    def value(self) -> ndarray:
+    def value(self) -> array:
         """
         Writable attribute: main internal value for the object.
         For buttons, it is set when pressed; For text it is the
@@ -77998,7 +78116,7 @@ class SimplePlot(uiItem):
 
 
     @value.setter
-    def value(self, value : ndarray):
+    def value(self, value : array):
         ...
 
 
@@ -86287,16 +86405,9 @@ Sort the columns using the value in ref_row as index.
         
         The sorting order is defined using the items's ordering_value
         when ordering_value is not set, it defaults to:
-        - The content string (if it is a string) 
-        - The content before its conversion into string
+        - The content string (if it is a string)
+        - The content before its conversion into string 
         - If content is an uiItem, it defaults to the UUID (item creation order)
-        
-        Parameters:
-            ref_row : int32_t 
-                Row index to use for sorting
-            ascending : bool, optional
-                Sort in ascending order if True, descending if False.
-                Defaults to True.
         
         """
         ...
@@ -91971,13 +92082,13 @@ class Texture(baseItem):
         - crop_height: height of the crop (0 for full_height)
 
         Returns:
-        - numpy array: the texture content
+        - cython array: the texture content (similar to numpy array)
         
         """
         ...
 
 
-    def set_value(self, value):
+    def set_value(self, src):
         """
         Pass an array as texture data.
         The currently native formats are:
@@ -112048,16 +112159,9 @@ Sort the columns using the value in ref_row as index.
         
         The sorting order is defined using the items's ordering_value
         when ordering_value is not set, it defaults to:
-        - The content string (if it is a string) 
-        - The content before its conversion into string
+        - The content string (if it is a string)
+        - The content before its conversion into string 
         - If content is an uiItem, it defaults to the UUID (item creation order)
-        
-        Parameters:
-            ref_row : int32_t 
-                Row index to use for sorting
-            ascending : bool, optional
-                Sort in ascending order if True, descending if False.
-                Defaults to True.
         
         """
         ...
@@ -115615,10 +115719,14 @@ class plotElementWithLegend(plotElement):
 
 
 class plotElementX(plotElementWithLegend):
-    def __init__(self, context : Context, X : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -115679,9 +115787,13 @@ class plotElementX(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -115829,20 +115941,19 @@ class plotElementX(plotElementWithLegend):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
@@ -116224,10 +116335,15 @@ class plotElementX(plotElementWithLegend):
 
 
 class plotElementXY(plotElementWithLegend):
-    def __init__(self, context : Context, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -116288,9 +116404,14 @@ class plotElementXY(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y: Values on the Y axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -116438,30 +116559,31 @@ class plotElementXY(plotElementWithLegend):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y(self) -> ndarray:
+    def Y(self):
+        """Values on the Y axis
+        """
         ...
 
 
     @Y.setter
-    def Y(self, value : ndarray):
+    def Y(self, value):
         ...
 
 
@@ -116843,10 +116965,16 @@ class plotElementXY(plotElementWithLegend):
 
 
 class plotElementXYY(plotElementWithLegend):
-    def __init__(self, context : Context, X : ndarray = [0.], Y1 : ndarray = [0.], Y2 : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Any = ..., Y1 : Any = ..., Y2 : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y1: Values on the Y1 axis
+        Y2: Values on the Y2 axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -116907,9 +117035,15 @@ class plotElementXYY(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : ndarray = [0.], Y1 : ndarray = [0.], Y2 : ndarray = [0.], attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Any = ..., Y1 : Any = ..., Y2 : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
+            
+            Accepts numpy arrays or buffer compatible objects.
+            Supported types for no copy are int32, float32, float64,
+            else a float64 copy is used.
+        Y1: Values on the Y1 axis
+        Y2: Values on the Y2 axis
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
             used for this plot element.
@@ -117057,40 +117191,43 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @property
-    def X(self) -> ndarray:
+    def X(self):
         """Values on the X axis.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
         
         """
         ...
 
 
     @X.setter
-    def X(self, value : ndarray):
+    def X(self, value):
         ...
 
 
     @property
-    def Y1(self) -> ndarray:
+    def Y1(self):
+        """Values on the Y1 axis
+        """
         ...
 
 
     @Y1.setter
-    def Y1(self, value : ndarray):
+    def Y1(self, value):
         ...
 
 
     @property
-    def Y2(self) -> ndarray:
+    def Y2(self):
+        """Values on the Y2 axis
+        """
         ...
 
 
     @Y2.setter
-    def Y2(self, value : ndarray):
+    def Y2(self, value):
         ...
 
 

@@ -13,4 +13,4 @@ cdef extern from * nogil:
         return d.triangles;
     }
     """
-    vector[size_t] delaunator_get_triangles(const vector[double]& coords)
+    vector[size_t] delaunator_get_triangles(const vector[double]& coords) except +

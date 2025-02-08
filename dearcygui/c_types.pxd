@@ -1,6 +1,6 @@
 cimport cpython
 from libc.stdint cimport uint64_t
-import array
+from cython.view cimport array as cython_array
 
 cdef extern from * nogil:
     """
@@ -911,9 +911,361 @@ cdef extern from *:
         DCG_FLOAT
         DCG_DOUBLE
 
-cdef inline object get_object_from_array_view(DCG1DArrayView &view):
+cdef inline object get_object_from_1D_array_view(DCG1DArrayView &view):
     cdef cpython.PyObject *obj = view.pyobj()
     if obj == NULL:
         # return empty array of 1 dim
-        return array.array('d', [])
+        return cython_array(shape=[1], itemsize=8, format='d')[:0]
+    return <object>obj
+
+cdef extern from *:
+    """
+    struct DCG2DContiguousArrayView {
+        void* _data;
+        void* _owned_data;
+        PyObject* _pyobj;
+        Py_buffer _view;
+        size_t _rows;
+        size_t _cols;
+        union {
+            struct {
+                DCGArrayType _type;
+                bool _has_view;
+            };
+            struct {
+                uint64_t _alignment_union1;
+                uint64_t _alignment_union2;
+            };
+        };
+        
+        DCG2DContiguousArrayView() : _data(nullptr), _owned_data(nullptr),
+                                    _pyobj(nullptr), _rows(0), _cols(0),
+                                    _type(DCG_DOUBLE), _has_view(false) {}
+
+        template<typename T>
+        static double convert_number(T value) {
+            return static_cast<double>(value);
+        }
+
+        template<typename T>
+        void convert_array_to_double(const char* src, double* dst, size_t stride_row, size_t stride_col) {
+            for (size_t i = 0; i < _rows; i++) {
+                const char* row = src + i * stride_row;
+                for (size_t j = 0; j < _cols; j++) {
+                    dst[i * _cols + j] = convert_number(*reinterpret_cast<const T*>(row + j * stride_col));
+                }
+            }
+        }
+
+        void _convert_to_double() {
+            size_t total = _rows * _cols;
+            double* new_data = static_cast<double*>(malloc(total * sizeof(double)));
+            if (!new_data) {
+                throw std::bad_alloc();
+            }
+
+            try {
+                const char* format = _view.format;
+                
+                // Handle NULL format - treat as unsigned bytes per Python spec
+                static const char default_format = 'B';
+                if (!format) format = &default_format;
+                
+                // Skip byte order indicators
+                while (*format == '@' || *format == '=' || *format == '<' || 
+                       *format == '>' || *format == '!') format++;
+
+                // Skip size/repeat indicators
+                while (isdigit(*format)) format++;
+
+                // Get source strides
+                size_t stride_row = _view.strides[0];
+                size_t stride_col = _view.strides[1];
+                const char* src = static_cast<const char*>(_data);
+
+                switch (*format) {
+                    case 'b': convert_array_to_double<int8_t>(src, new_data, stride_row, stride_col); break;
+                    case 'B': convert_array_to_double<uint8_t>(src, new_data, stride_row, stride_col); break;
+                    case 'h': convert_array_to_double<int16_t>(src, new_data, stride_row, stride_col); break;
+                    case 'H': convert_array_to_double<uint16_t>(src, new_data, stride_row, stride_col); break;
+                    case 'i': 
+                    case 'l': convert_array_to_double<int32_t>(src, new_data, stride_row, stride_col); break;
+                    case 'I':
+                    case 'L': convert_array_to_double<uint32_t>(src, new_data, stride_row, stride_col); break;
+                    case 'q': convert_array_to_double<int64_t>(src, new_data, stride_row, stride_col); break;
+                    case 'Q': convert_array_to_double<uint64_t>(src, new_data, stride_row, stride_col); break;
+                    case 'f': convert_array_to_double<float>(src, new_data, stride_row, stride_col); break;
+                    case 'd': convert_array_to_double<double>(src, new_data, stride_row, stride_col); break;
+                    default:
+                        throw std::runtime_error("Unsupported buffer format for conversion");
+                }
+
+                if (_owned_data) free(_owned_data);
+                _owned_data = new_data;
+                _data = new_data;
+                _type = DCG_DOUBLE;
+
+            } catch (...) {
+                free(new_data);
+                throw;
+            }
+        }
+
+        void _ensure_contiguous() {
+            if (!_data || !_rows || !_cols) return;
+            
+            size_t element_size = -1;
+            switch (_type) {
+                case DCG_INT32: element_size = sizeof(int32_t); break;
+                case DCG_FLOAT: element_size = sizeof(float); break;
+                case DCG_DOUBLE: element_size = sizeof(double); break;
+            }
+            
+            // Check if already contiguous - row major layout
+            if (_view.ndim == 2 &&
+                _view.strides[1] == static_cast<Py_ssize_t>(element_size) && 
+                _view.strides[0] == static_cast<Py_ssize_t>(_cols * element_size)) {
+                return;
+            }
+            
+            size_t total = _rows * _cols;
+            size_t required_size = total * element_size;
+            void* new_data = malloc(required_size);
+            if (!new_data) throw std::bad_alloc();
+            
+            try {
+                // Copy data ensuring contiguous layout
+                size_t row_size = _cols * element_size;
+                char* src = static_cast<char*>(_data);
+                char* dst = static_cast<char*>(new_data);
+                
+                if (_view.ndim == 2) {
+                    for (size_t i = 0; i < _rows; i++) {
+                        memcpy(dst + i * row_size,
+                               src + i * _view.strides[0],
+                               row_size);
+                    }
+                } else {
+                    memcpy(dst, src, required_size);
+                }
+                
+                if (_owned_data) free(_owned_data);
+                _owned_data = new_data;
+                _data = new_data;
+                
+            } catch (...) {
+                free(new_data);
+                throw;
+            }
+        }
+
+        void _cleanup() {
+            if (_owned_data) {
+                free(_owned_data);
+                _owned_data = nullptr;
+            }
+            if (_has_view) {
+                PyBuffer_Release(&_view);
+                _has_view = false;
+            }
+            if (_pyobj) {
+                Py_DECREF(_pyobj);
+                _pyobj = nullptr;
+            }
+            _data = nullptr;
+            _rows = _cols = 0;
+            _type = DCG_DOUBLE;
+        }
+
+        bool try_get_sequence_size(PyObject* obj, size_t& out_size) {
+            if (!PySequence_Check(obj)) return false;
+            Py_ssize_t len = PySequence_Length(obj);
+            if (len < 0) {
+                PyErr_Clear();
+                return false;
+            }
+            out_size = static_cast<size_t>(len);
+            return true;
+        }
+
+        void reset() {
+            _cleanup();
+        }
+
+        void reset(PyObject* obj) {
+            _cleanup();
+            
+            if (!obj) {
+                throw std::invalid_argument("Null Python object");
+            }
+
+            // First try buffer protocol
+            if (PyObject_GetBuffer(obj, &_view, PyBUF_RECORDS_RO) >= 0) {
+                _has_view = true;
+
+                if (_view.ndim != 2) {
+                    PyBuffer_Release(&_view);
+                    throw std::invalid_argument("Buffer must be 2-dimensional");
+                }
+
+                _rows = _view.shape[0];
+                _cols = _view.shape[1];
+                _data = _view.buf;
+
+                const char* format = _view.format;
+                if (!format) {
+                    _convert_to_double();
+                } else {
+                    while (*format == '@' || *format == '=' || *format == '<' || 
+                           *format == '>' || *format == '!') format++;
+                    
+                    while (isdigit(*format)) format++;
+
+                    if (*format == 'i' || *format == 'l') {
+                        _type = DCG_INT32;
+                        _ensure_contiguous();
+                    } else if (*format == 'f') {
+                        _type = DCG_FLOAT;
+                        _ensure_contiguous();
+                    } else if (*format == 'd') {
+                        _type = DCG_DOUBLE;
+                        _ensure_contiguous();
+                    } else {
+                        _convert_to_double();
+                    }
+                }
+            }
+            // Then try sequence protocol
+            else {
+                PyErr_Clear();  // Clear buffer protocol error
+                size_t rows;
+                if (!try_get_sequence_size(obj, rows)) {
+                    throw std::invalid_argument("Object supports neither buffer nor sequence protocol");
+                }
+
+                if (rows == 0) {
+                    _rows = _cols = 0;
+                    return;
+                }
+
+                // Get first row to determine number of columns
+                PyObject* first_row = PySequence_GetItem(obj, 0);
+                if (!first_row) {
+                    throw std::invalid_argument("Failed to get first row");
+                }
+
+                size_t cols;
+                if (!try_get_sequence_size(first_row, cols)) {
+                    Py_DECREF(first_row);
+                    throw std::invalid_argument("Row items must be sequences");
+                }
+                Py_DECREF(first_row);
+
+                if (cols == 0) {
+                    throw std::invalid_argument("Rows cannot be empty");
+                }
+
+                // Allocate contiguous array
+                double* new_data = static_cast<double*>(malloc(rows * cols * sizeof(double)));
+                if (!new_data) {
+                    throw std::bad_alloc();
+                }
+
+                try {
+                    // Convert all elements to double
+                    for (size_t i = 0; i < rows; i++) {
+                        PyObject* row = PySequence_GetItem(obj, i);
+                        if (!row) {
+                            throw std::invalid_argument("Failed to get row");
+                        }
+
+                        size_t row_size;
+                        if (!try_get_sequence_size(row, row_size) || row_size != cols) {
+                            Py_DECREF(row);
+                            throw std::invalid_argument("All rows must have the same length");
+                        }
+
+                        for (size_t j = 0; j < cols; j++) {
+                            PyObject* item = PySequence_GetItem(row, j);
+                            if (!item) {
+                                Py_DECREF(row);
+                                throw std::invalid_argument("Failed to get item");
+                            }
+
+                            PyObject* float_obj = PyNumber_Float(item);
+                            Py_DECREF(item);
+
+                            if (!float_obj) {
+                                Py_DECREF(row);
+                                throw std::invalid_argument("All items must be convertible to float");
+                            }
+
+                            new_data[i * cols + j] = PyFloat_AsDouble(float_obj);
+                            Py_DECREF(float_obj);
+
+                            if (PyErr_Occurred()) {
+                                Py_DECREF(row);
+                                throw std::invalid_argument("Error converting item to float");
+                            }
+                        }
+                        Py_DECREF(row);
+                    }
+
+                    _owned_data = new_data;
+                    _data = new_data;
+                    _rows = rows;
+                    _cols = cols;
+                    _type = DCG_DOUBLE;
+
+                } catch (...) {
+                    free(new_data);
+                    throw;
+                }
+            }
+
+            _pyobj = obj;
+            Py_INCREF(_pyobj);
+        }
+
+        ~DCG2DContiguousArrayView() {
+            _cleanup();
+        }
+
+        template<typename T>
+        T* data() const { return static_cast<T*>(_data); }
+        
+        size_t rows() const { return _rows; }
+        size_t cols() const { return _cols; }
+        DCGArrayType type() const { return _type; }
+        PyObject* pyobj() const { return _pyobj; }
+
+        void ensure_double() {
+            if (_type == DCG_DOUBLE) return;
+            _convert_to_double();
+        }
+    };
+    """
+
+    cdef cppclass DCG2DContiguousArrayView:
+        void* _data
+        size_t _rows
+        size_t _cols
+        DCGArrayType _type
+        
+        DCG2DContiguousArrayView() except +
+        DCG2DContiguousArrayView(object) except +
+        void reset() except +
+        void reset(object) except +
+        T* data[T]() nogil
+        size_t rows() nogil
+        size_t cols() nogil
+        DCGArrayType type() nogil
+        cpython.PyObject* pyobj()
+        void ensure_double() except +
+
+cdef inline object get_object_from_2D_array_view(DCG2DContiguousArrayView &view):
+    cdef cpython.PyObject *obj = view.pyobj()
+    if obj == NULL:
+        # return empty array of 2 dims
+        return cython_array(shape=[1, 1], itemsize=8, format='d')[:0, :0]
     return <object>obj

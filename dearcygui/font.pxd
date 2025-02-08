@@ -66,3 +66,5 @@ cdef class FontRenderer:
                                     str hinter=?,
                                     restrict_to=?,
                                     allow_color=?)
+    cdef void _render_glyph_to_image(self, glyph, unsigned char[:,:,::1] image, double x_offset, double y_offset, bint align_to_pixels)
+    cdef void _copy_bitmap_to_image(self, bitmap, unsigned char[:,:,::1] image, double x_offset, double y_offset)

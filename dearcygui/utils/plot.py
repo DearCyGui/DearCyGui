@@ -1,6 +1,5 @@
 import datetime
 import dearcygui as dcg
-import numpy as np
 
 class PlotCandleStick(dcg.DrawInPlot):
     """
@@ -39,11 +38,6 @@ class PlotCandleStick(dcg.DrawInPlot):
         # For DrawInPlot, default no_legend is True
         # Thus the override.
         self.no_legend = no_legend
-        # Check dates, opens, closes, lows, highs are 1D np.ndarray of same length
-        if not isinstance(dates, np.ndarray) or not isinstance(opens, np.ndarray) or not isinstance(closes, np.ndarray) or not isinstance(lows, np.ndarray) or not isinstance(highs, np.ndarray):
-            raise ValueError("dates, opens, closes, lows, highs must be numpy arrays")
-        if dates.ndim != 1 or opens.ndim != 1 or closes.ndim != 1 or lows.ndim != 1 or highs.ndim != 1:
-            raise ValueError("dates, opens, closes, lows, highs must be 1D numpy arrays")
         if len(dates) != len(opens) or len(dates) != len(closes) or len(dates) != len(lows) or len(dates) != len(highs):
             raise ValueError("dates, opens, closes, lows, highs must be of same length")
         # Same to local variables
