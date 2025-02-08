@@ -12,3 +12,6 @@
 [submodule "thirdparty/SDL"]
 	path = thirdparty/SDL
 	url = https://github.com/libsdl-org/SDL
+[submodule "thirdparty/delaunator-cpp"]
+	path = thirdparty/delaunator-cpp
+	url = https://github.com/delfrrr/delaunator-cpp

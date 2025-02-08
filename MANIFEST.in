@@ -1,4 +1,5 @@
 recursive-include dearcygui/backends/ *.h
+recursive-include thirdparty/delaunator-cpp/ *
 recursive-include thirdparty/freetype/ *
 recursive-include thirdparty/gl3w/ *.h
 recursive-include thirdparty/imgui/ *

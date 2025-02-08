@@ -31,8 +31,7 @@ from libc.stdint cimport uint32_t, int32_t
 from libcpp cimport bool
 from libcpp.vector cimport vector
 
-import scipy
-import scipy.spatial
+from .wrapper.delaunator cimport delaunator_get_triangles
 
 cdef inline bint is_counter_clockwise(imgui.ImVec2 p1,
                                       imgui.ImVec2 p2,
@@ -2248,16 +2247,22 @@ cdef class DrawPolygon(drawingItem):
     # ImGui Polygon fill requires clockwise order and convex polygon.
     # We want to be more lenient -> triangulate
     cdef void __triangulate(self):
-        if self._fill & imgui.IM_COL32_A_MASK != 0:
-            return
-        # TODO: optimize with arrays
-        points = []
+        # Convert points to flat coordinate array
+        cdef vector[double] coords
+        coords.reserve(self._points.size() * 2)
         cdef int32_t i
         for i in range(<int>self._points.size()):
-            # For now perform only in 2D
-            points.append([self._points[i].p[0], self._points[i].p[1]])
-        # order is counter clock-wise
-        self._triangulation_indices = scipy.spatial.Delaunay(points).simplices
+            coords.push_back(self._points[i].p[0])
+            coords.push_back(self._points[i].p[1])
+
+        # Create triangulation
+        cdef vector[size_t] triangulation = delaunator_get_triangles(coords)
+
+        # Convert to DCGVector instead
+        self._triangulation_indices.clear()
+        self._triangulation_indices.reserve(triangulation.size())
+        for i in range(triangulation.size()):
+            self._triangulation_indices.push_back(triangulation[i])
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
@@ -2283,25 +2288,25 @@ cdef class DrawPolygon(drawingItem):
             ipoints.push_back(ip)
 
         # Draw interior
-        if self._fill & imgui.IM_COL32_A_MASK != 0 and self._triangulation_indices.shape[0] > 0:
+        if self._fill & imgui.IM_COL32_A_MASK != 0 and self._triangulation_indices.size() > 0:
             # imgui requires clockwise order + convexity for correct AA
-            # The triangulation always returns counter-clockwise
+            # The triangulation always returns counter-clockwise 
             # but the matrix can change the order.
             # The order should be the same for all triangles, except in plot with log
             # scale.
-            for i in range(self._triangulation_indices.shape[0]):
-                ccw = is_counter_clockwise(ipoints[self._triangulation_indices[i, 0]],
-                                           ipoints[self._triangulation_indices[i, 1]],
-                                           ipoints[self._triangulation_indices[i, 2]])
+            for i in range(self._triangulation_indices.size()//3):
+                ccw = is_counter_clockwise(ipoints[self._triangulation_indices[i*3+0]],
+                                           ipoints[self._triangulation_indices[i*3+1]], 
+                                           ipoints[self._triangulation_indices[i*3+2]])
                 if ccw:
-                    (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ipoints[self._triangulation_indices[i, 0]],
-                                                      ipoints[self._triangulation_indices[i, 2]],
-                                                      ipoints[self._triangulation_indices[i, 1]],
+                    (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ipoints[self._triangulation_indices[i*3+0]],
+                                                      ipoints[self._triangulation_indices[i*3+2]],
+                                                      ipoints[self._triangulation_indices[i*3+1]],
                                                       self._fill)
                 else:
-                    (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ipoints[self._triangulation_indices[i, 0]],
-                                                      ipoints[self._triangulation_indices[i, 1]],
-                                                      ipoints[self._triangulation_indices[i, 2]],
+                    (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ipoints[self._triangulation_indices[i*3+0]],
+                                                      ipoints[self._triangulation_indices[i*3+1]],
+                                                      ipoints[self._triangulation_indices[i*3+2]],
                                                       self._fill)
 
         # Draw closed boundary

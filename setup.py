@@ -194,6 +194,7 @@ def setup_package():
                     "thirdparty/imnodes",
                     "thirdparty/implot",
                     "thirdparty/gl3w",
+                    "thirdparty/delaunator-cpp/include",
                     "thirdparty/freetype/include",
                     "thirdparty/SDL/include"]
     include_dirs += [np.get_include()]
@@ -353,8 +354,7 @@ def setup_package():
         packages=['dearcygui', 'dearcygui.docs', 'dearcygui.utils', 'dearcygui.backends', 'dearcygui.wrapper'],
         install_requires=[
           'numpy',
-          'freetype-py',
-          'scipy'
+          'freetype-py'
         ],
         ext_modules = cythonize(extensions, compiler_directives={'language_level' : "3"}, nthreads=4),
         extras_require={
