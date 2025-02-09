@@ -915,7 +915,7 @@ cdef inline object get_object_from_1D_array_view(DCG1DArrayView &view):
     cdef cpython.PyObject *obj = view.pyobj()
     if obj == NULL:
         # return empty array of 1 dim
-        return cython_array(shape=[1], itemsize=8, format='d')[:0]
+        return cython_array(shape=(1,), itemsize=8, format='d')[:0]
     return <object>obj
 
 cdef extern from *:
@@ -1267,5 +1267,5 @@ cdef inline object get_object_from_2D_array_view(DCG2DContiguousArrayView &view)
     cdef cpython.PyObject *obj = view.pyobj()
     if obj == NULL:
         # return empty array of 2 dims
-        return cython_array(shape=[1, 1], itemsize=8, format='d')[:0, :0]
+        return cython_array(shape=(1, 1), itemsize=8, format='d')[:0, :0]
     return <object>obj

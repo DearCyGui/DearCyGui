@@ -43,12 +43,12 @@ def indent(s: list[str] | str, trim_start=False, short=False):
 
 
 hardcoded = {
-    "parent": "baseItem | None",
+    "parent": "baseItemSubCls | None",
     "pos_policy": "tuple[Positioning, Positioning]",
     "font": "Font",
-    "children": "list[baseItem]",
-    "previous_sibling": "baseItem | None",
-    "next_sibling": "baseItem | None",
+    "children": "Sequence[baseItemSubCls]",
+    "previous_sibling": "baseItemSubCls | None",
+    "next_sibling": "baseItemSubCls | None",
     "callback": "DCGCallable | None",
     "callbacks" : "list[DCGCallable]",
     "color" : "Color",
@@ -63,36 +63,38 @@ def typename(object_class, instance, name, value):
            issubclass(object_class, dcg.DrawInPlot) or \
            issubclass(object_class, dcg.ViewportDrawList) or \
            issubclass(object_class, dcg.DrawInvisibleButton):
-            return "list[drawingItem]"
+            return "Sequence[drawingItemSubCls]"
         if issubclass(object_class, dcg.Plot):
-            return "list[plotElement]"
+            return "Sequence[plotElementSubCls]"
         if issubclass(object_class, dcg.Window):
-            return "list[uiItem, MenuBar]"
+            return "Sequence[uiItemSubCls | MenuBarSubCls]"
+        if issubclass(object_class, dcg.ChildWindow):
+            return "Sequence[uiItemSubCls | MenuBarSubCls]"
         if issubclass(object_class, dcg.Viewport):
-            return "list[Window, ViewportDrawList, MenuBar]"
+            return "Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls]"
         if issubclass(object_class, dcg.drawingItem):
             try:
                 instance.children = [dcg.DrawLine(instance.context)]
-                return "list[drawingItem]"
+                return "Sequence[drawingItemSubCls]"
             except:
                 return "None "
         if issubclass(object_class, dcg.uiItem) or \
            issubclass(object_class, dcg.plotElement):
             try:
                 instance.children = [dcg.Button(instance.context)]
-                return "list[uiItem]"
+                return "Sequence[uiItemSubCls]"
             except:
                 return "None " # Space to not be filtered by the code later...
         if issubclass(object_class, dcg.baseHandler):
             try:
                 instance.children = [dcg.HandlerList(instance.context)]
-                return "list[baseHandler]"
+                return "Sequence[baseHandlerSubCls]"
             except:
                 return "None "
         if issubclass(object_class, dcg.baseTheme):
             try:
                 instance.children = [dcg.ThemeColorImGui(instance.context)]
-                return "list[baseTheme]"
+                return "Sequence[baseThemeSubCls]"
             except:
                 return "None "
         if issubclass(object_class, dcg.SharedValue):
@@ -101,17 +103,23 @@ def typename(object_class, instance, name, value):
         if issubclass(object_class, dcg.Window):
             return "Viewport | None"
         if issubclass(object_class, dcg.MenuBar):
-            return "Viewport | Window | ChildWindow"
+            return "Viewport | WindowSubCls | ChildWindowSubCls | None"
+        if issubclass(object_class, dcg.ViewportDrawList):
+            return "Viewport | None"
         if issubclass(object_class, dcg.drawingItem):
-            return "DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None"
+            return "DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None"
         if issubclass(object_class, dcg.uiItem):
-            return "uiItem | plotElement | None"
+            return "uiItemSubCls | plotElementSubCls | None"
         if issubclass(object_class, dcg.plotElement):
-            return "Plot | None"
+            return "PlotSubCls | None"
         if issubclass(object_class, dcg.baseTheme):
-            return "baseHandler | None"
+            return "baseHandlerSubCls | None"
         if issubclass(object_class, dcg.baseHandler):
-            return "baseTheme | None"
+            return "baseThemeSubCls | None"
+
+    if issubclass(object_class, dcg.plotElement) and type(value).__name__ == "_memoryviewslice":
+        return "Array"
+
     default = None if value is None else type(value).__name__
     default = hardcoded.get(name, default)
     if issubclass(object_class, dcg.baseTheme) and default is None:

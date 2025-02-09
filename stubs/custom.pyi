@@ -1,7 +1,9 @@
-from typing import Any
+from typing import TypeAlias, Any
 from enum import IntEnum
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol, TypeVar
 from .types import *
+from .core import *
 
 Sender = TypeVar('Sender', baseHandler, uiItem, covariant=True)
 Target = TypeVar('Target', baseItem, covariant=True)
@@ -86,3 +88,26 @@ class wrap_this_and_parents_mutex:
     
     def __exit__(self, exc_type, exc_value, traceback): # -> Literal[False]:
         ...
+
+baseItemSubCls = TypeVar('baseItemSubCls', bound='baseItem')
+drawingItemSubCls = TypeVar('drawingItemSubCls', bound='drawingItem')
+plotElementSubCls = TypeVar('plotElementSubCls', bound='plotElement')
+uiItemSubCls = TypeVar('uiItemSubCls', bound='uiItem')
+baseHandlerSubCls = TypeVar('baseHandlerSubCls', bound='baseHandler')
+baseThemeSubCls = TypeVar('baseThemeSubCls', bound='baseTheme')
+
+
+ChildWindowSubCls = TypeVar('ChildWindowSubCls', bound='ChildWindow')
+DrawInWindowSubCls = TypeVar('DrawInWindowSubCls', bound='DrawInWindow')
+DrawInPlotSubCls = TypeVar('DrawInPlotSubCls', bound='DrawInPlot')
+MenuBarSubCls = TypeVar('MenuBarSubCls', bound='MenuBar')
+PlotSubCls = TypeVar('PlotSubCls', bound='Plot')
+ViewportDrawListSubCls = TypeVar('ViewportDrawListSubCls', bound='ViewportDrawList')
+WindowSubCls = TypeVar('WindowSubCls', bound='Window')
+
+try:
+    from collections.abc import Buffer
+    Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any] | Buffer
+except ImportError:
+    Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any]
+    pass

@@ -1,7 +1,9 @@
-from typing import Any
+from typing import TypeAlias, Any
 from enum import IntEnum
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol, TypeVar
 from .types import *
+from .core import *
 
 Sender = TypeVar('Sender', baseHandler, uiItem, covariant=True)
 Target = TypeVar('Target', baseItem, covariant=True)
@@ -87,6 +89,28 @@ class wrap_this_and_parents_mutex:
     def __exit__(self, exc_type, exc_value, traceback): # -> Literal[False]:
         ...
 
+baseItemSubCls = TypeVar('baseItemSubCls', bound='baseItem')
+drawingItemSubCls = TypeVar('drawingItemSubCls', bound='drawingItem')
+plotElementSubCls = TypeVar('plotElementSubCls', bound='plotElement')
+uiItemSubCls = TypeVar('uiItemSubCls', bound='uiItem')
+baseHandlerSubCls = TypeVar('baseHandlerSubCls', bound='baseHandler')
+baseThemeSubCls = TypeVar('baseThemeSubCls', bound='baseTheme')
+
+
+ChildWindowSubCls = TypeVar('ChildWindowSubCls', bound='ChildWindow')
+DrawInWindowSubCls = TypeVar('DrawInWindowSubCls', bound='DrawInWindow')
+DrawInPlotSubCls = TypeVar('DrawInPlotSubCls', bound='DrawInPlot')
+MenuBarSubCls = TypeVar('MenuBarSubCls', bound='MenuBar')
+PlotSubCls = TypeVar('PlotSubCls', bound='Plot')
+ViewportDrawListSubCls = TypeVar('ViewportDrawListSubCls', bound='ViewportDrawList')
+WindowSubCls = TypeVar('WindowSubCls', bound='Window')
+
+try:
+    from collections.abc import Buffer
+    Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any] | Buffer
+except ImportError:
+    Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any]
+    pass
 class ActivatedHandler(baseHandler):
     """
     Handler for when the target item turns from
@@ -94,7 +118,7 @@ class ActivatedHandler(baseHandler):
     buttons turn active when the mouse is pressed on them.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -129,7 +153,7 @@ class ActivatedHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -345,7 +369,7 @@ class ActivatedHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -363,12 +387,12 @@ class ActivatedHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -406,7 +430,7 @@ class ActivatedHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -426,7 +450,7 @@ class ActivatedHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -447,7 +471,7 @@ class ActivatedHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -496,7 +520,7 @@ class ActiveHandler(baseHandler):
     the mouse is released.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -531,7 +555,7 @@ class ActiveHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -747,7 +771,7 @@ class ActiveHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -765,12 +789,12 @@ class ActiveHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -808,7 +832,7 @@ class ActiveHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -828,7 +852,7 @@ class ActiveHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -849,7 +873,7 @@ class ActiveHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -910,7 +934,7 @@ class AutoFont(FontMultiScales):
         Additional arguments passed to font_creator
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = ..., children : list[baseItem] = [], fonts : list = ..., next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -964,7 +988,7 @@ Called when a new global scale is encountered
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = ..., children : list[baseItem] = [], fonts : list = ..., next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -1105,7 +1129,7 @@ Called when a new global scale is encountered
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -1120,7 +1144,7 @@ Called when a new global scale is encountered
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -1194,7 +1218,7 @@ Called when a new global scale is encountered
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -1212,12 +1236,12 @@ Called when a new global scale is encountered
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -1255,7 +1279,7 @@ Called when a new global scale is encountered
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -1275,7 +1299,7 @@ Called when a new global scale is encountered
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -1296,7 +1320,7 @@ Called when a new global scale is encountered
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -1352,7 +1376,7 @@ class AxesResizeHandler(baseHandler):
     and the second tuple for the target Y axis (default Y1)
     
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -1390,7 +1414,7 @@ class AxesResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -1625,7 +1649,7 @@ class AxesResizeHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -1643,12 +1667,12 @@ class AxesResizeHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -1686,7 +1710,7 @@ class AxesResizeHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -1706,7 +1730,7 @@ class AxesResizeHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -1727,7 +1751,7 @@ class AxesResizeHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -1774,7 +1798,7 @@ class AxisTag(baseItem):
     of a plot Axis.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : list[baseItem] = [], coord : float = 0.0, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], coord : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -1816,7 +1840,7 @@ class AxisTag(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : list[baseItem] = [], coord : float = 0.0, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], coord : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -1964,7 +1988,7 @@ class AxisTag(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -1979,7 +2003,7 @@ class AxisTag(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -2053,7 +2077,7 @@ class AxisTag(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -2071,12 +2095,12 @@ class AxisTag(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -2114,7 +2138,7 @@ class AxisTag(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -2134,7 +2158,7 @@ class AxisTag(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -2155,7 +2179,7 @@ class AxisTag(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -2215,7 +2239,7 @@ class AxisTag(baseItem):
 
 
 class Button(uiItem):
-    def __init__(self, context : Context, arrow : bool = False, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, arrow : bool = False, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         arrow: Whether to display an arrow.
@@ -2359,7 +2383,7 @@ class Button(uiItem):
         ...
 
 
-    def configure(self, arrow : bool = False, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, arrow : bool = False, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         arrow: Whether to display an arrow.
             Not compatible with small
@@ -2917,7 +2941,7 @@ class Button(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -2935,7 +2959,7 @@ class Button(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -2977,7 +3001,7 @@ class Button(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -3015,7 +3039,7 @@ class Button(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -3206,7 +3230,7 @@ class Button(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -3227,7 +3251,7 @@ class Button(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -3482,7 +3506,7 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class Checkbox(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -3620,7 +3644,7 @@ class Checkbox(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -4110,7 +4134,7 @@ class Checkbox(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -4128,7 +4152,7 @@ class Checkbox(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -4170,7 +4194,7 @@ class Checkbox(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -4208,7 +4232,7 @@ class Checkbox(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -4399,7 +4423,7 @@ class Checkbox(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -4420,7 +4444,7 @@ class Checkbox(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -4673,7 +4697,7 @@ A child window container that enables hierarchical UI layout.
     - Menu bar support allows structured layouts
     
     """
-    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         always_auto_resize: combined with AutoResizeX/AutoResizeY.
@@ -4843,7 +4867,7 @@ A child window container that enables hierarchical UI layout.
         ...
 
 
-    def configure(self, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         always_auto_resize: combined with AutoResizeX/AutoResizeY.
             Always measure size even when child is hidden,
@@ -5224,7 +5248,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls | MenuBarSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -5239,7 +5263,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls | MenuBarSubCls]):
         ...
 
 
@@ -5567,7 +5591,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -5585,7 +5609,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -5656,7 +5680,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -5694,7 +5718,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -5885,7 +5909,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -5906,7 +5930,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -6141,7 +6165,7 @@ class ClickedHandler(baseHandler):
     it can be Text for example.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -6181,7 +6205,7 @@ class ClickedHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -6420,7 +6444,7 @@ class ClickedHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -6438,12 +6462,12 @@ class ClickedHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -6481,7 +6505,7 @@ class ClickedHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -6501,7 +6525,7 @@ class ClickedHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -6522,7 +6546,7 @@ class ClickedHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -6577,7 +6601,7 @@ class CloseHandler(baseHandler):
     the object is show or not shown.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -6612,7 +6636,7 @@ class CloseHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -6828,7 +6852,7 @@ class CloseHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -6846,12 +6870,12 @@ class CloseHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -6889,7 +6913,7 @@ class CloseHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -6909,7 +6933,7 @@ class CloseHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -6930,7 +6954,7 @@ class CloseHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -6972,7 +6996,7 @@ class CloseHandler(baseHandler):
 
 
 class CollapsingHeader(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -7119,7 +7143,7 @@ class CollapsingHeader(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -7407,7 +7431,7 @@ class CollapsingHeader(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -7422,7 +7446,7 @@ class CollapsingHeader(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -7695,7 +7719,7 @@ class CollapsingHeader(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -7713,7 +7737,7 @@ class CollapsingHeader(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -7785,7 +7809,7 @@ class CollapsingHeader(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -7823,7 +7847,7 @@ class CollapsingHeader(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -8014,7 +8038,7 @@ class CollapsingHeader(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -8035,7 +8059,7 @@ class CollapsingHeader(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -8247,7 +8271,7 @@ class CollapsingHeader(uiItem):
 
 
 class ColorButton(uiItem):
-    def __init__(self, context : Context, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
 
         alpha_preview: Show preview with either full alpha or checker pattern
@@ -8391,7 +8415,7 @@ class ColorButton(uiItem):
         ...
 
 
-    def configure(self, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -8948,7 +8972,7 @@ class ColorButton(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -8966,7 +8990,7 @@ class ColorButton(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -9064,7 +9088,7 @@ class ColorButton(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -9102,7 +9126,7 @@ class ColorButton(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -9293,7 +9317,7 @@ class ColorButton(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -9314,7 +9338,7 @@ class ColorButton(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -9515,7 +9539,7 @@ class ColorButton(uiItem):
 
 
 class ColorEdit(uiItem):
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
 
         alpha_bar: Show vertical alpha bar/gradient
@@ -9667,7 +9691,7 @@ class ColorEdit(uiItem):
         ...
 
 
-    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         alpha_bar: Show vertical alpha bar/gradient
         alpha_preview: Show preview with either full alpha or checker pattern
@@ -10288,7 +10312,7 @@ class ColorEdit(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -10306,7 +10330,7 @@ class ColorEdit(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -10460,7 +10484,7 @@ class ColorEdit(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -10498,7 +10522,7 @@ class ColorEdit(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -10689,7 +10713,7 @@ class ColorEdit(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -10710,7 +10734,7 @@ class ColorEdit(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -10911,7 +10935,7 @@ class ColorEdit(uiItem):
 
 
 class ColorPicker(uiItem):
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
 
         alpha_bar: Show vertical alpha bar/gradient
@@ -11061,7 +11085,7 @@ class ColorPicker(uiItem):
         ...
 
 
-    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItem | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         alpha_bar: Show vertical alpha bar/gradient
         alpha_preview: Show preview with either full alpha or checker pattern
@@ -11666,7 +11690,7 @@ class ColorPicker(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -11684,7 +11708,7 @@ class ColorPicker(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -11810,7 +11834,7 @@ class ColorPicker(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -11848,7 +11872,7 @@ class ColorPicker(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -12053,7 +12077,7 @@ class ColorPicker(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -12074,7 +12098,7 @@ class ColorPicker(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -12275,7 +12299,7 @@ class ColorPicker(uiItem):
 
 
 class Combo(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItem | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -12424,7 +12448,7 @@ class Combo(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItem | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -13028,7 +13052,7 @@ class Combo(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -13046,7 +13070,7 @@ class Combo(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -13116,7 +13140,7 @@ class Combo(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -13154,7 +13178,7 @@ class Combo(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -13359,7 +13383,7 @@ class Combo(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -13380,7 +13404,7 @@ class Combo(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -13612,7 +13636,7 @@ class ConditionalHandler(baseHandler):
         Other handlers are used purely for their state conditions.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : list[baseHandler] = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -13647,7 +13671,7 @@ class ConditionalHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : list[baseHandler] = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -13778,7 +13802,7 @@ class ConditionalHandler(baseHandler):
 
 
     @property
-    def children(self) -> list[baseHandler]:
+    def children(self) -> Sequence[baseHandlerSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -13793,7 +13817,7 @@ class ConditionalHandler(baseHandler):
 
 
     @children.setter
-    def children(self, value : list[baseHandler]):
+    def children(self, value : Sequence[baseHandlerSubCls]):
         ...
 
 
@@ -13863,7 +13887,7 @@ class ConditionalHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -13881,12 +13905,12 @@ class ConditionalHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -13924,7 +13948,7 @@ class ConditionalHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -13944,7 +13968,7 @@ class ConditionalHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -13965,7 +13989,7 @@ class ConditionalHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -14014,7 +14038,7 @@ class ContentResizeHandler(baseHandler):
     area available to the children) changes size.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -14049,7 +14073,7 @@ class ContentResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -14265,7 +14289,7 @@ class ContentResizeHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -14283,12 +14307,12 @@ class ContentResizeHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -14326,7 +14350,7 @@ class ContentResizeHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -14346,7 +14370,7 @@ class ContentResizeHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -14367,7 +14391,7 @@ class ContentResizeHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -14945,7 +14969,7 @@ class CustomHandler(baseHandler):
         for execution in another thread.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -14980,7 +15004,7 @@ class CustomHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -15196,7 +15220,7 @@ class CustomHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -15214,12 +15238,12 @@ class CustomHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -15257,7 +15281,7 @@ class CustomHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -15277,7 +15301,7 @@ class CustomHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -15298,7 +15322,7 @@ class CustomHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -15364,7 +15388,7 @@ class DeactivatedAfterEditHandler(baseHandler):
     activation after having been edited.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -15399,7 +15423,7 @@ class DeactivatedAfterEditHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -15615,7 +15639,7 @@ class DeactivatedAfterEditHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -15633,12 +15657,12 @@ class DeactivatedAfterEditHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -15676,7 +15700,7 @@ class DeactivatedAfterEditHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -15696,7 +15720,7 @@ class DeactivatedAfterEditHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -15717,7 +15741,7 @@ class DeactivatedAfterEditHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -15763,7 +15787,7 @@ class DeactivatedHandler(baseHandler):
     Handler for when an active item loses activation.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -15798,7 +15822,7 @@ class DeactivatedHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -16014,7 +16038,7 @@ class DeactivatedHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -16032,12 +16056,12 @@ class DeactivatedHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -16075,7 +16099,7 @@ class DeactivatedHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -16095,7 +16119,7 @@ class DeactivatedHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -16116,7 +16140,7 @@ class DeactivatedHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -16162,7 +16186,7 @@ class DoubleClickedHandler(baseHandler):
     Handler for when a hovered item is double clicked on.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -16197,7 +16221,7 @@ class DoubleClickedHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -16423,7 +16447,7 @@ class DoubleClickedHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -16441,12 +16465,12 @@ class DoubleClickedHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -16484,7 +16508,7 @@ class DoubleClickedHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -16504,7 +16528,7 @@ class DoubleClickedHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -16525,7 +16549,7 @@ class DoubleClickedHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -16574,7 +16598,7 @@ class DraggedHandler(baseHandler):
     the dragging.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -16609,7 +16633,7 @@ class DraggedHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -16835,7 +16859,7 @@ class DraggedHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -16853,12 +16877,12 @@ class DraggedHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -16896,7 +16920,7 @@ class DraggedHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -16916,7 +16940,7 @@ class DraggedHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -16937,7 +16961,7 @@ class DraggedHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -16988,7 +17012,7 @@ class DraggingHandler(baseHandler):
     hovered anymore.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -17023,7 +17047,7 @@ class DraggingHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -17249,7 +17273,7 @@ class DraggingHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -17267,12 +17291,12 @@ class DraggingHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -17310,7 +17334,7 @@ class DraggingHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -17330,7 +17354,7 @@ class DraggingHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -17351,7 +17375,7 @@ class DraggingHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -17449,7 +17473,7 @@ class DrawArc(drawingItem):
                  thickness=1.0)
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -17492,7 +17516,7 @@ class DrawArc(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -17738,7 +17762,7 @@ class DrawArc(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -17756,12 +17780,12 @@ class DrawArc(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -17799,7 +17823,7 @@ class DrawArc(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -17819,7 +17843,7 @@ class DrawArc(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -17840,7 +17864,7 @@ class DrawArc(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -17946,7 +17970,7 @@ class DrawArrow(drawingItem):
         size (float): Size of the arrow head
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -17987,7 +18011,7 @@ class DrawArrow(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -18199,7 +18223,7 @@ class DrawArrow(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -18217,7 +18241,7 @@ class DrawArrow(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -18242,7 +18266,7 @@ class DrawArrow(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -18280,7 +18304,7 @@ class DrawArrow(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -18300,7 +18324,7 @@ class DrawArrow(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -18321,7 +18345,7 @@ class DrawArrow(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -18407,7 +18431,7 @@ class DrawBezierCubic(drawingItem):
         segments (int): Number of line segments used to approximate the curve
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -18448,7 +18472,7 @@ class DrawBezierCubic(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -18660,7 +18684,7 @@ class DrawBezierCubic(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -18678,7 +18702,7 @@ class DrawBezierCubic(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -18723,7 +18747,7 @@ class DrawBezierCubic(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -18761,7 +18785,7 @@ class DrawBezierCubic(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -18781,7 +18805,7 @@ class DrawBezierCubic(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -18802,7 +18826,7 @@ class DrawBezierCubic(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -18887,7 +18911,7 @@ class DrawBezierQuadratic(drawingItem):
         segments (int): Number of line segments used to approximate the curve
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -18928,7 +18952,7 @@ class DrawBezierQuadratic(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -19140,7 +19164,7 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -19158,7 +19182,7 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -19193,7 +19217,7 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -19231,7 +19255,7 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -19251,7 +19275,7 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -19272,7 +19296,7 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -19357,7 +19381,7 @@ class DrawCircle(drawingItem):
         segments (int): Number of segments used to approximate the circle
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -19398,7 +19422,7 @@ class DrawCircle(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -19630,7 +19654,7 @@ class DrawCircle(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -19648,12 +19672,12 @@ class DrawCircle(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -19691,7 +19715,7 @@ class DrawCircle(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -19711,7 +19735,7 @@ class DrawCircle(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -19732,7 +19756,7 @@ class DrawCircle(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -19827,7 +19851,7 @@ class DrawEllipse(drawingItem):
         segments (int): Number of segments used to approximate the ellipse
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -19892,7 +19916,7 @@ class DrawEllipse(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -20152,7 +20176,7 @@ class DrawEllipse(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -20170,12 +20194,12 @@ class DrawEllipse(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -20213,7 +20237,7 @@ class DrawEllipse(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -20267,7 +20291,7 @@ class DrawEllipse(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -20288,7 +20312,7 @@ class DrawEllipse(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -20394,7 +20418,7 @@ class DrawImage(drawingItem):
     than in coordinate space by passing negative values to width and height.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float = 0.0, next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -20513,7 +20537,7 @@ class DrawImage(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float = 0.0, next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -20861,7 +20885,7 @@ class DrawImage(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -20879,7 +20903,7 @@ class DrawImage(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -20953,7 +20977,7 @@ class DrawImage(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -20991,7 +21015,7 @@ class DrawImage(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -21045,7 +21069,7 @@ class DrawImage(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -21066,7 +21090,7 @@ class DrawImage(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -21276,7 +21300,7 @@ class DrawInPlot(plotElementWithLegend):
     defaults to no_legend = True
     
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[drawingItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = True, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = True, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -21339,7 +21363,7 @@ class DrawInPlot(plotElementWithLegend):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[drawingItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = True, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = True, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -21504,7 +21528,7 @@ class DrawInPlot(plotElementWithLegend):
 
 
     @property
-    def children(self) -> list[drawingItem]:
+    def children(self) -> Sequence[drawingItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -21519,7 +21543,7 @@ class DrawInPlot(plotElementWithLegend):
 
 
     @children.setter
-    def children(self, value : list[drawingItem]):
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -21683,7 +21707,7 @@ class DrawInPlot(plotElementWithLegend):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -21701,7 +21725,7 @@ class DrawInPlot(plotElementWithLegend):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -21721,7 +21745,7 @@ class DrawInPlot(plotElementWithLegend):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -21759,7 +21783,7 @@ class DrawInPlot(plotElementWithLegend):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -21779,7 +21803,7 @@ class DrawInPlot(plotElementWithLegend):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -21800,7 +21824,7 @@ class DrawInPlot(plotElementWithLegend):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -21896,7 +21920,7 @@ class DrawInWindow(uiItem):
     visible/etc tests maintained and thus do not have a callback.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -22046,7 +22070,7 @@ class DrawInWindow(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[drawingItem] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -22339,7 +22363,7 @@ class DrawInWindow(uiItem):
 
 
     @property
-    def children(self) -> list[drawingItem]:
+    def children(self) -> Sequence[drawingItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -22354,7 +22378,7 @@ class DrawInWindow(uiItem):
 
 
     @children.setter
-    def children(self, value : list[drawingItem]):
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -22617,7 +22641,7 @@ class DrawInWindow(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -22635,7 +22659,7 @@ class DrawInWindow(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -22705,7 +22729,7 @@ class DrawInWindow(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -22743,7 +22767,7 @@ class DrawInWindow(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -22934,7 +22958,7 @@ class DrawInWindow(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -22955,7 +22979,7 @@ class DrawInWindow(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -23255,7 +23279,7 @@ class DrawInvisibleButton(drawingItem):
     where top left is (0, 0) and bottom right is (1, 1).
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButtonMask = 7, capture_mouse : bool = True, children : list[drawingItem] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItem | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButtonMask = 7, capture_mouse : bool = True, children : Sequence[drawingItemSubCls] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -23322,7 +23346,7 @@ class DrawInvisibleButton(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButtonMask = 7, capture_mouse : bool = True, children : list[drawingItem] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItem | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButtonMask = 7, capture_mouse : bool = True, children : Sequence[drawingItemSubCls] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -23542,7 +23566,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def children(self) -> list[drawingItem]:
+    def children(self) -> Sequence[drawingItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -23557,7 +23581,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @children.setter
-    def children(self, value : list[drawingItem]):
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -23714,7 +23738,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -23732,7 +23756,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -23787,7 +23811,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -23825,7 +23849,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -23878,7 +23902,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -23899,7 +23923,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -23984,7 +24008,7 @@ class DrawLine(drawingItem):
     to indicate a length in screen space rather than in coordinate space.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -24037,7 +24061,7 @@ class DrawLine(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -24305,7 +24329,7 @@ class DrawLine(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -24323,7 +24347,7 @@ class DrawLine(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -24355,7 +24379,7 @@ class DrawLine(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -24393,7 +24417,7 @@ class DrawLine(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -24413,7 +24437,7 @@ class DrawLine(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -24434,7 +24458,7 @@ class DrawLine(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -24509,7 +24533,7 @@ class DrawPolygon(drawingItem):
         thickness (float): Outline thickness
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, points : list = [], previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -24566,7 +24590,7 @@ class DrawPolygon(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, points : list = [], previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -24818,7 +24842,7 @@ class DrawPolygon(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -24836,12 +24860,12 @@ class DrawPolygon(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -24879,7 +24903,7 @@ class DrawPolygon(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -24916,7 +24940,7 @@ class DrawPolygon(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -24937,7 +24961,7 @@ class DrawPolygon(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -25018,7 +25042,7 @@ class DrawPolyline(drawingItem):
         closed (bool): Whether to connect the last point back to the first
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, points : list = [], previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -25075,7 +25099,7 @@ class DrawPolyline(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, points : list = [], previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -25327,7 +25351,7 @@ class DrawPolyline(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -25345,12 +25369,12 @@ class DrawPolyline(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -25388,7 +25412,7 @@ class DrawPolyline(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -25425,7 +25449,7 @@ class DrawPolyline(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -25446,7 +25470,7 @@ class DrawPolyline(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -25530,7 +25554,7 @@ class DrawQuad(drawingItem):
         thickness (float): Outline thickness
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -25600,7 +25624,7 @@ class DrawQuad(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -25865,7 +25889,7 @@ class DrawQuad(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -25883,7 +25907,7 @@ class DrawQuad(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -25957,7 +25981,7 @@ class DrawQuad(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -25995,7 +26019,7 @@ class DrawQuad(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -26015,7 +26039,7 @@ class DrawQuad(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -26036,7 +26060,7 @@ class DrawQuad(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -26121,7 +26145,7 @@ class DrawRect(drawingItem):
         rounding (float): Radius of rounded corners
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -26202,7 +26226,7 @@ class DrawRect(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -26546,7 +26570,7 @@ class DrawRect(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -26564,12 +26588,12 @@ class DrawRect(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -26607,7 +26631,7 @@ class DrawRect(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -26661,7 +26685,7 @@ class DrawRect(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -26682,7 +26706,7 @@ class DrawRect(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -26777,7 +26801,7 @@ class DrawRegularPolygon(drawingItem):
     Radius can be negative to mean screen space.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, num_points : int = 1, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -26840,7 +26864,7 @@ class DrawRegularPolygon(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, num_points : int = 1, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -27127,7 +27151,7 @@ class DrawRegularPolygon(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -27145,7 +27169,7 @@ class DrawRegularPolygon(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -27168,7 +27192,7 @@ class DrawRegularPolygon(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -27206,7 +27230,7 @@ class DrawRegularPolygon(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -27226,7 +27250,7 @@ class DrawRegularPolygon(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -27247,7 +27271,7 @@ class DrawRegularPolygon(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -27345,7 +27369,7 @@ class DrawSplitBatch(drawingItem):
     to be drawn in separate batches to the previous one.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -27386,7 +27410,7 @@ class DrawSplitBatch(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -27588,7 +27612,7 @@ class DrawSplitBatch(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -27606,12 +27630,12 @@ class DrawSplitBatch(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -27649,7 +27673,7 @@ class DrawSplitBatch(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -27669,7 +27693,7 @@ class DrawSplitBatch(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -27690,7 +27714,7 @@ class DrawSplitBatch(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -27755,7 +27779,7 @@ class DrawStar(drawingItem):
     Radius can be negative to mean screen space.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItem | None = None, num_points : int = 5, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -27822,7 +27846,7 @@ class DrawStar(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItem | None = None, num_points : int = 5, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -28130,7 +28154,7 @@ class DrawStar(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -28148,7 +28172,7 @@ class DrawStar(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -28171,7 +28195,7 @@ class DrawStar(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -28209,7 +28233,7 @@ class DrawStar(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -28229,7 +28253,7 @@ class DrawStar(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -28250,7 +28274,7 @@ class DrawStar(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -28349,7 +28373,7 @@ class DrawText(drawingItem):
         size (float): Text size. Negative means screen space units.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -28403,7 +28427,7 @@ class DrawText(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -28649,7 +28673,7 @@ class DrawText(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -28667,12 +28691,12 @@ class DrawText(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -28710,7 +28734,7 @@ class DrawText(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -28747,7 +28771,7 @@ class DrawText(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -28768,7 +28792,7 @@ class DrawText(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -28861,7 +28885,7 @@ class DrawTriangle(drawingItem):
         thickness (float): Outline thickness 
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -28926,7 +28950,7 @@ class DrawTriangle(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItem | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -29186,7 +29210,7 @@ class DrawTriangle(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -29204,7 +29228,7 @@ class DrawTriangle(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -29260,7 +29284,7 @@ class DrawTriangle(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -29298,7 +29322,7 @@ class DrawTriangle(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -29318,7 +29342,7 @@ class DrawTriangle(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -29339,7 +29363,7 @@ class DrawTriangle(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -29428,7 +29452,7 @@ class DrawValue(drawingItem):
         shareable_value (SharedValue): SharedValue to display
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, print_format : str = "%.3f", shareable_value : SharedFloat = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", shareable_value : SharedFloat = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -29490,7 +29514,7 @@ class DrawValue(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, print_format : str = "%.3f", shareable_value : SharedFloat = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", shareable_value : SharedFloat = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -29744,7 +29768,7 @@ class DrawValue(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -29762,12 +29786,12 @@ class DrawValue(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -29805,7 +29829,7 @@ class DrawValue(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -29842,7 +29866,7 @@ class DrawValue(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -29863,7 +29887,7 @@ class DrawValue(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -30001,7 +30025,7 @@ class DrawingClip(drawingItem):
     in the visible space, the children are not rendered.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[drawingItem] = [], next_sibling : baseItem | None = None, no_global_scaling : bool = False, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItem | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItemSubCls | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -30057,7 +30081,7 @@ class DrawingClip(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[drawingItem] = [], next_sibling : baseItem | None = None, no_global_scaling : bool = False, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItem | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItemSubCls | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -30199,7 +30223,7 @@ class DrawingClip(drawingItem):
 
 
     @property
-    def children(self) -> list[drawingItem]:
+    def children(self) -> Sequence[drawingItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -30214,7 +30238,7 @@ class DrawingClip(drawingItem):
 
 
     @children.setter
-    def children(self, value : list[drawingItem]):
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -30274,7 +30298,7 @@ class DrawingClip(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -30292,7 +30316,7 @@ class DrawingClip(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -30315,7 +30339,7 @@ class DrawingClip(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -30353,7 +30377,7 @@ class DrawingClip(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -30403,7 +30427,7 @@ class DrawingClip(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -30424,7 +30448,7 @@ class DrawingClip(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -30516,7 +30540,7 @@ class DrawingList(drawingItem):
     hide/show/delete them by manipulating the list.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[drawingItem] = [], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -30557,7 +30581,7 @@ class DrawingList(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[drawingItem] = [], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -30684,7 +30708,7 @@ class DrawingList(drawingItem):
 
 
     @property
-    def children(self) -> list[drawingItem]:
+    def children(self) -> Sequence[drawingItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -30699,7 +30723,7 @@ class DrawingList(drawingItem):
 
 
     @children.setter
-    def children(self, value : list[drawingItem]):
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -30759,7 +30783,7 @@ class DrawingList(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -30777,12 +30801,12 @@ class DrawingList(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -30820,7 +30844,7 @@ class DrawingList(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -30840,7 +30864,7 @@ class DrawingList(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -30861,7 +30885,7 @@ class DrawingList(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -30916,7 +30940,7 @@ class DrawingScale(drawingItem):
     A DrawingList, with a change in origin and scaling.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[drawingItem] = [], next_sibling : baseItem | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -30963,7 +30987,7 @@ class DrawingScale(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[drawingItem] = [], next_sibling : baseItem | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -31096,7 +31120,7 @@ class DrawingScale(drawingItem):
 
 
     @property
-    def children(self) -> list[drawingItem]:
+    def children(self) -> Sequence[drawingItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -31111,7 +31135,7 @@ class DrawingScale(drawingItem):
 
 
     @children.setter
-    def children(self, value : list[drawingItem]):
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -31171,7 +31195,7 @@ class DrawingScale(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -31189,7 +31213,7 @@ class DrawingScale(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -31246,7 +31270,7 @@ class DrawingScale(drawingItem):
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -31284,7 +31308,7 @@ class DrawingScale(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -31304,7 +31328,7 @@ class DrawingScale(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -31325,7 +31349,7 @@ class DrawingScale(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -31403,7 +31427,7 @@ class EditedHandler(baseHandler):
     triggers the callback.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -31438,7 +31462,7 @@ class EditedHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -31654,7 +31678,7 @@ class EditedHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -31672,12 +31696,12 @@ class EditedHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -31715,7 +31739,7 @@ class EditedHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -31735,7 +31759,7 @@ class EditedHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -31756,7 +31780,7 @@ class EditedHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -31805,7 +31829,7 @@ class FocusHandler(baseHandler):
     or editing a field).
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -31840,7 +31864,7 @@ class FocusHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -32056,7 +32080,7 @@ class FocusHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -32074,12 +32098,12 @@ class FocusHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -32117,7 +32141,7 @@ class FocusHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -32137,7 +32161,7 @@ class FocusHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -32158,7 +32182,7 @@ class FocusHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -32210,7 +32234,7 @@ class Font(baseFont):
     - no_scaling: Boolean indicating if scaling should be disabled for the font.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, no_scaling : bool = False, parent : baseItem | None = None, previous_sibling : baseItem | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_scaling : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -32250,7 +32274,7 @@ class Font(baseFont):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, no_scaling : bool = False, parent : baseItem | None = None, previous_sibling : baseItem | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_scaling : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -32376,7 +32400,7 @@ class Font(baseFont):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -32391,7 +32415,7 @@ class Font(baseFont):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -32451,7 +32475,7 @@ class Font(baseFont):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -32469,7 +32493,7 @@ class Font(baseFont):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -32491,7 +32515,7 @@ class Font(baseFont):
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -32529,7 +32553,7 @@ class Font(baseFont):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -32549,7 +32573,7 @@ class Font(baseFont):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -32570,7 +32594,7 @@ class Font(baseFont):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -32640,7 +32664,7 @@ class FontMultiScales(baseFont):
     having to manually manage font switching.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[baseItem] = [], fonts : list = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -32680,7 +32704,7 @@ class FontMultiScales(baseFont):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[baseItem] = [], fonts : list = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -32821,7 +32845,7 @@ class FontMultiScales(baseFont):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -32836,7 +32860,7 @@ class FontMultiScales(baseFont):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -32910,7 +32934,7 @@ class FontMultiScales(baseFont):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -32928,12 +32952,12 @@ class FontMultiScales(baseFont):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -32971,7 +32995,7 @@ class FontMultiScales(baseFont):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -32991,7 +33015,7 @@ class FontMultiScales(baseFont):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -33012,7 +33036,7 @@ class FontMultiScales(baseFont):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -33082,7 +33106,7 @@ class FontTexture(baseItem):
     scale, and implement 1) or 2) yourself.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, texture : Texture | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, texture : Texture | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -33163,7 +33187,7 @@ class FontTexture(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, texture : Texture | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, texture : Texture | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -33291,7 +33315,7 @@ class FontTexture(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -33306,7 +33330,7 @@ class FontTexture(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -33366,7 +33390,7 @@ class FontTexture(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -33384,12 +33408,12 @@ class FontTexture(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -33427,7 +33451,7 @@ class FontTexture(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -33447,7 +33471,7 @@ class FontTexture(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -33468,7 +33492,7 @@ class FontTexture(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -33520,7 +33544,7 @@ class GotFocusHandler(baseHandler):
     focus.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -33555,7 +33579,7 @@ class GotFocusHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -33771,7 +33795,7 @@ class GotFocusHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -33789,12 +33813,12 @@ class GotFocusHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -33832,7 +33856,7 @@ class GotFocusHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -33852,7 +33876,7 @@ class GotFocusHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -33873,7 +33897,7 @@ class GotFocusHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -33920,7 +33944,7 @@ class GotHoverHandler(baseHandler):
     the target item has just been hovered.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -33955,7 +33979,7 @@ class GotHoverHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -34171,7 +34195,7 @@ class GotHoverHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -34189,12 +34213,12 @@ class GotHoverHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -34232,7 +34256,7 @@ class GotHoverHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -34252,7 +34276,7 @@ class GotHoverHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -34273,7 +34297,7 @@ class GotHoverHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -34319,7 +34343,7 @@ class GotMouseOverHandler(baseHandler):
 Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -34354,7 +34378,7 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -34570,7 +34594,7 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -34588,12 +34612,12 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -34631,7 +34655,7 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -34651,7 +34675,7 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -34672,7 +34696,7 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -34720,7 +34744,7 @@ class GotRenderHandler(baseHandler):
     non-rendered to a rendered state.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -34755,7 +34779,7 @@ class GotRenderHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -34971,7 +34995,7 @@ class GotRenderHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -34989,12 +35013,12 @@ class GotRenderHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -35032,7 +35056,7 @@ class GotRenderHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -35052,7 +35076,7 @@ class GotRenderHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -35073,7 +35097,7 @@ class GotRenderHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -35135,7 +35159,7 @@ class HandlerList(baseHandler):
         Handlers are not checked if their parent item is not rendered.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : list[baseHandler] = [], enabled : bool = True, next_sibling : baseItem | None = None, op : HandlerListOP = 0, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -35174,7 +35198,7 @@ class HandlerList(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : list[baseHandler] = [], enabled : bool = True, next_sibling : baseItem | None = None, op : HandlerListOP = 0, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -35309,7 +35333,7 @@ class HandlerList(baseHandler):
 
 
     @property
-    def children(self) -> list[baseHandler]:
+    def children(self) -> Sequence[baseHandlerSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -35324,7 +35348,7 @@ class HandlerList(baseHandler):
 
 
     @children.setter
-    def children(self, value : list[baseHandler]):
+    def children(self, value : Sequence[baseHandlerSubCls]):
         ...
 
 
@@ -35394,7 +35418,7 @@ class HandlerList(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -35412,7 +35436,7 @@ class HandlerList(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -35434,7 +35458,7 @@ class HandlerList(baseHandler):
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -35472,7 +35496,7 @@ class HandlerList(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -35492,7 +35516,7 @@ class HandlerList(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -35513,7 +35537,7 @@ class HandlerList(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -35560,7 +35584,7 @@ class HorizontalLayout(Layout):
     horizontally.
     
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
         """
 
         alignment_mode: Horizontal alignment mode of the items.
@@ -35720,7 +35744,7 @@ class HorizontalLayout(Layout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
+    def configure(self, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
         """
         alignment_mode: Horizontal alignment mode of the items.
             LEFT: items are appended from the left
@@ -36040,7 +36064,7 @@ class HorizontalLayout(Layout):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -36055,7 +36079,7 @@ class HorizontalLayout(Layout):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -36353,7 +36377,7 @@ class HorizontalLayout(Layout):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -36371,7 +36395,7 @@ class HorizontalLayout(Layout):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -36428,7 +36452,7 @@ class HorizontalLayout(Layout):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -36466,7 +36490,7 @@ class HorizontalLayout(Layout):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -36684,7 +36708,7 @@ class HorizontalLayout(Layout):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -36705,7 +36729,7 @@ class HorizontalLayout(Layout):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -36943,7 +36967,7 @@ class HoverHandler(baseHandler):
     the target item is hovered.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -36978,7 +37002,7 @@ class HoverHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -37194,7 +37218,7 @@ class HoverHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -37212,12 +37236,12 @@ class HoverHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -37255,7 +37279,7 @@ class HoverHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -37275,7 +37299,7 @@ class HoverHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -37296,7 +37320,7 @@ class HoverHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -37338,7 +37362,7 @@ class HoverHandler(baseHandler):
 
 
 class Image(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -37476,7 +37500,7 @@ class Image(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -37986,7 +38010,7 @@ class Image(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -38004,7 +38028,7 @@ class Image(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -38046,7 +38070,7 @@ class Image(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -38084,7 +38108,7 @@ class Image(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -38275,7 +38299,7 @@ class Image(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -38296,7 +38320,7 @@ class Image(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -38517,7 +38541,7 @@ class Image(uiItem):
 
 
 class ImageButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -38655,7 +38679,7 @@ class ImageButton(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -39175,7 +39199,7 @@ class ImageButton(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -39193,7 +39217,7 @@ class ImageButton(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -39235,7 +39259,7 @@ class ImageButton(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -39273,7 +39297,7 @@ class ImageButton(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -39464,7 +39488,7 @@ class ImageButton(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -39485,7 +39509,7 @@ class ImageButton(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -39706,7 +39730,7 @@ class ImageButton(uiItem):
 
 
 class InputText(uiItem):
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItem | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItem | plotElement | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
         """
 
         always_overwrite: Overwrite mode
@@ -39869,7 +39893,7 @@ class InputText(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItem | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItem | plotElement | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         always_overwrite: Overwrite mode
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -40572,7 +40596,7 @@ class InputText(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -40590,7 +40614,7 @@ class InputText(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -40689,7 +40713,7 @@ class InputText(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -40727,7 +40751,7 @@ class InputText(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -40932,7 +40956,7 @@ class InputText(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -40953,7 +40977,7 @@ class InputText(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -41210,7 +41234,7 @@ class InputText(uiItem):
 
 
 class InputValue(uiItem):
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItem | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItem | plotElement | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
 
         always_overwrite: Overwrite mode
@@ -41385,7 +41409,7 @@ class InputValue(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItem | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItem | plotElement | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def configure(self, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         always_overwrite: Overwrite mode
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -42103,7 +42127,7 @@ class InputValue(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -42121,7 +42145,7 @@ class InputValue(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -42206,7 +42230,7 @@ class InputValue(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -42244,7 +42268,7 @@ class InputValue(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -42449,7 +42473,7 @@ class InputValue(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -42470,7 +42494,7 @@ class InputValue(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -42775,7 +42799,7 @@ class KeyDownHandler(baseHandler):
         - duration: How long the key has been held down
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -42810,7 +42834,7 @@ class KeyDownHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -43036,7 +43060,7 @@ class KeyDownHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -43054,12 +43078,12 @@ class KeyDownHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -43097,7 +43121,7 @@ class KeyDownHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -43117,7 +43141,7 @@ class KeyDownHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -43138,7 +43162,7 @@ class KeyDownHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -43191,7 +43215,7 @@ class KeyPressHandler(baseHandler):
         - key: The key that was pressed
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -43226,7 +43250,7 @@ class KeyPressHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -43452,7 +43476,7 @@ class KeyPressHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -43470,12 +43494,12 @@ class KeyPressHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -43513,7 +43537,7 @@ class KeyPressHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -43533,7 +43557,7 @@ class KeyPressHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -43554,7 +43578,7 @@ class KeyPressHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -43616,7 +43640,7 @@ class KeyReleaseHandler(baseHandler):
         - key: The key that was released
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -43651,7 +43675,7 @@ class KeyReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -43877,7 +43901,7 @@ class KeyReleaseHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -43895,12 +43919,12 @@ class KeyReleaseHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -43938,7 +43962,7 @@ class KeyReleaseHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -43958,7 +43982,7 @@ class KeyReleaseHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -43979,7 +44003,7 @@ class KeyReleaseHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -44053,7 +44077,7 @@ class Layout(uiItem):
     preserved.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -44191,7 +44215,7 @@ class Layout(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -44458,7 +44482,7 @@ class Layout(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -44473,7 +44497,7 @@ class Layout(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -44771,7 +44795,7 @@ class Layout(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -44789,7 +44813,7 @@ class Layout(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -44831,7 +44855,7 @@ class Layout(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -44869,7 +44893,7 @@ class Layout(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -45060,7 +45084,7 @@ class Layout(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -45081,7 +45105,7 @@ class Layout(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -45293,7 +45317,7 @@ class Layout(uiItem):
 
 
 class ListBox(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -45434,7 +45458,7 @@ class ListBox(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -45952,7 +45976,7 @@ class ListBox(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -45970,7 +45994,7 @@ class ListBox(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -46027,7 +46051,7 @@ class ListBox(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -46065,7 +46089,7 @@ class ListBox(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -46256,7 +46280,7 @@ class ListBox(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -46277,7 +46301,7 @@ class ListBox(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -46483,7 +46507,7 @@ class LostFocusHandler(baseHandler):
     focus.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -46518,7 +46542,7 @@ class LostFocusHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -46734,7 +46758,7 @@ class LostFocusHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -46752,12 +46776,12 @@ class LostFocusHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -46795,7 +46819,7 @@ class LostFocusHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -46815,7 +46839,7 @@ class LostFocusHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -46836,7 +46860,7 @@ class LostFocusHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -46884,7 +46908,7 @@ class LostHoverHandler(baseHandler):
     is not anymore.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -46919,7 +46943,7 @@ class LostHoverHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -47135,7 +47159,7 @@ class LostHoverHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -47153,12 +47177,12 @@ class LostHoverHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -47196,7 +47220,7 @@ class LostHoverHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -47216,7 +47240,7 @@ class LostHoverHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -47237,7 +47261,7 @@ class LostHoverHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -47283,7 +47307,7 @@ class LostMouseOverHandler(baseHandler):
 Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -47318,7 +47342,7 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -47534,7 +47558,7 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -47552,12 +47576,12 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -47595,7 +47619,7 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -47615,7 +47639,7 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -47636,7 +47660,7 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -47687,7 +47711,7 @@ class LostRenderHandler(baseHandler):
     an item is non-rendered will trigger the handlers.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -47722,7 +47746,7 @@ class LostRenderHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -47938,7 +47962,7 @@ class LostRenderHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -47956,12 +47980,12 @@ class LostRenderHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -47999,7 +48023,7 @@ class LostRenderHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -48019,7 +48043,7 @@ class LostRenderHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -48040,7 +48064,7 @@ class LostRenderHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -48082,7 +48106,7 @@ class LostRenderHandler(baseHandler):
 
 
 class Menu(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -48220,7 +48244,7 @@ class Menu(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -48483,7 +48507,7 @@ class Menu(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -48498,7 +48522,7 @@ class Menu(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -48743,7 +48767,7 @@ class Menu(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -48761,7 +48785,7 @@ class Menu(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -48803,7 +48827,7 @@ class Menu(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -48841,7 +48865,7 @@ class Menu(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -49032,7 +49056,7 @@ class Menu(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -49053,7 +49077,7 @@ class Menu(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -49265,7 +49289,7 @@ class Menu(uiItem):
 
 
 class MenuBar(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | Window | ChildWindow = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -49403,7 +49427,7 @@ class MenuBar(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | Window | ChildWindow = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -49644,7 +49668,7 @@ class MenuBar(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -49659,7 +49683,7 @@ class MenuBar(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -49923,7 +49947,7 @@ class MenuBar(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -49941,7 +49965,7 @@ class MenuBar(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -49983,7 +50007,7 @@ class MenuBar(uiItem):
 
 
     @property
-    def parent(self) -> Viewport | Window | ChildWindow:
+    def parent(self) -> Viewport | WindowSubCls | ChildWindowSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -50021,7 +50045,7 @@ class MenuBar(uiItem):
 
 
     @parent.setter
-    def parent(self, value : Viewport | Window | ChildWindow):
+    def parent(self, value : Viewport | WindowSubCls | ChildWindowSubCls | None):
         ...
 
 
@@ -50212,7 +50236,7 @@ class MenuBar(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -50233,7 +50257,7 @@ class MenuBar(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -50434,7 +50458,7 @@ class MenuBar(uiItem):
 
 
 class MenuItem(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -50574,7 +50598,7 @@ class MenuItem(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -51136,7 +51160,7 @@ class MenuItem(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -51154,7 +51178,7 @@ class MenuItem(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -51196,7 +51220,7 @@ class MenuItem(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -51234,7 +51258,7 @@ class MenuItem(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -51425,7 +51449,7 @@ class MenuItem(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -51446,7 +51470,7 @@ class MenuItem(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -51667,7 +51691,7 @@ class MotionHandler(baseHandler):
     the positioning reference (by default the parent)
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -51703,7 +51727,7 @@ class MotionHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -51920,7 +51944,7 @@ class MotionHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -51938,12 +51962,12 @@ class MotionHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -51981,7 +52005,7 @@ class MotionHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -52025,7 +52049,7 @@ class MotionHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -52046,7 +52070,7 @@ class MotionHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -52099,7 +52123,7 @@ class MouseClickHandler(baseHandler):
         - button: The button that was clicked
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -52134,7 +52158,7 @@ class MouseClickHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -52360,7 +52384,7 @@ class MouseClickHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -52378,12 +52402,12 @@ class MouseClickHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -52421,7 +52445,7 @@ class MouseClickHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -52441,7 +52465,7 @@ class MouseClickHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -52462,7 +52486,7 @@ class MouseClickHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -52522,7 +52546,7 @@ class MouseCursorHandler(baseHandler):
     combined with a HoverHandler.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -52560,7 +52584,7 @@ class MouseCursorHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -52795,7 +52819,7 @@ class MouseCursorHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -52813,12 +52837,12 @@ class MouseCursorHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -52856,7 +52880,7 @@ class MouseCursorHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -52876,7 +52900,7 @@ class MouseCursorHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -52897,7 +52921,7 @@ class MouseCursorHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -52949,7 +52973,7 @@ class MouseDoubleClickHandler(baseHandler):
         - button: The button that was double-clicked
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -52984,7 +53008,7 @@ class MouseDoubleClickHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -53210,7 +53234,7 @@ class MouseDoubleClickHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -53228,12 +53252,12 @@ class MouseDoubleClickHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -53271,7 +53295,7 @@ class MouseDoubleClickHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -53291,7 +53315,7 @@ class MouseDoubleClickHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -53312,7 +53336,7 @@ class MouseDoubleClickHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -53365,7 +53389,7 @@ class MouseDownHandler(baseHandler):
         - duration: How long the button has been held
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -53400,7 +53424,7 @@ class MouseDownHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -53626,7 +53650,7 @@ class MouseDownHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -53644,12 +53668,12 @@ class MouseDownHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -53687,7 +53711,7 @@ class MouseDownHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -53707,7 +53731,7 @@ class MouseDownHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -53728,7 +53752,7 @@ class MouseDownHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -53784,7 +53808,7 @@ class MouseDragHandler(baseHandler):
         - delta_y: Vertical drag distance
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -53819,7 +53843,7 @@ class MouseDragHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -54045,7 +54069,7 @@ class MouseDragHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -54063,12 +54087,12 @@ class MouseDragHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -54106,7 +54130,7 @@ class MouseDragHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -54126,7 +54150,7 @@ class MouseDragHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -54147,7 +54171,7 @@ class MouseDragHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -54212,7 +54236,7 @@ class MouseInRect(baseHandler):
         - y: Current mouse y position
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -54248,7 +54272,7 @@ class MouseInRect(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -54465,7 +54489,7 @@ class MouseInRect(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -54483,12 +54507,12 @@ class MouseInRect(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -54526,7 +54550,7 @@ class MouseInRect(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -54546,7 +54570,7 @@ class MouseInRect(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -54567,7 +54591,7 @@ class MouseInRect(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -54632,7 +54656,7 @@ class MouseMoveHandler(baseHandler):
         Position is relative to the viewport.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -54667,7 +54691,7 @@ class MouseMoveHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -54883,7 +54907,7 @@ class MouseMoveHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -54901,12 +54925,12 @@ class MouseMoveHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -54944,7 +54968,7 @@ class MouseMoveHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -54964,7 +54988,7 @@ class MouseMoveHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -54985,7 +55009,7 @@ class MouseMoveHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -55043,7 +55067,7 @@ Prefer HoverHandler unless you really need to (see below)
     drag & drop operations.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -55078,7 +55102,7 @@ Prefer HoverHandler unless you really need to (see below)
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -55294,7 +55318,7 @@ Prefer HoverHandler unless you really need to (see below)
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -55312,12 +55336,12 @@ Prefer HoverHandler unless you really need to (see below)
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -55355,7 +55379,7 @@ Prefer HoverHandler unless you really need to (see below)
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -55375,7 +55399,7 @@ Prefer HoverHandler unless you really need to (see below)
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -55396,7 +55420,7 @@ Prefer HoverHandler unless you really need to (see below)
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -55448,7 +55472,7 @@ class MouseReleaseHandler(baseHandler):
         - button: The button that was released
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -55483,7 +55507,7 @@ class MouseReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -55709,7 +55733,7 @@ class MouseReleaseHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -55727,12 +55751,12 @@ class MouseReleaseHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -55770,7 +55794,7 @@ class MouseReleaseHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -55790,7 +55814,7 @@ class MouseReleaseHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -55811,7 +55835,7 @@ class MouseReleaseHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -55868,7 +55892,7 @@ class MouseWheelHandler(baseHandler):
         Holding Shift while using vertical scroll wheel generates horizontal scroll events.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -55905,7 +55929,7 @@ class MouseWheelHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -56140,7 +56164,7 @@ class MouseWheelHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -56158,12 +56182,12 @@ class MouseWheelHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -56201,7 +56225,7 @@ class MouseWheelHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -56221,7 +56245,7 @@ class MouseWheelHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -56242,7 +56266,7 @@ class MouseWheelHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -56294,7 +56318,7 @@ class OpenHandler(baseHandler):
     the object is show or not shown.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -56329,7 +56353,7 @@ class OpenHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -56545,7 +56569,7 @@ class OpenHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -56563,12 +56587,12 @@ class OpenHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -56606,7 +56630,7 @@ class OpenHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -56626,7 +56650,7 @@ class OpenHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -56647,7 +56671,7 @@ class OpenHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -56704,7 +56728,7 @@ class OtherItemHandler(HandlerList):
         Callbacks still reference the attached item as target, not the monitored item.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : list[baseHandler] = [], enabled : bool = True, next_sibling : baseItem | None = None, op : HandlerListOP = 0, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -56745,7 +56769,7 @@ class OtherItemHandler(HandlerList):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : list[baseHandler] = [], enabled : bool = True, next_sibling : baseItem | None = None, op : HandlerListOP = 0, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -56882,7 +56906,7 @@ class OtherItemHandler(HandlerList):
 
 
     @property
-    def children(self) -> list[baseHandler]:
+    def children(self) -> Sequence[baseHandlerSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -56897,7 +56921,7 @@ class OtherItemHandler(HandlerList):
 
 
     @children.setter
-    def children(self, value : list[baseHandler]):
+    def children(self, value : Sequence[baseHandlerSubCls]):
         ...
 
 
@@ -56967,7 +56991,7 @@ class OtherItemHandler(HandlerList):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -56985,7 +57009,7 @@ class OtherItemHandler(HandlerList):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -57007,7 +57031,7 @@ class OtherItemHandler(HandlerList):
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -57045,7 +57069,7 @@ class OtherItemHandler(HandlerList):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -57065,7 +57089,7 @@ class OtherItemHandler(HandlerList):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -57086,7 +57110,7 @@ class OtherItemHandler(HandlerList):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -57148,7 +57172,7 @@ class PlaceHolderParent(baseItem):
     Can be a parent to anything but cannot have any parent itself.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -57183,7 +57207,7 @@ class PlaceHolderParent(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -57304,7 +57328,7 @@ class PlaceHolderParent(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -57319,7 +57343,7 @@ class PlaceHolderParent(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -57379,7 +57403,7 @@ class PlaceHolderParent(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -57397,12 +57421,12 @@ class PlaceHolderParent(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -57440,7 +57464,7 @@ class PlaceHolderParent(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -57460,7 +57484,7 @@ class PlaceHolderParent(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -57481,7 +57505,7 @@ class PlaceHolderParent(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -57532,7 +57556,7 @@ class Plot(uiItem):
     to the plot (+ some logic in your callbacks). 
     
     """
-    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[plotElement] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItem | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -57713,7 +57737,7 @@ class Plot(uiItem):
         ...
 
 
-    def configure(self, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[plotElement] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItem | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def configure(self, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -58067,7 +58091,7 @@ class Plot(uiItem):
 
 
     @property
-    def children(self) -> list[plotElement]:
+    def children(self) -> Sequence[plotElementSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -58082,7 +58106,7 @@ class Plot(uiItem):
 
 
     @children.setter
-    def children(self, value : list[plotElement]):
+    def children(self, value : Sequence[plotElementSubCls]):
         ...
 
 
@@ -58417,7 +58441,7 @@ class Plot(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -58435,7 +58459,7 @@ class Plot(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -58598,7 +58622,7 @@ class Plot(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -58636,7 +58660,7 @@ class Plot(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -58827,7 +58851,7 @@ class Plot(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -58848,7 +58872,7 @@ class Plot(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -59136,7 +59160,7 @@ class PlotAnnotation(plotElement):
     Annotations are always rendered on top.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItem | None = None, offset : tuple = (0.0, 0.0), parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float = 0.0, y : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float = 0.0, y : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -59195,7 +59219,7 @@ class PlotAnnotation(plotElement):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItem | None = None, offset : tuple = (0.0, 0.0), parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float = 0.0, y : float = 0.0):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float = 0.0, y : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -59480,7 +59504,7 @@ class PlotAnnotation(plotElement):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -59498,7 +59522,7 @@ class PlotAnnotation(plotElement):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -59516,7 +59540,7 @@ class PlotAnnotation(plotElement):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -59554,7 +59578,7 @@ class PlotAnnotation(plotElement):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -59574,7 +59598,7 @@ class PlotAnnotation(plotElement):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -59595,7 +59619,7 @@ class PlotAnnotation(plotElement):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -59696,7 +59720,7 @@ class PlotAnnotation(plotElement):
 
 
 class PlotAxisConfig(baseItem):
-    def __init__(self, context : Context, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : list[baseItem] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, format : str = "", handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItem | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItem | None = None, previous_sibling : baseItem | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, format : str = "", handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -59788,7 +59812,7 @@ class PlotAxisConfig(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : list[baseItem] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, format : str = "", handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItem | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItem | None = None, previous_sibling : baseItem | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def configure(self, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, format : str = "", handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         auto_fit: Writable attribute to force the axis to fit its range
@@ -59989,7 +60013,7 @@ class PlotAxisConfig(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -60004,7 +60028,7 @@ class PlotAxisConfig(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -60326,7 +60350,7 @@ class PlotAxisConfig(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -60344,7 +60368,7 @@ class PlotAxisConfig(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -60496,7 +60520,7 @@ class PlotAxisConfig(baseItem):
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -60534,7 +60558,7 @@ class PlotAxisConfig(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -60554,7 +60578,7 @@ class PlotAxisConfig(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -60575,7 +60599,7 @@ class PlotAxisConfig(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -60668,7 +60692,7 @@ class PlotAxisConfig(baseItem):
 
 
 class PlotBarGroups(plotElementWithLegend):
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -60742,7 +60766,7 @@ class PlotBarGroups(plotElementWithLegend):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Any = ...):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -60918,7 +60942,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -60933,7 +60957,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -61140,7 +61164,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -61158,7 +61182,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -61178,7 +61202,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -61216,7 +61240,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -61236,7 +61260,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -61257,7 +61281,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -61351,7 +61375,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @property
-    def values(self):
+    def values(self) -> Array:
         """
         A row-major array with item_count columns and group_size rows.
         Basically a 2D array where
@@ -61370,12 +61394,12 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @values.setter
-    def values(self, value):
+    def values(self, value : Array):
         ...
 
 
 class PlotBars(plotElementXY):
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
         """
 
         X: Values on the X axis.
@@ -61446,7 +61470,7 @@ class PlotBars(plotElementXY):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
         """
         X: Values on the X axis.
             
@@ -61603,7 +61627,7 @@ class PlotBars(plotElementXY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -61615,19 +61639,19 @@ class PlotBars(plotElementXY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -61648,7 +61672,7 @@ class PlotBars(plotElementXY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -61663,7 +61687,7 @@ class PlotBars(plotElementXY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -61841,7 +61865,7 @@ class PlotBars(plotElementXY):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -61859,7 +61883,7 @@ class PlotBars(plotElementXY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -61879,7 +61903,7 @@ class PlotBars(plotElementXY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -61917,7 +61941,7 @@ class PlotBars(plotElementXY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -61937,7 +61961,7 @@ class PlotBars(plotElementXY):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -61958,7 +61982,7 @@ class PlotBars(plotElementXY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -62043,7 +62067,7 @@ class PlotDigital(plotElementXY):
     do not respond to y axis zooming.
     
     """
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -62112,7 +62136,7 @@ class PlotDigital(plotElementXY):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -62267,7 +62291,7 @@ class PlotDigital(plotElementXY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -62279,19 +62303,19 @@ class PlotDigital(plotElementXY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -62312,7 +62336,7 @@ class PlotDigital(plotElementXY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -62327,7 +62351,7 @@ class PlotDigital(plotElementXY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -62491,7 +62515,7 @@ class PlotDigital(plotElementXY):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -62509,7 +62533,7 @@ class PlotDigital(plotElementXY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -62529,7 +62553,7 @@ class PlotDigital(plotElementXY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -62567,7 +62591,7 @@ class PlotDigital(plotElementXY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -62587,7 +62611,7 @@ class PlotDigital(plotElementXY):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -62608,7 +62632,7 @@ class PlotDigital(plotElementXY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -62678,7 +62702,7 @@ class PlotErrorBars(plotElementXY):
     Each error bar can have a different positive/negative error value.
     
     """
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Any = ..., next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, positives : Any = ..., previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Array = ..., next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, positives : Array = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -62756,7 +62780,7 @@ class PlotErrorBars(plotElementXY):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Any = ..., next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, positives : Any = ..., previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Array = ..., next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, positives : Array = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -62920,7 +62944,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -62932,19 +62956,19 @@ class PlotErrorBars(plotElementXY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -62965,7 +62989,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -62980,7 +63004,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -63158,7 +63182,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @property
-    def negatives(self):
+    def negatives(self) -> Array:
         """Negative error values array.
         
         If empty, the error bars will be symmetrical
@@ -63169,12 +63193,12 @@ class PlotErrorBars(plotElementXY):
 
 
     @negatives.setter
-    def negatives(self, value):
+    def negatives(self, value : Array):
         ...
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -63192,7 +63216,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -63212,7 +63236,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -63250,7 +63274,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -63270,7 +63294,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @property
-    def positives(self):
+    def positives(self) -> Array:
         """Positive error values array.
         
         If negatives is empty, error bars will be symmetrical
@@ -63281,12 +63305,12 @@ class PlotErrorBars(plotElementXY):
 
 
     @positives.setter
-    def positives(self, value):
+    def positives(self, value : Array):
         ...
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -63307,7 +63331,7 @@ class PlotErrorBars(plotElementXY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -63379,7 +63403,7 @@ class PlotHeatmap(plotElementWithLegend):
     scale_min/scale_max. Setting both to 0 enables automatic color scaling.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : list[uiItem] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence[uiItemSubCls] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -63452,7 +63476,7 @@ class PlotHeatmap(plotElementWithLegend):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : list[uiItem] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Any = ...):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence[uiItemSubCls] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -63651,7 +63675,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -63666,7 +63690,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -63854,7 +63878,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -63872,7 +63896,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -63892,7 +63916,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -63930,7 +63954,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -63950,7 +63974,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -63971,7 +63995,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -64060,7 +64084,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @property
-    def values(self):
+    def values(self) -> Array:
         """2D array of values to plot.
         
         The array shape should be (rows, cols) for row-major order,
@@ -64075,7 +64099,7 @@ class PlotHeatmap(plotElementWithLegend):
 
 
     @values.setter
-    def values(self, value):
+    def values(self, value : Array):
         ...
 
 
@@ -64084,7 +64108,7 @@ class PlotHistogram(plotElementX):
     Plots a histogram from X,Y data points. Several binning options are available.
     
     """
-    def __init__(self, context : Context, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : list[uiItem] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : Sequence[uiItemSubCls] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -64165,7 +64189,7 @@ class PlotHistogram(plotElementX):
         ...
 
 
-    def configure(self, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : list[uiItem] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : Sequence[uiItemSubCls] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -64332,7 +64356,7 @@ class PlotHistogram(plotElementX):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -64344,7 +64368,7 @@ class PlotHistogram(plotElementX):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
@@ -64395,7 +64419,7 @@ class PlotHistogram(plotElementX):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -64410,7 +64434,7 @@ class PlotHistogram(plotElementX):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -64610,7 +64634,7 @@ class PlotHistogram(plotElementX):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -64628,7 +64652,7 @@ class PlotHistogram(plotElementX):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -64660,7 +64684,7 @@ class PlotHistogram(plotElementX):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -64698,7 +64722,7 @@ class PlotHistogram(plotElementX):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -64718,7 +64742,7 @@ class PlotHistogram(plotElementX):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -64739,7 +64763,7 @@ class PlotHistogram(plotElementX):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -64822,7 +64846,7 @@ class PlotHistogram2D(plotElementXY):
     Several binning options are available.
     
     """
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
         """
 
         X: Values on the X axis.
@@ -64909,7 +64933,7 @@ class PlotHistogram2D(plotElementXY):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, no_outliers : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
         """
         X: Values on the X axis.
             
@@ -65082,7 +65106,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -65094,19 +65118,19 @@ class PlotHistogram2D(plotElementXY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -65127,7 +65151,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -65142,7 +65166,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -65318,7 +65342,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -65336,7 +65360,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -65368,7 +65392,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -65406,7 +65430,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -65426,7 +65450,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -65447,7 +65471,7 @@ class PlotHistogram2D(plotElementXY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -65579,7 +65603,7 @@ class PlotInfLines(plotElementX):
     the passed coordinates
     
     """
-    def __init__(self, context : Context, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -65648,7 +65672,7 @@ class PlotInfLines(plotElementX):
         ...
 
 
-    def configure(self, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -65803,7 +65827,7 @@ class PlotInfLines(plotElementX):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -65815,7 +65839,7 @@ class PlotInfLines(plotElementX):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
@@ -65836,7 +65860,7 @@ class PlotInfLines(plotElementX):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -65851,7 +65875,7 @@ class PlotInfLines(plotElementX):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -66029,7 +66053,7 @@ class PlotInfLines(plotElementX):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -66047,7 +66071,7 @@ class PlotInfLines(plotElementX):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -66067,7 +66091,7 @@ class PlotInfLines(plotElementX):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -66105,7 +66129,7 @@ class PlotInfLines(plotElementX):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -66125,7 +66149,7 @@ class PlotInfLines(plotElementX):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -66146,7 +66170,7 @@ class PlotInfLines(plotElementX):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -66211,7 +66235,7 @@ class PlotInfLines(plotElementX):
 
 
 class PlotLegendConfig(baseItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItem | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItem | None = None, previous_sibling : baseItem | None = None, sorted : bool = False, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItemSubCls | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, sorted : bool = False, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -66263,7 +66287,7 @@ class PlotLegendConfig(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItem | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItem | None = None, previous_sibling : baseItem | None = None, sorted : bool = False, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItemSubCls | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, sorted : bool = False, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -66401,7 +66425,7 @@ class PlotLegendConfig(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -66416,7 +66440,7 @@ class PlotLegendConfig(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -66506,7 +66530,7 @@ class PlotLegendConfig(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -66524,7 +66548,7 @@ class PlotLegendConfig(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -66605,7 +66629,7 @@ class PlotLegendConfig(baseItem):
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -66643,7 +66667,7 @@ class PlotLegendConfig(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -66663,7 +66687,7 @@ class PlotLegendConfig(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -66684,7 +66708,7 @@ class PlotLegendConfig(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -66731,7 +66755,7 @@ class PlotLegendConfig(baseItem):
 
 
 class PlotLine(plotElementXY):
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -66807,7 +66831,7 @@ class PlotLine(plotElementXY):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -66969,7 +66993,7 @@ class PlotLine(plotElementXY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -66981,19 +67005,19 @@ class PlotLine(plotElementXY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -67014,7 +67038,7 @@ class PlotLine(plotElementXY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -67029,7 +67053,7 @@ class PlotLine(plotElementXY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -67207,7 +67231,7 @@ class PlotLine(plotElementXY):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -67225,7 +67249,7 @@ class PlotLine(plotElementXY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -67259,7 +67283,7 @@ class PlotLine(plotElementXY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -67297,7 +67321,7 @@ class PlotLine(plotElementXY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -67317,7 +67341,7 @@ class PlotLine(plotElementXY):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -67338,7 +67362,7 @@ class PlotLine(plotElementXY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -67447,7 +67471,7 @@ class PlotLine(plotElementXY):
 
 
 class PlotPieChart(plotElementWithLegend):
-    def __init__(self, context : Context, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, normalize : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Any = ..., x : float = 0.0, y : float = 0.0):
+    def __init__(self, context : Context, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float = 0.0, y : float = 0.0):
         """
 
         angle: Starting angle for first slice in degrees. Default is 90.
@@ -67521,7 +67545,7 @@ class PlotPieChart(plotElementWithLegend):
         ...
 
 
-    def configure(self, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, normalize : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Any = ..., x : float = 0.0, y : float = 0.0):
+    def configure(self, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float = 0.0, y : float = 0.0):
         """
         angle: Starting angle for first slice in degrees. Default is 90.
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -67709,7 +67733,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -67724,7 +67748,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -67929,7 +67953,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -67947,7 +67971,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -67982,7 +68006,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -68020,7 +68044,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -68040,7 +68064,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -68061,7 +68085,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -68138,7 +68162,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @property
-    def values(self):
+    def values(self) -> Array:
         """
         Array of values for each pie slice.
 
@@ -68151,7 +68175,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @values.setter
-    def values(self, value):
+    def values(self, value : Array):
         ...
 
 
@@ -68180,7 +68204,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
 class PlotScatter(plotElementXY):
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -68250,7 +68274,7 @@ class PlotScatter(plotElementXY):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_clip : bool = False, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -68406,7 +68430,7 @@ class PlotScatter(plotElementXY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -68418,19 +68442,19 @@ class PlotScatter(plotElementXY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -68451,7 +68475,7 @@ class PlotScatter(plotElementXY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -68466,7 +68490,7 @@ class PlotScatter(plotElementXY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -68630,7 +68654,7 @@ class PlotScatter(plotElementXY):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -68648,7 +68672,7 @@ class PlotScatter(plotElementXY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -68682,7 +68706,7 @@ class PlotScatter(plotElementXY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -68720,7 +68744,7 @@ class PlotScatter(plotElementXY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -68740,7 +68764,7 @@ class PlotScatter(plotElementXY):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -68761,7 +68785,7 @@ class PlotScatter(plotElementXY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -68826,7 +68850,7 @@ class PlotScatter(plotElementXY):
 
 
 class PlotShadedLine(plotElementXYY):
-    def __init__(self, context : Context, X : Any = ..., Y1 : Any = ..., Y2 : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -68896,7 +68920,7 @@ class PlotShadedLine(plotElementXYY):
         ...
 
 
-    def configure(self, X : Any = ..., Y1 : Any = ..., Y2 : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -69052,7 +69076,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -69064,31 +69088,31 @@ class PlotShadedLine(plotElementXYY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y1(self):
+    def Y1(self) -> Array:
         """Values on the Y1 axis
         """
         ...
 
 
     @Y1.setter
-    def Y1(self, value):
+    def Y1(self, value : Array):
         ...
 
 
     @property
-    def Y2(self):
+    def Y2(self) -> Array:
         """Values on the Y2 axis
         """
         ...
 
 
     @Y2.setter
-    def Y2(self, value):
+    def Y2(self, value : Array):
         ...
 
 
@@ -69109,7 +69133,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -69124,7 +69148,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -69288,7 +69312,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -69306,7 +69330,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -69326,7 +69350,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -69364,7 +69388,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -69384,7 +69408,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -69405,7 +69429,7 @@ class PlotShadedLine(plotElementXYY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -69470,7 +69494,7 @@ class PlotShadedLine(plotElementXYY):
 
 
 class PlotStairs(plotElementXY):
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, pre_step : bool = False, previous_sibling : baseItem | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, pre_step : bool = False, previous_sibling : baseItemSubCls | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -69545,7 +69569,7 @@ class PlotStairs(plotElementXY):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, pre_step : bool = False, previous_sibling : baseItem | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, pre_step : bool = False, previous_sibling : baseItemSubCls | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -69706,7 +69730,7 @@ class PlotStairs(plotElementXY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -69718,19 +69742,19 @@ class PlotStairs(plotElementXY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -69751,7 +69775,7 @@ class PlotStairs(plotElementXY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -69766,7 +69790,7 @@ class PlotStairs(plotElementXY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -69930,7 +69954,7 @@ class PlotStairs(plotElementXY):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -69948,7 +69972,7 @@ class PlotStairs(plotElementXY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -69968,7 +69992,7 @@ class PlotStairs(plotElementXY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -70006,7 +70030,7 @@ class PlotStairs(plotElementXY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -70042,7 +70066,7 @@ class PlotStairs(plotElementXY):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -70063,7 +70087,7 @@ class PlotStairs(plotElementXY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -70144,7 +70168,7 @@ class PlotStairs(plotElementXY):
 
 
 class PlotStems(plotElementXY):
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -70214,7 +70238,7 @@ class PlotStems(plotElementXY):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -70370,7 +70394,7 @@ class PlotStems(plotElementXY):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -70382,19 +70406,19 @@ class PlotStems(plotElementXY):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -70415,7 +70439,7 @@ class PlotStems(plotElementXY):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -70430,7 +70454,7 @@ class PlotStems(plotElementXY):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -70608,7 +70632,7 @@ class PlotStems(plotElementXY):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -70626,7 +70650,7 @@ class PlotStems(plotElementXY):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -70646,7 +70670,7 @@ class PlotStems(plotElementXY):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -70684,7 +70708,7 @@ class PlotStems(plotElementXY):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -70704,7 +70728,7 @@ class PlotStems(plotElementXY):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -70725,7 +70749,7 @@ class PlotStems(plotElementXY):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -70790,7 +70814,7 @@ class PlotStems(plotElementXY):
 
 
 class ProgressBar(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -70929,7 +70953,7 @@ class ProgressBar(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -71420,7 +71444,7 @@ class ProgressBar(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -71438,7 +71462,7 @@ class ProgressBar(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -71494,7 +71518,7 @@ class ProgressBar(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -71532,7 +71556,7 @@ class ProgressBar(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -71723,7 +71747,7 @@ class ProgressBar(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -71744,7 +71768,7 @@ class ProgressBar(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -71945,7 +71969,7 @@ class ProgressBar(uiItem):
 
 
 class RadioButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -72085,7 +72109,7 @@ class RadioButton(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -72661,7 +72685,7 @@ class RadioButton(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -72679,7 +72703,7 @@ class RadioButton(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -72721,7 +72745,7 @@ class RadioButton(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -72759,7 +72783,7 @@ class RadioButton(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -72950,7 +72974,7 @@ class RadioButton(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -72971,7 +72995,7 @@ class RadioButton(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -73184,7 +73208,7 @@ class RenderHandler(baseHandler):
     currently closed.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -73219,7 +73243,7 @@ class RenderHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -73435,7 +73459,7 @@ class RenderHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -73453,12 +73477,12 @@ class RenderHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -73496,7 +73520,7 @@ class RenderHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -73516,7 +73540,7 @@ class RenderHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -73537,7 +73561,7 @@ class RenderHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -73584,7 +73608,7 @@ class ResizeHandler(baseHandler):
     whenever the item's bounding box changes size.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -73619,7 +73643,7 @@ class ResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -73835,7 +73859,7 @@ class ResizeHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -73853,12 +73877,12 @@ class ResizeHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -73896,7 +73920,7 @@ class ResizeHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -73916,7 +73940,7 @@ class ResizeHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -73937,7 +73961,7 @@ class ResizeHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -73979,7 +74003,7 @@ class ResizeHandler(baseHandler):
 
 
 class Selectable(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -74121,7 +74145,7 @@ class Selectable(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -74699,7 +74723,7 @@ class Selectable(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -74717,7 +74741,7 @@ class Selectable(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -74773,7 +74797,7 @@ class Selectable(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -74811,7 +74835,7 @@ class Selectable(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -75002,7 +75026,7 @@ class Selectable(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -75023,7 +75047,7 @@ class Selectable(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -75238,7 +75262,7 @@ class Selectable(uiItem):
 
 
 class Separator(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -75371,7 +75395,7 @@ class Separator(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -75798,7 +75822,7 @@ class Separator(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -75816,7 +75840,7 @@ class Separator(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -75858,7 +75882,7 @@ class Separator(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -75896,7 +75920,7 @@ class Separator(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -76087,7 +76111,7 @@ class Separator(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -76108,7 +76132,7 @@ class Separator(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -76914,7 +76938,7 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class SimplePlot(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -77058,7 +77082,7 @@ class SimplePlot(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
+    def configure(self, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         autoscale: Whether scale_min and scale_max should be deduced
@@ -77616,7 +77640,7 @@ class SimplePlot(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -77634,7 +77658,7 @@ class SimplePlot(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -77690,7 +77714,7 @@ class SimplePlot(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -77728,7 +77752,7 @@ class SimplePlot(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -77919,7 +77943,7 @@ class SimplePlot(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -77940,7 +77964,7 @@ class SimplePlot(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -78169,7 +78193,7 @@ class SimplePlot(uiItem):
 
 
 class Slider(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItem | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -78342,7 +78366,7 @@ class Slider(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItem | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -79003,7 +79027,7 @@ class Slider(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -79021,7 +79045,7 @@ class Slider(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -79078,7 +79102,7 @@ class Slider(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -79116,7 +79140,7 @@ class Slider(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -79307,7 +79331,7 @@ class Slider(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -79328,7 +79352,7 @@ class Slider(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -79613,7 +79637,7 @@ class Slider(uiItem):
 
 
 class Spacer(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -79748,7 +79772,7 @@ class Spacer(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -80182,7 +80206,7 @@ class Spacer(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -80200,7 +80224,7 @@ class Spacer(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -80242,7 +80266,7 @@ class Spacer(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -80280,7 +80304,7 @@ class Spacer(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -80471,7 +80495,7 @@ class Spacer(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -80492,7 +80516,7 @@ class Spacer(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -80717,7 +80741,7 @@ class Subplots(uiItem):
     - share_y_all (bool): Link Y1-axis limits across all plots
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -80866,7 +80890,7 @@ class Subplots(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -81118,7 +81142,7 @@ class Subplots(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -81133,7 +81157,7 @@ class Subplots(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -81387,7 +81411,7 @@ class Subplots(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -81405,7 +81429,7 @@ class Subplots(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -81502,7 +81526,7 @@ class Subplots(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -81540,7 +81564,7 @@ class Subplots(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -81731,7 +81755,7 @@ class Subplots(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -81752,7 +81776,7 @@ class Subplots(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -82037,7 +82061,7 @@ class Subplots(uiItem):
 
 
 class Tab(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -82183,7 +82207,7 @@ class Tab(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -82454,7 +82478,7 @@ class Tab(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -82469,7 +82493,7 @@ class Tab(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -82743,7 +82767,7 @@ class Tab(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -82761,7 +82785,7 @@ class Tab(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -82832,7 +82856,7 @@ class Tab(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -82870,7 +82894,7 @@ class Tab(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -83061,7 +83085,7 @@ class Tab(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -83082,7 +83106,7 @@ class Tab(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -83309,7 +83333,7 @@ class Tab(uiItem):
 
 
 class TabBar(uiItem):
-    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         allow_tab_scroll: Add scroll buttons when tabs don't fit
@@ -83458,7 +83482,7 @@ class TabBar(uiItem):
         ...
 
 
-    def configure(self, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         allow_tab_scroll: Add scroll buttons when tabs don't fit
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -84021,7 +84045,7 @@ class TabBar(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -84039,7 +84063,7 @@ class TabBar(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -84137,7 +84161,7 @@ class TabBar(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -84175,7 +84199,7 @@ class TabBar(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -84366,7 +84390,7 @@ class TabBar(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -84387,7 +84411,7 @@ class TabBar(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -84631,7 +84655,7 @@ class TabBar(uiItem):
 
 
 class TabButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -84776,7 +84800,7 @@ class TabButton(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -85344,7 +85368,7 @@ class TabButton(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -85362,7 +85386,7 @@ class TabButton(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -85433,7 +85457,7 @@ class TabButton(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -85471,7 +85495,7 @@ class TabButton(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -85662,7 +85686,7 @@ class TabButton(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -85683,7 +85707,7 @@ class TabButton(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -85909,7 +85933,7 @@ Table widget.
     This class implements the base imgui Table visual.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -86113,7 +86137,7 @@ Get a view of the specified column.
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -86523,7 +86547,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -86538,7 +86562,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -86850,7 +86874,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -86868,7 +86892,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -87000,7 +87024,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -87038,7 +87062,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -87229,7 +87253,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -87250,7 +87274,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -87485,7 +87509,7 @@ class TableColConfig(baseItem):
     - HoveredHandler to listen if the user hovers the column.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItem | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItem | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItem | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -87555,7 +87579,7 @@ class TableColConfig(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItem | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItem | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItem | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -87711,7 +87735,7 @@ class TableColConfig(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -87726,7 +87750,7 @@ class TableColConfig(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -87884,7 +87908,7 @@ class TableColConfig(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -87902,7 +87926,7 @@ class TableColConfig(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -88034,7 +88058,7 @@ class TableColConfig(baseItem):
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -88072,7 +88096,7 @@ class TableColConfig(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -88116,7 +88140,7 @@ class TableColConfig(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -88137,7 +88161,7 @@ class TableColConfig(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -88242,7 +88266,7 @@ class TableColConfig(baseItem):
 
 
 class TableColumnConfig(baseItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -88277,7 +88301,7 @@ class TableColumnConfig(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -88398,7 +88422,7 @@ class TableColumnConfig(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -88413,7 +88437,7 @@ class TableColumnConfig(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -88473,7 +88497,7 @@ class TableColumnConfig(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -88491,12 +88515,12 @@ class TableColumnConfig(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -88534,7 +88558,7 @@ class TableColumnConfig(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -88554,7 +88578,7 @@ class TableColumnConfig(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -88575,7 +88599,7 @@ class TableColumnConfig(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -88612,7 +88636,7 @@ class TablePlaceHolderParent(baseItem):
     Can be only be parent to items that can be attached to tables
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -88647,7 +88671,7 @@ class TablePlaceHolderParent(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -88768,7 +88792,7 @@ class TablePlaceHolderParent(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -88783,7 +88807,7 @@ class TablePlaceHolderParent(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -88843,7 +88867,7 @@ class TablePlaceHolderParent(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -88861,12 +88885,12 @@ class TablePlaceHolderParent(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -88904,7 +88928,7 @@ class TablePlaceHolderParent(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -88924,7 +88948,7 @@ class TablePlaceHolderParent(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -88945,7 +88969,7 @@ class TablePlaceHolderParent(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -88983,7 +89007,7 @@ class TableRowConfig(baseItem):
     A table row can be hidden and its background color can be changed.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : list[baseItem] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -89024,7 +89048,7 @@ class TableRowConfig(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : list[baseItem] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -89169,7 +89193,7 @@ class TableRowConfig(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -89184,7 +89208,7 @@ class TableRowConfig(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -89271,7 +89295,7 @@ class TableRowConfig(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -89289,12 +89313,12 @@ class TableRowConfig(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -89332,7 +89356,7 @@ class TableRowConfig(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -89352,7 +89376,7 @@ class TableRowConfig(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -89373,7 +89397,7 @@ class TableRowConfig(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -89419,7 +89443,7 @@ class TableRowConfig(baseItem):
 
 
 class Text(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -89567,7 +89591,7 @@ class Text(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
+    def configure(self, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -90127,7 +90151,7 @@ class Text(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -90145,7 +90169,7 @@ class Text(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -90187,7 +90211,7 @@ class Text(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -90225,7 +90249,7 @@ class Text(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -90416,7 +90440,7 @@ class Text(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -90437,7 +90461,7 @@ class Text(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -90679,7 +90703,7 @@ class TextValue(uiItem):
     Use Text for SharedStr.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -90817,7 +90841,7 @@ class TextValue(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -91291,7 +91315,7 @@ class TextValue(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -91309,7 +91333,7 @@ class TextValue(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -91351,7 +91375,7 @@ class TextValue(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -91389,7 +91413,7 @@ class TextValue(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -91580,7 +91604,7 @@ class TextValue(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -91601,7 +91625,7 @@ class TextValue(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -91837,7 +91861,7 @@ class Texture(baseItem):
     - num_chans: Number of channels in the texture.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -91904,7 +91928,7 @@ class Texture(baseItem):
         ...
 
 
-    def configure(self, *args, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, *args, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -92136,7 +92160,7 @@ class Texture(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -92151,7 +92175,7 @@ class Texture(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -92252,7 +92276,7 @@ class Texture(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -92270,7 +92294,7 @@ class Texture(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -92283,7 +92307,7 @@ class Texture(baseItem):
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -92321,7 +92345,7 @@ class Texture(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -92341,7 +92365,7 @@ class Texture(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -92362,7 +92386,7 @@ class Texture(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -92483,7 +92507,7 @@ class ThemeColorImGui(baseThemeColor):
         ModalWindowDimBg: Darken/colorize entire screen behind a modal window, when one is active
     
     """
-    def __init__(self, context : Context, Border : Color| None = None, BorderShadow : Color| None = None, Button : Color| None = None, ButtonActive : Color| None = None, ButtonHovered : Color| None = None, CheckMark : Color| None = None, ChildBg : Color| None = None, DragDropTarget : Color| None = None, FrameBg : Color| None = None, FrameBgActive : Color| None = None, FrameBgHovered : Color| None = None, Header : Color| None = None, HeaderActive : Color| None = None, HeaderHovered : Color| None = None, MenuBarBg : Color| None = None, ModalWindowDimBg : Color| None = None, NavCursor : Color| None = None, NavWindowingDimBg : Color| None = None, NavWindowingHighlight : Color| None = None, PlotHistogram : Color| None = None, PlotHistogramHovered : Color| None = None, PlotLines : Color| None = None, PlotLinesHovered : Color| None = None, PopupBg : Color| None = None, ResizeGrip : Color| None = None, ResizeGripActive : Color| None = None, ResizeGripHovered : Color| None = None, ScrollbarBg : Color| None = None, ScrollbarGrab : Color| None = None, ScrollbarGrabActive : Color| None = None, ScrollbarGrabHovered : Color| None = None, Separator : Color| None = None, SeparatorActive : Color| None = None, SeparatorHovered : Color| None = None, SliderGrab : Color| None = None, SliderGrabActive : Color| None = None, Tab : Color| None = None, TabDimmed : Color| None = None, TabDimmedSelected : Color| None = None, TabDimmedSelectedOverline : Color| None = None, TabHovered : Color| None = None, TabSelected : Color| None = None, TabSelectedOverline : Color| None = None, TableBorderLight : Color| None = None, TableBorderStrong : Color| None = None, TableHeaderBg : Color| None = None, TableRowBg : Color| None = None, TableRowBgAlt : Color| None = None, Text : Color| None = None, TextDisabled : Color| None = None, TextLink : Color| None = None, TextSelectedBg : Color| None = None, TitleBg : Color| None = None, TitleBgActive : Color| None = None, TitleBgCollapsed : Color| None = None, WindowBg : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Color| None = None):
+    def __init__(self, context : Context, Border : Color| None = None, BorderShadow : Color| None = None, Button : Color| None = None, ButtonActive : Color| None = None, ButtonHovered : Color| None = None, CheckMark : Color| None = None, ChildBg : Color| None = None, DragDropTarget : Color| None = None, FrameBg : Color| None = None, FrameBgActive : Color| None = None, FrameBgHovered : Color| None = None, Header : Color| None = None, HeaderActive : Color| None = None, HeaderHovered : Color| None = None, MenuBarBg : Color| None = None, ModalWindowDimBg : Color| None = None, NavCursor : Color| None = None, NavWindowingDimBg : Color| None = None, NavWindowingHighlight : Color| None = None, PlotHistogram : Color| None = None, PlotHistogramHovered : Color| None = None, PlotLines : Color| None = None, PlotLinesHovered : Color| None = None, PopupBg : Color| None = None, ResizeGrip : Color| None = None, ResizeGripActive : Color| None = None, ResizeGripHovered : Color| None = None, ScrollbarBg : Color| None = None, ScrollbarGrab : Color| None = None, ScrollbarGrabActive : Color| None = None, ScrollbarGrabHovered : Color| None = None, Separator : Color| None = None, SeparatorActive : Color| None = None, SeparatorHovered : Color| None = None, SliderGrab : Color| None = None, SliderGrabActive : Color| None = None, Tab : Color| None = None, TabDimmed : Color| None = None, TabDimmedSelected : Color| None = None, TabDimmedSelectedOverline : Color| None = None, TabHovered : Color| None = None, TabSelected : Color| None = None, TabSelectedOverline : Color| None = None, TableBorderLight : Color| None = None, TableBorderStrong : Color| None = None, TableHeaderBg : Color| None = None, TableRowBg : Color| None = None, TableRowBgAlt : Color| None = None, Text : Color| None = None, TextDisabled : Color| None = None, TextLink : Color| None = None, TextSelectedBg : Color| None = None, TitleBg : Color| None = None, TitleBgActive : Color| None = None, TitleBgCollapsed : Color| None = None, WindowBg : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
         """
 
         Border: Color of borders.
@@ -92630,7 +92654,7 @@ class ThemeColorImGui(baseThemeColor):
         ...
 
 
-    def configure(self, Border : Color| None = None, BorderShadow : Color| None = None, Button : Color| None = None, ButtonActive : Color| None = None, ButtonHovered : Color| None = None, CheckMark : Color| None = None, ChildBg : Color| None = None, DragDropTarget : Color| None = None, FrameBg : Color| None = None, FrameBgActive : Color| None = None, FrameBgHovered : Color| None = None, Header : Color| None = None, HeaderActive : Color| None = None, HeaderHovered : Color| None = None, MenuBarBg : Color| None = None, ModalWindowDimBg : Color| None = None, NavCursor : Color| None = None, NavWindowingDimBg : Color| None = None, NavWindowingHighlight : Color| None = None, PlotHistogram : Color| None = None, PlotHistogramHovered : Color| None = None, PlotLines : Color| None = None, PlotLinesHovered : Color| None = None, PopupBg : Color| None = None, ResizeGrip : Color| None = None, ResizeGripActive : Color| None = None, ResizeGripHovered : Color| None = None, ScrollbarBg : Color| None = None, ScrollbarGrab : Color| None = None, ScrollbarGrabActive : Color| None = None, ScrollbarGrabHovered : Color| None = None, Separator : Color| None = None, SeparatorActive : Color| None = None, SeparatorHovered : Color| None = None, SliderGrab : Color| None = None, SliderGrabActive : Color| None = None, Tab : Color| None = None, TabDimmed : Color| None = None, TabDimmedSelected : Color| None = None, TabDimmedSelectedOverline : Color| None = None, TabHovered : Color| None = None, TabSelected : Color| None = None, TabSelectedOverline : Color| None = None, TableBorderLight : Color| None = None, TableBorderStrong : Color| None = None, TableHeaderBg : Color| None = None, TableRowBg : Color| None = None, TableRowBgAlt : Color| None = None, Text : Color| None = None, TextDisabled : Color| None = None, TextLink : Color| None = None, TextSelectedBg : Color| None = None, TitleBg : Color| None = None, TitleBgActive : Color| None = None, TitleBgCollapsed : Color| None = None, WindowBg : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Color| None = None):
+    def configure(self, Border : Color| None = None, BorderShadow : Color| None = None, Button : Color| None = None, ButtonActive : Color| None = None, ButtonHovered : Color| None = None, CheckMark : Color| None = None, ChildBg : Color| None = None, DragDropTarget : Color| None = None, FrameBg : Color| None = None, FrameBgActive : Color| None = None, FrameBgHovered : Color| None = None, Header : Color| None = None, HeaderActive : Color| None = None, HeaderHovered : Color| None = None, MenuBarBg : Color| None = None, ModalWindowDimBg : Color| None = None, NavCursor : Color| None = None, NavWindowingDimBg : Color| None = None, NavWindowingHighlight : Color| None = None, PlotHistogram : Color| None = None, PlotHistogramHovered : Color| None = None, PlotLines : Color| None = None, PlotLinesHovered : Color| None = None, PopupBg : Color| None = None, ResizeGrip : Color| None = None, ResizeGripActive : Color| None = None, ResizeGripHovered : Color| None = None, ScrollbarBg : Color| None = None, ScrollbarGrab : Color| None = None, ScrollbarGrabActive : Color| None = None, ScrollbarGrabHovered : Color| None = None, Separator : Color| None = None, SeparatorActive : Color| None = None, SeparatorHovered : Color| None = None, SliderGrab : Color| None = None, SliderGrabActive : Color| None = None, Tab : Color| None = None, TabDimmed : Color| None = None, TabDimmedSelected : Color| None = None, TabDimmedSelectedOverline : Color| None = None, TabHovered : Color| None = None, TabSelected : Color| None = None, TabSelectedOverline : Color| None = None, TableBorderLight : Color| None = None, TableBorderStrong : Color| None = None, TableHeaderBg : Color| None = None, TableRowBg : Color| None = None, TableRowBgAlt : Color| None = None, Text : Color| None = None, TextDisabled : Color| None = None, TextLink : Color| None = None, TextSelectedBg : Color| None = None, TitleBg : Color| None = None, TitleBgActive : Color| None = None, TitleBgCollapsed : Color| None = None, WindowBg : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
         """
         Border: Color of borders.
             Default: (0.43, 0.43, 0.50, 0.50)
@@ -93676,7 +93700,7 @@ class ThemeColorImGui(baseThemeColor):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -93694,12 +93718,12 @@ class ThemeColorImGui(baseThemeColor):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -93737,7 +93761,7 @@ class ThemeColorImGui(baseThemeColor):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -93757,7 +93781,7 @@ class ThemeColorImGui(baseThemeColor):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -93778,7 +93802,7 @@ class ThemeColorImGui(baseThemeColor):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -93845,7 +93869,7 @@ class ThemeColorImPlot(baseThemeColor):
         Crosshairs: Crosshairs color. Auto - derived from PlotBorder color
     
     """
-    def __init__(self, context : Context, AxisBg : Color| None = None, AxisBgActive : Color| None = None, AxisBgHovered : Color| None = None, AxisGrid : Color| None = None, AxisText : Color| None = None, AxisTick : Color| None = None, Crosshairs : Color| None = None, ErrorBar : Color| None = None, Fill : Color| None = None, FrameBg : Color| None = None, InlayText : Color| None = None, LegendBg : Color| None = None, LegendBorder : Color| None = None, LegendText : Color| None = None, Line : Color| None = None, MarkerFill : Color| None = None, MarkerOutline : Color| None = None, PlotBg : Color| None = None, PlotBorder : Color| None = None, Selection : Color| None = None, TitleText : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Color| None = None):
+    def __init__(self, context : Context, AxisBg : Color| None = None, AxisBgActive : Color| None = None, AxisBgHovered : Color| None = None, AxisGrid : Color| None = None, AxisText : Color| None = None, AxisTick : Color| None = None, Crosshairs : Color| None = None, ErrorBar : Color| None = None, Fill : Color| None = None, FrameBg : Color| None = None, InlayText : Color| None = None, LegendBg : Color| None = None, LegendBorder : Color| None = None, LegendText : Color| None = None, Line : Color| None = None, MarkerFill : Color| None = None, MarkerOutline : Color| None = None, PlotBg : Color| None = None, PlotBorder : Color| None = None, Selection : Color| None = None, TitleText : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
         """
 
         AxisBg: Background color of axis hover region.
@@ -93922,7 +93946,7 @@ class ThemeColorImPlot(baseThemeColor):
         ...
 
 
-    def configure(self, AxisBg : Color| None = None, AxisBgActive : Color| None = None, AxisBgHovered : Color| None = None, AxisGrid : Color| None = None, AxisText : Color| None = None, AxisTick : Color| None = None, Crosshairs : Color| None = None, ErrorBar : Color| None = None, Fill : Color| None = None, FrameBg : Color| None = None, InlayText : Color| None = None, LegendBg : Color| None = None, LegendBorder : Color| None = None, LegendText : Color| None = None, Line : Color| None = None, MarkerFill : Color| None = None, MarkerOutline : Color| None = None, PlotBg : Color| None = None, PlotBorder : Color| None = None, Selection : Color| None = None, TitleText : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Color| None = None):
+    def configure(self, AxisBg : Color| None = None, AxisBgActive : Color| None = None, AxisBgHovered : Color| None = None, AxisGrid : Color| None = None, AxisText : Color| None = None, AxisTick : Color| None = None, Crosshairs : Color| None = None, ErrorBar : Color| None = None, Fill : Color| None = None, FrameBg : Color| None = None, InlayText : Color| None = None, LegendBg : Color| None = None, LegendBorder : Color| None = None, LegendText : Color| None = None, Line : Color| None = None, MarkerFill : Color| None = None, MarkerOutline : Color| None = None, PlotBg : Color| None = None, PlotBorder : Color| None = None, Selection : Color| None = None, TitleText : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
         """
         AxisBg: Background color of axis hover region.
             Default: transparent
@@ -94443,7 +94467,7 @@ class ThemeColorImPlot(baseThemeColor):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -94461,12 +94485,12 @@ class ThemeColorImPlot(baseThemeColor):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -94504,7 +94528,7 @@ class ThemeColorImPlot(baseThemeColor):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -94524,7 +94548,7 @@ class ThemeColorImPlot(baseThemeColor):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -94545,7 +94569,7 @@ class ThemeColorImPlot(baseThemeColor):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -94594,7 +94618,7 @@ class ThemeList(baseTheme):
     applied as well.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseTheme] = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseThemeSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -94629,7 +94653,7 @@ class ThemeList(baseTheme):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseTheme] = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseThemeSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -94750,7 +94774,7 @@ class ThemeList(baseTheme):
 
 
     @property
-    def children(self) -> list[baseTheme]:
+    def children(self) -> Sequence[baseThemeSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -94765,7 +94789,7 @@ class ThemeList(baseTheme):
 
 
     @children.setter
-    def children(self, value : list[baseTheme]):
+    def children(self, value : Sequence[baseThemeSubCls]):
         ...
 
 
@@ -94835,7 +94859,7 @@ class ThemeList(baseTheme):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -94853,12 +94877,12 @@ class ThemeList(baseTheme):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -94896,7 +94920,7 @@ class ThemeList(baseTheme):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -94916,7 +94940,7 @@ class ThemeList(baseTheme):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -94937,7 +94961,7 @@ class ThemeList(baseTheme):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -94987,7 +95011,7 @@ class ThemeListWithCondition(baseTheme):
     a item in the child tree is rendered, use this lightly.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseTheme] = [], condition_category : ThemeCategories = 0, condition_enabled : ThemeEnablers = 0, enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseThemeSubCls] = [], condition_category : ThemeCategories = 0, condition_enabled : ThemeEnablers = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -95028,7 +95052,7 @@ class ThemeListWithCondition(baseTheme):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseTheme] = [], condition_category : ThemeCategories = 0, condition_enabled : ThemeEnablers = 0, enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseThemeSubCls] = [], condition_category : ThemeCategories = 0, condition_enabled : ThemeEnablers = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -95155,7 +95179,7 @@ class ThemeListWithCondition(baseTheme):
 
 
     @property
-    def children(self) -> list[baseTheme]:
+    def children(self) -> Sequence[baseThemeSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -95170,7 +95194,7 @@ class ThemeListWithCondition(baseTheme):
 
 
     @children.setter
-    def children(self, value : list[baseTheme]):
+    def children(self, value : Sequence[baseThemeSubCls]):
         ...
 
 
@@ -95272,7 +95296,7 @@ class ThemeListWithCondition(baseTheme):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -95290,12 +95314,12 @@ class ThemeListWithCondition(baseTheme):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -95333,7 +95357,7 @@ class ThemeListWithCondition(baseTheme):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -95353,7 +95377,7 @@ class ThemeListWithCondition(baseTheme):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -95374,7 +95398,7 @@ class ThemeListWithCondition(baseTheme):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -95414,7 +95438,7 @@ class ThemeStopCondition(baseTheme):
     Does not work inside a ThemeListWithCondition
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -95449,7 +95473,7 @@ class ThemeStopCondition(baseTheme):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -95655,7 +95679,7 @@ class ThemeStopCondition(baseTheme):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -95673,12 +95697,12 @@ class ThemeStopCondition(baseTheme):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -95716,7 +95740,7 @@ class ThemeStopCondition(baseTheme):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -95736,7 +95760,7 @@ class ThemeStopCondition(baseTheme):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -95757,7 +95781,7 @@ class ThemeStopCondition(baseTheme):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -95789,7 +95813,7 @@ class ThemeStopCondition(baseTheme):
 
 
 class ThemeStyleImGui(baseThemeStyle):
-    def __init__(self, context : Context, Alpha : float | None = None, ButtonTextAlign : tuple[float, float] | None = None, CellPadding : tuple[float, float] | None = None, ChildBorderSize : float | None = None, ChildRounding : float | None = None, DisabledAlpha : float | None = None, FrameBorderSize : float | None = None, FramePadding : tuple[float, float] | None = None, FrameRounding : float | None = None, GrabMinSize : float | None = None, GrabRounding : float | None = None, IndentSpacing : float | None = None, ItemInnerSpacing : tuple[float, float] | None = None, ItemSpacing : tuple[float, float] | None = None, PopupBorderSize : float | None = None, PopupRounding : float | None = None, ScrollbarRounding : float | None = None, ScrollbarSize : float | None = None, SelectableTextAlign : tuple[float, float] | None = None, SeparatorTextBorderSize : float | None = None, SeparatorTextPadding : tuple[float, float] | None = None, TabBarBorderSize : float | None = None, TabBarOverlineSize : float | None = None, TabBorderSize : float | None = None, TabRounding : float | None = None, TableAngledHeadersAngle : float | None = None, TableAngledHeadersTextAlign : tuple[float, float] | None = None, WindowBorderSize : float | None = None, WindowMinSize : tuple[float, float] | None = None, WindowPadding : tuple[float, float] | None = None, WindowRounding : float | None = None, WindowTitleAlign : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, Alpha : float | None = None, ButtonTextAlign : tuple[float, float] | None = None, CellPadding : tuple[float, float] | None = None, ChildBorderSize : float | None = None, ChildRounding : float | None = None, DisabledAlpha : float | None = None, FrameBorderSize : float | None = None, FramePadding : tuple[float, float] | None = None, FrameRounding : float | None = None, GrabMinSize : float | None = None, GrabRounding : float | None = None, IndentSpacing : float | None = None, ItemInnerSpacing : tuple[float, float] | None = None, ItemSpacing : tuple[float, float] | None = None, PopupBorderSize : float | None = None, PopupRounding : float | None = None, ScrollbarRounding : float | None = None, ScrollbarSize : float | None = None, SelectableTextAlign : tuple[float, float] | None = None, SeparatorTextBorderSize : float | None = None, SeparatorTextPadding : tuple[float, float] | None = None, TabBarBorderSize : float | None = None, TabBarOverlineSize : float | None = None, TabBorderSize : float | None = None, TabRounding : float | None = None, TableAngledHeadersAngle : float | None = None, TableAngledHeadersTextAlign : tuple[float, float] | None = None, WindowBorderSize : float | None = None, WindowMinSize : tuple[float, float] | None = None, WindowPadding : tuple[float, float] | None = None, WindowRounding : float | None = None, WindowTitleAlign : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
 
         Alpha: Global alpha applied to everything in Dear ImGui.
@@ -95877,7 +95901,7 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    def configure(self, Alpha : float | None = None, ButtonTextAlign : tuple[float, float] | None = None, CellPadding : tuple[float, float] | None = None, ChildBorderSize : float | None = None, ChildRounding : float | None = None, DisabledAlpha : float | None = None, FrameBorderSize : float | None = None, FramePadding : tuple[float, float] | None = None, FrameRounding : float | None = None, GrabMinSize : float | None = None, GrabRounding : float | None = None, IndentSpacing : float | None = None, ItemInnerSpacing : tuple[float, float] | None = None, ItemSpacing : tuple[float, float] | None = None, PopupBorderSize : float | None = None, PopupRounding : float | None = None, ScrollbarRounding : float | None = None, ScrollbarSize : float | None = None, SelectableTextAlign : tuple[float, float] | None = None, SeparatorTextBorderSize : float | None = None, SeparatorTextPadding : tuple[float, float] | None = None, TabBarBorderSize : float | None = None, TabBarOverlineSize : float | None = None, TabBorderSize : float | None = None, TabRounding : float | None = None, TableAngledHeadersAngle : float | None = None, TableAngledHeadersTextAlign : tuple[float, float] | None = None, WindowBorderSize : float | None = None, WindowMinSize : tuple[float, float] | None = None, WindowPadding : tuple[float, float] | None = None, WindowRounding : float | None = None, WindowTitleAlign : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def configure(self, Alpha : float | None = None, ButtonTextAlign : tuple[float, float] | None = None, CellPadding : tuple[float, float] | None = None, ChildBorderSize : float | None = None, ChildRounding : float | None = None, DisabledAlpha : float | None = None, FrameBorderSize : float | None = None, FramePadding : tuple[float, float] | None = None, FrameRounding : float | None = None, GrabMinSize : float | None = None, GrabRounding : float | None = None, IndentSpacing : float | None = None, ItemInnerSpacing : tuple[float, float] | None = None, ItemSpacing : tuple[float, float] | None = None, PopupBorderSize : float | None = None, PopupRounding : float | None = None, ScrollbarRounding : float | None = None, ScrollbarSize : float | None = None, SelectableTextAlign : tuple[float, float] | None = None, SeparatorTextBorderSize : float | None = None, SeparatorTextPadding : tuple[float, float] | None = None, TabBarBorderSize : float | None = None, TabBarOverlineSize : float | None = None, TabBorderSize : float | None = None, TabRounding : float | None = None, TableAngledHeadersAngle : float | None = None, TableAngledHeadersTextAlign : tuple[float, float] | None = None, WindowBorderSize : float | None = None, WindowMinSize : tuple[float, float] | None = None, WindowPadding : tuple[float, float] | None = None, WindowRounding : float | None = None, WindowTitleAlign : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         Alpha: Global alpha applied to everything in Dear ImGui.
         ButtonTextAlign: Alignment of button text when button is larger than text.
@@ -96651,7 +96675,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -96669,7 +96693,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -96708,7 +96732,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -96746,7 +96770,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -96766,7 +96790,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -96787,7 +96811,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -96819,7 +96843,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
 class ThemeStyleImNodes(baseThemeStyle):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -96862,7 +96886,7 @@ class ThemeStyleImNodes(baseThemeStyle):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -97076,7 +97100,7 @@ class ThemeStyleImNodes(baseThemeStyle):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -97094,7 +97118,7 @@ class ThemeStyleImNodes(baseThemeStyle):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -97133,7 +97157,7 @@ class ThemeStyleImNodes(baseThemeStyle):
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -97171,7 +97195,7 @@ class ThemeStyleImNodes(baseThemeStyle):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -97191,7 +97215,7 @@ class ThemeStyleImNodes(baseThemeStyle):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -97212,7 +97236,7 @@ class ThemeStyleImNodes(baseThemeStyle):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -97244,7 +97268,7 @@ class ThemeStyleImNodes(baseThemeStyle):
 
 
 class ThemeStyleImPlot(baseThemeStyle):
-    def __init__(self, context : Context, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : float | None = None, MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : float | None = None, MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
 
         AnnotationPadding: Text padding around annotation labels.
@@ -97314,7 +97338,7 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    def configure(self, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : float | None = None, MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def configure(self, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : float | None = None, MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         AnnotationPadding: Text padding around annotation labels.
         DigitalBitGap: Digital channels bit padding gap in pixels.
@@ -97987,7 +98011,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -98005,7 +98029,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -98044,7 +98068,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -98082,7 +98106,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -98102,7 +98126,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -98123,7 +98147,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -98182,7 +98206,7 @@ class TimeWatcher(uiItem):
     GPU data, etc), not to GPU rendering time.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -98317,7 +98341,7 @@ class TimeWatcher(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -98555,7 +98579,7 @@ class TimeWatcher(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -98570,7 +98594,7 @@ class TimeWatcher(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -98751,7 +98775,7 @@ class TimeWatcher(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -98769,7 +98793,7 @@ class TimeWatcher(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -98811,7 +98835,7 @@ class TimeWatcher(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -98849,7 +98873,7 @@ class TimeWatcher(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -99040,7 +99064,7 @@ class TimeWatcher(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -99061,7 +99085,7 @@ class TimeWatcher(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -99248,7 +99272,7 @@ class ToggledCloseHandler(baseHandler):
     the object is show or not shown.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -99283,7 +99307,7 @@ class ToggledCloseHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -99499,7 +99523,7 @@ class ToggledCloseHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -99517,12 +99541,12 @@ class ToggledCloseHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -99560,7 +99584,7 @@ class ToggledCloseHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -99580,7 +99604,7 @@ class ToggledCloseHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -99601,7 +99625,7 @@ class ToggledCloseHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -99653,7 +99677,7 @@ class ToggledOpenHandler(baseHandler):
     the object is show or not shown.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -99688,7 +99712,7 @@ class ToggledOpenHandler(baseHandler):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -99904,7 +99928,7 @@ class ToggledOpenHandler(baseHandler):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -99922,12 +99946,12 @@ class ToggledOpenHandler(baseHandler):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -99965,7 +99989,7 @@ class ToggledOpenHandler(baseHandler):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -99985,7 +100009,7 @@ class ToggledOpenHandler(baseHandler):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -100006,7 +100030,7 @@ class ToggledOpenHandler(baseHandler):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -100048,7 +100072,7 @@ class ToggledOpenHandler(baseHandler):
 
 
 class Tooltip(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -100198,7 +100222,7 @@ class Tooltip(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -100451,7 +100475,7 @@ class Tooltip(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -100466,7 +100490,7 @@ class Tooltip(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -100724,7 +100748,7 @@ class Tooltip(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -100742,7 +100766,7 @@ class Tooltip(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -100784,7 +100808,7 @@ class Tooltip(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -100822,7 +100846,7 @@ class Tooltip(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -101013,7 +101037,7 @@ class Tooltip(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -101034,7 +101058,7 @@ class Tooltip(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -101227,7 +101251,7 @@ class Tooltip(uiItem):
 
 
 class TreeNode(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -101379,7 +101403,7 @@ class TreeNode(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -101672,7 +101696,7 @@ class TreeNode(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -101687,7 +101711,7 @@ class TreeNode(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -101960,7 +101984,7 @@ class TreeNode(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -101978,7 +102002,7 @@ class TreeNode(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -102050,7 +102074,7 @@ class TreeNode(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -102088,7 +102112,7 @@ class TreeNode(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -102279,7 +102303,7 @@ class TreeNode(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -102300,7 +102324,7 @@ class TreeNode(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -102560,7 +102584,7 @@ class VerticalLayout(Layout):
     Same as HorizontalLayout but vertically
     
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         alignment_mode: Vertical alignment mode of the items.
@@ -102710,7 +102734,7 @@ class VerticalLayout(Layout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         alignment_mode: Vertical alignment mode of the items.
             TOP: items are appended from the top
@@ -103020,7 +103044,7 @@ class VerticalLayout(Layout):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -103035,7 +103059,7 @@ class VerticalLayout(Layout):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -103333,7 +103357,7 @@ class VerticalLayout(Layout):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -103351,7 +103375,7 @@ class VerticalLayout(Layout):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -103393,7 +103417,7 @@ class VerticalLayout(Layout):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -103431,7 +103455,7 @@ class VerticalLayout(Layout):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -103649,7 +103673,7 @@ class VerticalLayout(Layout):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -103670,7 +103694,7 @@ class VerticalLayout(Layout):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -103920,7 +103944,7 @@ class Viewport(baseItem):
     - metrics: Rendering related metrics relative to the last frame.
     
     """
-    def __init__(self, context : Context, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : list[Window, ViewportDrawList, MenuBar] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -103980,7 +104004,7 @@ class Viewport(baseItem):
         ...
 
 
-    def configure(self, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : list[Window, ViewportDrawList, MenuBar] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
+    def configure(self, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -104053,7 +104077,7 @@ class Viewport(baseItem):
         ...
 
 
-    def initialize(self, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : list[Window, ViewportDrawList, MenuBar] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
+    def initialize(self, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -104209,7 +104233,7 @@ class Viewport(baseItem):
 
 
     @property
-    def children(self) -> list[Window, ViewportDrawList, MenuBar]:
+    def children(self) -> Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -104224,7 +104248,7 @@ class Viewport(baseItem):
 
 
     @children.setter
-    def children(self, value : list[Window, ViewportDrawList, MenuBar]):
+    def children(self, value : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls]):
         ...
 
 
@@ -104492,7 +104516,7 @@ class Viewport(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -104510,12 +104534,12 @@ class Viewport(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -104553,7 +104577,7 @@ class Viewport(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -104573,7 +104597,7 @@ class Viewport(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -104594,7 +104618,7 @@ class Viewport(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -104817,7 +104841,7 @@ class ViewportDrawList(drawingItem):
         front (bool): When True, renders drawings in front of all items. When False, renders behind.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[drawingItem] = [], front : bool = True, next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], front : bool = True, next_sibling : baseItemSubCls | None = None, parent : Viewport | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -104859,7 +104883,7 @@ class ViewportDrawList(drawingItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[drawingItem] = [], front : bool = True, next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], front : bool = True, next_sibling : baseItemSubCls | None = None, parent : Viewport | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -104987,7 +105011,7 @@ class ViewportDrawList(drawingItem):
 
 
     @property
-    def children(self) -> list[drawingItem]:
+    def children(self) -> Sequence[drawingItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -105002,7 +105026,7 @@ class ViewportDrawList(drawingItem):
 
 
     @children.setter
-    def children(self, value : list[drawingItem]):
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -105074,7 +105098,7 @@ class ViewportDrawList(drawingItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -105092,12 +105116,12 @@ class ViewportDrawList(drawingItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> Viewport | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -105135,7 +105159,7 @@ class ViewportDrawList(drawingItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : Viewport | None):
         ...
 
 
@@ -105155,7 +105179,7 @@ class ViewportDrawList(drawingItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -105176,7 +105200,7 @@ class ViewportDrawList(drawingItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -105261,7 +105285,7 @@ class Window(uiItem):
     - max_size: Maximum size of the window.
     
     """
-    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem, MenuBar] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItem | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         always_show_horizontal_scrollvar: Writable attribute to tell to always show a horizontal scrollbar
@@ -105468,7 +105492,7 @@ class Window(uiItem):
         ...
 
 
-    def configure(self, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem, MenuBar] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItem | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         always_show_horizontal_scrollvar: Writable attribute to tell to always show a horizontal scrollbar
             even when the size does not require it (only if horizontal scrollbar
@@ -105823,7 +105847,7 @@ class Window(uiItem):
 
 
     @property
-    def children(self) -> list[uiItem, MenuBar]:
+    def children(self) -> Sequence[uiItemSubCls | MenuBarSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -105838,7 +105862,7 @@ class Window(uiItem):
 
 
     @children.setter
-    def children(self, value : list[uiItem, MenuBar]):
+    def children(self, value : Sequence[uiItemSubCls | MenuBarSubCls]):
         ...
 
 
@@ -106181,7 +106205,7 @@ class Window(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -106199,7 +106223,7 @@ class Window(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -106708,7 +106732,7 @@ class Window(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -106729,7 +106753,7 @@ class Window(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -106988,7 +107012,7 @@ class WindowHorizontalLayout(WindowLayout):
         When in MANUAL mode, the x positions for each window
     
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         alignment_mode: Horizontal alignment mode of the windows.
@@ -107135,7 +107159,7 @@ class WindowHorizontalLayout(WindowLayout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         alignment_mode: Horizontal alignment mode of the windows.
             LEFT: windows are appended from the left
@@ -107639,7 +107663,7 @@ class WindowHorizontalLayout(WindowLayout):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -107657,7 +107681,7 @@ class WindowHorizontalLayout(WindowLayout):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -107699,7 +107723,7 @@ class WindowHorizontalLayout(WindowLayout):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -107737,7 +107761,7 @@ class WindowHorizontalLayout(WindowLayout):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -107954,7 +107978,7 @@ class WindowHorizontalLayout(WindowLayout):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -107975,7 +107999,7 @@ class WindowHorizontalLayout(WindowLayout):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -108183,7 +108207,7 @@ class WindowLayout(uiItem):
     for the position and rect size.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -108318,7 +108342,7 @@ class WindowLayout(uiItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -108786,7 +108810,7 @@ class WindowLayout(uiItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -108804,7 +108828,7 @@ class WindowLayout(uiItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -108846,7 +108870,7 @@ class WindowLayout(uiItem):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -108884,7 +108908,7 @@ class WindowLayout(uiItem):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -109075,7 +109099,7 @@ class WindowLayout(uiItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -109096,7 +109120,7 @@ class WindowLayout(uiItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -109319,7 +109343,7 @@ class WindowVerticalLayout(WindowLayout):
         Negative values reference from bottom edge.
     
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         alignment_mode: Vertical alignment mode of the windows.
@@ -109466,7 +109490,7 @@ class WindowVerticalLayout(WindowLayout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         alignment_mode: Vertical alignment mode of the windows.
             TOP: windows are appended from the top
@@ -109972,7 +109996,7 @@ class WindowVerticalLayout(WindowLayout):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -109990,7 +110014,7 @@ class WindowVerticalLayout(WindowLayout):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -110032,7 +110056,7 @@ class WindowVerticalLayout(WindowLayout):
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -110070,7 +110094,7 @@ class WindowVerticalLayout(WindowLayout):
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -110288,7 +110312,7 @@ class WindowVerticalLayout(WindowLayout):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -110309,7 +110333,7 @@ class WindowVerticalLayout(WindowLayout):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -110510,7 +110534,7 @@ class WindowVerticalLayout(WindowLayout):
 
 
 class baseFont(baseItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -110545,7 +110569,7 @@ class baseFont(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -110666,7 +110690,7 @@ class baseFont(baseItem):
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -110681,7 +110705,7 @@ class baseFont(baseItem):
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -110741,7 +110765,7 @@ class baseFont(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -110759,12 +110783,12 @@ class baseFont(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -110802,7 +110826,7 @@ class baseFont(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -110822,7 +110846,7 @@ class baseFont(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -110843,7 +110867,7 @@ class baseFont(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -110883,7 +110907,7 @@ class baseHandler(baseItem):
     - callback: Callback function for the handler.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -110918,7 +110942,7 @@ class baseHandler(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseTheme | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -111134,7 +111158,7 @@ class baseHandler(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -111152,12 +111176,12 @@ class baseHandler(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseTheme | None:
+    def parent(self) -> baseThemeSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -111195,7 +111219,7 @@ class baseHandler(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseTheme | None):
+    def parent(self, value : baseThemeSubCls | None):
         ...
 
 
@@ -111215,7 +111239,7 @@ class baseHandler(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -111236,7 +111260,7 @@ class baseHandler(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -111320,7 +111344,7 @@ Base class for all items (except shared values).
     The children attribute provides access to all child items.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -111355,7 +111379,7 @@ Base class for all items (except shared values).
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : list[baseItem] = [], next_sibling : baseItem | None = None, parent : baseItem | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -111476,7 +111500,7 @@ Base class for all items (except shared values).
 
 
     @property
-    def children(self) -> list[baseItem]:
+    def children(self) -> Sequence[baseItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -111491,7 +111515,7 @@ Base class for all items (except shared values).
 
 
     @children.setter
-    def children(self, value : list[baseItem]):
+    def children(self, value : Sequence[baseItemSubCls]):
         ...
 
 
@@ -111551,7 +111575,7 @@ Base class for all items (except shared values).
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -111569,12 +111593,12 @@ Base class for all items (except shared values).
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseItem | None:
+    def parent(self) -> baseItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -111612,7 +111636,7 @@ Base class for all items (except shared values).
 
 
     @parent.setter
-    def parent(self, value : baseItem | None):
+    def parent(self, value : baseItemSubCls | None):
         ...
 
 
@@ -111632,7 +111656,7 @@ Base class for all items (except shared values).
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -111653,7 +111677,7 @@ Base class for all items (except shared values).
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -111697,7 +111721,7 @@ class baseTable(uiItem):
     is done by the derived classes.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -111882,7 +111906,7 @@ Get a view of the specified column.
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : list[uiItem] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -112255,7 +112279,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -112270,7 +112294,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -112465,7 +112489,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -112483,7 +112507,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -112615,7 +112639,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -112653,7 +112677,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -112844,7 +112868,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -112865,7 +112889,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -113073,7 +113097,7 @@ class baseTheme(baseItem):
     - enabled: Boolean indicating if the theme is enabled.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -113108,7 +113132,7 @@ class baseTheme(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -113314,7 +113338,7 @@ class baseTheme(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -113332,12 +113356,12 @@ class baseTheme(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -113375,7 +113399,7 @@ class baseTheme(baseItem):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -113395,7 +113419,7 @@ class baseTheme(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -113416,7 +113440,7 @@ class baseTheme(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -113463,7 +113487,7 @@ class baseThemeColor(baseTheme):
     or numeric indices.
     
     """
-    def __init__(self, context : Context, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Color| None = None):
+    def __init__(self, context : Context, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -113498,7 +113522,7 @@ class baseThemeColor(baseTheme):
         ...
 
 
-    def configure(self, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : Color| None = None):
+    def configure(self, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -113704,7 +113728,7 @@ class baseThemeColor(baseTheme):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -113722,12 +113746,12 @@ class baseThemeColor(baseTheme):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -113765,7 +113789,7 @@ class baseThemeColor(baseTheme):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -113785,7 +113809,7 @@ class baseThemeColor(baseTheme):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -113806,7 +113830,7 @@ class baseThemeColor(baseTheme):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -113838,7 +113862,7 @@ class baseThemeColor(baseTheme):
 
 
 class baseThemeStyle(baseTheme):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -113881,7 +113905,7 @@ class baseThemeStyle(baseTheme):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItem | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandler | None = None, previous_sibling : baseItem | None = None, user_data : tuple[float, float] | None = None):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -114095,7 +114119,7 @@ class baseThemeStyle(baseTheme):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -114113,7 +114137,7 @@ class baseThemeStyle(baseTheme):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -114152,7 +114176,7 @@ class baseThemeStyle(baseTheme):
 
 
     @property
-    def parent(self) -> baseHandler | None:
+    def parent(self) -> baseHandlerSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -114190,7 +114214,7 @@ class baseThemeStyle(baseTheme):
 
 
     @parent.setter
-    def parent(self, value : baseHandler | None):
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -114210,7 +114234,7 @@ class baseThemeStyle(baseTheme):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -114231,7 +114255,7 @@ class baseThemeStyle(baseTheme):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -114267,7 +114291,7 @@ class drawingItem(baseItem):
     A simple item with no UI state that inherits from the drawing area of its parent.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -114308,7 +114332,7 @@ class drawingItem(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItem | None = None, parent : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None = None, previous_sibling : baseItem | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -114510,7 +114534,7 @@ class drawingItem(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -114528,12 +114552,12 @@ class drawingItem(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None:
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -114571,7 +114595,7 @@ class drawingItem(baseItem):
 
 
     @parent.setter
-    def parent(self, value : DrawInWindow | DrawInPlot | ViewportDrawList | drawingItem | None):
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -114591,7 +114615,7 @@ class drawingItem(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -114612,7 +114636,7 @@ class drawingItem(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -114673,7 +114697,7 @@ class plotElement(baseItem):
     - theme: Theme for the plot element.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : None  = [], label : str = "", next_sibling : baseItem | None = None, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : None  = [], label : str = "", next_sibling : baseItemSubCls | None = None, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -114719,7 +114743,7 @@ class plotElement(baseItem):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : None  = [], label : str = "", next_sibling : baseItem | None = None, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : None  = [], label : str = "", next_sibling : baseItemSubCls | None = None, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -114956,7 +114980,7 @@ class plotElement(baseItem):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -114974,12 +114998,12 @@ class plotElement(baseItem):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -115017,7 +115041,7 @@ class plotElement(baseItem):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -115037,7 +115061,7 @@ class plotElement(baseItem):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -115058,7 +115082,7 @@ class plotElement(baseItem):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -115130,7 +115154,7 @@ class plotElementWithLegend(plotElement):
     popup entry that gets shown on a right click (by default).
     
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -115193,7 +115217,7 @@ class plotElementWithLegend(plotElement):
         ...
 
 
-    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         axes: (X axis, Y axis)
@@ -115358,7 +115382,7 @@ class plotElementWithLegend(plotElement):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -115373,7 +115397,7 @@ class plotElementWithLegend(plotElement):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -115537,7 +115561,7 @@ class plotElementWithLegend(plotElement):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -115555,7 +115579,7 @@ class plotElementWithLegend(plotElement):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -115575,7 +115599,7 @@ class plotElementWithLegend(plotElement):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -115613,7 +115637,7 @@ class plotElementWithLegend(plotElement):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -115633,7 +115657,7 @@ class plotElementWithLegend(plotElement):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -115654,7 +115678,7 @@ class plotElementWithLegend(plotElement):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -115719,7 +115743,7 @@ class plotElementWithLegend(plotElement):
 
 
 class plotElementX(plotElementWithLegend):
-    def __init__(self, context : Context, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -115787,7 +115811,7 @@ class plotElementX(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -115941,7 +115965,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -115953,7 +115977,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
@@ -115974,7 +115998,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -115989,7 +116013,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -116153,7 +116177,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -116171,7 +116195,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -116191,7 +116215,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -116229,7 +116253,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -116249,7 +116273,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -116270,7 +116294,7 @@ class plotElementX(plotElementWithLegend):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -116335,7 +116359,7 @@ class plotElementX(plotElementWithLegend):
 
 
 class plotElementXY(plotElementWithLegend):
-    def __init__(self, context : Context, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -116404,7 +116428,7 @@ class plotElementXY(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : Any = ..., Y : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -116559,7 +116583,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -116571,19 +116595,19 @@ class plotElementXY(plotElementWithLegend):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y(self):
+    def Y(self) -> Array:
         """Values on the Y axis
         """
         ...
 
 
     @Y.setter
-    def Y(self, value):
+    def Y(self, value : Array):
         ...
 
 
@@ -116604,7 +116628,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -116619,7 +116643,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -116783,7 +116807,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -116801,7 +116825,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -116821,7 +116845,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -116859,7 +116883,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -116879,7 +116903,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -116900,7 +116924,7 @@ class plotElementXY(plotElementWithLegend):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -116965,7 +116989,7 @@ class plotElementXY(plotElementWithLegend):
 
 
 class plotElementXYY(plotElementWithLegend):
-    def __init__(self, context : Context, X : Any = ..., Y1 : Any = ..., Y2 : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
 
         X: Values on the X axis.
@@ -117035,7 +117059,7 @@ class plotElementXYY(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : Any = ..., Y1 : Any = ..., Y2 : Any = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : list[uiItem] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItem | None = None, no_legend : bool = False, parent : Plot | None = None, previous_sibling : baseItem | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         X: Values on the X axis.
             
@@ -117191,7 +117215,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @property
-    def X(self):
+    def X(self) -> Array:
         """Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
@@ -117203,31 +117227,31 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @X.setter
-    def X(self, value):
+    def X(self, value : Array):
         ...
 
 
     @property
-    def Y1(self):
+    def Y1(self) -> Array:
         """Values on the Y1 axis
         """
         ...
 
 
     @Y1.setter
-    def Y1(self, value):
+    def Y1(self, value : Array):
         ...
 
 
     @property
-    def Y2(self):
+    def Y2(self) -> Array:
         """Values on the Y2 axis
         """
         ...
 
 
     @Y2.setter
-    def Y2(self, value):
+    def Y2(self, value : Array):
         ...
 
 
@@ -117248,7 +117272,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @property
-    def children(self) -> list[uiItem]:
+    def children(self) -> Sequence[uiItemSubCls]:
         """
         Writable attribute: List of all the children of the item,
         from first rendered, to last rendered.
@@ -117263,7 +117287,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @children.setter
-    def children(self, value : list[uiItem]):
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -117427,7 +117451,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -117445,7 +117469,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -117465,7 +117489,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @property
-    def parent(self) -> Plot | None:
+    def parent(self) -> PlotSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -117503,7 +117527,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @parent.setter
-    def parent(self, value : Plot | None):
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -117523,7 +117547,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -117544,7 +117568,7 @@ class plotElementXYY(plotElementWithLegend):
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -117674,7 +117698,7 @@ Base class for UI items with various properties and states.
     All attributes are protected by mutexes to enable thread-safe access.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -117809,7 +117833,7 @@ Base class for UI items with various properties and states.
         ...
 
 
-    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItem | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItem | plotElement | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItem | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -118243,7 +118267,7 @@ Base class for UI items with various properties and states.
 
 
     @property
-    def next_sibling(self) -> baseItem | None:
+    def next_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just after this item.
@@ -118261,7 +118285,7 @@ Base class for UI items with various properties and states.
 
 
     @next_sibling.setter
-    def next_sibling(self, value : baseItem | None):
+    def next_sibling(self, value : baseItemSubCls | None):
         ...
 
 
@@ -118303,7 +118327,7 @@ Base class for UI items with various properties and states.
 
 
     @property
-    def parent(self) -> uiItem | plotElement | None:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Writable attribute: parent of the item in the rendering tree.
 
@@ -118341,7 +118365,7 @@ Base class for UI items with various properties and states.
 
 
     @parent.setter
-    def parent(self, value : uiItem | plotElement | None):
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -118532,7 +118556,7 @@ Base class for UI items with various properties and states.
 
 
     @property
-    def previous_sibling(self) -> baseItem | None:
+    def previous_sibling(self) -> baseItemSubCls | None:
         """
         Writable attribute: child of the parent of the item that
         is rendered just before this item.
@@ -118553,7 +118577,7 @@ Base class for UI items with various properties and states.
 
 
     @previous_sibling.setter
-    def previous_sibling(self, value : baseItem | None):
+    def previous_sibling(self, value : baseItemSubCls | None):
         ...
 
 

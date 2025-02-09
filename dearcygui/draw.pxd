@@ -133,7 +133,7 @@ cdef class DrawPolygon(drawingItem):
     cdef float _thickness
     cdef DCGVector[double2] _points
     cdef DCGVector[uint32_t] _triangulation_indices
-    cdef void __triangulate(self)
+    cdef void _triangulate(self)
     cdef void draw(self, void*) noexcept nogil
 
 cdef class DrawQuad(drawingItem):
