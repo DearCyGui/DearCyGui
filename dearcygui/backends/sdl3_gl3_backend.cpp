@@ -57,6 +57,7 @@ void SDLViewport::preparePresentFrame() {
     renderContextLock.lock();
     SDL_GL_MakeCurrent(windowHandle, glContext);
     if (hasResized) {
+        dpiScale = SDL_GetWindowDisplayScale(windowHandle);
         SDL_GetWindowSizeInPixels(windowHandle, &frameWidth, &frameHeight);
         windowWidth = (int)((float)frameWidth / dpiScale);
         windowHeight = (int)((float)frameHeight / dpiScale);
