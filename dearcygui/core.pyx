@@ -2788,16 +2788,18 @@ cdef class Viewport(baseItem):
     - large_icon: Large icon for the viewport.
     - x_pos: X position of the viewport.
     - y_pos: Y position of the viewport.
-    - width: Width of the viewport.
-    - height: Height of the viewport.
+    - width: DPI invariant width of the viewport (width * dpi scale -> pixel width).
+    - height: DPI invariant height of the viewport (height * dpi scale -> pixel height).
+    - pixel_width: Width of the viewport in actual pixels.
+    - pixel_height: Height of the viewport in actual pixels.
     - resizable: Boolean indicating if the viewport is resizable.
     - vsync: Boolean indicating if vsync is enabled.
     - dpi: Requested scaling (DPI) from the OS for this window.
     - scale: Multiplicative scale used to scale automatically all items.
-    - min_width: Minimum width of the viewport.
-    - max_width: Maximum width of the viewport.
-    - min_height: Minimum height of the viewport.
-    - max_height: Maximum height of the viewport.
+    - min_width: DPI invariant Minimum width of the viewport.
+    - max_width: DPI invariant Maximum width of the viewport.
+    - min_height: DPI invariant Minimum height of the viewport.
+    - max_height: DPI invariant Maximum height of the viewport.
     - always_on_top: Boolean indicating if the viewport is always on top.
     - decorated: Boolean indicating if the viewport is decorated.
     - handlers: Bound handler (or handlerList) for the viewport.
@@ -2990,25 +2992,59 @@ cdef class Viewport(baseItem):
     def width(self):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return (<platformViewport*>self._platform).frameWidth
+        return (<platformViewport*>self._platform).windowWidth
 
     @width.setter
     def width(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        (<platformViewport*>self._platform).frameWidth = value
+        cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
+        (<platformViewport*>self._platform).windowWidth = value
+        (<platformViewport*>self._platform).frameWidth = <int>(<float>value * dpi_scale)
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
     @property
     def height(self):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return (<platformViewport*>self._platform).frameHeight
+        return (<platformViewport*>self._platform).windowHeight
 
     @height.setter
     def height(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
+        (<platformViewport*>self._platform).windowHeight = value
+        (<platformViewport*>self._platform).frameHeight = <int>(<float>value * dpi_scale)
+        (<platformViewport*>self._platform).sizeChangeRequested = True
+
+    @property
+    def pixel_width(self):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (<platformViewport*>self._platform).frameWidth
+
+    @pixel_width.setter
+    def pixel_width(self, int32_t value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
+        (<platformViewport*>self._platform).windowWidth = <int>(<float>value / dpi_scale)
+        (<platformViewport*>self._platform).frameWidth = value
+        (<platformViewport*>self._platform).sizeChangeRequested = True
+
+    @property
+    def pixel_height(self):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (<platformViewport*>self._platform).frameHeight
+
+    @pixel_height.setter
+    def pixel_height(self, int32_t value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
+        (<platformViewport*>self._platform).windowHeight = <int>(<float>value / dpi_scale)
         (<platformViewport*>self._platform).frameHeight = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 

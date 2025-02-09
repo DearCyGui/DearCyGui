@@ -58,7 +58,8 @@ void SDLViewport::preparePresentFrame() {
     SDL_GL_MakeCurrent(windowHandle, glContext);
     if (hasResized) {
         SDL_GetWindowSizeInPixels(windowHandle, &frameWidth, &frameHeight);
-        SDL_GetWindowSize(windowHandle, &windowWidth, &windowHeight);
+        windowWidth = (int)((float)frameWidth / dpiScale);
+        windowHeight = (int)((float)frameHeight / dpiScale);
         hasResized = false;
         resizeCallback(callbackData);
     }
@@ -585,8 +586,19 @@ bool SDLViewport::initialize() {
     uploadContextLock.lock();
     // Set current to allow sharing
     SDL_GL_MakeCurrent(uploadWindowHandle, uploadGLContext);
+
+    // We are trying to be invariant to platforms on the user side
+    // we try to maintain:
+    // windowWidth = frameWidth / SDL_GetWindowDisplayScale
+
+    // On the OS side, the actual width to request is:
+    // frameWidth / SDL_GetWindowPixelDensity
+    // which corresponds to
+    // windowWidth * SDL_GetWindowDisplayScale / SDL_GetWindowPixelDensity
+    // Since we don't now them yet as the window is not created yet,
+    // we first set an initial window size and then adjust it after creation
     
-    windowHandle = SDL_CreateWindow(windowTitle.c_str(), frameWidth, frameHeight,
+    windowHandle = SDL_CreateWindow(windowTitle.c_str(), windowWidth, windowHeight,
         creation_flags | SDL_WINDOW_OPENGL | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_HIDDEN);
     if (windowHandle == nullptr) {
         SDL_GL_MakeCurrent(uploadWindowHandle, NULL);
@@ -613,12 +625,14 @@ bool SDLViewport::initialize() {
         dpiScale = 1.f;
         factor = 1.f;
     }
-    SDL_SetWindowSize(windowHandle, (int)(frameWidth * factor), (int)(frameHeight * factor));
+    SDL_SetWindowSize(windowHandle, (int)(windowWidth * factor), (int)(windowHeight * factor));
     SDL_SetWindowMaximumSize(windowHandle, (int)(maxWidth * factor), (int)(maxHeight * factor));
     SDL_SetWindowMinimumSize(windowHandle, (int)(minWidth * factor), (int)(minHeight * factor));
     if (!shouldHide)
         SDL_ShowWindow(windowHandle);
 
+    // Retry after showing the window and getting the actual values
+    SDL_SyncWindow(windowHandle);
     dpiScale = SDL_GetWindowDisplayScale(windowHandle);
     logical_to_pixel_factor = SDL_GetWindowPixelDensity(windowHandle);
     float updated_factor = dpiScale / logical_to_pixel_factor;
@@ -627,13 +641,14 @@ bool SDLViewport::initialize() {
         factor = 1.f;
     }
     if (factor != updated_factor) {
-        SDL_SetWindowSize(windowHandle, (int)(frameWidth * factor), (int)(frameHeight * factor));
+        SDL_SetWindowSize(windowHandle, (int)(windowWidth * factor), (int)(windowHeight * factor));
         SDL_SetWindowMaximumSize(windowHandle, (int)(maxWidth * factor), (int)(maxHeight * factor));
         SDL_SetWindowMinimumSize(windowHandle, (int)(minWidth * factor), (int)(minHeight * factor));
     }
 
     SDL_GetWindowSizeInPixels(windowHandle, &frameWidth, &frameHeight);
-    SDL_GetWindowSize(windowHandle, &windowWidth, &windowHeight);
+    windowWidth = (int)((float)frameWidth / dpiScale);
+    windowHeight = (int)((float)frameHeight / dpiScale);
 
     //std::vector<GLFWimage> images;
 
@@ -702,6 +717,7 @@ void SDLViewport::processEvents(int timeout_ms) {
 
     if (sizeChangeRequested)
     {
+        dpiScale = SDL_GetWindowDisplayScale(windowHandle);
         float logical_to_pixel_factor = SDL_GetWindowPixelDensity(windowHandle);
         float factor = dpiScale / logical_to_pixel_factor;
         if (dpiScale == 0. || logical_to_pixel_factor == 0.) {
@@ -710,7 +726,7 @@ void SDLViewport::processEvents(int timeout_ms) {
         }
         SDL_SetWindowMaximumSize(windowHandle, (int)(maxWidth * factor), (int)(maxHeight * factor));
         SDL_SetWindowMinimumSize(windowHandle, (int)(minWidth * factor), (int)(minHeight * factor));
-        SDL_SetWindowSize(windowHandle, (int)(frameWidth * factor), (int)(frameHeight * factor));
+        SDL_SetWindowSize(windowHandle, (int)(windowWidth * factor), (int)(windowHeight * factor));
         sizeChangeRequested = false;
     }
 
@@ -822,12 +838,12 @@ void SDLViewport::processEvents(int timeout_ms) {
                     isFullScreen = false;
                     needsRefresh.store(true);
                     break;
+                case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
                 case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
                 case SDL_EVENT_WINDOW_RESIZED:
                     hasResized = true;
                     needsRefresh.store(true);
                     break;
-                case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
                 case SDL_EVENT_WINDOW_EXPOSED:
                 case SDL_EVENT_WINDOW_DESTROYED:
                     needsRefresh.store(true);
