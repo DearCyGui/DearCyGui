@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <mutex>
+#include <chrono>
 
 SDL_ThreadID SDLViewport::sdlMainThreadId = 0;
 std::atomic<bool> SDLViewport::sdlInitialized{false};
@@ -896,10 +897,10 @@ void SDLViewport::processEvents(int timeout_ms) {
 
     // Move back to the queue events meant for other windows
     if (!deferredEvents.empty()) {
-        if (deferredEvents.size() >= 1024)
+        if ((int)deferredEvents.size() >= 1024)
             fprintf(stderr, "Warning: %d deferred events. Events are not properly flushed. Skipping...\n", (int)deferredEvents.size());
         else
-            SDL_PeepEvents(deferredEvents.data(), deferredEvents.size(),
+            SDL_PeepEvents(deferredEvents.data(), (int)deferredEvents.size(),
                            SDL_ADDEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST);
         deferredEvents.clear();
     }
