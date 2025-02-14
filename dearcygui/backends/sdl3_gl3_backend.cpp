@@ -21,6 +21,7 @@
 SDL_ThreadID SDLViewport::sdlMainThreadId = 0;
 std::atomic<bool> SDLViewport::sdlInitialized{false};
 std::mutex SDLViewport::sdlInitMutex;
+std::atomic<int> SDLViewport::viewportCount{0};
 
 bool platformViewport::fastActivityCheck() {
     ImGuiContext& g = *GImGui;
@@ -441,8 +442,9 @@ SDLViewport* SDLViewport::create(render_fun render,
         fprintf(stderr, "Error: Contexts creation must be performed in the same thread\n");
         return nullptr;
     }
-    
+
     auto viewport = new SDLViewport();
+    viewportCount++;  // Increment counter on creation
     viewport->renderCallback = render;
     viewport->resizeCallback = on_resize;
     viewport->closeCallback = on_close;
@@ -483,65 +485,45 @@ void SDLViewport::cleanup() {
     if (!checkPrimaryThread()) return;
     
     std::lock_guard<std::recursive_mutex> lock(textureMutex);
-    
-    // Must ensure main context is current for GL operations
-    SDL_GL_MakeCurrent(windowHandle, glContext);
-    
-    // Clean up texture fences and resources
-    for (auto& pair : textureInfoMap) {
-        TextureInfo& info = pair.second;
-        
-        // Clean up fences
-        if (info.write_fence) {
-            glWaitSync(info.write_fence->sync, 0, GL_TIMEOUT_IGNORED);
-            releaseFenceSync(info.write_fence);
-            info.write_fence = nullptr;
+    // Clean up all GL resources properly before destroying contexts
+    if (uploadWindowHandle != nullptr && uploadGLContext != nullptr) {
+        uploadContextLock.lock();
+        SDL_GL_MakeCurrent(uploadWindowHandle, uploadGLContext);
+        for (auto& pair : textureInfoMap) {
+            TextureInfo& info = pair.second;
+            if (info.write_fence) {
+                glWaitSync(info.write_fence->sync, 0, GL_TIMEOUT_IGNORED);
+                releaseFenceSync(info.write_fence);
+                info.write_fence = nullptr;
+            }
+            if (info.read_fence) {
+                glWaitSync(info.read_fence->sync, 0, GL_TIMEOUT_IGNORED);
+                releaseFenceSync(info.read_fence);
+                info.read_fence = nullptr;
+            }
+            if (info.pbo) {
+                glDeleteBuffers(1, &info.pbo);
+            }
+            glDeleteTextures(1, &pair.first);
         }
-        if (info.read_fence) {
-            glWaitSync(info.read_fence->sync, 0, GL_TIMEOUT_IGNORED);
-            releaseFenceSync(info.read_fence);
-            info.read_fence = nullptr;
-        }
-
-        // Clean up texture and PBO
-        if (info.pbo) {
-            glDeleteBuffers(1, &info.pbo);
-        }
-        glDeleteTextures(1, &pair.first);
+        textureInfoMap.clear();
+        deletedTexturesMemory = 0;
+        SDL_GL_MakeCurrent(uploadWindowHandle, nullptr);
+        uploadContextLock.unlock();
     }
-    textureInfoMap.clear();
-    deletedTexturesMemory = 0;
+    if (uploadGLContext != nullptr) {
+        SDL_GL_DestroyContext(uploadGLContext);
+        uploadGLContext = nullptr;
+    }
+    if (uploadWindowHandle != nullptr) {
+        SDL_DestroyWindow(uploadWindowHandle);
+        uploadWindowHandle = nullptr;
+    }
 
-    SDL_GL_MakeCurrent(windowHandle, nullptr);
     // Only cleanup if initialization was successful
     if (hasOpenGL3Init) {
         renderContextLock.lock();
         SDL_GL_MakeCurrent(windowHandle, glContext);
-        
-        // Clean up all GL resources properly before destroying contexts
-        {
-            std::lock_guard<std::recursive_mutex> lock(textureMutex);
-            for (auto& tex_pair : textureInfoMap) {
-                const GLuint tex_id = tex_pair.first;
-                const TextureInfo& info = tex_pair.second;
-                // Clean up sync objects
-                if (info.write_fence) {
-                    releaseFenceSync(info.write_fence);
-                }
-                if (info.read_fence) {
-                    releaseFenceSync(info.read_fence);
-                }
-                // Clean up PBOs
-                if (info.pbo) {
-                    glDeleteBuffers(1, &info.pbo);
-                }
-                // Clean up textures
-                glDeleteTextures(1, &tex_id);
-            }
-            textureInfoMap.clear();
-            deletedTexturesMemory = 0;
-        }
-
         ImGui_ImplOpenGL3_Shutdown();
         SDL_GL_MakeCurrent(windowHandle, NULL);
         renderContextLock.unlock();
@@ -551,11 +533,20 @@ void SDLViewport::cleanup() {
         ImGui_ImplSDL3_Shutdown();
     }
 
-    SDL_GL_DestroyContext(glContext);
-    SDL_GL_DestroyContext(uploadGLContext);
-    SDL_DestroyWindow(windowHandle);
-    SDL_DestroyWindow(uploadWindowHandle);
-    SDL_Quit();
+    if (glContext != nullptr) {
+        SDL_GL_DestroyContext(glContext);
+        glContext = nullptr;
+    }
+
+    if (windowHandle != nullptr) {
+        SDL_DestroyWindow(windowHandle);
+        windowHandle = nullptr;
+    }
+
+    // Only quit SDL when the last viewport is destroyed
+    if (--viewportCount == 0) {
+        SDL_Quit();
+    }
 }
 
 bool SDLViewport::initialize() {

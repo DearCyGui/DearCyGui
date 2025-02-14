@@ -103916,16 +103916,18 @@ class Viewport(baseItem):
     - large_icon: Large icon for the viewport.
     - x_pos: X position of the viewport.
     - y_pos: Y position of the viewport.
-    - width: Width of the viewport.
-    - height: Height of the viewport.
+    - width: DPI invariant width of the viewport (width * dpi scale -> pixel width).
+    - height: DPI invariant height of the viewport (height * dpi scale -> pixel height).
+    - pixel_width: Width of the viewport in actual pixels.
+    - pixel_height: Height of the viewport in actual pixels.
     - resizable: Boolean indicating if the viewport is resizable.
     - vsync: Boolean indicating if vsync is enabled.
     - dpi: Requested scaling (DPI) from the OS for this window.
     - scale: Multiplicative scale used to scale automatically all items.
-    - min_width: Minimum width of the viewport.
-    - max_width: Maximum width of the viewport.
-    - min_height: Minimum height of the viewport.
-    - max_height: Maximum height of the viewport.
+    - min_width: DPI invariant Minimum width of the viewport.
+    - max_width: DPI invariant Maximum width of the viewport.
+    - min_height: DPI invariant Minimum height of the viewport.
+    - max_height: DPI invariant Maximum height of the viewport.
     - always_on_top: Boolean indicating if the viewport is always on top.
     - decorated: Boolean indicating if the viewport is decorated.
     - handlers: Bound handler (or handlerList) for the viewport.
@@ -103944,7 +103946,7 @@ class Viewport(baseItem):
     - metrics: Rendering related metrics relative to the last frame.
     
     """
-    def __init__(self, context : Context, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -104004,7 +104006,7 @@ class Viewport(baseItem):
         ...
 
 
-    def configure(self, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
+    def configure(self, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -104077,7 +104079,7 @@ class Viewport(baseItem):
         ...
 
 
-    def initialize(self, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 1280, x_pos : int = 100, y_pos : int = 100):
+    def initialize(self, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
         """
 
         attach: Whether to attach the item to a parent. Default is None (auto)
@@ -104593,6 +104595,26 @@ class Viewport(baseItem):
         way that does not deadlock.
         
         """
+        ...
+
+
+    @property
+    def pixel_height(self) -> int:
+        ...
+
+
+    @pixel_height.setter
+    def pixel_height(self, value : int):
+        ...
+
+
+    @property
+    def pixel_width(self) -> int:
+        ...
+
+
+    @pixel_width.setter
+    def pixel_width(self, value : int):
         ...
 
 

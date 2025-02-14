@@ -355,6 +355,7 @@ private:
     static SDL_ThreadID sdlMainThreadId;  // Thread that first initialized SDL
     static std::atomic<bool> sdlInitialized;
     static std::mutex sdlInitMutex;
+    static std::atomic<int> viewportCount;
     
     // Event queue for forwarding events
     std::vector<SDL_Event> deferredEvents;
