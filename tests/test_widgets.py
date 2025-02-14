@@ -5,7 +5,7 @@ import dearcygui as dcg
 def ctx():
     # Create a minimal context for testing.
     C = dcg.Context()
-    C.viewport.initialize(visible=False)
+    #C.viewport.initialize(visible=False)
     return C
 
 def test_draw_invisible_button_properties(ctx):
@@ -37,7 +37,7 @@ def test_button_callback(ctx):
         triggered["value"] = True
     
     # Create a Button with a callback.
-    btn = dcg.Button(ctx, label="Click Me", callback=on_click)
+    btn = dcg.Button(ctx, label="Click Me", callbacks=on_click)
     
     btn.callbacks[0](btn, btn, True)
     
