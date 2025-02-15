@@ -90,7 +90,6 @@ cdef class Context:
     cdef object item_deletion_callback
     cdef object _queue
     ### private variables ###
-    cdef object _threadlocal_data
     cdef bint _started
     ### public methods ###
     cdef void queue_callback_noarg(self, Callback, baseItem, baseItem) noexcept nogil

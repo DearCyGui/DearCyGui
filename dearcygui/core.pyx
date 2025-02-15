@@ -224,6 +224,38 @@ cdef void internal_render_callback(void *object) noexcept nogil:
 # Placeholder global where the last created Context is stored.
 C : Context = None
 
+# parent stack for the 'with' syntax
+cdef extern from * nogil:
+    """
+    thread_local std::vector<PyObject*> thread_local_parent_queue;
+    inline bool thread_local_parent_empty() {
+        return thread_local_parent_queue.empty();
+    }
+    inline void thread_local_parent_push(PyObject* obj) {
+        Py_INCREF(obj);
+        thread_local_parent_queue.push_back(obj);
+    }
+    inline void thread_local_parent_pop() {
+        Py_DECREF(thread_local_parent_queue.back());
+        thread_local_parent_queue.pop_back();
+    }
+    inline PyObject* thread_local_parent_fetch_back() {
+        PyObject* obj = thread_local_parent_queue.back();
+        Py_INCREF(obj);
+        return obj;
+    }
+    inline PyObject* thread_local_parent_fetch_front() {
+        PyObject* obj = thread_local_parent_queue.front();
+        Py_INCREF(obj);
+        return obj;
+    }
+    """
+    bint thread_local_parent_empty()
+    void thread_local_parent_push(object)
+    void thread_local_parent_pop()
+    object thread_local_parent_fetch_back()
+    object thread_local_parent_fetch_front()
+
 # The no gc clear flag enforces that in case
 # of no-reference cycle detected, the Context is freed last.
 # The cycle is due to Context referencing Viewport
@@ -339,7 +371,6 @@ cdef class Context:
         """
         self.next_uuid.store(21)
         self._started = True
-        self._threadlocal_data = threading.local()
         self.viewport = Viewport(self)
         imgui.IMGUI_CHECKVERSION()
         self.imgui_context = imgui.CreateContext()
@@ -855,23 +886,14 @@ cdef class Context:
         # Use thread local storage such that multiple threads
         # can build items trees without conflicts.
         # Mutexes are not needed due to the thread locality
-        cdef list parent_queue = getattr(self._threadlocal_data, 'parent_queue', [])
-        parent_queue.append(next_parent)
-        self._threadlocal_data.parent_queue = parent_queue
-        self._threadlocal_data.current_parent = next_parent
+        thread_local_parent_push(next_parent)
 
     cpdef void pop_next_parent(self):
         """
         Remove an item from the potential parent list.
         """
-        cdef list parent_queue = getattr(self._threadlocal_data, 'parent_queue', [])
-        if len(parent_queue) > 0:
-            parent_queue.pop()
-        self._threadlocal_data.parent_queue = parent_queue # Unsure if needed
-        if len(parent_queue) > 0:
-            self._threadlocal_data.current_parent = parent_queue[len(parent_queue)-1]
-        else:
-            self._threadlocal_data.current_parent = None
+        if not thread_local_parent_empty():
+            thread_local_parent_pop()
 
     cpdef object fetch_parent_queue_back(self):
         """
@@ -881,7 +903,9 @@ cdef class Context:
         object
             The last item from the potential parent list.
         """
-        return getattr(self._threadlocal_data, 'current_parent', None)
+        if thread_local_parent_empty():
+            return None
+        return thread_local_parent_fetch_back()
 
     cpdef object fetch_parent_queue_front(self):
         """
@@ -891,10 +915,9 @@ cdef class Context:
         object
             The top item from the potential parent list.
         """
-        cdef list parent_queue = getattr(self._threadlocal_data, 'parent_queue', [])
-        if len(parent_queue) == 0:
+        if thread_local_parent_empty():
             return None
-        return parent_queue[0]
+        return thread_local_parent_fetch_front()
 
     cdef bint c_is_key_down(self, int32_t key) noexcept nogil:
         return imgui.IsKeyDown(<imgui.ImGuiKey>key)
