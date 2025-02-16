@@ -84,10 +84,6 @@ cdef class Context:
     cdef uint32_t[5] cur_last_id_button_catch
     ### protected variables ###
     cdef Callback _on_close_callback
-    cdef object item_creation_callback
-    cdef object item_configure_start_callback
-    cdef object item_configure_end_callback
-    cdef object item_deletion_callback
     cdef object _queue
     ### private variables ###
     cdef bint _started

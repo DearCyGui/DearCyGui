@@ -47,9 +47,6 @@ cdef class TableElement:
     """
 
     def __init__(self, *args, **kwargs):
-        self.configure(*args, **kwargs)
-
-    def configure(self, *args, **kwargs):
         # set content first (ordering_value)
         if len(args) == 1:
             self.content = args[0]
@@ -57,6 +54,10 @@ cdef class TableElement:
             raise ValueError("TableElement accepts at most 1 positional argument")
         if "content" in kwargs:
             self.content = kwargs.pop("content")
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
 

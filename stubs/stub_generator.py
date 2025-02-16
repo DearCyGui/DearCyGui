@@ -260,7 +260,9 @@ def generate_docstring_for_class(object_class, instance):
                     additional_properties.append("callback")
                     docs["callback"] = docs["callbacks"]
                     default_values["callback"] = None
-                if not(isinstance(object_class, dcg.Viewport)) and issubclass(object_class, dcg.baseItem):
+                if not(isinstance(object_class, dcg.Viewport)) and \
+                   issubclass(object_class, dcg.baseItem) and \
+                   method.__name__ == "__init__":
                     additional_properties.append("attach")
                     docs["attach"] = "Whether to attach the item to a parent. Default is None (auto)"
                     default_values["attach"] = None
@@ -307,10 +309,10 @@ def generate_docstring_for_class(object_class, instance):
         docstring = remove_jumps_start_and(getattr(method, '__doc__', None))
         if len(kwargs_docs) > 0:
             kwargs_docs = "\n".join(kwargs_docs)
-            if docstring is None:
+            if docstring is None or "help(type(self))" in docstring:
                 docstring = kwargs_docs
             else:
-                docstring = "\n" + kwargs_docs
+                docstring += "\n" + kwargs_docs
         if docstring is not None:
             result += [
                 level2 + '"""',

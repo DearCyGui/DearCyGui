@@ -279,24 +279,6 @@ cdef class Context:
     queue : Executor
         Executor for managing thread-pooled callbacks. Defaults to ThreadPoolExecutor with max_workers=1.
 
-    item_creation_callback : callable, optional
-        Callback function called when any new item is created, before configuration.
-        Signature: func(item)
-
-    item_configure_start_callback : callable, optional  
-        Callback function called at the start of configure().
-        Can be used to change the arguments dictionary before configuration.
-        Signature: func(item, args_dict) -> args_dict
-
-    item_configure_end_callback : callable, optional  
-        Callback function called at the end of configure().
-        Signature: func(item, unhandled_args_dict)
-
-    item_deletion_callback : callable, optional
-        Callback function called when any item is deleted.
-        Signature: func(item)
-        Note: May not be called if item is garbage collected without holding context reference.
-
     viewport : Viewport
         Root item from where rendering starts. Read-only attribute.
 
@@ -315,11 +297,7 @@ cdef class Context:
     """
 
     def __init__(self,
-                 queue=None, 
-                 item_creation_callback=None,
-                 item_configure_start_callback=None,
-                 item_configure_end_callback=None,
-                 item_deletion_callback=None):
+                 queue=None):
         """Initialize the Context.
 
         Parameters
@@ -327,24 +305,6 @@ cdef class Context:
         queue : concurrent.futures.Executor, optional
             Executor for managing thread-pooled callbacks. 
             Defaults to ThreadPoolExecutor(max_workers=1)
-            
-        item_creation_callback : callable, optional
-            Function called during item creation before configuration.
-            Signature: func(item)
-
-        item_configure_start_callback : callable, optional  
-            Callback function called at the start of configure().
-            Can be used to change the arguments dictionary before configuration.
-            Signature: func(item, args_dict) -> args_dict
-
-        item_configure_end_callback : callable, optional  
-            Function called when configure() has unused arguments.
-            Signature: func(item, unused_args_dict)
-
-        item_deletion_callback : callable, optional
-            Function called during item deletion.
-            Signature: func(item)
-            Note: May not be called if item is garbage collected without context reference.
         
         Raises
         ------
@@ -359,10 +319,6 @@ cdef class Context:
             if not(isinstance(queue, Executor)):
                 raise TypeError("queue must be a subclass of concurrent.futures.Executor")
             self._queue = queue
-        self.item_creation_callback = item_creation_callback
-        self.item_configure_start_callback = item_configure_start_callback
-        self.item_configure_end_callback = item_configure_end_callback
-        self.item_deletion_callback = item_deletion_callback
         C = self
 
     def __cinit__(self):
@@ -447,38 +403,6 @@ cdef class Context:
         Used to create contexts with object sharing.
         """
         return BackendRenderingContext.from_context(self)
-
-    @property
-    def item_creation_callback(self):
-        """
-        Callback called during item creation before configuration.
-        """
-        return self.item_creation_callback
-
-    @property
-    def item_configure_start_callback(self) -> Viewport:
-        """
-        Callback called before item configuration
-        """
-        return self.item_configure_start_callback
-
-    @property
-    def item_configure_end_callback(self) -> Viewport:
-        """
-        Callback called after item configuration.
-        """
-        return self.item_configure_end_callback
-
-    @property
-    def item_deletion_callback(self) -> Viewport:
-        """
-        Callback called during item deletion.
-
-        If the item is released by the garbage collector, it is not guaranteed that
-        this callback is called, as the item might have lost its
-        pointer on the context.
-        """
-        return self.item_deletion_callback
 
     def create_new_shared_gl_context(self, int32_t major, int32_t minor):
         """
@@ -1397,29 +1321,12 @@ cdef class baseItem:
     The children attribute provides access to all child items.
     """
 
-    def __init__(self, context, *args, **kwargs):
-        if self.context.item_creation_callback is not None:
-            self.context.item_creation_callback(self)
-        self.configure(*args, **kwargs)
-
-    def __cinit__(self, context, *args, **kwargs):
-        if not(isinstance(context, Context)):
-            raise ValueError("Provided context is not a valid Context instance")
-        self.context = context
-        self._external_lock = False
-        self.uuid = self.context.next_uuid.fetch_add(1)
-        self.can_have_widget_child = False
-        self.can_have_drawing_child = False
-        self.can_have_sibling = False
-        self.element_child_category = -1
-
-    def configure(self, **kwargs):
+    def __init__(self, context, **kwargs):
         # Automatic attachment
         cdef bint ignore_if_fail
         cdef bint should_attach
+        cdef object attach, before, parent
         cdef bint default_behaviour = True
-        if self.context.item_configure_start_callback is not None:
-            kwargs = self.context.item_configure_start_callback(self, kwargs)
         # The most common case is neither
         # attach, parent, nor before as set.
         # The code is optimized with this case
@@ -1427,8 +1334,8 @@ cdef class baseItem:
         if self.parent is None:
             ignore_if_fail = False
             # attach = None => default behaviour
-            if "attach" in kwargs:
-                attach = kwargs.pop("attach")
+            if "attach" in <dict>kwargs:
+                attach = (<dict>kwargs).pop("attach")
                 if attach is not None:
                     default_behaviour = False
                     should_attach = attach
@@ -1447,10 +1354,13 @@ cdef class baseItem:
             if should_attach:
                 before = None
                 parent = None
-                if "before" in kwargs:
-                    before = kwargs.pop("before")
-                if "parent" in kwargs:
-                    parent = kwargs.pop("parent")
+                if "before" in <dict>kwargs:
+                    before = (<dict>kwargs).pop("before")
+                # For attach and before, which are rarely used,
+                # we improve performance by checking before "pop",
+                # however parent is more commonly used. Using pop
+                # directly skips a call.
+                parent = (<dict>kwargs).pop("parent", None)
                 if before is not None:
                     # parent manually set. Do not ignore failure
                     ignore_if_fail = False
@@ -1477,24 +1387,27 @@ cdef class baseItem:
                         except (ValueError, TypeError) as e:
                             if not(ignore_if_fail):
                                 raise(e)
+        # Configuring attributes
+        for (key, value) in (<dict>kwargs).items():
+            setattr(self, key, value)
 
-        # Fast path for this common case
-        if self.context.item_configure_end_callback is None:
-            for (key, value) in kwargs.items():
-                setattr(self, key, value)
-            return
-        remaining = {}
-        for (key, value) in kwargs.items():
-            try:
-                setattr(self, key, value)
-            except AttributeError as e:
-                remaining[key] = value
-        self.context.item_configure_end_callback(self, remaining)
+    def __cinit__(self, context, *args, **kwargs):
+        if not(isinstance(context, Context)):
+            raise ValueError("Provided context is not a valid Context instance")
+        self.context = context
+        self._external_lock = False
+        self.uuid = self.context.next_uuid.fetch_add(1)
+        self.can_have_widget_child = False
+        self.can_have_drawing_child = False
+        self.can_have_sibling = False
+        self.element_child_category = -1
 
-    def __del__(self):
-        if self.context is not None:
-            if self.context.item_deletion_callback is not None:
-                self.context.item_deletion_callback(self)
+    def configure(self, **kwargs):
+        """
+        Shortcut to set multiple attributes at once.
+        """
+        for (key, value) in (<dict>kwargs).items():
+            setattr(self, key, value)
 
     def __dealloc__(self):
         clear_obj_vector(self._handlers)
@@ -3539,11 +3452,6 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m, self.mutex)
         return self._frame_buffer
 
-
-    def configure(self, **kwargs):
-        for (key, value) in kwargs.items():
-            setattr(self, key, value)
-
     cdef void __on_resize(self):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4758,17 +4666,6 @@ cdef class uiItem(baseItem):
 
     def __dealloc__(self):
         clear_obj_vector(self._callbacks)
-
-    def configure(self, **kwargs):
-        # Map old attribute names (the new names are handled in uiItem)
-        if 'pos' in kwargs:
-            pos = kwargs.pop("pos")
-            if pos is not None and len(pos) == 2:
-                self.pos_to_window = pos
-                self.state.cur.pos_to_viewport = self.state.cur.pos_to_window # for windows TODO move to own configure
-        if 'callback' in kwargs:
-            self.callbacks = kwargs.pop("callback")
-        baseItem.configure(self, **kwargs)
 
     cdef void update_current_state(self) noexcept nogil:
         """
@@ -7023,6 +6920,14 @@ cdef class Texture(baseItem):
     - height: Height of the texture.
     - num_chans: Number of channels in the texture.
     """
+
+    def __init__(self, context, *args, **kwargs):
+        baseItem.__init__(self, context, **kwargs)
+        if len(args) == 1:
+            self.set_value(args[0])
+        elif len(args) != 0:
+            raise ValueError("Invalid arguments passed to Texture. Expected content")
+
     def __cinit__(self):
         self._hint_dynamic = False
         self._dynamic = False
@@ -7049,14 +6954,6 @@ cdef class Texture(baseItem):
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
             (<platformViewport*>self.context.viewport._platform).freeTexture(self.allocated_texture)
             (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
-
-    def configure(self, *args, **kwargs):
-        # set parameters before set_content
-        baseItem.configure(self, **kwargs)
-        if len(args) == 1:
-            self.set_value(args[0])
-        elif len(args) != 0:
-            raise ValueError("Invalid arguments passed to Texture. Expected content")
 
     @property
     def hint_dynamic(self):
@@ -7545,6 +7442,10 @@ cdef class baseTheme(baseItem):
     Attributes:
     - enabled: Boolean indicating if the theme is enabled.
     """
+    def __init__(self, context, **kwargs):
+        self._enabled = kwargs.pop("enabled", self._enabled)
+        self._enabled = kwargs.pop("show", self._enabled)
+        baseItem.__init__(self, context, **kwargs)
     def __cinit__(self):
         self.element_child_category = child_type.cat_theme
         self.can_have_sibling = True

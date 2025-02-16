@@ -1292,6 +1292,17 @@ cdef extern from * nogil:
     imgui.ImVec2 GetDefaultItemSize(imgui.ImVec2)
 
 cdef class Slider(uiItem):
+    def __init__(self, context, **kwargs):
+        # Since some options cancel each other, one
+        # must enable them in a specific order
+        if "format" in kwargs:
+            self.format = kwargs.pop("format")
+        if "size" in kwargs:
+            self.size = kwargs.pop("size")
+        if "logarithmic" in kwargs:
+            self.logarithmic = kwargs.pop("logarithmic")
+        uiItem.__init__(self, context, **kwargs)
+
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_slider
         self._format = 1
@@ -1321,7 +1332,7 @@ cdef class Slider(uiItem):
         if "logarithmic" in kwargs:
             self.logarithmic = kwargs.pop("logarithmic")
         # baseItem configure will configure the rest.
-        return super().configure(**kwargs)
+        return uiItem.configure(**kwargs)
 
     @property
     def format(self):
@@ -1964,6 +1975,12 @@ cdef class RadioButton(uiItem):
 
 
 cdef class InputText(uiItem):
+    def __init__(self, context, **kwargs):
+        # Must be configured first
+        if 'max_characters' in kwargs:
+            self.max_characters = kwargs.pop('max_characters')
+        uiItem.__init__(self, context, **kwargs)
+
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_inputtext
         self._value = <SharedValue>(SharedStr.__new__(SharedStr, self.context))
@@ -1989,7 +2006,7 @@ cdef class InputText(uiItem):
     def configure(self, **kwargs):
         if 'max_characters' in kwargs:
             self.max_characters = kwargs.pop('max_characters')
-        return super().configure(**kwargs)
+        return uiItem.configure(**kwargs)
 
     @property
     def hint(self):
@@ -2395,6 +2412,15 @@ cdef inline void clamp4(clamp_types[4] &value, double lower, double upper) noexc
         value[3] = <clamp_types>min(<double>value[3], upper)
 
 cdef class InputValue(uiItem):
+    def __init__(self, context, **kwargs):
+        # Since some options cancel each other, one
+        # must enable them in a specific order
+        if "format" in kwargs:
+            self.format = kwargs.pop("format")
+        if "size" in kwargs:
+            self.size = kwargs.pop("size")
+        uiItem.__init__(self, context, **kwargs)
+
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_inputvalue
         self._format = 1
@@ -2422,7 +2448,7 @@ cdef class InputValue(uiItem):
         if "size" in kwargs:
             self.size = kwargs.pop("size")
         # baseItem configure will configure the rest.
-        return super().configure(**kwargs)
+        return uiItem.configure(**kwargs)
 
     @property
     def format(self):

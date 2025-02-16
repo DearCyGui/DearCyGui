@@ -531,8 +531,185 @@ mvTable_SizingFixedSame = "sizing_fixed_same"
 mvTable_SizingStretchProp = "sizing_stretch_prop"
 mvTable_SizingStretchSame = "sizing_stretch_same"
 
+DEFAULTS = {
+    'payload_type': '$$DPG_PAYLOAD',
+    'drag_callback': None,
+    'drop_callback': None,
+    'filter_key': '',
+    'tracked': False,
+    'track_offset': 0.5,
+    'show': True,
+    'uv_min': (0.0, 0.0),
+    'uv_max': (1.0, 1.0),
+    'color': -1,
+    'min_scale': 0.0,
+    'max_scale': 0.0,
+    'order_mode': 0,
+    'autosize_x': False,
+    'autosize_y': False,
+    'alpha_bar': False,
+    'alpha_preview': 0,
+    'corner_colors': None,
+    'sort': False,
+    'label': None
+}
 
-class DPGContext(dcg.Context):
+dcg_base = dcg
+
+class DPGWrapper:
+    def _clean_kwargs(self, kwargs: dict) -> dict:
+        """Clean kwargs according to DPG rules"""
+        # Handle tag
+        if "tag" in kwargs:
+            tag = kwargs.pop("tag")
+            if tag is not None and hasattr(self, "uuid"):
+                CONTEXT.register_tag_for_uuid(self.uuid, tag)
+
+        # Handle parent reference
+        if "parent" in kwargs:
+            parent = kwargs.pop("parent")
+            if parent is not None and parent != 0:
+                kwargs["parent"] = CONTEXT.get(parent)
+
+        # Handle before reference 
+        if "before" in kwargs:
+            before = kwargs.pop("before")
+            if before is not None and before != 0:
+                kwargs["before"] = CONTEXT.get(before)
+
+        # Handle source reference
+        if "source" in kwargs:
+            source = kwargs.pop("source")
+            if source is not None and (not(isinstance(source, int)) or source > 0):
+                kwargs["shareable_value"] = CONTEXT.get(source).shareable_value
+
+        # Handle pos
+        if "pos" in kwargs:
+            pos = kwargs.pop("pos")
+            if pos is not None and len(pos) == 2:
+                if isinstance(self, dcg_base.Window):
+                    kwargs["pos_to_viewport"] = pos
+                else:
+                    kwargs["pos_to_window"] = pos
+
+        # Handle callback
+        if "callback" in kwargs:
+            callback = kwargs.pop("callback")
+            if callback is not None:
+                kwargs["callbacks"] = callback
+  
+        return kwargs
+
+    def __init__(self, *args, **kwargs):
+        # Register with context
+        if hasattr(self, "uuid"):
+            CONTEXT.register_uuid(self, self.uuid)
+
+        # Handle DPG specifics
+        configure_args = self._clean_kwargs(kwargs)
+        
+        # Extract init kwargs vs configure kwargs
+        init_args = {}
+        
+        # Only pass before and parent to init if set
+        if "before" in configure_args:
+            init_args["before"] = configure_args.pop("before")
+        if "parent" in configure_args:
+            init_args["parent"] = configure_args.pop("parent")
+                
+        # Call parent init
+        super().__init__(*args, **init_args)
+                
+        # Configure remaining args
+        if configure_args:
+            self.configure(**configure_args)
+
+    def configure(self, **kwargs):
+        # Clean kwargs
+        configure_args = self._clean_kwargs(kwargs)
+
+        # These must be set first
+        if "format" in configure_args:
+            self.format = configure_args.pop("format")
+        if "size" in configure_args:
+            self.size = configure_args.pop("size")
+        
+        # Try to set each attribute
+        non_defaults = {}
+        for key, value in configure_args.items():
+            try:
+                setattr(self, key, value)
+            except AttributeError:
+                if value == DEFAULTS[key]:
+                    continue
+                non_defaults[key] = value
+
+        if non_defaults:
+            print(f'Unhandled configure args for {self}: {non_defaults}')
+
+    def __del__(self):
+        """
+        Free the weak reference
+        """
+        try:
+            CONTEXT.release_tag_and_uuid(self.uuid)
+        except Exception:
+            pass
+        try:
+            super().__del__()
+        except AttributeError:
+            pass
+
+def create_dpg_class(cls: type) -> type:
+    """Create a DPG-compatible version of the given class with wrapped methods
+    
+    Args:
+        cls: The class to create a DPG version of
+        
+    Returns:
+        A new class that handles DPG-specific behaviors
+    """
+    # Avoid creating duplicate DPG classes
+    if cls.__name__.startswith('DPG'):
+        return cls
+
+    # Create the wrapped class
+    wrapped_cls = type(
+        f"DPG{cls.__name__}",
+        (DPGWrapper, cls),
+        {
+            '__module__': cls.__module__,
+            '__doc__': cls.__doc__,
+            '__qualname__': cls.__qualname__
+        }
+    )
+    
+    return wrapped_cls
+
+# Create DPG versions of all item classes
+# Using the dcg_dpg. prefix instead of dcg.
+# to avoid conflicts with the original
+# dearcygui module
+
+class _WrapperHolder:
+    pass
+dcg_dpg = _WrapperHolder()
+
+for name, cls in list(vars(dcg).items()):
+    if isinstance(cls, type) and \
+       (issubclass(cls, dcg.baseItem) or issubclass(cls, dcg.SharedValue)):
+        try:
+            setattr(dcg_dpg, name, create_dpg_class(cls))
+        except TypeError:
+            # Some items cannot be subclassed
+            setattr(dcg_dpg, name, cls)
+    else:
+        setattr(dcg_dpg, name, cls)
+
+# Use wrappers
+dcg = dcg_dpg
+
+class DPGContext(dcg_base.Context):
     """
     A custom DCG context with extended functionalities
     to emulate DPG.
@@ -541,121 +718,55 @@ class DPGContext(dcg.Context):
     tag_to_uuid : dict[str, int]
     uuid_to_tag : dict[int, str]
     def __init__(self):
-        super().__init__(
-            item_creation_callback=self.on_item_creation,
-            item_configure_start_callback=self.on_item_configure_start,
-            item_configure_end_callback=self.on_item_configure_end,
-            item_deletion_callback=self.on_item_deletion
-        )
+        super().__init__()
         self.items = weakref.WeakValueDictionary()
         self.uuid_to_tag = dict()
         self.tag_to_uuid = dict()
         self.threadlocal_data = threading.local()
 
-    def on_item_creation(self, item):
-        """
-        Store a weak reference on base items
-        """
-        if not(hasattr(item, "uuid")):
-            return
-        uuid = item.uuid
+    def register_uuid(self, item, uuid: int):
         self.items[uuid] = item
         self.threadlocal_data.last_item_uuid = uuid
-        if item.children_types != dcg.ChildType.NOCHILD:
-            self.threadlocal_data.last_container_uuid = uuid
-
-    def on_item_configure_start(self, item, kwargs : dict):
-        if not(hasattr(item, "uuid")):
-            print(item, "no uuid ?,?", kwargs)
-            return kwargs
-        if "tag" in kwargs:
-            uuid = item.uuid
-            tag = kwargs.pop("tag")
-            old_tag = self.uuid_to_tag.get(uuid, None)
-            if old_tag != tag:
-                if tag in self.tag_to_uuid:
-                    raise KeyError(f"Tag {tag} already in use")
-                if old_tag is not None:
-                    del self.tag_to_uuid[old_tag]
-                    del self.uuid_to_tag[uuid]
-                if tag is not None:
-                    self.uuid_to_tag[uuid] = tag
-                    self.tag_to_uuid[tag] = uuid
-        if "parent" in kwargs:
-            if kwargs["parent"] is None or kwargs["parent"] == 0:
-                kwargs.pop("parent")
-            else:
-                kwargs["parent"] = self.get(kwargs["parent"])
-        if "before" in kwargs:
-            if kwargs["before"] is None or kwargs["before"] == 0:
-                kwargs.pop("before")
-            else:
-                kwargs["before"] = self.get(kwargs["before"])
-        if "source" in kwargs:
-            source = kwargs.pop("source")
-            if source is not None and (not(isinstance(source, int)) or (source > 0)):
-                kwargs["shareable_value"] = self.get(source).shareable_value
-        return kwargs
-
-    def on_item_configure_end(self, item, kwargs : dict):
-        if len(kwargs) > 0:
-            defaults = {'payload_type': '$$DPG_PAYLOAD',
-                        'drag_callback': None,
-                        'drop_callback': None,
-                        'filter_key': '',
-                        'tracked': False,
-                        'track_offset': 0.5,
-                        'show': True,
-                        'uv_min': (0.0, 0.0),
-                        'uv_max': (1.0, 1.0),
-                        'color': -1,
-                        'min_scale': 0.0,
-                        'max_scale': 0.0,
-                        'order_mode': 0,
-                        'autosize_x': False,
-                        'autosize_y': False,
-                        'alpha_bar': False,
-                        'alpha_preview': 0,
-                        'corner_colors': None,
-                        'sort': False,
-                        'label': None}
-            non_defaults = {}
-            for key in kwargs:
-                try:
-                    if kwargs[key] == defaults[key]:
-                        continue
-                except:
-                    pass
-                non_defaults[key] = kwargs[key]
-            if len(non_defaults) > 0:
-                print(f'Unhandled configure args for {item}: {non_defaults}')
-
-    def on_item_deletion(self, item):
-        """
-        Free the weak reference
-        """
         try:
-            uuid = item.uuid
-            del self.items[uuid]
-            if self.uuid_to_tag is None:
-                # Can occur during gc collect at
-                # the end of the program
-                return
-            if uuid in self.uuid_to_tag:
-                tag = self.uuid_to_tag[uuid]
-                del self.uuid_to_tag[uuid]
-                del self.tag_to_uuid[tag]
-        except Exception:
+            if item.children_types != dcg_base.ChildType.NOCHILD:
+                self.threadlocal_data.last_container_uuid = uuid
+        except:
             pass
+
+    def register_tag_for_uuid(self, uuid: int, tag: str):
+        """Register a tag for an uuid"""
+        old_tag = self.uuid_to_tag.get(uuid, None)
+        
+        if old_tag != tag:
+            if tag in self.tag_to_uuid:
+                raise KeyError(f"Tag {tag} already in use")
+            if old_tag is not None:
+                del self.tag_to_uuid[old_tag]
+                del self.uuid_to_tag[uuid]
+            if tag is not None:
+                self.uuid_to_tag[uuid] = tag
+                self.tag_to_uuid[tag] = uuid
+
+    def release_tag_and_uuid(self, uuid: int):
+        """Release the tag and uuid of an object"""
+        if self.uuid_to_tag is None or self.items is None:
+            # Can occur during gc collect at
+            # the end of the program
+            return
+        if uuid in self.items:
+            del self.items[uuid]
+        if uuid in self.uuid_to_tag:
+            tag = self.uuid_to_tag[uuid]
+            del self.uuid_to_tag[uuid]
+            del self.tag_to_uuid[tag]
 
     def get(self, key):
         """
         Retrieves the object associated to
         a tag or an uuid
         """
-        if isinstance(key, dcg.baseItem) or isinstance(key, dcg.SharedValue):
-            # TODO: register shared values
-            # Useful for legacy call wrappers
+        if isinstance(key, dcg_base.baseItem) or \
+           isinstance(key, dcg_base.SharedValue):
             return key
         if isinstance(key, str):
             if key not in self.tag_to_uuid:
@@ -671,6 +782,7 @@ class DPGContext(dcg.Context):
         return item
 
     def get_item_tag(self, item):
+        """Get the tag associated with an item"""
         return self.uuid_to_tag.get(item.uuid, None)
 
     def fetch_last_created_item(self):
@@ -693,10 +805,13 @@ class DPGContext(dcg.Context):
         return self.items.get(last_uuid, None)
 
     def override_last_item(self, item):
+        """Override the last created item/container"""
         uuid = item.uuid
         self.threadlocal_data.last_item_uuid = uuid
-        if item.children_types != dcg.ChildType.NOCHILD:
+        if item.children_types != dcg_base.ChildType.NOCHILD:
             self.threadlocal_data.last_container_uuid = uuid
+
+
 
 ########################################################################################################################
 # User API Index
@@ -724,7 +839,7 @@ class DPGContext(dcg.Context):
 def wrap_callback(callback):
     if callback is None:
         return None
-    return dcg.DPGCallback(callback)
+    return dcg_dpg.DPGCallback(callback)
 
 def run_callbacks(jobs):
     """ New in 1.2. Runs callbacks from the callback queue and checks arguments. """
@@ -909,9 +1024,9 @@ def get_item_slot(item: Union[int, str]) -> Union[int, None]:
         slot as a int
     """
     item = CONTEXT.get(item)
-    if isinstance(item, dcg.uiItem) or isinstance(item, dcg.baseHandler):
+    if isinstance(item, dcg_base.uiItem) or isinstance(item, dcg_base.baseHandler):
         return 1
-    elif isinstance(item, dcg.drawingItem):
+    elif isinstance(item, dcg_base.drawingItem):
         return 2
     else:
         return 0 # ????
@@ -923,7 +1038,7 @@ def is_item_container(item: Union[int, str]) -> Union[bool, None]:
     Returns:
         status as a bool
     """
-    return CONTEXT.get(item).item_type != dcg.ChildType.NONE
+    return CONTEXT.get(item).item_type != dcg_base.ChildType.NONE
 
 
 def get_item_parent(item: Union[int, str]) -> Union[int, None]:
@@ -3213,7 +3328,13 @@ def dynamic_texture(width : int, height : int, default_value : Union[List[float]
         warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
         tag=kwargs['id']
 
-    return dcg.Texture(CONTEXT, np.asarray(default_value).reshape([height, width, -1]), hint_dynamic=True, label=label, user_data=user_data, **kwargs)
+    content = np.asarray(default_value).reshape([height, width, -1])
+    if content.dtype == np.float64:
+        content = np.asarray(content, dtype=np.float32)
+    if content.dtype == np.float32 and content.max() > 1.:
+        content /= 255.
+
+    return dcg.Texture(CONTEXT, content, hint_dynamic=True, label=label, user_data=user_data, **kwargs)
 
 def error_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], negative : Union[List[float], Tuple[float, ...]], positive : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, show: bool =True, contribute_to_bounds: bool =True, horizontal: bool =False, **kwargs) -> Union[int, str]:
     """     Adds an error series to a plot.
@@ -5397,7 +5518,13 @@ def raw_texture(width : int, height : int, default_value : Union[List[float], Tu
         warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
         tag=kwargs['id']
 
-    return dcg.Texture(CONTEXT, np.asarray(default_value).reshape([height, width, -1]), hint_dynamic=True, label=label, user_data=user_data, **kwargs)
+    content = np.asarray(default_value).reshape([height, width, -1])
+    if content.dtype == np.float64:
+        content = np.asarray(content, dtype=np.float32)
+    if content.dtype == np.float32 and content.max() > 1.:
+        content /= 255.
+
+    return dcg.Texture(CONTEXT, content, hint_dynamic=True, label=label, user_data=user_data, **kwargs)
 
 def scatter_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, show: bool =True, no_clip: bool =False, **kwargs) -> Union[int, str]:
     """     Adds a scatter series to a plot.
@@ -5920,7 +6047,12 @@ def static_texture(width : int, height : int, default_value : Union[List[float],
         warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
         tag=kwargs['id']
 
-    return dcg.Texture(CONTEXT, np.asarray(default_value).reshape([height, width, -1]), label=label, user_data=user_data, **kwargs)
+    content = np.asarray(default_value).reshape([height, width, -1])
+    if content.dtype == np.float64:
+        content = np.asarray(content, dtype=np.float32)
+    if content.dtype == np.float32 and content.max() > 1.:
+        content /= 255.
+    return dcg.Texture(CONTEXT, content, label=label, user_data=user_data, **kwargs)
 
 def stem_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, indent: int =0, show: bool =True, horizontal: bool =False, **kwargs) -> Union[int, str]:
     """     Adds a stem series to a plot.
@@ -7818,7 +7950,7 @@ def get_item_configuration(item : Union[int, str], **kwargs) -> dict:
     item = CONTEXT.get(item)
     item_attributes = set(dir(item))
     configuration_attributes = item_attributes.difference(item_info_and_state_keys)
-    if isinstance(item, dcg.baseTheme):
+    if isinstance(item, dcg_base.baseTheme):
         # Theme uses attributes for its values
         # Keep only the generic ones
         configuration_attributes = configuration_attributes.intersection(item_configuration_keys)
@@ -8066,7 +8198,7 @@ def get_windows(**kwargs) -> Union[List[int], Tuple[int, ...]]:
         Union[List[int], Tuple[int, ...]]
     """
 
-    return [item for item in CONTEXT.viewport.children if isinstance(item, dcg.Window_)]
+    return [item for item in CONTEXT.viewport.children if isinstance(item, dcg_base.Window)]
 
 def get_x_scroll(item : Union[int, str], **kwargs) -> float:
     """     Undocumented
@@ -8835,7 +8967,7 @@ def set_value(item : Union[int, str], value : Any, **kwargs) -> None:
         None
     """
     item = CONTEXT.get(item)
-    if isinstance(item, dcg.Texture):
+    if isinstance(item, dcg_base.Texture):
         item.set_value(value)
     else:
         item.value = value
@@ -9062,7 +9194,7 @@ def unstage(item : Union[int, str], **kwargs) -> None:
         None
     """
     item = CONTEXT.get(item)
-    assert(isinstance(item, dcg.PlaceHolderParent))
+    assert(isinstance(item, dcg_base.PlaceHolderParent))
     # Ideally we'd lock the target parent mutex rather
     # than the viewport. The locking is to force the unstage
     # to be atomic (all done in one frame).

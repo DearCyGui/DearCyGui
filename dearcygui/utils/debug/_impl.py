@@ -86,66 +86,9 @@ class DebugContext(Context):
         """Initialize debug context using global verbosity level"""
         if kwargs.pop("queue", None) is not None:
             raise ValueError("DebugContext does not support custom queues")
-        # TODO: Wrap item callbacks
-        if "item_creation_callback" in kwargs:
-            raise ValueError("DebugContext does not support custom item creation callbacks")
-        if "item_configure_start_callback" in kwargs:
-            raise ValueError("DebugContext does not support custom item configure start callbacks")
-        if "item_configure_end_callback" in kwargs:
-            raise ValueError("DebugContext does not support custom item configure end callbacks")
-        if "item_deletion_callback" in kwargs:
-            raise ValueError("DebugContext does not support custom item deletion callbacks")
         queue=DebugQueue()
         super().__init__(queue=queue,
-                         item_creation_callback=self.on_item_creation,
-                         item_configure_start_callback=self.on_item_configure_start,
-                         item_configure_end_callback=self.on_item_configure_end,
-                         item_deletion_callback=self.on_item_deletion,
                          **kwargs)
-
-    def _log(self, level: int, msg: str):
-        """Log message if verbosity >= level"""
-        if _VERBOSITY >= level:
-            thread = threading.current_thread()
-            print(f"[{time.time():.6f}] [{thread.name}] {msg}")
-
-    def on_item_creation(self, item):
-        self._log(3, f"Created item {type(item).__name__} (uuid={item.uuid})")
-        if _VERBOSITY >= 4:
-            try:
-                config = item.__getstate__()
-                self._log(4, f"Item initial configuration: {config}")
-            except Exception as e:
-                self._log(4, f"Could not get item configuration: {e}")
-
-    def on_item_configure_start(self, item, args):
-        self._log(3, f"Configuring item {type(item).__name__} (uuid={item.uuid}) with args: {args}")
-        if _VERBOSITY >= 4:
-            try:
-                config_before = item.__getstate__()
-                self._log(4, f"Configuration before changes: {config_before}")
-            except Exception as e:
-                self._log(4, f"Could not get item configuration: {e}")
-        return args
-
-    def on_item_configure_end(self, item, unused_args):
-        if unused_args:
-            self._log(2, f"Unused config args for item {type(item).__name__} (uuid={item.uuid}): {unused_args}")
-        if _VERBOSITY >= 4:
-            try:
-                config_after = item.__getstate__()
-                self._log(4, f"Configuration after changes: {config_after}")
-            except Exception as e:
-                self._log(4, f"Could not get item configuration: {e}")
-    
-    def on_item_deletion(self, item):
-        self._log(3, f"Deleting item {type(item).__name__} (uuid={item.uuid})")
-        if _VERBOSITY >= 4:
-            try:
-                final_config = item.__getstate__()
-                self._log(4, f"Final item configuration: {final_config}")
-            except Exception as e:
-                self._log(4, f"Could not get item configuration: {e}")
 
 def _get_attr_type(item, name: str) -> str:
     """Determine the type of an attribute
@@ -194,14 +137,23 @@ def _debug_class_init(cls):
     }
     
     # Only add special methods that exist in any parent class
+    wrapped = set()
     for method_name, wrapped_name in special_methods.items():
         # Check if method exists in any parent class (excluding DebugMixin)
         for base in cls.__mro__[1:]:  # Skip self
             if hasattr(base, method_name):
                 assert hasattr(cls, wrapped_name), f"Missing wrapped method {wrapped_name}"
                 setattr(cls, method_name, getattr(cls, wrapped_name))
+                wrapped.add(method_name)
                 break
-                
+
+    # when __init__ and __del__ are missing,
+    # we add dummy one, because we want to log them
+    if '__init__' not in wrapped:
+        setattr(cls, '__init__', getattr(cls, '_dummy_init'))
+    if '__del__' not in wrapped:
+        setattr(cls, '__del__', getattr(cls, '_dummy_del'))
+
     return cls
 
 class DebugMixin:
@@ -244,7 +196,7 @@ class DebugMixin:
         return list(set(results))
      
     def __getstate__(self):
-        """Get object state without debug attributes"""
+        """Get object state without printing debug logs"""
         with self._disable_debug():
             return super().__getstate__()
 
@@ -343,11 +295,29 @@ class DebugMixin:
 
     def _wrapped_init(self, *args, **kwargs):
         self._log(4, f"INIT {self.__class__.__name__}")
+        # print args info
+        for i, arg in enumerate(args):
+            self._log(4, f"  Arg {i}: {type(arg).__name__} = {arg}")
+        # print kwargs info
+        for k, v in kwargs.items():
+            self._log(4, f"  Kwarg {k}: {type(v).__name__} = {v}")
         return super().__init__(*args, **kwargs)
 
     def _wrapped_del(self):
         self._log(4, f"DEL {self.__class__.__name__}")
         return super().__del__()
+
+    def _dummy_init(self, *args, **kwargs):
+        self._log(4, f"INIT {self.__class__.__name__}")
+        # print args info
+        for i, arg in enumerate(args):
+            self._log(4, f"  Unused Arg {i}: {type(arg).__name__} = {arg}")
+        # print kwargs info
+        for k, v in kwargs.items():
+            self._log(4, f"  Unused Kwarg {k}: {type(v).__name__} = {v}")
+
+    def _dummy_del(self):
+        self._log(4, f"DEL {self.__class__.__name__}")
 
 def create_debug_wrapper(func: Callable) -> Callable:
     """Create a debug-enabled wrapper for a function"""

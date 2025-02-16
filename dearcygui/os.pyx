@@ -63,13 +63,14 @@ cdef extern from "SDL3/SDL_dialog.h" nogil:
 cdef class _RenderFrameCommandSubmission(baseHandler):
     cdef bint _has_run
     cdef object custom_callback
-    def __cinit__(self):
-        self._has_run = False
-
-    def configure(self, callback, **kwargs):
-        super().configure(**kwargs)
+    
+    def __init__(self, context, callback, **kwargs):
+        baseHandler.__init__(self, context, **kwargs)
         self.custom_callback = callback
         self.callback = self._run_async
+
+    def __cinit__(self):
+        self._has_run = False
 
     def _run_async(self):
         self.custom_callback()
