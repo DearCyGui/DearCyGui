@@ -1457,7 +1457,8 @@ cdef class baseItem:
                     self.attach_before(before)
                 else:
                     if parent is None:
-                        parent = self.context.fetch_parent_queue_back()
+                        if not thread_local_parent_empty():
+                            parent = thread_local_parent_fetch_back()
                         if parent is None:
                             # The default parent is the viewport,
                             # but check right now for failure
