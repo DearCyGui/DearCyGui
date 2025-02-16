@@ -4951,6 +4951,21 @@ cdef class uiItem(baseItem):
         append_obj_vector(self._callbacks, items)
 
     @property
+    def callback(self):
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        """
+        # TODO: drop callback or callbacks
+        return self.callbacks
+
+    @callback.setter
+    def callback(self, value):
+        self.callbacks = value
+
+    @property
     def enabled(self):
         """
         Writable attribute: Should the object be displayed as enabled ?

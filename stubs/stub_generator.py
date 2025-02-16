@@ -50,7 +50,7 @@ hardcoded = {
     "previous_sibling": "baseItemSubCls | None",
     "next_sibling": "baseItemSubCls | None",
     "callback": "DCGCallable | None",
-    "callbacks" : "list[DCGCallable]",
+    "callbacks" : "Sequence[DCGCallable]",
     "color" : "Color",
     "fill" : "Color",
     "texture" : "Texture | None"

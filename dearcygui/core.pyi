@@ -932,7 +932,7 @@ class AutoFont(FontMultiScales):
         Additional arguments passed to font_creator
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -985,7 +985,7 @@ Called when a new global scale is encountered
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
         
@@ -1111,7 +1111,7 @@ Called when a new global scale is encountered
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Callbacks that get triggered when a new scale is stored.
         Each callback receives the new scale value that was added.
@@ -1121,7 +1121,7 @@ Called when a new global scale is encountered
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -2234,12 +2234,16 @@ class AxisTag(baseItem):
 
 
 class Button(uiItem):
-    def __init__(self, context : Context, arrow : bool = False, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, arrow : bool = False, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         arrow: Whether to display an arrow.
             Not compatible with small
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -2377,12 +2381,16 @@ class Button(uiItem):
         ...
 
 
-    def configure(self, arrow : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, arrow : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         arrow: Whether to display an arrow.
             Not compatible with small
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -2644,7 +2652,24 @@ class Button(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -2656,7 +2681,7 @@ class Button(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -3500,10 +3525,14 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class Checkbox(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -3637,10 +3666,14 @@ class Checkbox(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -3861,7 +3894,24 @@ class Checkbox(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -3873,7 +3923,7 @@ class Checkbox(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -4690,7 +4740,7 @@ A child window container that enables hierarchical UI layout.
     - Menu bar support allows structured layouts
     
     """
-    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         always_auto_resize: combined with AutoResizeX/AutoResizeY.
             Always measure size even when child is hidden,
@@ -4711,6 +4761,10 @@ A child window container that enables hierarchical UI layout.
         before: Attach the item just before the target item. Default is None (disabled)
         border: show an outer border and enable WindowPadding.
             Defaults to True.
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -4859,7 +4913,7 @@ A child window container that enables hierarchical UI layout.
         ...
 
 
-    def configure(self, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
@@ -4880,6 +4934,10 @@ A child window container that enables hierarchical UI layout.
             Set instead height to 0 to use the remaining size of the parent
         border: show an outer border and enable WindowPadding.
             Defaults to True.
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -5223,7 +5281,24 @@ A child window container that enables hierarchical UI layout.
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -5235,7 +5310,7 @@ A child window container that enables hierarchical UI layout.
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -6986,13 +7061,17 @@ class CloseHandler(baseHandler):
 
 
 class CollapsingHeader(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         bullet: Display a bullet instead of arrow.
             IMPORTANT: node can still be marked open/close if
             you don't set the _Leaf flag!
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -7132,13 +7211,17 @@ class CollapsingHeader(uiItem):
         ...
 
 
-    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         bullet: Display a bullet instead of arrow.
             IMPORTANT: node can still be marked open/close if
             you don't set the _Leaf flag!
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -7403,7 +7486,24 @@ class CollapsingHeader(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -7415,7 +7515,7 @@ class CollapsingHeader(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -8260,11 +8360,15 @@ class CollapsingHeader(uiItem):
 
 
 class ColorButton(uiItem):
-    def __init__(self, context : Context, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -8403,11 +8507,15 @@ class ColorButton(uiItem):
         ...
 
 
-    def configure(self, alpha_preview : str = "none", callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_preview : str = "none", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         alpha_preview: Show preview with either full alpha or checker pattern
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -8669,7 +8777,24 @@ class ColorButton(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -8681,7 +8806,7 @@ class ColorButton(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -9527,12 +9652,16 @@ class ColorButton(uiItem):
 
 
 class ColorEdit(uiItem):
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         alpha_bar: Show vertical alpha bar/gradient
         alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -9678,12 +9807,16 @@ class ColorEdit(uiItem):
         ...
 
 
-    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         alpha_bar: Show vertical alpha bar/gradient
         alpha_preview: Show preview with either full alpha or checker pattern
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -9966,7 +10099,24 @@ class ColorEdit(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -9978,7 +10128,7 @@ class ColorEdit(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -10922,12 +11072,16 @@ class ColorEdit(uiItem):
 
 
 class ColorPicker(uiItem):
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         alpha_bar: Show vertical alpha bar/gradient
         alpha_preview: Show preview with either full alpha or checker pattern
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -11071,12 +11225,16 @@ class ColorPicker(uiItem):
         ...
 
 
-    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         alpha_bar: Show vertical alpha bar/gradient
         alpha_preview: Show preview with either full alpha or checker pattern
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -11357,7 +11515,24 @@ class ColorPicker(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -11369,7 +11544,7 @@ class ColorPicker(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -12285,10 +12460,14 @@ class ColorPicker(uiItem):
 
 
 class Combo(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -12433,10 +12612,14 @@ class Combo(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -12690,7 +12873,24 @@ class Combo(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -12702,7 +12902,7 @@ class Combo(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -21831,12 +22031,16 @@ class DrawInWindow(uiItem):
     visible/etc tests maintained and thus do not have a callback.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         button: If True, the entire DrawInWindow area
             will behave like a single button.
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -21980,12 +22184,16 @@ class DrawInWindow(uiItem):
         ...
 
 
-    def configure(self, button : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         button: If True, the entire DrawInWindow area
             will behave like a single button.
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -22256,7 +22464,24 @@ class DrawInWindow(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -22268,7 +22493,7 @@ class DrawInWindow(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -32556,7 +32781,7 @@ class FontMultiScales(baseFont):
     having to manually manage font switching.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -32595,7 +32820,7 @@ class FontMultiScales(baseFont):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
         
@@ -32721,7 +32946,7 @@ class FontMultiScales(baseFont):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Callbacks that get triggered when a new scale is stored.
         Each callback receives the new scale value that was added.
@@ -32731,7 +32956,7 @@ class FontMultiScales(baseFont):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -35469,7 +35694,7 @@ class HorizontalLayout(Layout):
     horizontally.
     
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
         """
         alignment_mode: Horizontal alignment mode of the items.
             LEFT: items are appended from the left
@@ -35482,6 +35707,10 @@ class HorizontalLayout(Layout):
             positions
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -35628,7 +35857,7 @@ class HorizontalLayout(Layout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
+    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
@@ -35641,6 +35870,10 @@ class HorizontalLayout(Layout):
             at the right.
             MANUAL: items are positionned at the requested
             positions
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -35931,7 +36164,24 @@ class HorizontalLayout(Layout):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -35943,7 +36193,7 @@ class HorizontalLayout(Layout):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -37245,10 +37495,14 @@ class HoverHandler(baseHandler):
 
 
 class Image(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -37382,10 +37636,14 @@ class Image(uiItem):
         ...
 
 
-    def configure(self, border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
+    def configure(self, border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -37616,7 +37874,24 @@ class Image(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -37628,7 +37903,7 @@ class Image(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -38423,10 +38698,14 @@ class Image(uiItem):
 
 
 class ImageButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -38560,10 +38839,14 @@ class ImageButton(uiItem):
         ...
 
 
-    def configure(self, background_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
+    def configure(self, background_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -38794,7 +39077,24 @@ class ImageButton(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -38806,7 +39106,7 @@ class ImageButton(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -39611,12 +39911,16 @@ class ImageButton(uiItem):
 
 
 class InputText(uiItem):
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         always_overwrite: Overwrite mode
         attach: Whether to attach the item to a parent. Default is None (auto)
         auto_select_all: Select entire text when first taking mouse focus
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -39773,10 +40077,14 @@ class InputText(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         always_overwrite: Overwrite mode
         auto_select_all: Select entire text when first taking mouse focus
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -40070,7 +40378,24 @@ class InputText(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -40082,7 +40407,7 @@ class InputText(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -41112,12 +41437,16 @@ class InputText(uiItem):
 
 
 class InputValue(uiItem):
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         always_overwrite: Overwrite mode
         attach: Whether to attach the item to a parent. Default is None (auto)
         auto_select_all: Select entire text when first taking mouse focus
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -41286,10 +41615,14 @@ class InputValue(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         always_overwrite: Overwrite mode
         auto_select_all: Select entire text when first taking mouse focus
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -41595,7 +41928,24 @@ class InputValue(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -41607,7 +41957,7 @@ class InputValue(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -43949,10 +44299,14 @@ class Layout(uiItem):
     preserved.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -44086,10 +44440,14 @@ class Layout(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -44336,7 +44694,24 @@ class Layout(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -44348,7 +44723,7 @@ class Layout(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -45188,10 +45563,14 @@ class Layout(uiItem):
 
 
 class ListBox(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -45328,10 +45707,14 @@ class ListBox(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -45555,7 +45938,24 @@ class ListBox(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -45567,7 +45967,7 @@ class ListBox(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -47972,10 +48372,14 @@ class LostRenderHandler(baseHandler):
 
 
 class Menu(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -48109,10 +48513,14 @@ class Menu(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -48355,7 +48763,24 @@ class Menu(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -48367,7 +48792,7 @@ class Menu(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -49154,10 +49579,14 @@ class Menu(uiItem):
 
 
 class MenuBar(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -49291,10 +49720,14 @@ class MenuBar(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -49515,7 +49948,24 @@ class MenuBar(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -49527,7 +49977,7 @@ class MenuBar(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -50322,10 +50772,14 @@ class MenuBar(uiItem):
 
 
 class MenuItem(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -50461,10 +50915,14 @@ class MenuItem(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -50709,7 +51167,24 @@ class MenuItem(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -50721,7 +51196,7 @@ class MenuItem(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -57405,10 +57880,14 @@ class Plot(uiItem):
     to the plot (+ some logic in your callbacks). 
     
     """
-    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -57585,10 +58064,14 @@ class Plot(uiItem):
         ...
 
 
-    def configure(self, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def configure(self, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -57922,7 +58405,24 @@ class Plot(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -57934,7 +58434,7 @@ class Plot(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -70645,10 +71145,14 @@ class PlotStems(plotElementXY):
 
 
 class ProgressBar(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -70783,10 +71287,14 @@ class ProgressBar(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -71008,7 +71516,24 @@ class ProgressBar(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -71020,7 +71545,7 @@ class ProgressBar(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -71799,10 +72324,14 @@ class ProgressBar(uiItem):
 
 
 class RadioButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -71938,10 +72467,14 @@ class RadioButton(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -72186,7 +72719,24 @@ class RadioButton(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -72198,7 +72748,7 @@ class RadioButton(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -73830,10 +74380,14 @@ class ResizeHandler(baseHandler):
 
 
 class Selectable(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -73971,10 +74525,14 @@ class Selectable(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -74221,7 +74779,24 @@ class Selectable(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -74233,7 +74808,7 @@ class Selectable(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -75088,10 +75663,14 @@ class Selectable(uiItem):
 
 
 class Separator(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -75220,10 +75799,14 @@ class Separator(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -75439,7 +76022,24 @@ class Separator(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -75451,7 +76051,7 @@ class Separator(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -76763,12 +77363,16 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class SimplePlot(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         autoscale: Whether scale_min and scale_max should be deduced
             from the data
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -76906,12 +77510,16 @@ class SimplePlot(uiItem):
         ...
 
 
-    def configure(self, autoscale : bool = True, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
+    def configure(self, autoscale : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         autoscale: Whether scale_min and scale_max should be deduced
             from the data
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -77173,7 +77781,24 @@ class SimplePlot(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -77185,7 +77810,7 @@ class SimplePlot(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -78017,10 +78642,14 @@ class SimplePlot(uiItem):
 
 
 class Slider(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -78189,8 +78818,12 @@ class Slider(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
         """
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -78468,7 +79101,24 @@ class Slider(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -78480,7 +79130,7 @@ class Slider(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -79458,10 +80108,14 @@ class Slider(uiItem):
 
 
 class Spacer(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -79592,10 +80246,14 @@ class Spacer(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -79813,7 +80471,24 @@ class Spacer(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -79825,7 +80500,7 @@ class Spacer(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -80561,10 +81236,14 @@ class Subplots(uiItem):
     - share_y_all (bool): Link Y1-axis limits across all plots
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -80709,10 +81388,14 @@ class Subplots(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -80944,7 +81627,24 @@ class Subplots(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -80956,7 +81656,7 @@ class Subplots(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -81880,10 +82580,14 @@ class Subplots(uiItem):
 
 
 class Tab(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -82025,10 +82729,14 @@ class Tab(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -82279,7 +82987,24 @@ class Tab(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -82291,7 +83016,7 @@ class Tab(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -83151,13 +83876,17 @@ class Tab(uiItem):
 
 
 class TabBar(uiItem):
-    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         allow_tab_scroll: Add scroll buttons when tabs don't fit
         attach: Whether to attach the item to a parent. Default is None (auto)
         autoselect_new_tabs: Automatically select new
             tabs when they appear
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -83299,13 +84028,17 @@ class TabBar(uiItem):
         ...
 
 
-    def configure(self, allow_tab_scroll : bool = False, autoselect_new_tabs : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, allow_tab_scroll : bool = False, autoselect_new_tabs : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         allow_tab_scroll: Add scroll buttons when tabs don't fit
         autoselect_new_tabs: Automatically select new
             tabs when they appear
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -83585,7 +84318,24 @@ class TabBar(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -83597,7 +84347,7 @@ class TabBar(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -84472,10 +85222,14 @@ class TabBar(uiItem):
 
 
 class TabButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -84616,10 +85370,14 @@ class TabButton(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -84869,7 +85627,24 @@ class TabButton(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -84881,7 +85656,7 @@ class TabButton(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -85749,10 +86524,14 @@ Table widget.
     This class implements the base imgui Table visual.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -85952,10 +86731,14 @@ Get a view of the specified column.
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -86345,7 +87128,24 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -86357,7 +87157,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -89254,12 +90054,16 @@ class TableRowConfig(baseItem):
 
 
 class Text(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         bullet: Whether to add a bullet
             before the text
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -89401,12 +90205,16 @@ class Text(uiItem):
         ...
 
 
-    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
+    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
         """
         Shortcut to set multiple attributes at once.
         
         bullet: Whether to add a bullet
             before the text
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -89672,7 +90480,24 @@ class Text(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -89684,7 +90509,7 @@ class Text(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -90513,10 +91338,14 @@ class TextValue(uiItem):
     Use Text for SharedStr.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -90650,10 +91479,14 @@ class TextValue(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -90874,7 +91707,24 @@ class TextValue(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -90886,7 +91736,7 @@ class TextValue(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -97990,10 +98840,14 @@ class TimeWatcher(uiItem):
     GPU data, etc), not to GPU rendering time.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -98124,10 +98978,14 @@ class TimeWatcher(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -98345,7 +99203,24 @@ class TimeWatcher(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -98357,7 +99232,7 @@ class TimeWatcher(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -99853,10 +100728,14 @@ class ToggledOpenHandler(baseHandler):
 
 
 class Tooltip(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -100002,10 +100881,14 @@ class Tooltip(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -100238,7 +101121,24 @@ class Tooltip(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -100250,7 +101150,7 @@ class Tooltip(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -101031,13 +101931,17 @@ class Tooltip(uiItem):
 
 
 class TreeNode(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
         bullet: Display a bullet instead of arrow.
             IMPORTANT: node can still be marked open/close if
             you don't set the _Leaf flag!
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -101182,13 +102086,17 @@ class TreeNode(uiItem):
         ...
 
 
-    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
         bullet: Display a bullet instead of arrow.
             IMPORTANT: node can still be marked open/close if
             you don't set the _Leaf flag!
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -101458,7 +102366,24 @@ class TreeNode(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -101470,7 +102395,7 @@ class TreeNode(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -102363,7 +103288,7 @@ class VerticalLayout(Layout):
     Same as HorizontalLayout but vertically
     
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         alignment_mode: Vertical alignment mode of the items.
             TOP: items are appended from the top
@@ -102376,6 +103301,10 @@ class VerticalLayout(Layout):
             positions
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -102512,7 +103441,7 @@ class VerticalLayout(Layout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
@@ -102525,6 +103454,10 @@ class VerticalLayout(Layout):
             at the BOTTOM.
             MANUAL: items are positionned at the requested
             positions
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -102805,7 +103738,24 @@ class VerticalLayout(Layout):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -102817,7 +103767,7 @@ class VerticalLayout(Layout):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -105094,7 +106044,7 @@ class Window(uiItem):
     - max_size: Maximum size of the window.
     
     """
-    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         always_show_horizontal_scrollvar: Writable attribute to tell to always show a horizontal scrollbar
             even when the size does not require it (only if horizontal scrollbar
@@ -105105,6 +106055,10 @@ class Window(uiItem):
         autosize: Writable attribute to tell the window should
                automatically resize to fit its content
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -105300,7 +106254,7 @@ class Window(uiItem):
         ...
 
 
-    def configure(self, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
@@ -105311,6 +106265,10 @@ class Window(uiItem):
             even when the size does not require it
         autosize: Writable attribute to tell the window should
                automatically resize to fit its content
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -105638,7 +106596,24 @@ class Window(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -105650,7 +106625,7 @@ class Window(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -106820,7 +107795,7 @@ class WindowHorizontalLayout(WindowLayout):
         When in MANUAL mode, the x positions for each window
     
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         alignment_mode: Horizontal alignment mode of the windows.
             LEFT: windows are appended from the left
@@ -106833,6 +107808,10 @@ class WindowHorizontalLayout(WindowLayout):
             positions
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -106966,7 +107945,7 @@ class WindowHorizontalLayout(WindowLayout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
@@ -106979,6 +107958,10 @@ class WindowHorizontalLayout(WindowLayout):
             at the right.
             MANUAL: windows are positionned at the requested
             positions
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -107227,7 +108210,24 @@ class WindowHorizontalLayout(WindowLayout):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -107239,7 +108239,7 @@ class WindowHorizontalLayout(WindowLayout):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -108014,10 +109014,14 @@ class WindowLayout(uiItem):
     for the position and rect size.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -108148,10 +109152,14 @@ class WindowLayout(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -108373,7 +109381,24 @@ class WindowLayout(uiItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -108385,7 +109410,7 @@ class WindowLayout(uiItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -109149,7 +110174,7 @@ class WindowVerticalLayout(WindowLayout):
         Negative values reference from bottom edge.
     
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         alignment_mode: Vertical alignment mode of the windows.
             TOP: windows are appended from the top
@@ -109162,6 +110187,10 @@ class WindowVerticalLayout(WindowLayout):
             positions
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -109295,7 +110324,7 @@ class WindowVerticalLayout(WindowLayout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
@@ -109308,6 +110337,10 @@ class WindowVerticalLayout(WindowLayout):
             at the BOTTOM.
             MANUAL: windows are positionned at the requested
             positions
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -109558,7 +110591,24 @@ class WindowVerticalLayout(WindowLayout):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -109570,7 +110620,7 @@ class WindowVerticalLayout(WindowLayout):
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -111523,10 +112573,14 @@ class baseTable(uiItem):
     is done by the derived classes.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -111707,10 +112761,14 @@ Get a view of the specified column.
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -112063,7 +113121,24 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -112075,7 +113150,7 @@ Sort the rows using the value in ref_col as index.
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
@@ -117484,10 +118559,14 @@ Base class for UI items with various properties and states.
     All attributes are protected by mutexes to enable thread-safe access.
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -117618,10 +118697,14 @@ Base class for UI items with various properties and states.
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : list[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
+        callback: callback object or list of callback objects
+            which is called when the value of the item is changed.
+            If read, always returns a list of callbacks. This enables
+            to do item.callbacks += [new_callback]
         callback: callback object or list of callback objects
             which is called when the value of the item is changed.
             If read, always returns a list of callbacks. This enables
@@ -117839,7 +118922,24 @@ Base class for UI items with various properties and states.
 
 
     @property
-    def callbacks(self) -> list[DCGCallable]:
+    def callback(self) -> DCGCallable | None:
+        """
+        Writable attribute: callback object or list of callback objects
+        which is called when the value of the item is changed.
+        If read, always returns a list of callbacks. This enables
+        to do item.callbacks += [new_callback]
+        
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> Sequence[DCGCallable]:
         """
         Writable attribute: callback object or list of callback objects
         which is called when the value of the item is changed.
@@ -117851,7 +118951,7 @@ Base class for UI items with various properties and states.
 
 
     @callbacks.setter
-    def callbacks(self, value : list[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable]):
         ...
 
 
