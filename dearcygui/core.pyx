@@ -7195,6 +7195,7 @@ cdef class Texture(baseItem):
         cdef int32_t num_chans = 1
         cdef int32_t stride = 1
         cdef int32_t col_stride = buf_info.itemsize
+        cdef int32_t chan_stride = buf_info.itemsize
 
         if ndim >= 1:
             height = buf_info.shape[0]
@@ -7204,6 +7205,7 @@ cdef class Texture(baseItem):
             col_stride = buf_info.strides[1]
         if ndim >= 3:
             num_chans = buf_info.shape[2]
+            chan_stride = buf_info.strides[2]
         if width * height * num_chans == 0:
             cpython.PyBuffer_Release(&buf_info)
             raise ValueError("Cannot set empty texture")
@@ -7216,21 +7218,23 @@ cdef class Texture(baseItem):
         cdef float[:,:,::1] copy_array_float
         cdef unsigned char[:,:,::1] copy_array_uint8
         cdef int32_t row, col, chan
-        if col_stride != (num_chans * buf_info.itemsize):
+        if col_stride != (num_chans * buf_info.itemsize) or \
+           chan_stride != buf_info.itemsize:
             copy_array = cython_array(shape=(height, width, num_chans), itemsize=buf_info.itemsize, format=buf_info.format, mode='c', allocate_buffer=True)
             if buf_info.itemsize == 1:
                 copy_array_uint8 = copy_array
                 for row in range(height):
                     for col in range(width):
                         for chan in range(num_chans):
-                            copy_array_uint8[row, col, chan] = (<unsigned char*>buf_info.buf)[row * stride + col * col_stride + chan * buf_info.itemsize]
+                            copy_array_uint8[row, col, chan] = (<unsigned char*>buf_info.buf)[row * stride + col * col_stride + chan * chan_stride]
                 stride = width * num_chans
             else:
                 copy_array_float = copy_array
                 for row in range(height):
                     for col in range(width):
                         for chan in range(num_chans):
-                            copy_array_float[row, col, chan] = (<float*>buf_info.buf)[row * stride + col * col_stride + chan * buf_info.itemsize]
+                            copy_array_float[row, col, chan] = \
+                                dereference(<float*>&((<unsigned char*>buf_info.buf)[row * stride + col * col_stride + chan * chan_stride]))
                 stride = width * num_chans * 4
 
         cdef bint reuse = self.allocated_texture != NULL
