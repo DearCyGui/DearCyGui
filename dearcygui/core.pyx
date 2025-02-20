@@ -4001,6 +4001,10 @@ cdef class Callback:
             else:
                 print("Callback called without arguments")
             print(traceback.format_exc())
+        except (KeyboardInterrupt, SystemExit) as e:
+            self.context._started = False
+            raise e
+
 
 cdef class DPGCallback(Callback):
     """
