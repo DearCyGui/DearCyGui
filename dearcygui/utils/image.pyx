@@ -120,7 +120,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
             return None
 
     def add_tile(self,
-                 content : dcg.Texture,
+                 content,
                  coord,
                  opposite_coord=None,
                  nearest_neighbor_upsampling=False,
