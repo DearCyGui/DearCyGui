@@ -2785,6 +2785,7 @@ cdef class DrawInPlot(plotElementWithLegend):
         self._ignore_fit = value
 
     cdef void draw(self) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Check the axes are enabled
         if not(self._show) or \
