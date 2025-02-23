@@ -25,8 +25,7 @@ from cpython cimport PySequence_Check
 from dearcygui.wrapper cimport imgui
 
 from .core cimport baseFont, baseItem, Texture, Callback, \
-    lock_gil_friendly, clear_obj_vector, append_obj_vector, \
-    parse_texture
+    lock_gil_friendly, clear_obj_vector, append_obj_vector
 from .c_types cimport *
 from .types cimport *
 

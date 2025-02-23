@@ -345,3 +345,7 @@ cdef inline int32_t read_vec4(point_type* dst, src):
         dst[3] = <point_type>src[3]
     return src_size
 
+
+# Helper to parse a texture from a python object.
+# Returns a contiguous 3D array of floats (0..1) or uint8_t (max 4 channels)
+cdef object parse_texture(src)
