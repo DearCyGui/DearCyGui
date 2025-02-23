@@ -271,20 +271,20 @@ cdef inline int32_t read_point(point_type* dst, src):
 cdef inline int32_t read_coord(double* dst, src):
     return read_point[double](dst, src)
 
-cdef inline void read_rect(double* dst, src):
+cdef inline int32_t read_rect(double* dst, src):
     if isinstance(src, Rect):
         dst[0] = (<Rect>src)._x1
         dst[1] = (<Rect>src)._y1
         dst[2] = (<Rect>src)._x2
         dst[3] = (<Rect>src)._y2
-        return
+        return 4
     try:
         if PySequence_Check(src) > 0 and len(src) == 2 and \
             PySequence_Check(src[0]) > 0 and PySequence_Check(src[1]) > 0:
-            read_coord(dst, src[0])
-            read_coord(dst + 2, src[1])
+            return read_coord(dst, src[0]) + \
+                read_coord(dst + 2, src[1])
         else:
-            read_vec4[double](dst, src)
+            return read_vec4[double](dst, src)
     except TypeError:
         raise TypeError("Rect data must be a tuple of two points or an array of up to 4 coordinates")
 
