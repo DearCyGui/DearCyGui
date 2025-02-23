@@ -25,7 +25,8 @@ from cpython cimport PySequence_Check
 from dearcygui.wrapper cimport imgui
 
 from .core cimport baseFont, baseItem, Texture, Callback, \
-    lock_gil_friendly, clear_obj_vector, append_obj_vector
+    lock_gil_friendly, clear_obj_vector, append_obj_vector, \
+    parse_texture
 from .c_types cimport *
 from .types cimport *
 
@@ -739,7 +740,7 @@ cdef class GlyphSet:
         
         Args:
             unicode_key: UTF-8 code for the character
-            image: Numpy array containing glyph bitmap (h,w,c)
+            image: Array containing glyph bitmap (h,w,c)
             dy: Y offset from cursor to glyph top (top down axis)
             dx: X offset from cursor to glyph left
             advance: Horizontal advance to next character
@@ -750,8 +751,8 @@ cdef class GlyphSet:
         cdef memoryview image_view
         try:
             image_view = memoryview(image)
-        except TypeError:
-            raise TypeError("Image must be a buffer, for instance a numpy array")
+        except:
+            image_view = memoryview(parse_texture(image))
             
         if len(image_view.shape) < 2:
             raise ValueError("Image must have at least 2 dimensions")
