@@ -307,7 +307,12 @@ cdef class DrawingScale(drawingItem):
     def scales(self, values):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        read_point[double](self._scales, values)
+        cdef int size = read_point[double](self._scales, values)
+        if size == 1:
+            self._scales[1] = self._scales[0]
+        elif size == 0:
+            self._scales[0] = 1.
+            self._scales[1] = 1.
 
     @property
     def origin(self):
