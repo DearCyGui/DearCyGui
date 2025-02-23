@@ -812,6 +812,7 @@ cdef extern from *:
                     for (size_t i = 0; i < _size; i++) {
                         PyObject* item = PySequence_GetItem(obj, i);
                         if (!item) {
+                            PyErr_Clear();
                             throw std::invalid_argument("Failed to get sequence item");
                         }
 
@@ -819,13 +820,15 @@ cdef extern from *:
                         Py_DECREF(item);
                         
                         if (!float_obj) {
+                            PyErr_Clear();
                             throw std::invalid_argument("Sequence item is not convertible to float");
                         }
 
                         new_data[i] = PyFloat_AsDouble(float_obj);
                         Py_DECREF(float_obj);
                         
-                        if (PyErr_Occurred()) {
+                        if (new_data[i] == -1. && PyErr_Occurred()) {
+                            PyErr_Clear();
                             throw std::invalid_argument("Error converting sequence item to float");
                         }
                     }
@@ -1155,6 +1158,7 @@ cdef extern from *:
                 // Get first row to determine number of columns
                 PyObject* first_row = PySequence_GetItem(obj, 0);
                 if (!first_row) {
+                    PyErr_Clear();
                     throw std::invalid_argument("Failed to get first row");
                 }
 
@@ -1180,6 +1184,7 @@ cdef extern from *:
                     for (size_t i = 0; i < rows; i++) {
                         PyObject* row = PySequence_GetItem(obj, i);
                         if (!row) {
+                            PyErr_Clear();
                             throw std::invalid_argument("Failed to get row");
                         }
 
@@ -1193,6 +1198,7 @@ cdef extern from *:
                             PyObject* item = PySequence_GetItem(row, j);
                             if (!item) {
                                 Py_DECREF(row);
+                                PyErr_Clear();
                                 throw std::invalid_argument("Failed to get item");
                             }
 
@@ -1201,14 +1207,16 @@ cdef extern from *:
 
                             if (!float_obj) {
                                 Py_DECREF(row);
+                                PyErr_Clear();
                                 throw std::invalid_argument("All items must be convertible to float");
                             }
 
                             new_data[i * cols + j] = PyFloat_AsDouble(float_obj);
                             Py_DECREF(float_obj);
 
-                            if (PyErr_Occurred()) {
+                            if (new_data[i * cols + j] == -1 && PyErr_Occurred()) {
                                 Py_DECREF(row);
+                                PyErr_Clear();
                                 throw std::invalid_argument("Error converting item to float");
                             }
                         }
