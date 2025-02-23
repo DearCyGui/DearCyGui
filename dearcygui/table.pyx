@@ -35,6 +35,7 @@ from .types cimport *
 from .widget cimport Tooltip
 
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
+from cpython.sequence cimport PySequence_Check
 
 from .types import TableFlag
 
@@ -627,7 +628,7 @@ cdef class baseTable(uiItem):
         """
         Get items at specific target
         """
-        if not(hasattr(key, "__len__")) or not(len(key) == 2):
+        if PySequence_Check(key) == 0 or len(key) != 2:
             raise ValueError("index must be a list of length 2")
         cdef int32_t row, col
         (row, col) = key
@@ -689,7 +690,7 @@ cdef class baseTable(uiItem):
             (<uiItem>element.tooltip_ui_item).attach_to_parent(self)
 
     def __setitem__(self, key, value):
-        if not(hasattr(key, "__len__")) or not(len(key) == 2):
+        if PySequence_Check(key) == 0 or len(key) != 2:
             raise ValueError("index must be of length 2")
         cdef int32_t row, col
         (row, col) = key
@@ -701,7 +702,7 @@ cdef class baseTable(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not(hasattr(key, "__len__")) or not(len(key) == 2):
+        if PySequence_Check(key) == 0 or len(key) != 2:
             raise ValueError("value must be a list of length 2")
         cdef int32_t row, col
         (row, col) = key
@@ -732,7 +733,7 @@ cdef class baseTable(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not(hasattr(key, "__len__")) or not(len(key) == 2):
+        if PySequence_Check(key) == 0 or len(key) != 2:
             raise ValueError("key must be a list of length 2")
         cdef int32_t row, col
         (row, col) = key
@@ -768,7 +769,7 @@ cdef class baseTable(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not(hasattr(key, "__len__")) or not(len(key) == 2):
+        if PySequence_Check(key) == 0 or len(key) != 2:
             raise ValueError("key must be a list of length 2")
         cdef int32_t row, col
         (row, col) = key
@@ -842,9 +843,9 @@ cdef class baseTable(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not(hasattr(key1, "__len__")) or not(len(key1) == 2):
+        if PySequence_Check(key1) == 0 or len(key1) != 2:
             raise ValueError("key1 must be a list of length 2")
-        if not(hasattr(key2, "__len__")) or not(len(key2) == 2):
+        if PySequence_Check(key2) == 0 or len(key2) != 2:
             raise ValueError("key2 must be a list of length 2")
         cdef int32_t row1, col1, row2, col2
         (row1, col1) = key1
@@ -906,8 +907,8 @@ cdef class baseTable(uiItem):
             self.swap_rows(i, i + 1)
         self._dirty_num_rows_cols = True
         if items is not None:
-            if not hasattr(items, '__len__'):
-                raise ValueError("items must be a list")
+            if PySequence_Check(items) == 0:
+                raise ValueError("items must be a sequence")
             for i in range(len(items)):
                 self._set_single_item(row, i, items[i])
 
@@ -918,8 +919,8 @@ cdef class baseTable(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        if not hasattr(items, '__len__'):
-            raise ValueError("items must be a list")
+        if PySequence_Check(items) == 0:
+            raise ValueError("items must be a sequence")
         cdef int32_t i
         for i in range(len(items)):
             self._set_single_item(row, i, items[i])
@@ -934,8 +935,8 @@ cdef class baseTable(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        if not hasattr(items, '__len__'):
-            raise ValueError("items must be a list")
+        if PySequence_Check(items) == 0:
+            raise ValueError("items must be a sequence")
         cdef int32_t i
         for i in range(len(items)):
             self._set_single_item(self._num_rows, i, items[i])
@@ -969,8 +970,8 @@ cdef class baseTable(uiItem):
             self.swap_cols(i, i + 1)
         self._dirty_num_rows_cols = True
         if items is not None:
-            if not hasattr(items, '__len__'):
-                raise ValueError("items must be a list")
+            if PySequence_Check(items) == 0:
+                raise ValueError("items must be a sequence")
             for i in range(len(items)):
                 self._set_single_item(i, col, items[i])
 
@@ -981,8 +982,8 @@ cdef class baseTable(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        if not hasattr(items, '__len__'):
-            raise ValueError("items must be a list")
+        if PySequence_Check(items) == 0:
+            raise ValueError("items must be a sequence")
         cdef int32_t i
         for i in range(len(items)):
             self._set_single_item(i, col, items[i])
@@ -997,7 +998,7 @@ cdef class baseTable(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._update_row_col_counts()
-        if not hasattr(items, '__len__'):
+        if PySequence_Check(items) == 0:
             raise ValueError("items must be a list")
         cdef int32_t i
         for i in range(len(items)):
@@ -1695,8 +1696,8 @@ cdef class TableColConfig(baseItem):
         if value is None:
             clear_obj_vector(self._handlers)
             return
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         for i in range(len(value)):
             if not(isinstance(value[i], baseHandler)):
                 raise TypeError(f"{value[i]} is not a handler")
@@ -1871,8 +1872,8 @@ cdef class TableRowConfig(baseItem):
         if value is None:
             clear_obj_vector(self._handlers)
             return
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         for i in range(len(value)):
             if not(isinstance(value[i], baseHandler)):
                 raise TypeError(f"{value[i]} is not a handler")

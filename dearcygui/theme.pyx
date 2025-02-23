@@ -25,7 +25,7 @@ from .core cimport *
 from .imgui_types cimport *
 from .c_types cimport *
 from .types cimport *
-from cpython cimport PyObject_GenericSetAttr
+from cpython.sequence cimport PySequence_Check
 
 cdef inline void imgui_PushStyleVar2(int i, float[2] val) noexcept nogil:
     imgui.PushStyleVar(<imgui.ImGuiStyleVar>i, imgui.ImVec2(val[0], val[1]))
@@ -1648,7 +1648,7 @@ cdef class baseThemeStyle(baseTheme):
         if type == theme_value_types.t_float:
             value.value.value_float = float(py_value)
         elif type == theme_value_types.t_float2:
-            if not(hasattr(py_value, '__len__')) or len(py_value) != 2:
+            if PySequence_Check(py_value) == 0 or len(py_value) != 2:
                 raise ValueError(f"Expected a tuple, got {py_value}")
             left = py_value[0]
             right = py_value[1]

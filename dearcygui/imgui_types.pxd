@@ -1,6 +1,7 @@
 from dearcygui.wrapper cimport imgui, implot
 from .c_types cimport Vec2, Vec4
 from libc.stdint cimport uint32_t, int32_t
+from cpython.sequence cimport PySequence_Check
 
 # Here all the types that need a cimport
 # of imgui. In order to enable Cython code
@@ -48,9 +49,9 @@ cdef inline imgui.ImU32 parse_color(src):
         # RGBA, little endian
         return <imgui.ImU32>(<long long>src)
     cdef int32_t src_size = 5 # to trigger error by default
-    if hasattr(src, '__len__'):
+    if PySequence_Check(src) > 0:
         src_size = len(src)
-    if src_size == 0 or src_size > 4:
+    if src_size == 0 or src_size > 4 or src_size < 0:
         raise TypeError("Color data must either an int32 (rgba, little endian),\n" \
                         "or an array of int (r, g, b, a) or float (r, g, b, a) normalized")
     cdef imgui.ImVec4 color_float4

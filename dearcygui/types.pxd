@@ -7,7 +7,7 @@ from .c_types cimport float2, double2, Vec2, Vec4
 from libc.stdint cimport uint32_t, int32_t
 from cpython.tuple cimport PyTuple_CheckExact
 from cpython.list cimport PyList_CheckExact
-from cpython.sequence cimport PySequence_Check, PySequence_Length
+from cpython.sequence cimport PySequence_Check
 cimport cython
 
 cdef enum child_type:
@@ -258,7 +258,7 @@ cdef inline void read_point(point_type* dst, src):
         return
     if PySequence_Check(src) == 0:
         raise TypeError("Expecting array, tuple, list, Coord, etc of len up to 2")
-    cdef int32_t src_size = <int32_t>PySequence_Length(src)
+    cdef int32_t src_size = <int32_t>len(src)
     if src_size > 2 or src_size < 0:
         raise TypeError("Expecting array, tuple, list, Coord, etc of len up to 2")
     dst[0] = <point_type>0.
@@ -279,7 +279,7 @@ cdef inline void read_rect(double* dst, src):
         dst[3] = (<Rect>src)._y2
         return
     try:
-        if PySequence_Check(src) > 0 and PySequence_Length(src) == 2 and \
+        if PySequence_Check(src) > 0 and len(src) == 2 and \
             PySequence_Check(src[0]) > 0 and PySequence_Check(src[1]) > 0:
             read_coord(dst, src[0])
             read_coord(dst + 2, src[1])
@@ -329,7 +329,7 @@ cdef inline void read_vec4(point_type* dst, src):
         return
     if PySequence_Check(src) == 0:
         raise TypeError("Point data must be an array of up to 4 coordinates")
-    cdef int32_t src_size = <int32_t>PySequence_Length(src)
+    cdef int32_t src_size = <int32_t>len(src)
     if src_size > 4 or src_size < 0:
         raise TypeError("Point data must be an array of up to 4 coordinates")
     dst[0] = <point_type>0.

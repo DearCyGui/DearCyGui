@@ -305,12 +305,9 @@ cdef class DrawingScale(drawingItem):
 
     @scales.setter
     def scales(self, values):
-        if not(hasattr(values, '__len__')) or len(values) != 2:
-            raise ValueError(f"Expected tuple, got {values}")
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._scales[0] = values[0]
-        self._scales[1] = values[1]
+        read_point[double](self._scales, values)
 
     @property
     def origin(self):
@@ -326,12 +323,9 @@ cdef class DrawingScale(drawingItem):
 
     @origin.setter
     def origin(self, values):
-        if not(hasattr(values, '__len__')) or len(values) != 2:
-            raise ValueError(f"Expected tuple, got {values}")
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._shifts[0] = values[0]
-        self._shifts[1] = values[1]
+        read_point[double](self._shifts, values)
 
     @property
     def no_parent_scaling(self):

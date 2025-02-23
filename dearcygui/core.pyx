@@ -20,6 +20,7 @@ import traceback
 cimport cython
 from cython.view cimport array as cython_array
 from cython.operator cimport dereference
+from cpython.sequence cimport PySequence_Check
 cimport cpython
 from libc.string cimport memset, memcpy
 from libcpp.string cimport string
@@ -1679,7 +1680,7 @@ cdef class baseItem:
 
     @children.setter
     def children(self, value):
-        if not(hasattr(value, "__len__")):
+        if PySequence_Check(value) == 0:
             raise TypeError("children must be a array of child items")
         cdef unique_lock[DCGMutex] item_m
         cdef unique_lock[DCGMutex] child_m
@@ -3152,8 +3153,8 @@ cdef class Viewport(baseItem):
         if value is None:
             clear_obj_vector(self._handlers)
             return
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         for i in range(len(value)):
             if not(isinstance(value[i], baseHandler)):
                 raise TypeError(f"{value[i]} is not a handler")
@@ -4946,8 +4947,8 @@ cdef class uiItem(baseItem):
         if value is None:
             clear_obj_vector(self._callbacks)
             return
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         # Convert to callbacks
         for i in range(len(value)):
             items.append(value[i] if isinstance(value[i], Callback) else Callback(value[i]))
@@ -5133,8 +5134,8 @@ cdef class uiItem(baseItem):
         if value is None:
             clear_obj_vector(self._handlers)
             return
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         for i in range(len(value)):
             if not(isinstance(value[i], baseHandler)):
                 raise TypeError(f"{value[i]} is not a handler")
@@ -5558,7 +5559,7 @@ cdef class uiItem(baseItem):
 
     @pos_policy.setter
     def pos_policy(self, value):
-        if hasattr(value, "__len__"):
+        if PySequence_Check(value) > 0:
             (x, y) = value
             self.pos_policy[0] = check_Positioning(x)
             self.pos_policy[1] = check_Positioning(y)

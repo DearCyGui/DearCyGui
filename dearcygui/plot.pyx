@@ -20,7 +20,8 @@ from dearcygui.wrapper cimport imgui, implot
 from libc.stdint cimport int32_t
 from libc.math cimport INFINITY
 from libcpp.vector cimport vector
-from cpython cimport PyObject
+from cpython.object cimport PyObject
+from cpython.sequence cimport PySequence_Check
 
 from .core cimport baseHandler, baseItem, uiItem, AxisTag, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector, \
@@ -687,8 +688,8 @@ cdef class PlotAxisConfig(baseItem):
         if value is None:
             clear_obj_vector(self._handlers)
             return
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         for i in range(len(value)):
             if not(isinstance(value[i], baseHandler)):
                 raise TypeError(f"{value[i]} is not a handler")
@@ -759,7 +760,7 @@ cdef class PlotAxisConfig(baseItem):
         self._labels_cstr.clear()
         if value is None:
             return
-        if hasattr(value, '__len__'):
+        if PySequence_Check(value) > 0:
             for v in value:
                 self._labels.push_back(string_from_str(v))
             for i in range(<int>self._labels.size()):
@@ -788,7 +789,7 @@ cdef class PlotAxisConfig(baseItem):
         self._labels_coord.clear()
         if value is None:
             return
-        if hasattr(value, '__len__'):
+        if PySequence_Check(value) > 0:
             for v in value:
                 self._labels_coord.push_back(v)
         else:
@@ -1868,8 +1869,8 @@ cdef class plotElementWithLegend(plotElement):
         if value is None:
             clear_obj_vector(self._handlers)
             return
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         for i in range(len(value)):
             if not(isinstance(value[i], baseHandler)):
                 raise TypeError(f"{value[i]} is not a handler")
@@ -2952,7 +2953,7 @@ cdef class Subplots(uiItem):
         lock_gil_friendly(m, self.mutex)
         self._row_ratios.clear()
         cdef float v
-        if hasattr(value, '__len__'):
+        if PySequence_Check(value) > 0:
             if len(value) < self._rows:
                 raise ValueError("Not enough row ratios provided")
             for v in value:
@@ -2977,7 +2978,7 @@ cdef class Subplots(uiItem):
         lock_gil_friendly(m, self.mutex)
         self._col_ratios.clear()
         cdef float v
-        if hasattr(value, '__len__'):
+        if PySequence_Check(value) > 0:
             if len(value) < self._cols:
                 raise ValueError("Not enough column ratios provided") 
             for v in value:
@@ -3261,7 +3262,7 @@ cdef class PlotBarGroups(plotElementWithLegend):
         self._labels.clear()
         if value is None:
             return
-        if hasattr(value, '__len__'):
+        if PySequence_Check(value) > 0:
             i = 0
             for v in value:
                 self._labels.push_back(string_from_str(v))
@@ -3431,7 +3432,7 @@ cdef class PlotPieChart(plotElementWithLegend):
         cdef int32_t k
         if value is None:
             return
-        if hasattr(value, '__len__'):
+        if PySequence_Check(value) > 0:
             for v in value:
                 self._labels.push_back(string_from_str(v))
             for k in range(len(value), <int32_t>self._values.size()):
@@ -3818,7 +3819,7 @@ cdef class PlotAnnotation(plotElement):
     def offset(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not(hasattr(value, '__len__')) or len(value) != 2:
+        if PySequence_Check(value) == 0 or len(value) != 2:
             raise ValueError("Offset must be a 2-tuple")
         self._offset = make_Vec2(value[0], value[1])
 
@@ -3911,7 +3912,7 @@ cdef class PlotHistogram(plotElementX):
         if value is None:
             self._has_range = False
             return
-        if not hasattr(value, '__len__') or len(value) != 2:
+        if PySequence_Check(value) == 0 or len(value) != 2:
             raise ValueError("Range must be None or (min,max) tuple")
         self._range_min = float(value[0])
         self._range_max = float(value[1])
@@ -4092,7 +4093,7 @@ cdef class PlotHistogram2D(plotElementXY):
         if value is None:
             self._has_range_x = False
             return
-        if not hasattr(value, '__len__') or len(value) != 2:
+        if PySequence_Check(value) == 0 or len(value) != 2:
             raise ValueError("X range must be None or (min,max) tuple")
         self._range_min_x = float(value[0])
         self._range_max_x = float(value[1])
@@ -4115,7 +4116,7 @@ cdef class PlotHistogram2D(plotElementXY):
         if value is None:
             self._has_range_y = False
             return
-        if not hasattr(value, '__len__') or len(value) != 2:
+        if PySequence_Check(value) == 0 or len(value) != 2:
             raise ValueError("Y range must be None or (min,max) tuple")
         self._range_min_y = float(value[0])
         self._range_max_y = float(value[1])
@@ -4308,7 +4309,7 @@ cdef class PlotHeatmap(plotElementWithLegend):
     def bounds_min(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not hasattr(value, '__len__') or len(value) != 2:
+        if PySequence_Check(value) == 0 or len(value) != 2:
             raise ValueError("bounds_min must be a 2-tuple")
         self._bounds_min[0] = value[0]
         self._bounds_min[1] = value[1]
@@ -4324,7 +4325,7 @@ cdef class PlotHeatmap(plotElementWithLegend):
     def bounds_max(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not hasattr(value, '__len__') or len(value) != 2:
+        if PySequence_Check(value) == 0 or len(value) != 2:
             raise ValueError("bounds_max must be a 2-tuple")
         self._bounds_max[0] = value[0]
         self._bounds_max[1] = value[1]

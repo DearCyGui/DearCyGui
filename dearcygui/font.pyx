@@ -21,6 +21,7 @@ from libcpp.vector cimport vector
 
 cimport cython
 from cython.view cimport array as cython_array
+from cpython cimport PySequence_Check
 from dearcygui.wrapper cimport imgui
 
 from .core cimport baseFont, baseItem, Texture, Callback, \
@@ -204,8 +205,8 @@ cdef class FontMultiScales(baseFont):
             return
 
         # Convert to list if single font
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
 
         # Validate all inputs are Font objects
         for font in value:
@@ -248,8 +249,8 @@ cdef class FontMultiScales(baseFont):
             clear_obj_vector(self._callbacks)
             return
         cdef list items = []
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         for v in value:
             items.append(v if isinstance(v, Callback) else Callback(v))
         clear_obj_vector(self._callbacks)

@@ -24,7 +24,7 @@ from libcpp.cmath cimport trunc
 from libc.math cimport INFINITY
 
 import array
-from cpython cimport array
+from cpython.array cimport array
 
 from .core cimport baseHandler, drawingItem, uiItem, \
     lock_gil_friendly, read_point, clear_obj_vector, append_obj_vector, \
@@ -224,8 +224,8 @@ cdef class DrawInvisibleButton(drawingItem):
         if value is None:
             clear_obj_vector(self._handlers)
             return
-        if not hasattr(value, "__len__"):
-            value = [value]
+        if PySequence_Check(value) == 0:
+            value = (value,)
         for i in range(len(value)):
             if not(isinstance(value[i], baseHandler)):
                 raise TypeError(f"{value[i]} is not a handler")
@@ -1092,7 +1092,7 @@ cdef class Combo(uiItem):
             return
         if value is str:
             self._items.push_back(string_from_str(value))
-        elif hasattr(value, '__len__'):
+        elif PySequence_Check(value) > 0:
             for v in value:
                 self._items.push_back(string_from_str(v))
         else:
@@ -1786,7 +1786,7 @@ cdef class ListBox(uiItem):
             return
         if value is str:
             self._items.push_back(string_from_str(value))
-        elif hasattr(value, '__len__'):
+        elif PySequence_Check(value) > 0:
             for v in value:
                 self._items.push_back(string_from_str(v))
         else:
@@ -1913,7 +1913,7 @@ cdef class RadioButton(uiItem):
             return
         if value is str:
             self._items.push_back(string_from_str(value))
-        elif hasattr(value, '__len__'):
+        elif PySequence_Check(value) > 0:
             for v in value:
                 self._items.push_back(string_from_str(v))
         else:

@@ -137,7 +137,7 @@ cdef class Coord:
 
     def __mul__(self, other):
         cdef double[2] other_coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(other_coord, other)
             except TypeError:
@@ -152,7 +152,7 @@ cdef class Coord:
 
     def __rmul__(self, other):
         cdef double[2] other_coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(other_coord, other)
             except TypeError:
@@ -167,7 +167,7 @@ cdef class Coord:
 
     def __imul__(self, other):
         cdef double[2] other_coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(other_coord, other)
             except TypeError:
@@ -183,7 +183,7 @@ cdef class Coord:
 
     def __truediv__(self, other):
         cdef double[2] other_coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(other_coord, other)
             except TypeError:
@@ -198,7 +198,7 @@ cdef class Coord:
 
     def __rtruediv__(self, other):
         cdef double[2] other_coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(other_coord, other)
             except TypeError:
@@ -213,7 +213,7 @@ cdef class Coord:
 
     def __itruediv__(self, other):
         cdef double[2] other_coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(other_coord, other)
             except TypeError:
@@ -622,7 +622,7 @@ cdef class Rect:
 
     def __mul__(self, other):
         cdef double[2] coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(coord, other)
             except TypeError:
@@ -643,7 +643,7 @@ cdef class Rect:
 
     def __imul__(self, other):
         cdef double[2] coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(coord, other)
             except TypeError:
@@ -660,7 +660,7 @@ cdef class Rect:
 
     def __truediv__(self, other):
         cdef double[2] coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(coord, other)
             except TypeError:
@@ -678,7 +678,7 @@ cdef class Rect:
 
     def __itruediv__(self, other):
         cdef double[2] coord
-        if hasattr(other, '__len__'):
+        if PySequence_Check(other) > 0:
             try:
                 read_coord(coord, other)
             except TypeError:

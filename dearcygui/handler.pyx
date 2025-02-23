@@ -20,6 +20,7 @@ from .c_types cimport *
 from .types cimport *
 from .types import Key
 from cython.operator cimport dereference
+from cpython.sequence cimport PySequence_Check
 from dearcygui.wrapper cimport imgui, implot
 import traceback
 
@@ -828,7 +829,7 @@ cdef class MotionHandler(baseHandler):
 
     @pos_policy.setter
     def pos_policy(self, value):
-        if hasattr(value, "__len__"):
+        if PySequence_Check(value) > 0:
             (x, y) = value
             self._positioning[0] = check_Positioning(x)
             self._positioning[1] = check_Positioning(y)
