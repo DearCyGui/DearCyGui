@@ -677,6 +677,10 @@ cdef class AxisTag(baseItem):
 Bindable elements
 """
 
+# Helper to parse a texture from a python object.
+# Returns a contiguous 3D array of floats (0..1) or uint8_t (max 4 channels)
+cdef object parse_texture(src)
+
 cdef class Texture(baseItem):
     ### Public read-only variables ###
     cdef void* allocated_texture

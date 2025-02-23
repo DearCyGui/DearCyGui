@@ -20,10 +20,13 @@ import traceback
 cimport cython
 from cython.view cimport array as cython_array
 from cython.operator cimport dereference
+from cpython.list cimport PyList_CheckExact
+from cpython.tuple cimport PyTuple_CheckExact
 from cpython.sequence cimport PySequence_Check
 cimport cpython
 from libc.string cimport memset, memcpy
 from libcpp.string cimport string
+from libcpp.vector cimport vector
 
 # This file is the only one that is linked to the C++ code
 # Thus it is the only one allowed to make calls to it
@@ -40,7 +43,7 @@ from libcpp.cmath cimport floor, ceil
 from libcpp.cmath cimport round as cround
 from libcpp.set cimport set as cpp_set
 from libc.math cimport M_PI, INFINITY
-from libc.stdint cimport uintptr_t, uint32_t, int32_t, int64_t
+from libc.stdint cimport uint8_t, uintptr_t, uint32_t, int32_t, int64_t
 
 cimport dearcygui.backends.time as ctime
 
@@ -6929,6 +6932,266 @@ cdef class AxisTag(baseItem):
 Textures
 """
 
+ctypedef union texture_python_data_content:
+    int32_t value_int
+    double value_double
+
+ctypedef struct texture_python_data:
+    texture_python_data_content content
+    int64_t type # int64 for alignment
+
+# tuple/list -> 2D/3D array
+# TODO: use critical sections when cython 3.1 is released
+# int32_t is for faster error checking
+cdef inline int32_t fill_array_chan_exact(vector[texture_python_data] &elements,
+                                          src_source src_col,
+                                          int row,
+                                          int col,
+                                          int num_chans):
+    """
+    Fill one element of the target texture data, specialized tuple/list version
+    """
+    cdef int chan
+    cdef texture_python_data element
+    cdef object value
+    if len(src_col) != num_chans:
+        raise ValueError("Inconsistent texture array size")
+    for chan in range(num_chans):
+        value = src_col[chan]
+        if isinstance(value, int):
+            element.content.value_int = value
+            element.type = 0
+        else:
+            element.content.value_double = value
+            element.type = 1
+        elements.push_back(element)
+    return 0
+
+cdef inline int32_t fill_array_chan(vector[texture_python_data] &elements,
+                                    object src_col,
+                                    int row,
+                                    int col,
+                                    int num_chans):
+    """
+    Fill one element of the target texture data
+    """
+    cdef int chan
+    cdef texture_python_data element
+    cdef object value
+    if PyTuple_CheckExact(src_col) > 0:
+        return fill_array_chan_exact[tuple](
+            elements,
+            <tuple>src_col,
+            row,
+            col,
+            num_chans
+        )
+    if PyList_CheckExact(src_col) > 0:
+        return fill_array_chan_exact[list](
+            elements,
+            <list>src_col,
+            row,
+            col,
+            num_chans
+        )
+    if PySequence_Check(src_col) == 0 or \
+       len(src_col) != num_chans:
+        raise ValueError("Inconsistent texture array size")
+    for chan in range(num_chans):
+        value = src_col[chan]
+        if isinstance(value, int):
+            element.content.value_int = value
+            element.type = 0
+        else:
+            element.content.value_double = value
+            element.type = 1
+        elements.push_back(element)
+    return 0
+
+cdef inline int32_t fill_array_col_exact(vector[texture_python_data] &elements,
+                                         src_source src_row,
+                                         int row,
+                                         int num_cols,
+                                         int num_chans,
+                                         bint no_chan_len):
+    """
+    Fill one column of the target texture data, specialized tuple/list version
+    """
+    cdef int col
+    cdef texture_python_data element
+    cdef object value
+    if len(src_row) != num_cols:
+        raise ValueError("Inconsistent texture array size")
+    if no_chan_len:
+        for col in range(num_cols):
+            value = src_row[col]
+            if isinstance(value, int):
+                element.content.value_int = value
+                element.type = 0
+            elif isinstance(value, float):
+                element.content.value_double = value
+                element.type = 1
+            else:
+                if PySequence_Check(value) > 0:
+                    raise ValueError("Inconsistent texture array size")
+                element.content.value_double = value
+                element.type = 1
+            elements.push_back(element)
+    else:
+        for col in range(num_cols):
+            fill_array_chan(elements,
+                            src_row[col],
+                            row,
+                            col,
+                            num_chans)
+    return 0
+
+cdef inline int32_t fill_array_col(vector[texture_python_data] &elements,
+                                   object src_row,
+                                   int row,
+                                   int num_cols,
+                                   int num_chans,
+                                   bint no_chan_len):
+    """
+    Fill one column of the target texture data
+    """
+    cdef int col
+    cdef texture_python_data element
+    cdef object value
+    if PyTuple_CheckExact(src_row) > 0:
+        return fill_array_col_exact[tuple](
+                elements,
+                <tuple>src_row,
+                row,
+                num_cols,
+                num_chans,
+                no_chan_len
+            )
+    if PyList_CheckExact(src_row) > 0:
+        return fill_array_col_exact[list](
+                elements,
+                <list>src_row,
+                row,
+                num_cols,
+                num_chans,
+                no_chan_len
+            )
+    if PySequence_Check(src_row) == 0 or \
+       len(src_row) != num_cols:
+        raise ValueError("Inconsistent texture array size")
+    if no_chan_len:
+        for col in range(num_cols):
+            value = src_row[col]
+            if isinstance(value, int):
+                element.content.value_int = value
+                element.type = 0
+            elif isinstance(value, float):
+                element.content.value_double = value
+                element.type = 1
+            else:
+                if PySequence_Check(value) > 0:
+                    raise ValueError("Inconsistent texture array size")
+                element.content.value_double = value
+                element.type = 1
+            elements.push_back(element)
+    else:
+        for col in range(num_cols):
+            fill_array_chan(elements,
+                            src_row[col],
+                            row,
+                            col,
+                            num_chans)
+    return 0
+
+cdef object parse_texture(src):
+    """
+    Parse a texture from a python object.
+
+    Returns a 3D array of floats or uint8_t (max 4 channels)
+    """
+    cdef cython_array value_f
+    cdef cython_array value_u
+    cdef float[:,:,::1] value_f_view
+    cdef uint8_t[:,:,::1] value_u_view
+    cdef int num_rows, num_cols, num_chans
+    cdef int row, col, chan
+    cdef bint no_chan_len
+    cdef bint has_float = False
+    cdef vector[texture_python_data] elements
+    cdef texture_python_data element
+    cdef int32_t element_int
+    cdef float element_float
+    cdef bint bound_error = False
+    # Check all items are of the same size
+    try:
+        num_rows = len(src)
+        num_cols = len(src[0])
+        if PySequence_Check(src[0][0]) > 0:
+            num_chans = len(src[0][0])
+            no_chan_len = False
+        else:
+            num_chans = 1
+            no_chan_len = True
+
+        if num_chans > 4:
+            raise ValueError("Invalid number of texture channels")
+        if num_rows == 0 or num_cols == 0:
+            raise ValueError("Invalid texture size")
+        if num_chans == 0:
+            raise ValueError("Invalid number of texture channels")
+
+        elements.reserve(num_rows * num_cols * num_chans)
+        # Retrieve all the elements
+        for row in range(num_rows):
+            fill_array_col(elements,
+                            src[row],
+                            row,
+                            num_cols,
+                            num_chans,
+                            no_chan_len)
+        if num_rows * num_cols * num_chans != elements.size():
+            raise RuntimeError("Error retrieving array data")
+        for element in elements:
+            if element.type != 0:
+                has_float = True
+                break
+
+        if not(has_float):
+            value_u = cython_array(shape=(num_rows, num_cols, num_chans), itemsize=1, format="B")
+            value_u_view = value_u
+            for row in range(num_rows):
+                for col in range(num_cols):
+                    for chan in range(num_chans):
+                        element = elements[row * num_cols * num_chans + col * num_chans + chan]
+                        element_int = element.content.value_int
+                        value_u_view[row, col, chan] = <uint8_t>element_int
+                        if element_int < 0 or element_int > 255:
+                            bound_error = True
+            if bound_error:
+                raise ValueError("Integer texture data must be between 0 and 255")
+            return value_u
+        else:
+            value_f = cython_array(shape=(num_rows, num_cols, num_chans), itemsize=4, format="f")
+            value_f_view = value_f
+            for row in range(num_rows):
+                for col in range(num_cols):
+                    for chan in range(num_chans):
+                        element = elements[row * num_cols * num_chans + col * num_chans + chan]
+                        if element.type == 0:
+                            element_float = <float>element.content.value_int
+                        else:
+                            element_float = <float>element.content.value_double
+                        value_f_view[row, col, chan] = element_float
+                        if element_float < 0. or element_float > 1.:
+                            bound_error = True
+            if bound_error:
+                raise ValueError("Floating point texture data must be normalized between 0 and 1")
+            return value_f
+    except (ValueError, RuntimeError) as e:
+        raise e
+    except:
+        raise ValueError(f"Invalid texture data {src}")
+
 cdef class Texture(baseItem):
     """
     Represents a texture that can be used in the UI.
@@ -7126,53 +7389,7 @@ cdef class Texture(baseItem):
         if cpython.PyObject_CheckBuffer(src):
             value = src
         else:
-            # Check all items are of the same size
-            try:
-                num_rows = len(src)
-                num_cols = len(src[0])
-                if hasattr(src[0][0], '__len__'):
-                    num_chans = len(src[0][0])
-                else:
-                    num_chans = 1
-                for row in range(num_rows):
-                    for col in range(num_cols):
-                        if (not(hasattr(src[0][0], '__len__')) and num_chans == 1) or \
-                           len(src[row][col]) != num_chans:
-                            raise ValueError("Inconsistent texture array size")
-                        for chan in range(num_chans):
-                            element = src[row][col]
-                            if not(isinstance(element, int)):
-                                has_float = True
-                            min_value = min(min_value, <double>element)
-                            max_value = max(max_value, <double>element)
-            except ValueError as e:
-                raise e
-            except:
-                raise ValueError(f"Invalid texture data {src}")
-            if min_value < 0:
-                raise ValueError("Texture data must be unsigned")
-            if has_float and max_value > 1.:
-                raise ValueError("Floating point texture data must be normalized between 0 and 1")
-            if not(has_float) and max_value > 255:
-                raise ValueError("Integer texture data must be between 0 and 255")
-            if num_chans > 4:
-                raise ValueError("Invalid number of texture channels")
-            if num_rows == 0 or num_cols == 0:
-                raise ValueError("Invalid texture size")
-            if num_chans == 0:
-                raise ValueError("Invalid number of texture channels")
-            # Convert to cython array
-            if has_float:
-                value = cython_array(shape=(num_rows, num_cols, num_chans), itemsize=4, format="f")
-            else:
-                value = cython_array(shape=(num_rows, num_cols, num_chans), itemsize=1, format="B")
-            for row in range(num_rows):
-                for col in range(num_cols):
-                    if hasattr(src[row][col], '__len__'):
-                        for chan in range(num_chans):
-                            value[row, col, chan] = src[row][col][chan]
-                    else:
-                        value[row, col, 0] = src[row][col]
+            value = parse_texture(src)
         self.set_content(value)
 
     cdef void set_content(self, content): # TODO: deadlock when held by external lock
