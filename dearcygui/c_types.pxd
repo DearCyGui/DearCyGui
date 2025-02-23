@@ -1,5 +1,5 @@
 cimport cpython
-from libc.stdint cimport uint64_t
+from libc.stdint cimport int32_t, uint64_t
 from cython.view cimport array as cython_array
 
 cdef extern from * nogil:
@@ -259,14 +259,18 @@ cdef inline bytes string_to_bytes(DCGString &s):
 cdef inline str string_to_str(DCGString &s):
     return string_to_bytes(s).decode(encoding='utf-8')
 
-cdef inline void set_uuid_label(DCGString &s, uint64_t uuid):
+# The int32_t return value is to let cython return -1 on
+# exception and avoid an exception check else.
+cdef inline int32_t set_uuid_label(DCGString &s, uint64_t uuid):
     """Equivalent to = string_from_bytes(bytes(b'###%ld'% self.uuid))"""
     s.set_uuid_label(uuid)
+    return 0
 
-cdef inline void set_composite_label(DCGString &s, str user_label, uint64_t uuid):
+cdef inline int32_t set_composite_label(DCGString &s, str user_label, uint64_t uuid):
     """Equivalent to string_from_bytes(bytes(self._user_label, 'utf-8') + bytes(b'###%ld'% self.uuid))"""
     cdef bytes b = user_label.encode('utf-8')
     s.set_composite_label(<const char*>b, len(b), uuid)
+    return 0
 
 cdef extern from * nogil:
     """

@@ -56,7 +56,7 @@ cdef inline void lock_gil_friendly(unique_lock[DCGMutex] &m,
     lock_gil_friendly_block(m)
 
 
-cdef inline void clear_obj_vector(DCGVector[PyObject *] &items):
+cdef inline void clear_obj_vector(DCGVector[PyObject *] &items) noexcept:
     cdef int32_t i
     cdef object obj
     for i in range(<int>items.size()):
@@ -64,7 +64,7 @@ cdef inline void clear_obj_vector(DCGVector[PyObject *] &items):
         Py_DECREF(obj)
     items.clear()
 
-cdef inline void append_obj_vector(DCGVector[PyObject *] &items, item_list):
+cdef inline void append_obj_vector(DCGVector[PyObject *] &items, item_list) noexcept:
     for item in item_list:
         Py_INCREF(item)
         items.push_back(<PyObject*>item)
