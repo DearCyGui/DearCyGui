@@ -5,6 +5,8 @@
 
 from .c_types cimport float2, double2, Vec2, Vec4
 from libc.stdint cimport uint32_t, int32_t
+from cpython.tuple cimport PyTuple_CheckExact
+from cpython.list cimport PyList_CheckExact
 
 cdef enum child_type:
     cat_drawing
@@ -204,6 +206,10 @@ ctypedef fused point_type:
     float
     double
 
+ctypedef fused src_source:
+    tuple
+    list
+
 
 cdef class Coord:
     cdef double _x
@@ -221,25 +227,40 @@ cdef class Rect:
     @staticmethod
     cdef Rect build(double[4] &rect)
 
+cdef inline void read_point_exact(point_type* dst, src_source src):
+    cdef int32_t src_size = len(src)
+    if src_size > 2:
+        raise TypeError("Point data must be a tuple of up to 2 coordinates")
+    if src_size > 0:
+        dst[0] = <point_type>src[0]
+    if src_size > 1:
+        dst[1] = <point_type>src[1]
+
 cdef inline void read_point(point_type* dst, src):
+    dst[0] = <point_type>0.
+    dst[1] = <point_type>0.
+    if PyTuple_CheckExact(src) > 0:
+        read_point_exact[point_type, tuple](dst, <tuple>src)
+        return
+    if PyList_CheckExact(src) > 0:
+        read_point_exact[point_type, list](dst, <list>src)
+        return
+    if isinstance(src, Coord):
+        dst[0] = <point_type>(<Coord>src)._x
+        dst[1] = <point_type>(<Coord>src)._y
+        return
     if not(hasattr(src, '__len__')):
         raise TypeError("Point data must be an array of up to 2 coordinates")
     cdef int32_t src_size = len(src)
     if src_size > 2:
         raise TypeError("Point data must be an array of up to 2 coordinates")
-    dst[0] = <point_type>0.
-    dst[1] = <point_type>0.
     if src_size > 0:
         dst[0] = <point_type>src[0]
     if src_size > 1:
         dst[1] = <point_type>src[1]
 
 cdef inline void read_coord(double* dst, src):
-    if isinstance(src, Coord):
-        dst[0] = (<Coord>src)._x
-        dst[1] = (<Coord>src)._y
-    else:
-        read_point[double](dst, src)
+    read_point[double](dst, src)
 
 cdef inline void read_rect(double* dst, src):
     if isinstance(src, Rect):
