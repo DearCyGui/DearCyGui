@@ -582,8 +582,14 @@ cdef extern from *:
     enum DCGArrayType {
         DCG_INT32 = 0,
         DCG_FLOAT = 1,
-        DCG_DOUBLE = 2
+        DCG_DOUBLE = 2,
+        DCG_UINT8 = 3
     };
+
+    inline bool is_little_endian() {
+        const uint16_t test = 0x0001;
+        return *reinterpret_cast<const uint8_t*>(&test) == 0x01;
+    }
 
     struct DCG1DArrayView {
         void* _data;
@@ -637,18 +643,31 @@ cdef extern from *:
                 while (*format == '@' || *format == '=' || *format == '<' || 
                        *format == '>' || *format == '!') format++;
 
-                // Skip size/repeat indicators
-                while (isdigit(*format)) format++;
+                // We do not support size/repeat indicators
+                if (isdigit(*format))
+                    throw std::runtime_error("Unsupported buffer format for conversion");
 
                 switch (*format) {
                     case 'b': convert_array_to_double<int8_t>(src, new_data); break;
                     case 'B': convert_array_to_double<uint8_t>(src, new_data); break;
                     case 'h': convert_array_to_double<int16_t>(src, new_data); break;
                     case 'H': convert_array_to_double<uint16_t>(src, new_data); break;
-                    case 'i': 
-                    case 'l': convert_array_to_double<int32_t>(src, new_data); break;
-                    case 'I':
-                    case 'L': convert_array_to_double<uint32_t>(src, new_data); break;
+                    case 'i': convert_array_to_double<int32_t>(src, new_data); break;
+                    case 'l':
+                        if (_view.itemsize == 4) {
+                            convert_array_to_double<int32_t>(src, new_data);
+                        } else {
+                            convert_array_to_double<int64_t>(src, new_data);
+                        }
+                        break;
+                    case 'I': convert_array_to_double<uint32_t>(src, new_data); break;
+                    case 'L':
+                        if (_view.itemsize == 4) {
+                            convert_array_to_double<uint32_t>(src, new_data);
+                        } else {
+                            convert_array_to_double<uint64_t>(src, new_data);
+                        }
+                        break;
                     case 'q': convert_array_to_double<int64_t>(src, new_data); break;
                     case 'Q': convert_array_to_double<uint64_t>(src, new_data); break;
                     case 'f': convert_array_to_double<float>(src, new_data); break;
@@ -775,19 +794,38 @@ cdef extern from *:
                 if (!format) {
                     _convert_to_double();
                 } else {
-                    // Skip byte order indicators
-                    while (*format == '@' || *format == '=' || *format == '<' || 
-                           *format == '>' || *format == '!') format++;
+                    const bool native_little = is_little_endian();
+                    bool format_little = true;  // default to native
                     
-                    // Skip size/repeat indicators
-                    while (isdigit(*format)) format++;
+                    if (*format == '<') {
+                        format_little = true;
+                        format++;
+                    } else if (*format == '>') {
+                        format_little = false;
+                        format++;
+                    } else if (*format == '=' || *format == '@') {
+                        format_little = native_little;
+                        format++;
+                    } else if (*format == '!') {
+                        format_little = false;
+                        format++;
+                    }
+                    
+                    if (format_little != native_little) {
+                        PyBuffer_Release(&_view);
+                        throw std::invalid_argument("Buffer endianness does not match platform");
+                    }
 
-                    if (*format == 'i' || *format == 'l') {
+                    if (_view.itemsize == 4 && (
+                        *format == 'i' ||
+                        *format == 'l')) {
                         _type = DCG_INT32;
                     } else if (*format == 'f') {
                         _type = DCG_FLOAT;
                     } else if (*format == 'd') {
                         _type = DCG_DOUBLE;
+                    } else if (*format == 'B' || *format == 'b') {
+                        _type = DCG_UINT8;
                     } else {
                         // Convert unsupported types to double
                         _convert_to_double();
@@ -869,6 +907,7 @@ cdef extern from *:
                 case DCG_INT32: element_size = sizeof(int32_t); break;
                 case DCG_FLOAT: element_size = sizeof(float); break;
                 case DCG_DOUBLE: element_size = sizeof(double); break;
+                case DCG_UINT8: element_size = sizeof(uint8_t); break;
             }
             if (_stride == element_size) return;
             
@@ -893,40 +932,7 @@ cdef extern from *:
             _convert_to_double();
         }
     };
-    """
 
-    cdef cppclass DCG1DArrayView:
-        void* _data
-        size_t _size
-        size_t _stride
-        DCGArrayType _type
-        
-        DCG1DArrayView() except +
-        DCG1DArrayView(object) except +
-        void reset() except +
-        void reset(object) except +
-        T* data[T]() nogil
-        size_t size() nogil
-        size_t stride() nogil
-        DCGArrayType type() nogil
-        cpython.PyObject* pyobj()
-        void ensure_contiguous() except +
-        void ensure_double() except +
-
-    ctypedef enum DCGArrayType:
-        DCG_INT32
-        DCG_FLOAT
-        DCG_DOUBLE
-
-cdef inline object get_object_from_1D_array_view(DCG1DArrayView &view):
-    cdef cpython.PyObject *obj = view.pyobj()
-    if obj == NULL:
-        # return empty array of 1 dim
-        return cython_array(shape=(1,), itemsize=8, format='d')[:0]
-    return <object>obj
-
-cdef extern from *:
-    """
     struct DCG2DContiguousArrayView {
         void* _data;
         void* _owned_data;
@@ -982,8 +988,9 @@ cdef extern from *:
                 while (*format == '@' || *format == '=' || *format == '<' || 
                        *format == '>' || *format == '!') format++;
 
-                // Skip size/repeat indicators
-                while (isdigit(*format)) format++;
+                // We do not support size/repeat indicators
+                if (isdigit(*format))
+                    throw std::runtime_error("Unsupported buffer format for conversion");
 
                 // Get source strides
                 size_t stride_row = _view.strides[0];
@@ -995,10 +1002,22 @@ cdef extern from *:
                     case 'B': convert_array_to_double<uint8_t>(src, new_data, stride_row, stride_col); break;
                     case 'h': convert_array_to_double<int16_t>(src, new_data, stride_row, stride_col); break;
                     case 'H': convert_array_to_double<uint16_t>(src, new_data, stride_row, stride_col); break;
-                    case 'i': 
-                    case 'l': convert_array_to_double<int32_t>(src, new_data, stride_row, stride_col); break;
-                    case 'I':
-                    case 'L': convert_array_to_double<uint32_t>(src, new_data, stride_row, stride_col); break;
+                    case 'i': convert_array_to_double<int32_t>(src, new_data, stride_row, stride_col); break;
+                    case 'l': 
+                        if (_view.itemsize == 4) {
+                            convert_array_to_double<int32_t>(src, new_data, stride_row, stride_col);
+                        } else {
+                            convert_array_to_double<int64_t>(src, new_data, stride_row, stride_col);
+                        }
+                        break;
+                    case 'I': convert_array_to_double<uint32_t>(src, new_data, stride_row, stride_col); break;
+                    case 'L':
+                        if (_view.itemsize == 4) {
+                            convert_array_to_double<uint32_t>(src, new_data, stride_row, stride_col);
+                        } else {
+                            convert_array_to_double<uint64_t>(src, new_data, stride_row, stride_col);
+                        }
+                        break;
                     case 'q': convert_array_to_double<int64_t>(src, new_data, stride_row, stride_col); break;
                     case 'Q': convert_array_to_double<uint64_t>(src, new_data, stride_row, stride_col); break;
                     case 'f': convert_array_to_double<float>(src, new_data, stride_row, stride_col); break;
@@ -1026,14 +1045,19 @@ cdef extern from *:
                 case DCG_INT32: element_size = sizeof(int32_t); break;
                 case DCG_FLOAT: element_size = sizeof(float); break;
                 case DCG_DOUBLE: element_size = sizeof(double); break;
+                case DCG_UINT8: element_size = sizeof(uint8_t); break;
             }
             
-            // Check if already contiguous - row major layout
-            if (_view.ndim == 2 &&
+            // Only use fast path when:
+            // - Column stride matches element size exactly
+            // - Row stride equals cols * element size
+            // This ensures we have a proper row-major layout
+            bool is_contiguous = (
                 _view.strides[1] == static_cast<Py_ssize_t>(element_size) && 
-                _view.strides[0] == static_cast<Py_ssize_t>(_cols * element_size)) {
-                return;
-            }
+                _view.strides[0] == static_cast<Py_ssize_t>(_cols * element_size)
+            );
+            
+            if (is_contiguous) return;
             
             size_t total = _rows * _cols;
             size_t required_size = total * element_size;
@@ -1041,19 +1065,25 @@ cdef extern from *:
             if (!new_data) throw std::bad_alloc();
             
             try {
-                // Copy data ensuring contiguous layout
-                size_t row_size = _cols * element_size;
-                char* src = static_cast<char*>(_data);
+                const char* src = static_cast<const char*>(_data);
                 char* dst = static_cast<char*>(new_data);
                 
-                if (_view.ndim == 2) {
+                if (_view.strides[1] == static_cast<Py_ssize_t>(element_size)) {
                     for (size_t i = 0; i < _rows; i++) {
-                        memcpy(dst + i * row_size,
+                        memcpy(dst + i * _cols * element_size,
                                src + i * _view.strides[0],
-                               row_size);
+                               _cols * element_size);
                     }
                 } else {
-                    memcpy(dst, src, required_size);
+                    for (size_t i = 0; i < _rows; i++) {
+                        const char* row = src + i * _view.strides[0];
+                        char* dst_row = dst + i * _cols * element_size;
+                        for (size_t j = 0; j < _cols; j++) {
+                            memcpy(dst_row + j * element_size,
+                                   row + j * _view.strides[1],
+                                   element_size);
+                        }
+                    }
                 }
                 
                 if (_owned_data) free(_owned_data);
@@ -1123,12 +1153,29 @@ cdef extern from *:
                 if (!format) {
                     _convert_to_double();
                 } else {
-                    while (*format == '@' || *format == '=' || *format == '<' || 
-                           *format == '>' || *format == '!') format++;
+                    const bool native_little = is_little_endian();
+                    bool format_little = true;  // default to native
                     
-                    while (isdigit(*format)) format++;
+                    if (*format == '<') {
+                        format_little = true;
+                        format++;
+                    } else if (*format == '>') {
+                        format_little = false;
+                        format++;
+                    } else if (*format == '=' || *format == '@') {
+                        format_little = native_little;
+                        format++;
+                    } else if (*format == '!') {
+                        format_little = false;
+                        format++;
+                    }
+                    
+                    if (format_little != native_little) {
+                        PyBuffer_Release(&_view);
+                        throw std::invalid_argument("Buffer endianness does not match platform");
+                    }
 
-                    if (*format == 'i' || *format == 'l') {
+                    if (_view.itemsize == 4 && (*format == 'i' || *format == 'l')) {
                         _type = DCG_INT32;
                         _ensure_contiguous();
                     } else if (*format == 'f') {
@@ -1136,6 +1183,9 @@ cdef extern from *:
                         _ensure_contiguous();
                     } else if (*format == 'd') {
                         _type = DCG_DOUBLE;
+                        _ensure_contiguous();
+                    } else if (*format == 'B') {
+                        _type = DCG_UINT8;
                         _ensure_contiguous();
                     } else {
                         _convert_to_double();
@@ -1258,6 +1308,23 @@ cdef extern from *:
     };
     """
 
+    cdef cppclass DCG1DArrayView:
+        void* _data
+        size_t _size
+        size_t _stride
+        DCGArrayType _type
+        
+        DCG1DArrayView() except +
+        void reset() except +
+        void reset(object) except +
+        T* data[T]() nogil
+        size_t size() nogil
+        size_t stride() nogil
+        DCGArrayType type() nogil
+        cpython.PyObject* pyobj()
+        void ensure_contiguous() except +
+        void ensure_double() except +
+
     cdef cppclass DCG2DContiguousArrayView:
         void* _data
         size_t _rows
@@ -1265,7 +1332,6 @@ cdef extern from *:
         DCGArrayType _type
         
         DCG2DContiguousArrayView() except +
-        DCG2DContiguousArrayView(object) except +
         void reset() except +
         void reset(object) except +
         T* data[T]() nogil
@@ -1274,6 +1340,19 @@ cdef extern from *:
         DCGArrayType type() nogil
         cpython.PyObject* pyobj()
         void ensure_double() except +
+
+    ctypedef enum DCGArrayType:
+        DCG_INT32
+        DCG_FLOAT
+        DCG_DOUBLE
+        DCG_UINT8
+
+cdef inline object get_object_from_1D_array_view(DCG1DArrayView &view):
+    cdef cpython.PyObject *obj = view.pyobj()
+    if obj == NULL:
+        # return empty array of 1 dim
+        return cython_array(shape=(1,), itemsize=8, format='d')[:0]
+    return <object>obj
 
 cdef inline object get_object_from_2D_array_view(DCG2DContiguousArrayView &view):
     cdef cpython.PyObject *obj = view.pyobj()

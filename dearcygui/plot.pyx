@@ -17,7 +17,7 @@
 from libcpp cimport bool
 
 from dearcygui.wrapper cimport imgui, implot
-from libc.stdint cimport int32_t
+from libc.stdint cimport uint8_t, int32_t
 from libc.math cimport INFINITY
 from libcpp.vector cimport vector
 from cpython.object cimport PyObject
@@ -2131,10 +2131,18 @@ cdef class PlotLine(plotElementXY):
                                    self._flags,
                                    0,
                                    self._X.stride())
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotLine[double](self._imgui_label.c_str(),
                                     self._X.data[double](),
                                     self._Y.data[double](),
+                                    size,
+                                    self._flags,
+                                    0,
+                                    self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotLine[uint8_t](self._imgui_label.c_str(),
+                                    self._X.data[uint8_t](),
+                                    self._Y.data[uint8_t](),
                                     size,
                                     self._flags,
                                     0,
@@ -2239,11 +2247,20 @@ cdef class PlotShadedLine(plotElementXYY):
                                      self._flags,
                                      0,
                                      self._X.stride())
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotShaded[double](self._imgui_label.c_str(),
                                       self._X.data[double](),
                                       self._Y1.data[double](),
                                       self._Y2.data[double](),
+                                      size,
+                                      self._flags,
+                                      0,
+                                      self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotShaded[uint8_t](self._imgui_label.c_str(),
+                                      self._X.data[uint8_t](),
+                                      self._Y1.data[uint8_t](),
+                                      self._Y2.data[uint8_t](),
                                       size,
                                       self._flags,
                                       0,
@@ -2291,10 +2308,19 @@ cdef class PlotStems(plotElementXY):
                                    self._flags,
                                    0,
                                    self._X.stride())
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotStems[double](self._imgui_label.c_str(),
                                     self._X.data[double](),
                                     self._Y.data[double](),
+                                    size,
+                                    0.,
+                                    self._flags,
+                                    0,
+                                    self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotStems[uint8_t](self._imgui_label.c_str(),
+                                    self._X.data[uint8_t](),
+                                    self._Y.data[uint8_t](),
                                     size,
                                     0.,
                                     self._flags,
@@ -2361,10 +2387,19 @@ cdef class PlotBars(plotElementXY):
                                    self._flags,
                                    0,
                                    self._X.stride())
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotBars[double](self._imgui_label.c_str(),
                                     self._X.data[double](),
                                     self._Y.data[double](),
+                                    size,
+                                    self._weight,
+                                    self._flags,
+                                    0,
+                                    self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotBars[uint8_t](self._imgui_label.c_str(),
+                                    self._X.data[uint8_t](),
+                                    self._Y.data[uint8_t](),
                                     size,
                                     self._weight,
                                     self._flags,
@@ -2432,10 +2467,18 @@ cdef class PlotStairs(plotElementXY):
                                    self._flags,
                                    0,
                                    self._X.stride())
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotStairs[double](self._imgui_label.c_str(),
                                     self._X.data[double](),
                                     self._Y.data[double](),
+                                    size,
+                                    self._flags,
+                                    0,
+                                    self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotStairs[uint8_t](self._imgui_label.c_str(),
+                                    self._X.data[uint8_t](),
+                                    self._Y.data[uint8_t](),
                                     size,
                                     self._flags,
                                     0,
@@ -2513,9 +2556,16 @@ cdef class PlotInfLines(plotElementX):
                                    self._flags,
                                    0,
                                    self._X.stride())
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotInfLines[double](self._imgui_label.c_str(),
                                     self._X.data[double](),
+                                    size,
+                                    self._flags,
+                                    0,
+                                    self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotInfLines[uint8_t](self._imgui_label.c_str(),
+                                    self._X.data[uint8_t](),
                                     size,
                                     self._flags,
                                     0,
@@ -2561,10 +2611,18 @@ cdef class PlotScatter(plotElementXY):
                                    self._flags,
                                    0,
                                    self._X.stride())
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotScatter[double](self._imgui_label.c_str(),
                                     self._X.data[double](),
                                     self._Y.data[double](),
+                                    size,
+                                    self._flags,
+                                    0,
+                                    self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotScatter[uint8_t](self._imgui_label.c_str(),
+                                    self._X.data[uint8_t](),
+                                    self._Y.data[uint8_t](),
                                     size,
                                     self._flags,
                                     0,
@@ -3365,14 +3423,22 @@ cdef class PlotBarGroups(plotElementWithLegend):
                                       self._group_size,
                                       self._shift,
                                       self._flags)
-        else:
+        elif self._values.type() == DCG_DOUBLE:
             implot.PlotBarGroups[double](labels_cstr.data(),
-                                       self._values.data[double](),
-                                       <int>self._values.rows(),
-                                       <int>self._values.cols(),
-                                       self._group_size,
-                                       self._shift,
-                                       self._flags)
+                                      self._values.data[double](),
+                                      <int>self._values.rows(),
+                                      <int>self._values.cols(),
+                                      self._group_size,
+                                      self._shift,
+                                      self._flags)
+        elif self._values.type() == DCG_UINT8:
+            implot.PlotBarGroups[uint8_t](labels_cstr.data(),
+                                      self._values.data[uint8_t](),
+                                      <int>self._values.rows(),
+                                      <int>self._values.cols(),
+                                      self._group_size,
+                                      self._shift,
+                                      self._flags)
 
 cdef class PlotPieChart(plotElementWithLegend):
     def __cinit__(self):
@@ -3572,7 +3638,7 @@ cdef class PlotPieChart(plotElementWithLegend):
                                       self._label_format.c_str(),
                                       self._angle,
                                       self._flags)
-        else:
+        elif self._values.type() == DCG_DOUBLE:
             implot.PlotPieChart[double](labels_cstr.data(),
                                        self._values.data[double](),
                                        <int>self._values.size(),
@@ -3582,6 +3648,16 @@ cdef class PlotPieChart(plotElementWithLegend):
                                        self._label_format.c_str(),
                                        self._angle,
                                        self._flags)
+        elif self._values.type() == DCG_UINT8:
+            implot.PlotPieChart[uint8_t](labels_cstr.data(),
+                                      self._values.data[uint8_t](),
+                                      <int>self._values.size(),
+                                      self._x,
+                                      self._y,
+                                      self._radius,
+                                      self._label_format.c_str(),
+                                      self._angle,
+                                      self._flags)
 
 cdef class PlotDigital(plotElementXY):
     """
@@ -3612,7 +3688,7 @@ cdef class PlotDigital(plotElementXY):
                                      self._flags,
                                      0,
                                      self._X.stride())
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotDigital[double](self._imgui_label.c_str(),
                                       self._X.data[double](),
                                       self._Y.data[double](),
@@ -3620,6 +3696,14 @@ cdef class PlotDigital(plotElementXY):
                                       self._flags,
                                       0,
                                       self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotDigital[uint8_t](self._imgui_label.c_str(),
+                                     self._X.data[uint8_t](),
+                                     self._Y.data[uint8_t](),
+                                     size,
+                                     self._flags,
+                                     0,
+                                     self._X.stride())
 
 
 cdef class PlotErrorBars(plotElementXY):
@@ -3725,7 +3809,7 @@ cdef class PlotErrorBars(plotElementXY):
                                         0,
                                         self._X.stride())
             
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotErrorBars[double](self._imgui_label.c_str(),
                                          self._X.data[double](),
                                          self._Y.data[double](),
@@ -3735,6 +3819,16 @@ cdef class PlotErrorBars(plotElementXY):
                                          self._flags,
                                          0,
                                          self._X.stride())
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotErrorBars[uint8_t](self._imgui_label.c_str(),
+                                        self._X.data[uint8_t](),
+                                        self._Y.data[uint8_t](),
+                                        <const uint8_t*>neg_data,
+                                        self._pos.data[uint8_t](),
+                                        size,
+                                        self._flags,
+                                        0,
+                                        self._X.stride())
 
 cdef class PlotAnnotation(plotElement):
     """
@@ -4010,7 +4104,7 @@ cdef class PlotHistogram(plotElementX):
                                        self._bar_scale,
                                        hist_range,
                                        self._flags)
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotHistogram[double](self._imgui_label.c_str(),
                                         self._X.data[double](),
                                         size,
@@ -4018,6 +4112,14 @@ cdef class PlotHistogram(plotElementX):
                                         self._bar_scale, 
                                         hist_range,
                                         self._flags)
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotHistogram[uint8_t](self._imgui_label.c_str(),
+                                       self._X.data[uint8_t](),
+                                       size,
+                                       self._bins,
+                                       self._bar_scale,
+                                       hist_range,
+                                       self._flags)
 
 cdef class PlotHistogram2D(plotElementXY):
     """
@@ -4198,7 +4300,7 @@ cdef class PlotHistogram2D(plotElementXY):
                                           self._y_bins,
                                           hist_rect,
                                           self._flags)
-        else:
+        elif self._X.type() == DCG_DOUBLE:
             implot.PlotHistogram2D[double](self._imgui_label.c_str(),
                                            self._X.data[double](),
                                            self._Y.data[double](),
@@ -4207,6 +4309,15 @@ cdef class PlotHistogram2D(plotElementXY):
                                            self._y_bins,
                                            hist_rect,
                                            self._flags)
+        elif self._X.type() == DCG_UINT8:
+            implot.PlotHistogram2D[uint8_t](self._imgui_label.c_str(),
+                                          self._X.data[uint8_t](),
+                                          self._Y.data[uint8_t](),
+                                          size,
+                                          self._x_bins,
+                                          self._y_bins,
+                                          hist_rect,
+                                          self._flags)
 
 cdef class PlotHeatmap(plotElementWithLegend):
     """
@@ -4377,7 +4488,7 @@ cdef class PlotHeatmap(plotElementWithLegend):
                                       implot.ImPlotPoint(self._bounds_min[0], self._bounds_min[1]),
                                       implot.ImPlotPoint(self._bounds_max[0], self._bounds_max[1]),
                                       self._flags)
-        else:
+        elif self._values.type() == DCG_DOUBLE:
             implot.PlotHeatmap[double](self._imgui_label.c_str(),
                                        self._values.data[double](),
                                        self._rows,
@@ -4388,3 +4499,14 @@ cdef class PlotHeatmap(plotElementWithLegend):
                                        implot.ImPlotPoint(self._bounds_min[0], self._bounds_min[1]),
                                        implot.ImPlotPoint(self._bounds_max[0], self._bounds_max[1]),
                                        self._flags)
+        elif self._values.type() == DCG_UINT8:
+            implot.PlotHeatmap[uint8_t](self._imgui_label.c_str(),
+                                      self._values.data[uint8_t](),
+                                      self._rows,
+                                      self._cols,
+                                      self._scale_min,
+                                      self._scale_max,
+                                      self._label_format.c_str(),
+                                      implot.ImPlotPoint(self._bounds_min[0], self._bounds_min[1]),
+                                      implot.ImPlotPoint(self._bounds_max[0], self._bounds_max[1]),
+                                      self._flags)

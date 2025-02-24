@@ -1,3 +1,20 @@
+#!python
+#cython: language_level=3
+#cython: boundscheck=False
+#cython: wraparound=False
+#cython: nonecheck=False
+#cython: embedsignature=False
+#cython: cdivision=True
+#cython: cdivision_warnings=False
+#cython: always_allow_keywords=False
+#cython: profile=False
+#cython: infer_types=False
+#cython: initializedcheck=False
+#cython: c_line_in_traceback=False
+#cython: auto_pickle=False
+#distutils: language=c++
+
+
 cimport cython
 from cython.view cimport array as cython_array
 from dearcygui.wrapper cimport imgui
@@ -5,7 +22,10 @@ from dearcygui.wrapper cimport imgui
 from libc.stdint cimport uint8_t, int32_t, int64_t
 from libcpp.vector cimport vector
 
+from cpython.buffer cimport PyObject_CheckBuffer
+
 from enum import IntFlag, IntEnum
+from .c_types cimport DCG1DArrayView, DCG2DContiguousArrayView, DCGArrayType
 
 
 
@@ -861,6 +881,93 @@ cdef inline int32_t fill_array_col_exact(vector[texture_python_data] &elements,
                             num_chans)
     return 0
 
+cdef inline int32_t fill_array_col_buffer(vector[texture_python_data] &elements,
+                                          object src_row,
+                                          int row,
+                                          int num_cols,
+                                          int num_chans,
+                                          bint no_chan_len):
+    """
+    Fill one column of the target texture data, specialized buffer version
+    """
+    cdef int col, chan
+    cdef texture_python_data element
+    cdef DCG1DArrayView view_1D
+    cdef DCG2DContiguousArrayView view_2D
+    cdef int32_t *p_int32
+    cdef float *p_float
+    cdef double *p_double
+    cdef uint8_t *p_uint8
+    if no_chan_len:
+        view_1D.reset(src_row)
+        if <int>view_1D.size() != num_cols:
+            raise ValueError("Inconsistent texture array size")
+        view_1D.ensure_contiguous() # to avoid handling strides
+        if view_1D.type() == DCGArrayType.DCG_INT32:
+            p_int32 = view_1D.data[int32_t]()
+            for col in range(num_cols):
+                element.content.value_int = p_int32[col]
+                element.type = 0
+                elements.push_back(element)
+        elif view_1D.type() == DCGArrayType.DCG_FLOAT:
+            p_float = view_1D.data[float]()
+            for col in range(num_cols):
+                element.content.value_double = <double>p_float[col]
+                element.type = 1
+                elements.push_back(element)
+        elif view_1D.type() == DCGArrayType.DCG_UINT8:
+            p_uint8 = view_1D.data[uint8_t]()
+            for col in range(num_cols):
+                element.content.value_int = p_uint8[col]
+                element.type = 0
+                elements.push_back(element)
+        else:
+            view_1D.ensure_double()
+            if view_1D.type() == DCGArrayType.DCG_DOUBLE:
+                p_double = view_1D.data[double]()
+                for col in range(num_cols):
+                    element.content.value_double = p_double[col]
+                    element.type = 1
+                    elements.push_back(element)
+    else:
+        view_2D.reset(src_row)
+        if <int>view_2D.rows() != num_cols:
+            raise ValueError("Inconsistent texture array size")
+        if <int>view_2D.cols() != num_chans:
+            raise ValueError("Inconsistent texture array size")
+        # Note: always contiguous
+        if view_2D.type() == DCGArrayType.DCG_INT32:
+            p_int32 = view_2D.data[int32_t]()
+            for col in range(num_cols):
+                for chan in range(num_chans):
+                    element.content.value_int = p_int32[col * num_chans + chan]
+                    element.type = 0
+                    elements.push_back(element)
+        elif view_2D.type() == DCGArrayType.DCG_FLOAT:
+            p_float = view_2D.data[float]()
+            for col in range(num_cols):
+                for chan in range(num_chans):
+                    element.content.value_double = <double>p_float[col * num_chans + chan]
+                    element.type = 1
+                    elements.push_back(element)
+        elif view_2D.type() == DCGArrayType.DCG_UINT8:
+            p_uint8 = view_2D.data[uint8_t]()
+            for col in range(num_cols):
+                for chan in range(num_chans):
+                    element.content.value_int = p_uint8[col * num_chans + chan]
+                    element.type = 0
+                    elements.push_back(element)
+        else:
+            view_2D.ensure_double()
+            if view_2D.type() == DCGArrayType.DCG_DOUBLE:
+                p_double = view_2D.data[double]()
+                for col in range(num_cols):
+                    for chan in range(num_chans):
+                        element.content.value_double = p_double[col * num_chans + chan]
+                        element.type = 1
+                        elements.push_back(element)
+    return 0
+
 cdef inline int32_t fill_array_col(vector[texture_python_data] &elements,
                                    object src_row,
                                    int row,
@@ -886,6 +993,15 @@ cdef inline int32_t fill_array_col(vector[texture_python_data] &elements,
         return fill_array_col_exact[list](
                 elements,
                 <list>src_row,
+                row,
+                num_cols,
+                num_chans,
+                no_chan_len
+            )
+    if PyObject_CheckBuffer(src_row):
+        return fill_array_col_buffer(
+                elements,
+                src_row,
                 row,
                 num_cols,
                 num_chans,
@@ -986,7 +1102,7 @@ cdef object parse_texture(src):
                         if element_int < 0 or element_int > 255:
                             bound_error = True
             if bound_error:
-                raise ValueError("Integer texture data must be between 0 and 255")
+                raise ValueError("Texture data must be integer (0..255) or floating point (0..1)")
             return value_u
         else:
             value_f = cython_array(shape=(num_rows, num_cols, num_chans), itemsize=4, format="f")
@@ -1003,7 +1119,7 @@ cdef object parse_texture(src):
                         if element_float < 0. or element_float > 1.:
                             bound_error = True
             if bound_error:
-                raise ValueError("Floating point texture data must be normalized between 0 and 1")
+                raise ValueError("Texture data must be integer (0..255) or floating point (0..1)")
             return value_f
     except (ValueError, RuntimeError) as e:
         raise e
