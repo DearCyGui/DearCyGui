@@ -778,7 +778,7 @@ ctypedef struct texture_python_data:
 # tuple/list -> 2D/3D array
 # TODO: use critical sections when cython 3.1 is released
 # int32_t is for faster error checking
-cdef inline int32_t fill_array_chan_exact(vector[texture_python_data] &elements,
+cdef inline int32_t fill_array_chan_exact(texture_python_data *elements,
                                           src_source src_col,
                                           int row,
                                           int col,
@@ -799,10 +799,10 @@ cdef inline int32_t fill_array_chan_exact(vector[texture_python_data] &elements,
         else:
             element.content.value_double = value
             element.type = 1
-        elements.push_back(element)
+        elements[chan] = element
     return 0
 
-cdef inline int32_t fill_array_chan(vector[texture_python_data] &elements,
+cdef inline int32_t fill_array_chan(texture_python_data *elements,
                                     object src_col,
                                     int row,
                                     int col,
@@ -840,10 +840,10 @@ cdef inline int32_t fill_array_chan(vector[texture_python_data] &elements,
         else:
             element.content.value_double = value
             element.type = 1
-        elements.push_back(element)
+        elements[chan] = element
     return 0
 
-cdef inline int32_t fill_array_col_exact(vector[texture_python_data] &elements,
+cdef inline int32_t fill_array_col_exact(texture_python_data *elements,
                                          src_source src_row,
                                          int row,
                                          int num_cols,
@@ -871,17 +871,17 @@ cdef inline int32_t fill_array_col_exact(vector[texture_python_data] &elements,
                     raise ValueError("Inconsistent texture array size")
                 element.content.value_double = value
                 element.type = 1
-            elements.push_back(element)
+            elements[col] = element
     else:
         for col in range(num_cols):
-            fill_array_chan(elements,
+            fill_array_chan(&(elements[col*num_chans]),
                             src_row[col],
                             row,
                             col,
                             num_chans)
     return 0
 
-cdef inline int32_t fill_array_col_buffer(vector[texture_python_data] &elements,
+cdef inline int32_t fill_array_col_buffer(texture_python_data *elements,
                                           object src_row,
                                           int row,
                                           int num_cols,
@@ -908,19 +908,19 @@ cdef inline int32_t fill_array_col_buffer(vector[texture_python_data] &elements,
             for col in range(num_cols):
                 element.content.value_int = p_int32[col]
                 element.type = 0
-                elements.push_back(element)
+                elements[col] = element
         elif view_1D.type() == DCGArrayType.DCG_FLOAT:
             p_float = view_1D.data[float]()
             for col in range(num_cols):
                 element.content.value_double = <double>p_float[col]
                 element.type = 1
-                elements.push_back(element)
+                elements[col] = element
         elif view_1D.type() == DCGArrayType.DCG_UINT8:
             p_uint8 = view_1D.data[uint8_t]()
             for col in range(num_cols):
                 element.content.value_int = p_uint8[col]
                 element.type = 0
-                elements.push_back(element)
+                elements[col] = element
         else:
             view_1D.ensure_double()
             if view_1D.type() == DCGArrayType.DCG_DOUBLE:
@@ -928,7 +928,7 @@ cdef inline int32_t fill_array_col_buffer(vector[texture_python_data] &elements,
                 for col in range(num_cols):
                     element.content.value_double = p_double[col]
                     element.type = 1
-                    elements.push_back(element)
+                    elements[col] = element
     else:
         view_2D.reset(src_row)
         if <int>view_2D.rows() != num_cols:
@@ -942,21 +942,21 @@ cdef inline int32_t fill_array_col_buffer(vector[texture_python_data] &elements,
                 for chan in range(num_chans):
                     element.content.value_int = p_int32[col * num_chans + chan]
                     element.type = 0
-                    elements.push_back(element)
+                    elements[col * num_chans + chan] = element
         elif view_2D.type() == DCGArrayType.DCG_FLOAT:
             p_float = view_2D.data[float]()
             for col in range(num_cols):
                 for chan in range(num_chans):
                     element.content.value_double = <double>p_float[col * num_chans + chan]
                     element.type = 1
-                    elements.push_back(element)
+                    elements[col * num_chans + chan] = element
         elif view_2D.type() == DCGArrayType.DCG_UINT8:
             p_uint8 = view_2D.data[uint8_t]()
             for col in range(num_cols):
                 for chan in range(num_chans):
                     element.content.value_int = p_uint8[col * num_chans + chan]
                     element.type = 0
-                    elements.push_back(element)
+                    elements[col * num_chans + chan] = element
         else:
             view_2D.ensure_double()
             if view_2D.type() == DCGArrayType.DCG_DOUBLE:
@@ -965,10 +965,10 @@ cdef inline int32_t fill_array_col_buffer(vector[texture_python_data] &elements,
                     for chan in range(num_chans):
                         element.content.value_double = p_double[col * num_chans + chan]
                         element.type = 1
-                        elements.push_back(element)
+                        elements[col * num_chans + chan] = element
     return 0
 
-cdef inline int32_t fill_array_col(vector[texture_python_data] &elements,
+cdef inline int32_t fill_array_col(texture_python_data *elements,
                                    object src_row,
                                    int row,
                                    int num_cols,
@@ -1024,10 +1024,10 @@ cdef inline int32_t fill_array_col(vector[texture_python_data] &elements,
                     raise ValueError("Inconsistent texture array size")
                 element.content.value_double = value
                 element.type = 1
-            elements.push_back(element)
+            elements[col] = element
     else:
         for col in range(num_cols):
-            fill_array_chan(elements,
+            fill_array_chan(&(elements[col*num_chans]),
                             src_row[col],
                             row,
                             col,
@@ -1074,17 +1074,15 @@ cdef object parse_texture(src):
         if num_chans == 0:
             raise ValueError("Invalid number of texture channels")
 
-        elements.reserve(num_rows * num_cols * num_chans)
+        elements.resize(num_rows * num_cols * num_chans)
         # Retrieve all the elements
         for row in range(num_rows):
-            fill_array_col(elements,
-                            src[row],
-                            row,
-                            num_cols,
-                            num_chans,
-                            no_chan_len)
-        if num_rows * num_cols * num_chans != elements.size():
-            raise RuntimeError("Error retrieving array data")
+            fill_array_col(&(elements.data()[row*num_cols*num_chans]),
+                           src[row],
+                           row,
+                           num_cols,
+                           num_chans,
+                           no_chan_len)
         for element in elements:
             if element.type != 0:
                 has_float = True
