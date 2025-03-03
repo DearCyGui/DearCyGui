@@ -449,8 +449,8 @@ cdef extern from * nogil:
             while (true) {
                 // Try to acquire if unowned
                 auto expected = std::thread::id();
-                if (owner_.compare_exchange_strong(expected, self)) {
-                    count_.store(1);
+                if (owner_.compare_exchange_strong(expected, self, std::memory_order_acquire)) {
+                    count_.store(1, std::memory_order_relaxed);
                     return;
                 }
                 
@@ -469,8 +469,8 @@ cdef extern from * nogil:
             const auto self = std::this_thread::get_id();
             
             auto expected = std::thread::id();
-            if (owner_.compare_exchange_strong(expected, self)) {
-                count_.store(1);
+            if (owner_.compare_exchange_strong(expected, self, std::memory_order_acquire)) {
+                count_.store(1, std::memory_order_relaxed);
                 return true;
             }
             
@@ -487,12 +487,12 @@ cdef extern from * nogil:
             if (owner_.load() != self) {
                 return;
             }
-            
-            if (count_.fetch_sub(1) == 1) {
-                owner_.store(std::thread::id());
+
+            if (count_.fetch_sub(1, std::memory_order_release) == 1) {
+                owner_.store(std::thread::id(), std::memory_order_release);
             }
         }
-        
+
         ~DCGMutex() = default;
         DCGMutex(const DCGMutex&) = delete;
         DCGMutex& operator=(const DCGMutex&) = delete;
