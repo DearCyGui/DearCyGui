@@ -1653,7 +1653,7 @@ cdef class Plot(uiItem):
         # Check at least one axis of each is enabled ?
 
         visible = implot.BeginPlot(self._imgui_label.c_str(),
-                                   Vec2ImVec2(self.scaled_requested_size()),
+                                   Vec2ImVec2(self.get_requested_size()),
                                    self._flags)
         # BeginPlot created the imgui Item
         if visible:
@@ -3222,7 +3222,7 @@ cdef class Subplots(uiItem):
         visible = implot.BeginSubplots(self._imgui_label.c_str(),
                                        self._rows,
                                        self._cols,
-                                       Vec2ImVec2(self.scaled_requested_size()),
+                                       Vec2ImVec2(self.get_requested_size()),
                                        self._flags,
                                        row_sizes,
                                        col_sizes)

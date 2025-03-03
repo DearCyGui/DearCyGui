@@ -312,6 +312,13 @@ def setup_package():
             language="c++",
             extra_compile_args=compile_args,
              libraries=libraries,
+            extra_link_args=linking_args),
+        Extension(
+            "dearcygui.sizing",
+            ["dearcygui/sizing.pyx"],
+            language="c++",
+            extra_compile_args=compile_args,
+             libraries=libraries,
             extra_link_args=linking_args)
     ]
 

@@ -552,9 +552,8 @@ cdef class uiItem(baseItem):
     cdef bint no_newline
     cdef bint pos_update_requested
     cdef bint _focus_update_requested
-    cdef Vec2 requested_size
-    cdef bint size_update_requested
-    #cdef Sizing[2] size_policy
+    cdef ValueOrItem requested_width
+    cdef ValueOrItem requested_height
     ### Set by subclass (but has default value) ###
     cdef bint can_be_disabled
     cdef SharedValue _value
@@ -579,7 +578,7 @@ cdef class uiItem(baseItem):
 
     cdef void update_current_state(self) noexcept nogil
     cdef void update_current_state_subset(self) noexcept nogil
-    cdef Vec2 scaled_requested_size(self) noexcept nogil
+    cdef Vec2 get_requested_size(self) noexcept nogil
     # draw: main function called every frame to render the item
     cdef void draw(self) noexcept nogil
     # draw_item: called by the default implementation of draw.
@@ -643,7 +642,8 @@ cdef class Window(uiItem):
     cdef bint _scroll_y_update_requested
     cdef int32_t _backup_window_flags # imgui.ImGuiWindowFlags
     cdef Vec2 _backup_pos
-    cdef Vec2 _backup_rect_size
+    cdef ValueOrItem _backup_requested_width
+    cdef ValueOrItem _backup_requested_height
     cdef void draw(self) noexcept nogil
 
 """

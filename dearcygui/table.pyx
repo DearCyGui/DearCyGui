@@ -2107,7 +2107,7 @@ cdef class Table(baseTable):
         self._header = value
 
     cdef bint draw_item(self) noexcept nogil:
-        cdef Vec2 requested_size = self.scaled_requested_size()
+        cdef Vec2 requested_size = self.get_requested_size()
         cdef imgui.ImGuiTableSortSpecs *sort_specs
 
         self._update_row_col_counts()

@@ -83,36 +83,26 @@ cdef class Layout(uiItem):
     @cython.final
     cdef Vec2 update_content_area(self) noexcept nogil:
         cdef Vec2 full_content_area = self.context.viewport.parent_size
+        cdef Vec2 cur_content_area, requested_size
+
         full_content_area.x -= self.state.cur.pos_to_parent.x
         full_content_area.y -= self.state.cur.pos_to_parent.y
-        cdef Vec2 cur_content_area
-        cdef float global_scale = self.context.viewport.global_scale
-        if not(self._dpi_scaling):
-            global_scale = 1.
 
-        if self.requested_size.x > 0:
-            if self.requested_size.x < 1.:
-                # percentage of available space
-                cur_content_area.x = floor(full_content_area.x * self.requested_size.x)
-            else:
-                # direct size.
-                cur_content_area.x = floor(global_scale * self.requested_size.x)
-        # 0 means default, which is full available size
-        elif self.requested_size.x < 0:
-            # negative size: subtraction from available size
-            cur_content_area.x = floor(full_content_area.x + global_scale * self.requested_size.x)
-        else:
+        requested_size = self.get_requested_size()
+
+        if requested_size.x == 0:
             cur_content_area.x = full_content_area.x
-
-        if self.requested_size.y > 0:
-            if self.requested_size.y < 1.:
-                cur_content_area.y = floor(full_content_area.y * self.requested_size.y)
-            else:
-                cur_content_area.y = floor(global_scale * self.requested_size.y)
-        elif self.requested_size.y < 0:
-            cur_content_area.y = floor(full_content_area.y + global_scale * self.requested_size.y)
+        elif requested_size.x < 0:
+            cur_content_area.x = full_content_area.x + requested_size.x
         else:
+            cur_content_area.x = requested_size.x
+
+        if requested_size.y == 0:
             cur_content_area.y = full_content_area.y
+        elif requested_size.y < 0:
+            cur_content_area.y = full_content_area.y + requested_size.y
+        else:
+            cur_content_area.y = requested_size.y
 
         cur_content_area.x = max(0, cur_content_area.x)
         cur_content_area.y = max(0, cur_content_area.y)
@@ -123,19 +113,19 @@ cdef class Layout(uiItem):
         cdef Vec2 cur_content_area = self.state.cur.content_region_size
         cdef Vec2 prev_content_area = self.state.prev.content_region_size
         cdef Vec2 cur_spacing = ImVec2Vec2(imgui.GetStyle().ItemSpacing)
-        cdef bint changed = False
+        cdef bint changed = self.requested_height.has_changed()
+        if self.requested_width.has_changed():
+            changed = True
         if cur_content_area.x != prev_content_area.x or \
            cur_content_area.y != prev_content_area.y or \
            self._previous_last_child != <PyObject*>self.last_widgets_child or \
            cur_spacing.x != self._spacing.x or \
            cur_spacing.y != self._spacing.y or \
-           self.size_update_requested or \
-           self._force_update: # TODO: check spacing too
+           self._force_update or changed: # TODO: check spacing too
             changed = True
             self._spacing = cur_spacing
             self._previous_last_child = <PyObject*>self.last_widgets_child
             self._force_update = False
-            self.size_update_requested = False
         return changed
 
     @cython.final
@@ -324,7 +314,7 @@ cdef class HorizontalLayout(Layout):
             size += (<uiItem>child).state.cur.rect_size.x
             n_items += 1
             child = <PyObject*>((<uiItem>child).prev_sibling)
-            if (<uiItem>child).requested_size.x == 0 and not(self.state.prev.rendered):
+            if not((<uiItem>child).state.prev.rendered):
                 # Will need to recompute layout after the size is computed
                 self._force_update = True
         return size
@@ -636,7 +626,7 @@ cdef class VerticalLayout(Layout):
             size += (<uiItem>child).state.cur.rect_size.y
             n_items += 1
             child = <PyObject*>((<uiItem>child).prev_sibling)
-            if (<uiItem>child).requested_size.y == 0 and not(self.state.prev.rendered):
+            if not((<uiItem>child).state.prev.rendered):
                 # Will need to recompute layout after the size is computed
                 self._force_update = True
         return size
@@ -793,36 +783,27 @@ cdef class WindowLayout(uiItem):
     @cython.final
     cdef Vec2 update_content_area(self) noexcept nogil:
         cdef Vec2 full_content_area = self.context.viewport.parent_size
-        cdef Vec2 cur_content_area
-        full_content_area.x -= self.state.cur.pos_to_viewport.x
-        full_content_area.y -= self.state.cur.pos_to_viewport.y
-        cdef float global_scale = self.context.viewport.global_scale
-        if not(self._dpi_scaling):
-            global_scale = 1.
+        cdef Vec2 cur_content_area, requested_size
 
-        if self.requested_size.x > 0:
-            if self.requested_size.x < 1.:
-                # percentage of available space
-                cur_content_area.x = floor(full_content_area.x * self.requested_size.x)
-            else:
-                # direct size.
-                cur_content_area.x = floor(global_scale * self.requested_size.x)
-        # 0 means default, which is full available size
-        elif self.requested_size.x < 0:
-            # negative size: subtraction from available size
-            cur_content_area.x = floor(full_content_area.x + global_scale * self.requested_size.x)
-        else:
+        full_content_area.x -= self.state.cur.pos_to_parent.x
+        full_content_area.y -= self.state.cur.pos_to_parent.y
+
+        requested_size = self.get_requested_size()
+
+        if requested_size.x == 0:
             cur_content_area.x = full_content_area.x
-
-        if self.requested_size.y > 0:
-            if self.requested_size.y < 1.:
-                cur_content_area.y = floor(full_content_area.y * self.requested_size.y)
-            else:
-                cur_content_area.y = floor(global_scale * self.requested_size.y)
-        elif self.requested_size.y < 0:
-            cur_content_area.y = floor(full_content_area.y + global_scale * self.requested_size.y)
+        elif requested_size.x < 0:
+            cur_content_area.x = full_content_area.x + requested_size.x
         else:
+            cur_content_area.x = requested_size.x
+
+        if requested_size.y == 0:
             cur_content_area.y = full_content_area.y
+        elif requested_size.y < 0:
+            cur_content_area.y = full_content_area.y + requested_size.y
+        else:
+            cur_content_area.y = requested_size.y
+
         cur_content_area.x = max(0, cur_content_area.x)
         cur_content_area.y = max(0, cur_content_area.y)
         self.state.cur.content_region_size = cur_content_area
@@ -832,19 +813,19 @@ cdef class WindowLayout(uiItem):
         cdef Vec2 cur_content_area = self.state.cur.content_region_size
         cdef Vec2 prev_content_area = self.state.prev.content_region_size
         cdef Vec2 cur_spacing = make_Vec2(0., 0.)
-        cdef bint changed = False
+        cdef bint changed = self.requested_height.has_changed()
+        if self.requested_width.has_changed():
+            changed = True
         if cur_content_area.x != prev_content_area.x or \
            cur_content_area.y != prev_content_area.y or \
            self._previous_last_child != <PyObject*>self.last_window_child or \
            cur_spacing.x != self._spacing.x or \
            cur_spacing.y != self._spacing.y or \
-           self.size_update_requested or \
-           self._force_update: # TODO: check spacing too
+           self._force_update or changed: # TODO: check spacing too
             changed = True
             self._spacing = cur_spacing
             self._previous_last_child = <PyObject*>self.last_window_child
             self._force_update = False
-            self.size_update_requested = False
         return changed
 
     @cython.final
@@ -1083,7 +1064,10 @@ cdef class WindowHorizontalLayout(WindowLayout):
             size += (<uiItem>child).state.cur.rect_size.x
             n_items += 1
             child = <PyObject*>((<uiItem>child).prev_sibling)
-            if (<uiItem>child).requested_size.x == 0 and not(self.state.prev.rendered):
+            if not((<uiItem>child).state.prev.rendered): # and \
+               #((<uiItem>child).requested_width.has_changed() or \ -> unsure about has_changed as it resets the flag
+               # (<uiItem>child).requested_height.has_changed()):
+                # Will need to recompute layout after the size is computed
                 self._force_update = True
         return size
 
@@ -1274,7 +1258,10 @@ cdef class WindowVerticalLayout(WindowLayout):
             size += (<uiItem>child).state.cur.rect_size.y
             n_items += 1
             child = <PyObject*>((<uiItem>child).prev_sibling)
-            if (<uiItem>child).requested_size.y == 0 and not(self.state.prev.rendered):
+            if not((<uiItem>child).state.prev.rendered):# and \
+               #((<uiItem>child).requested_width.has_changed() or \
+               # (<uiItem>child).requested_height.has_changed()):
+                # Will need to recompute layout after the size is computed
                 self._force_update = True
         return size
 

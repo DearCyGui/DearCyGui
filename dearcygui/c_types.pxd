@@ -1,6 +1,7 @@
 cimport cpython
 from libc.stdint cimport int32_t, uint64_t
 from cython.view cimport array as cython_array
+from cpython.object cimport PyObject
 
 cdef extern from * nogil:
     """
@@ -1360,3 +1361,116 @@ cdef inline object get_object_from_2D_array_view(DCG2DContiguousArrayView &view)
         # return empty array of 2 dims
         return cython_array(shape=(1, 1), itemsize=8, format='d')[:0, :0]
     return <object>obj
+
+cdef extern from *:
+    """
+    struct ValueOrItem {
+        float _value;
+        int32_t _changed;
+        PyObject* _item;
+
+        ValueOrItem() : _value(0.0f), _changed(1), _item(nullptr) {}
+        ValueOrItem(float value) : _value(value), _changed(1), _item(nullptr) {}
+        ValueOrItem(const ValueOrItem& other) : _value(other._value),
+                                                _changed(other._changed),
+                                                _item(nullptr) {
+            if (other._item) {
+                Py_INCREF(other._item);
+                _item = other._item;
+            }
+        }
+        ValueOrItem(ValueOrItem&& other) noexcept : _value(other._value),
+                                                    _changed(other._changed),
+                                                    _item(other._item) {
+            other._item = nullptr;
+        }
+        ValueOrItem& operator=(const ValueOrItem& other) {
+            if (this != &other) {
+                _value = other._value;
+                _changed = other._changed;
+                if (_item) {
+                    Py_DECREF(_item);
+                    _item = nullptr;
+                }
+                if (other._item) {
+                    Py_INCREF(other._item);
+                    _item = other._item;
+                }
+            }
+            return *this;
+        }
+        ValueOrItem& operator=(ValueOrItem&& other) noexcept {
+            if (this != &other) {
+                if (_item) {
+                    Py_DECREF(_item);
+                }
+                _value = other._value;
+                _changed = other._changed;
+                _item = other._item;
+                other._item = nullptr;
+            }
+            return *this;
+        }
+        ~ValueOrItem() {
+            if (_item) {
+                Py_DECREF(_item);
+                _item = nullptr;
+            }
+        }
+        void set_value(float value) {
+            _changed |= value != _value;
+            _value = value;
+            if (_item) {
+                Py_DECREF(_item);
+                _item = nullptr;
+            }
+        }
+        void set_item(PyObject* item) {
+            // We do not set change here
+            // as it could resolve to the same
+            // value. It is checked in set_item_value.
+            if (_item) {
+                Py_DECREF(_item);
+            }
+            _item = item;
+            if (_item) {
+                Py_INCREF(_item);
+            }
+        }
+        // Called to inform about the item
+        // resolved value.
+        inline void set_item_value(float value) {
+            _changed |= value != _value;
+            _value = value;
+        }
+        inline float get_value() const {
+            return _value;
+        }
+        inline PyObject* get_item() const {
+            return _item;
+        }
+        inline bool is_item() const {
+            return _item != nullptr;
+        }
+        inline bool has_changed() {
+            bool result = _changed != 0;
+            _changed = 0;
+            return result;
+        }
+    };
+    """
+    cdef cppclass ValueOrItem:
+        float _value
+        int32_t _changed
+        PyObject* _item
+
+        ValueOrItem() except +
+        ValueOrItem(float) except +
+        ValueOrItem(const ValueOrItem&) except +
+        void set_value(float)
+        void set_item(PyObject*)
+        void set_item_value(float) noexcept nogil
+        PyObject* get_item() noexcept nogil
+        float get_value() noexcept nogil
+        bint is_item() noexcept nogil
+        bint has_changed() noexcept nogil # To be called after get_*(). Resets only after being checked.

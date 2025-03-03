@@ -91,16 +91,6 @@ cdef inline Positioning check_Positioning(Positioning value):
 
 cdef object make_Positioning(Positioning value)
 
-"""
-#Class to describe the sizing policy of an item
-cpdef enum class Sizing:
-    SCALED, # fixed, but scaled by the global scale factor
-    ABSOLUTE, # fixed, not affected by the global scale factor
-    RELATIVE, # Delta relative to the parent size
-    PERCENTAGE, # Percentage of the parent size
-    AUTO # Automatically calculated
-"""
-
 cpdef enum class Alignment:
     LEFT=0,
     TOP=0,

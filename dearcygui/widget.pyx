@@ -749,7 +749,7 @@ cdef class DrawInWindow(uiItem):
         if no_frame:
             imgui.PushStyleVar(imgui.ImGuiStyleVar_FrameBorderSize, imgui.ImVec2(0., 0.))
             imgui.PushStyleVar(imgui.ImGuiStyleVar_FramePadding, imgui.ImVec2(0., 0.))
-        cdef Vec2 requested_size = self.scaled_requested_size()
+        cdef Vec2 requested_size = self.get_requested_size()
         cdef float clip_width, clip_height
         if requested_size.x == 0:
             clip_width = self.context.viewport.parent_size.x
@@ -946,7 +946,7 @@ cdef class SimplePlot(uiItem):
                                 self._overlay.c_str(),
                                 self._scale_min,
                                 self._scale_max,
-                                Vec2ImVec2(self.scaled_requested_size()),
+                                Vec2ImVec2(self.get_requested_size()),
                                 sizeof(float))
         else:
             imgui.PlotLines(self._imgui_label.c_str(),
@@ -956,7 +956,7 @@ cdef class SimplePlot(uiItem):
                             self._overlay.c_str(),
                             self._scale_min,
                             self._scale_max,
-                            Vec2ImVec2(self.scaled_requested_size()),
+                            Vec2ImVec2(self.get_requested_size()),
                             sizeof(float))
         self.update_current_state()
         return False
@@ -1048,7 +1048,7 @@ cdef class Button(uiItem):
             activated = imgui.ArrowButton(self._imgui_label.c_str(), <imgui.ImGuiDir>self._direction)
         else:
             activated = imgui.Button(self._imgui_label.c_str(),
-                                     Vec2ImVec2(self.scaled_requested_size()))
+                                     Vec2ImVec2(self.get_requested_size()))
         imgui.PopItemFlag()
         self.update_current_state()
         SharedBool.set(<SharedBool>self._value, self.state.cur.active) # Unsure. Not in original
@@ -1243,7 +1243,7 @@ cdef class Combo(uiItem):
                     pressed |= imgui.Selectable(self._items[i].c_str(),
                                                 &selected,
                                                 imgui.ImGuiSelectableFlags_None,
-                                                Vec2ImVec2(self.scaled_requested_size()))
+                                                Vec2ImVec2(self.get_requested_size()))
                     if selected:
                         imgui.SetItemDefaultFocus()
                     if selected and selected != selected_backup:
@@ -1255,7 +1255,7 @@ cdef class Combo(uiItem):
                 imgui.Selectable(current_value.c_str(),
                                  &selected,
                                  imgui.ImGuiSelectableFlags_Disabled,
-                                 Vec2ImVec2(self.scaled_requested_size()))
+                                 Vec2ImVec2(self.get_requested_size()))
             imgui.PopID()
             imgui.EndCombo()
         # TODO: rect_size/min/max: with the popup ? Use clipper for rect_max ?
@@ -1704,7 +1704,7 @@ cdef class Slider(uiItem):
             if self._size == 1:
                 if self._vertical:
                     modified = imgui.VSliderScalar(self._imgui_label.c_str(),
-                                                   GetDefaultItemSize(Vec2ImVec2(self.scaled_requested_size())),
+                                                   GetDefaultItemSize(Vec2ImVec2(self.get_requested_size())),
                                                    type,
                                                    data,
                                                    data_min,
@@ -1855,7 +1855,7 @@ cdef class ListBox(uiItem):
                     pressed |= imgui.Selectable(self._items[i].c_str(),
                                                 &selected,
                                                 imgui.ImGuiSelectableFlags_None,
-                                                Vec2ImVec2(self.scaled_requested_size()))
+                                                Vec2ImVec2(self.get_requested_size()))
                     if selected:
                         imgui.SetItemDefaultFocus()
                     if selected and selected != selected_backup:
@@ -1868,7 +1868,7 @@ cdef class ListBox(uiItem):
                 imgui.Selectable(current_value.c_str(),
                                  &selected,
                                  imgui.ImGuiSelectableFlags_Disabled,
-                                 Vec2ImVec2(self.scaled_requested_size()))
+                                 Vec2ImVec2(self.get_requested_size()))
             imgui.PopID()
             imgui.EndListBox()
         # TODO: rect_size/min/max: with the popup ? Use clipper for rect_max ?
@@ -2359,7 +2359,7 @@ cdef class InputText(uiItem):
                 self._imgui_label.c_str(),
                 self._buffer,
                 self._max_characters+1,
-                Vec2ImVec2(self.scaled_requested_size()),
+                Vec2ImVec2(self.get_requested_size()),
                 flags)
         elif self._hint.empty():
             changed = imgui.InputText(
@@ -3354,7 +3354,7 @@ cdef class Selectable(uiItem):
         cdef bint changed = imgui.Selectable(self._imgui_label.c_str(),
                                              &checked,
                                              flags,
-                                             Vec2ImVec2(self.scaled_requested_size()))
+                                             Vec2ImVec2(self.get_requested_size()))
         if self._enabled:
             SharedBool.set(<SharedBool>self._value, checked)
         self.update_current_state()
@@ -3443,7 +3443,7 @@ cdef class ProgressBar(uiItem):
         cdef const char *overlay_text = self._overlay.c_str()
         imgui.PushID(self.uuid)
         imgui.ProgressBar(current_value,
-                          Vec2ImVec2(self.scaled_requested_size()),
+                          Vec2ImVec2(self.get_requested_size()),
                           <const char *>NULL if self._overlay.size() == 0 else overlay_text)
         imgui.PopID()
         self.update_current_state()
@@ -3513,7 +3513,7 @@ cdef class Image(uiItem):
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self._texture.mutex)
         if self._texture.allocated_texture == NULL:
             return False
-        cdef Vec2 size = self.scaled_requested_size()
+        cdef Vec2 size = self.get_requested_size()
         if size.x == 0.:
             size.x = self._texture.width * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
         if size.y == 0.:
@@ -3607,7 +3607,7 @@ cdef class ImageButton(uiItem):
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self._texture.mutex)
         if self._texture.allocated_texture == NULL:
             return False
-        cdef Vec2 size = self.scaled_requested_size()
+        cdef Vec2 size = self.get_requested_size()
         if size.x == 0.:
             size.x = self._texture.width * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
         if size.y == 0.:
@@ -3670,12 +3670,13 @@ cdef class Spacer(uiItem):
     def __cinit__(self):
         self.can_be_disabled = False
     cdef bint draw_item(self) noexcept nogil:
-        if self.requested_size.x == 0 and \
-           self.requested_size.y == 0:
+        cdef Vec2 requested_size = self.get_requested_size()
+        if requested_size.x == 0 and \
+           requested_size.y == 0:
             imgui.Spacing()
             # TODO rect_size
         else:
-            imgui.Dummy(Vec2ImVec2(self.scaled_requested_size()))
+            imgui.Dummy(Vec2ImVec2(requested_size))
         self.state.cur.rect_size = ImVec2Vec2(imgui.GetItemRectSize())
         return False
 
@@ -5090,7 +5091,7 @@ cdef class ChildWindow(uiItem):
         if self.last_menubar_child is not None:
             flags |= imgui.ImGuiWindowFlags_MenuBar
         cdef Vec2 pos_p, pos_w, parent_size_backup
-        cdef Vec2 requested_size = self.scaled_requested_size()
+        cdef Vec2 requested_size = self.get_requested_size()
         cdef imgui.ImGuiChildFlags child_flags = self._child_flags
         # Else they have no effect
         if child_flags & imgui.ImGuiChildFlags_AutoResizeX:
@@ -5268,7 +5269,7 @@ cdef class ColorButton(uiItem):
         activated = imgui.ColorButton(self._imgui_label.c_str(),
                                       Vec4ImVec4(col),
                                       self._flags,
-                                      Vec2ImVec2(self.scaled_requested_size()))
+                                      Vec2ImVec2(self.get_requested_size()))
         self.update_current_state()
         SharedColor.setF4(<SharedColor>self._value, col)
         return activated

@@ -50,6 +50,7 @@ from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t
 from .imgui_types cimport *
 from .types cimport *
 from .types import ChildType, Key, KeyMod, KeyOrMod
+from .sizing cimport resolve_size, set_size, RefWidth, RefHeight
 
 import os
 
@@ -4646,13 +4647,11 @@ cdef class uiItem(baseItem):
         # next frame triggers
         self._focus_update_requested = False
         self._show_update_requested = True
-        self.size_update_requested = True
         self.pos_update_requested = False
         self._enabled_update_requested = False
         # mvAppItemConfig
         #self.filter = b""
         #self.alias = b""
-        self.requested_size = make_Vec2(0., 0.)
         self._dpi_scaling = True
         self._indent = 0.
         self._theme_condition_enabled = ThemeEnablers.ENABLED
@@ -5437,7 +5436,16 @@ cdef class uiItem(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self.requested_size.y
+        try:
+            ref = RefHeight(self)
+            if self.state.cap.has_rect_size and \
+               self.state.cur.rect_size.y > 0:
+                ref.value = self.state.cur.rect_size.y
+            else:
+                ref.value = self.requested_height.get_value()
+        except TypeError:
+            pass
+        return self.requested_height.get_value()
 
     @property
     def width(self):
@@ -5469,7 +5477,16 @@ cdef class uiItem(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self.requested_size.x
+        try:
+            ref = RefWidth(self)
+            if self.state.cap.has_rect_size and \
+               self.state.cur.rect_size.x > 0:
+                ref.value = self.state.cur.rect_size.x
+            else:
+                ref.value = self.requested_width.get_value()
+        except TypeError:
+            pass
+        return self.requested_width.get_value()
 
     @property
     def indent(self):
@@ -5575,15 +5592,13 @@ cdef class uiItem(baseItem):
     def height(self, float value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self.requested_size.y = value
-        self.size_update_requested = True
+        set_size(self.requested_height, value)
 
     @width.setter
     def width(self, float value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self.requested_size.x = value
-        self.size_update_requested = True
+        set_size(self.requested_width, value)
 
     @indent.setter
     def indent(self, float value):
@@ -5598,19 +5613,32 @@ cdef class uiItem(baseItem):
         self.no_newline = value
 
     @cython.final
-    cdef Vec2 scaled_requested_size(self) noexcept nogil:
-        cdef Vec2 requested_size = self.requested_size
+    cdef Vec2 get_requested_size(self) noexcept nogil:
+        cdef Vec2 requested_size
+
         cdef float global_scale = self.context.viewport.global_scale
         if not(self._dpi_scaling):
             global_scale = 1.
-        if requested_size.x > 0 and requested_size.x < 1.:
-            requested_size.x = floor(self.context.viewport.parent_size.x * self.requested_size.x)
-        else:
-            requested_size.x *= global_scale
-        if requested_size.y > 0 and requested_size.y < 1.:
-            requested_size.y = floor(self.context.viewport.parent_size.y * self.requested_size.y)
-        else:
-            requested_size.y *= global_scale
+
+        requested_size.x = resolve_size(self.requested_width, self)
+        requested_size.y = resolve_size(self.requested_height, self)
+
+        # dpi scaling for the fast case of float value
+        if not self.requested_width.is_item():
+            if requested_size.x > 0 and requested_size.x < 1.:
+                requested_size.x = floor(self.context.viewport.parent_size.x * requested_size.x)
+            else:
+                requested_size.x *= global_scale
+
+        if not self.requested_height.is_item():
+            if requested_size.y > 0 and requested_size.y < 1.:
+                requested_size.y = floor(self.context.viewport.parent_size.y * requested_size.y)
+            else:
+                requested_size.y *= global_scale
+
+        requested_size.x = cround(requested_size.x)
+        requested_size.y = cround(requested_size.y)
+
         return requested_size
 
     cdef void draw(self) noexcept nogil:
@@ -5635,9 +5663,10 @@ cdef class uiItem(baseItem):
             self._focus_update_requested = False
 
         # Does not affect all items, but is cheap to set
-        if self.requested_size.x != 0:
-            imgui.SetNextItemWidth(self.requested_size.x * \
-                                       (self.context.viewport.global_scale if self._dpi_scaling else 1.))
+        #cdef float requested_width = resolve_size(self.requested_width, self)
+        #if requested_width != 0:
+        #    imgui.SetNextItemWidth(requested_size.x * \
+        #                               (self.context.viewport.global_scale if self._dpi_scaling else 1.))
 
         cdef float indent = self._indent
         if indent > 0.:
@@ -6383,7 +6412,8 @@ cdef class Window(uiItem):
             # backup previous state
             self._backup_window_flags = self._window_flags
             self._backup_pos = self.state.cur.pos_to_viewport
-            self._backup_rect_size = self.requested_size # We should backup self.state.cur.rect_size, but the we have a dpi scaling issue
+            self._backup_requested_height = self.requested_height
+            self._backup_requested_width = self.requested_width
             # Make primary
             self._window_flags = \
                 imgui.ImGuiWindowFlags_NoBringToFrontOnFocus | \
@@ -6393,18 +6423,17 @@ cdef class Window(uiItem):
                 imgui.ImGuiWindowFlags_NoTitleBar
             self.state.cur.pos_to_viewport.x = 0
             self.state.cur.pos_to_viewport.y = 0
-            self.requested_size.x = 0
-            self.requested_size.y = 0
+            set_size(self.requested_width, 0)
+            set_size(self.requested_height, 0)
             self.pos_update_requested = True
-            self.size_update_requested = True
         else:
             # Restore previous state
             self._window_flags = self._backup_window_flags
             self.state.cur.pos_to_viewport = self._backup_pos
-            self.requested_size = self._backup_rect_size
+            self.requested_width = self._backup_requested_width
+            self.requested_height = self._backup_requested_height
             # Tell imgui to update the window shape
             self.pos_update_requested = True
-            self.size_update_requested = True
 
         # Re-tell imgui the window hierarchy
         cdef Window w = self.context.viewport.last_window_child
@@ -6505,10 +6534,12 @@ cdef class Window(uiItem):
             imgui.SetNextWindowPos(Vec2ImVec2(pos), imgui.ImGuiCond_Always)
             self.pos_update_requested = False
 
-        if self.size_update_requested:
-            imgui.SetNextWindowSize(Vec2ImVec2(self.scaled_requested_size()),
+        cdef Vec2 requested_size = self.get_requested_size()
+        if self.requested_width.has_changed() or \
+           self.requested_height.has_changed():
+            self.requested_height.has_changed() # clear flag if the call was skipped
+            imgui.SetNextWindowSize(Vec2ImVec2(requested_size),
                                     imgui.ImGuiCond_Always)
-            self.size_update_requested = False
 
         if self._collapse_update_requested:
             imgui.SetNextWindowCollapsed(not(self.state.cur.open), imgui.ImGuiCond_Always)
