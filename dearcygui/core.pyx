@@ -5589,13 +5589,13 @@ cdef class uiItem(baseItem):
             self.pos_update_requested = True
 
     @height.setter
-    def height(self, float value):
+    def height(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         set_size(self.requested_height, value)
 
     @width.setter
-    def width(self, float value):
+    def width(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         set_size(self.requested_width, value)

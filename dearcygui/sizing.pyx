@@ -561,8 +561,8 @@ cdef class MinSize(binarySizeOp):
     Take minimum of two size values.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
         return min(first_value, second_value)
 
     def __str__(self):
@@ -573,8 +573,8 @@ cdef class MaxSize(binarySizeOp):
     Take maximum of two size values.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
         return max(first_value, second_value)
 
     def __str__(self):
@@ -587,8 +587,8 @@ cdef class AddSize(binarySizeOp):
     Add two size values.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
         return first_value + second_value
 
     def __str__(self):
@@ -599,8 +599,8 @@ cdef class SubtractSize(binarySizeOp):
     Subtract one size from another.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
         return first_value - second_value
 
     def __str__(self):
@@ -611,8 +611,8 @@ cdef class MultiplySize(binarySizeOp):
     Multiply size values.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
         return first_value * second_value
 
     def __str__(self):
@@ -623,8 +623,8 @@ cdef class DivideSize(binarySizeOp):
     Divide size values.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
 
         if second_value == 0:
             return 0.0  # Avoid division by zero
@@ -638,8 +638,8 @@ cdef class FloorDivideSize(binarySizeOp):
     Floor division of size values.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
 
         if second_value == 0:
             return 0.0  # Avoid division by zero
@@ -653,8 +653,8 @@ cdef class ModuloSize(binarySizeOp):
     Modulo operation on size values.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
 
         if second_value == 0:
             return 0.0  # Avoid division by zero
@@ -668,8 +668,8 @@ cdef class PowerSize(binarySizeOp):
     Power operation on size values.
     """
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        cdef float first_value = self._left._update_value(target)
-        cdef float second_value = self._right._update_value(target)
+        cdef float first_value = self._left.resolve(target)
+        cdef float second_value = self._right.resolve(target)
 
         return powf(first_value, second_value)
 
@@ -690,7 +690,7 @@ cdef class NegateSize(baseSizing):
             self._operand._push(target)
             
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        return -self._operand._update_value(target)
+        return -self._operand.resolve(target)
         
     def __repr__(self):
         return f"NegateSize({self._operand!r})"
@@ -716,7 +716,7 @@ cdef class AbsoluteSize(baseSizing):
             self._operand._push(target)
             
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        return fabs(self._operand._update_value(target))
+        return fabs(self._operand.resolve(target))
         
     def __repr__(self):
         return f"AbsoluteSize({self._operand!r})"
