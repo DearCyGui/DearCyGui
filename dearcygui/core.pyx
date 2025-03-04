@@ -5662,12 +5662,6 @@ cdef class uiItem(baseItem):
                 imgui.SetKeyboardFocusHere(0)
             self._focus_update_requested = False
 
-        # Does not affect all items, but is cheap to set
-        #cdef float requested_width = resolve_size(self.requested_width, self)
-        #if requested_width != 0:
-        #    imgui.SetNextItemWidth(requested_size.x * \
-        #                               (self.context.viewport.global_scale if self._dpi_scaling else 1.))
-
         cdef float indent = self._indent
         if indent > 0.:
             imgui.Indent(indent)

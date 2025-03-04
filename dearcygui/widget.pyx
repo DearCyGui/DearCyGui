@@ -1217,6 +1217,11 @@ cdef class Combo(uiItem):
         cdef int32_t i
         cdef DCGString current_value
         SharedStr.get(<SharedStr>self._value, current_value)
+
+        cdef Vec2 requested_size = self.get_requested_size()
+        if requested_size.x != 0:
+            imgui.SetNextItemWidth(requested_size.x)
+
         open = imgui.BeginCombo(self._imgui_label.c_str(),
                                 current_value.c_str(),
                                 self._flags)
@@ -1680,6 +1685,10 @@ cdef class Slider(uiItem):
                 data = &value_double4
 
         # Draw
+        cdef Vec2 requested_size = self.get_requested_size()
+        if requested_size.x != 0 and (self._drag or self._size != 1 or not self._vertical):
+            imgui.SetNextItemWidth(requested_size.x)
+
         if self._drag:
             if self._size == 1:
                 modified = imgui.DragScalar(self._imgui_label.c_str(),
@@ -2354,6 +2363,10 @@ cdef class InputText(uiItem):
         if not(self._enabled):
             flags |= imgui.ImGuiInputTextFlags_ReadOnly
 
+        cdef Vec2 requested_size = self.get_requested_size()
+        if requested_size.x != 0:
+            imgui.SetNextItemWidth(requested_size.x)
+
         if self._multiline:
             changed = imgui.InputTextMultiline(
                 self._imgui_label.c_str(),
@@ -2922,6 +2935,10 @@ cdef class InputValue(uiItem):
                 data = &value_double4
 
         # Draw
+        cdef Vec2 requested_size = self.get_requested_size()
+        if requested_size.x != 0:
+            imgui.SetNextItemWidth(requested_size.x)
+
         if self._size == 1:
             modified = imgui.InputScalar(self._imgui_label.c_str(),
                                          type,
@@ -5556,9 +5573,14 @@ cdef class ColorEdit(uiItem):
         cdef bint activated
         cdef Vec4 col = SharedColor.getF4(<SharedColor>self._value)
         cdef float[4] color = [col.x, col.y, col.z, col.w]
+
+        cdef Vec2 requested_size = self.get_requested_size()
+        if requested_size.x != 0:
+            imgui.SetNextItemWidth(requested_size.x)
+
         activated = imgui.ColorEdit4(self._imgui_label.c_str(),
-                                      color,
-                                      self._flags)
+                                     color,
+                                     self._flags)
         self.update_current_state()
         col = ImVec4Vec4(imgui.ImVec4(color[0], color[1], color[2], color[3]))
         SharedColor.setF4(<SharedColor>self._value, col)
@@ -5815,6 +5837,11 @@ cdef class ColorPicker(uiItem):
         cdef bint activated
         cdef Vec4 col = SharedColor.getF4(<SharedColor>self._value)
         cdef float[4] color = [col.x, col.y, col.z, col.w]
+
+        cdef Vec2 requested_size = self.get_requested_size()
+        if requested_size.x != 0:
+            imgui.SetNextItemWidth(requested_size.x)
+
         activated = imgui.ColorPicker4(self._imgui_label.c_str(),
                                        color,
                                        self._flags,
