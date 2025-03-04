@@ -255,9 +255,9 @@ cdef class SharedDouble4(SharedValue):
     cdef void set(self, double[4]) noexcept nogil
 
 cdef class SharedFloatVect(SharedValue):
-    cdef float[:] _value
-    cdef float[:] get(self) noexcept nogil
-    cdef void set(self, float[:]) noexcept nogil
+    cdef float[::1] _value
+    cdef float[::1] get(self) noexcept nogil
+    cdef void set(self, float[::1]) noexcept nogil
 """
 cdef class SharedDoubleVect:
     cdef double[:] _value

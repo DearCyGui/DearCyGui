@@ -19,12 +19,11 @@ from libc.stdint cimport uint32_t, int32_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, memset
 
-from dearcygui.wrapper cimport imgui, implot
+from dearcygui.wrapper cimport imgui
 from libcpp.cmath cimport trunc
 from libc.math cimport INFINITY
 
-import array
-from cpython.array cimport array
+from cython.view cimport array as cython_array
 
 from .core cimport baseHandler, drawingItem, uiItem, \
     lock_gil_friendly, read_point, clear_obj_vector, append_obj_vector, \
@@ -925,7 +924,7 @@ cdef class SimplePlot(uiItem):
         self._overlay = string_from_str(value)
 
     cdef bint draw_item(self) noexcept nogil:
-        cdef float[:] data = SharedFloatVect.get(<SharedFloatVect>self._value)
+        cdef float[::1] data = SharedFloatVect.get(<SharedFloatVect>self._value)
         cdef int32_t i
         if self._autoscale and data.shape[0] > 0:
             if self._value._last_frame_change != self._last_frame_autoscale_update:
@@ -3239,7 +3238,7 @@ cdef class TextValue(uiItem):
         cdef int32_t[4] value_int4
         cdef float[4] value_float4
         cdef double[4] value_double4
-        cdef float[:] value_vect
+        cdef float[::1] value_vect
         cdef int32_t i
         if self._type == 0:
             value_bool = SharedBool.get(<SharedBool>self._value)
@@ -6101,38 +6100,53 @@ cdef class SharedDouble4(SharedValue):
 
 cdef class SharedFloatVect(SharedValue):
     def __init__(self, Context context, value):
-        value = array.array('f', value)
-        self._value = value
+        self._value =  cython_array(shape=(len(value),), itemsize=4, format='f')
+        # Copy values into array
+        cdef size_t i
+        for i in range(len(value)):
+            self._value[i] = value[i]
         self._num_attached = 0
 
     def __cinit__(self):
         # Initialize empty array
-        self._value = array.array('f')
+        cdef cython_array arr = cython_array(shape=(1,), itemsize=4, format='f')
+        self._value = arr[:0]
 
     @property 
     def value(self):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return array.array('f', self._value)
+        # Create new array and copy values
+        cdef cython_array arr = cython_array(shape=(self._value.shape[0],), itemsize=4, format='f')
+        cdef float[::1] arr_view = arr
+        cdef size_t i
+        for i in range(self._value.shape[0]):
+            arr_view[i] = self._value[i]
+        return arr
 
     @value.setter
     def value(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        value = array.array('f', value)
-        self._value = value
+        # Create new array with the input values
+        if len(value) != self._value.shape[0]:
+            self._value = cython_array(shape=(len(value),), itemsize=4, format='f')
+        cdef size_t i
+        for i in range(len(value)):
+            self._value[i] = value[i]
         self._last_frame_change = self.context.viewport.frame_count
         self.on_update(True)
 
-    cdef float[:] get(self) noexcept nogil:
+    cdef float[::1] get(self) noexcept nogil:
         return self._value
 
-    cdef void set(self, float[:] value) noexcept nogil:
-        self._value = value
+    cdef void set(self, float[::1] value) noexcept nogil:
+        # Create new array and copy values
+        if value.shape[0] != self._value.shape[0]:
+            with gil:
+                self._value = cython_array(shape=(value.shape[0],), itemsize=4, format='f')
+        cdef size_t i
+        for i in range(value.shape[0]):
+            self._value[i] = value[i]
         self._last_frame_change = self.context.viewport.frame_count
         self.on_update(True)
-
-
-
-
-
