@@ -1,5 +1,6 @@
-from .core cimport drawingItem, Texture, baseFont, SharedValue
+from .core cimport drawingItem, baseFont, SharedValue
 from .c_types cimport double2, float2, DCGVector, DCGString
+from .texture cimport Texture
 
 from libc.stdint cimport uint32_t, int32_t
 

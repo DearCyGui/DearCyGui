@@ -3,7 +3,8 @@ from libcpp.deque cimport deque
 from cpython.ref cimport PyObject
 from .c_types cimport DCGVector
 from .types cimport *
-from .core cimport baseItem, baseFont, Texture
+from .core cimport baseItem, baseFont
+from .texture cimport Texture
 
 cdef class Font(baseFont):
     cdef void* _font # imgui.ImFont*

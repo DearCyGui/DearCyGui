@@ -24,9 +24,10 @@ from cython.view cimport array as cython_array
 from cpython cimport PySequence_Check
 from dearcygui.wrapper cimport imgui
 
-from .core cimport baseFont, baseItem, Texture, Callback, \
+from .core cimport baseFont, baseItem, Callback, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector
 from .c_types cimport *
+from .texture cimport Texture
 from .types cimport *
 
 from libc.stdint cimport uintptr_t, int32_t

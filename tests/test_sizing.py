@@ -56,12 +56,11 @@ def test_parse_operator_precedence():
     # Test operator precedence is respected
     # This should be parsed as 1 + (2 * 3) = 7, not (1 + 2) * 3 = 9
     expr = parse_size("1 + 2 * 3")
-    assert "+" in str(expr)
+    assert str(expr) == "(1.0 + (2.0 * 3.0))"
     
     # Test that parentheses override default precedence
     expr = parse_size("(1 + 2) * 3")
-    assert "*" in str(expr)
-    assert "+" in str(expr)
+    assert str(expr) == "((1.0 + 2.0) * 3.0)"
 
 def test_parse_whitespace_handling():
     # Test that whitespace is handled correctly

@@ -11,6 +11,7 @@ from dearcygui.os import *
 from dearcygui.plot import *
 from dearcygui.sizing import *
 from dearcygui.table import *
+from dearcygui.texture import *
 from dearcygui.theme import *
 from dearcygui.types import *
 from dearcygui.widget import *
@@ -23,6 +24,7 @@ del layout
 del plot
 del os
 del sizing
+del texture
 del theme
 del types
 del widget

@@ -276,6 +276,7 @@ def setup_package():
         "dearcygui/os.pyx",
         "dearcygui/plot.pyx",
         "dearcygui/table.pyx",
+        "dearcygui/texture.pyx",
         "dearcygui/theme.pyx",
         "dearcygui/types.pyx",
         "dearcygui/widget.pyx",
