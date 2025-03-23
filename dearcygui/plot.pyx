@@ -14,12 +14,10 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
-from libcpp cimport bool
-
-from dearcygui.wrapper cimport imgui, implot
 from libc.stdint cimport uint8_t, int32_t
 from libc.math cimport INFINITY
 from libcpp.vector cimport vector
+
 from cpython.object cimport PyObject
 from cpython.sequence cimport PySequence_Check
 
@@ -29,10 +27,16 @@ from .core cimport baseHandler, baseItem, uiItem, AxisTag, \
     draw_ui_children, baseFont, plotElement, \
     update_current_mouse_states, \
     draw_plot_element_children, itemState
-from .imgui_types cimport *
-from .c_types cimport *
-from .types cimport *
-from .types import KeyMod
+from .c_types cimport unique_lock, DCGMutex, DCGString, DCGVector,\
+    string_to_str, string_from_str, get_object_from_1D_array_view,\
+    get_object_from_2D_array_view, DCG_DOUBLE, DCG_INT32, DCG_FLOAT,\
+    DCG_UINT8, Vec2, make_Vec2, swap_Vec2, string_from_bytes
+from .imgui_types cimport imgui_ColorConvertU32ToFloat4, LegendLocation,\
+    Vec2ImVec2, ImVec2Vec2, parse_color, unparse_color, AxisScale
+from .types cimport MouseButton, ThemeEnablers, ThemeCategories
+from .wrapper cimport imgui, implot
+
+from .types import KeyMod, MouseButton as MouseButton_obj
 
 
 cdef extern from * nogil:
@@ -1308,7 +1312,7 @@ cdef class Plot(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return <MouseButton>self._pan_button
+        return MouseButton_obj(self._pan_button)
 
     @pan_button.setter
     def pan_button(self, MouseButton button):
@@ -1346,7 +1350,7 @@ cdef class Plot(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return <MouseButton>self._fit_button
+        return MouseButton_obj(self._fit_button)
 
     @fit_button.setter
     def fit_button(self, MouseButton button):
@@ -1365,7 +1369,7 @@ cdef class Plot(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return <MouseButton>self._menu_button
+        return MouseButton_obj(self._menu_button)
 
     @menu_button.setter
     def menu_button(self, MouseButton button):
@@ -1831,7 +1835,7 @@ cdef class plotElementWithLegend(plotElement):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return <MouseButton>self._legend_button
+        return MouseButton_obj(self._legend_button)
 
     @legend_button.setter
     def legend_button(self, MouseButton button):

@@ -17,15 +17,19 @@
 from libc.stdint cimport int32_t, uint32_t
 from libcpp.cmath cimport round
 from libcpp.unordered_map cimport unordered_map, pair
-from libcpp.string cimport string
-from dearcygui.wrapper cimport imgui, implot, imnodes
-cimport cython
-from cython.operator cimport dereference
-from .core cimport *
-from .imgui_types cimport *
-from .c_types cimport *
-from .types cimport *
+
+from cpython.object cimport PyObject
 from cpython.sequence cimport PySequence_Check
+from cython.operator cimport dereference
+
+
+from .core cimport lock_gil_friendly, baseItem, baseTheme
+from .c_types cimport DCGMutex, unique_lock
+from .imgui_types cimport ImGuiColorIndex, ImPlotColorIndex,\
+    ImGuiStyleIndex, ImPlotStyleIndex, parse_color
+from .types cimport theme_types, make_PlotMarker, PlotMarker
+from .wrapper cimport imgui, implot, imnodes
+
 
 cdef inline void imgui_PushStyleVar2(int i, float[2] val) noexcept nogil:
     imgui.PushStyleVar(<imgui.ImGuiStyleVar>i, imgui.ImVec2(val[0], val[1]))
@@ -2715,7 +2719,7 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
         if style_name == "LineWeight":
             return 1.0
         elif style_name == "Marker":
-            return PlotMarker.NONE
+            return make_PlotMarker(<int32_t>PlotMarker.NONE)
         elif style_name == "MarkerSize":
             return 4.0
         elif style_name == "MarkerWeight":

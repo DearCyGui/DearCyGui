@@ -1,4 +1,4 @@
-from dearcygui.wrapper cimport imgui
+from .wrapper cimport imgui
 
 cdef imgui.ImU32 imgui_ColorConvertFloat4ToU32(imgui.ImVec4 color_float4) noexcept nogil:
     return imgui.ColorConvertFloat4ToU32(color_float4)

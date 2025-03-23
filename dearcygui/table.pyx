@@ -14,28 +14,27 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
-from dearcygui.wrapper cimport imgui
+from libc.stdint cimport uint32_t, int32_t
 from libc.stdlib cimport malloc, free
+from libcpp cimport bool
 from libcpp.algorithm cimport stable_sort
 from libcpp.map cimport map, pair
 from libcpp.vector cimport vector
-from libc.stdint cimport uint32_t, int32_t
-from libcpp cimport bool
 
+from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
+from cpython.sequence cimport PySequence_Check
 cimport cython
 from cython.operator cimport dereference, preincrement
 
 from .core cimport baseItem, baseHandler, uiItem, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector, \
-    update_current_mouse_states, itemState
-from .c_types cimport *
+    update_current_mouse_states
+from .c_types cimport DCGMutex, unique_lock, string_to_str,\
+    string_from_str, Vec2
 from .imgui_types cimport unparse_color, parse_color, Vec2ImVec2, \
     ImVec2Vec2
-from .types cimport *
 from .widget cimport Tooltip
-
-from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
-from cpython.sequence cimport PySequence_Check
+from .wrapper cimport imgui
 
 from .types import TableFlag
 

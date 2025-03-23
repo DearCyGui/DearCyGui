@@ -14,15 +14,18 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
-from .core cimport *
-from .imgui_types cimport *
-from .c_types cimport *
-from .types cimport *
-from .types import Key
-from cython.operator cimport dereference
+from cpython.object cimport PyObject
 from cpython.sequence cimport PySequence_Check
-from dearcygui.wrapper cimport imgui, implot
+
+from .core cimport baseHandler, baseItem, lock_gil_friendly,\
+    itemState
+from .c_types cimport DCGMutex, unique_lock
+from .types cimport check_Positioning, make_Positioning, read_rect, Rect
+from .wrapper cimport imgui
+
 import traceback
+
+from .types import Key
 
 cdef class CustomHandler(baseHandler):
     """

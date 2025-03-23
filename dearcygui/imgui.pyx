@@ -1,11 +1,10 @@
-from dearcygui.wrapper cimport imgui, implot
-from .core cimport Context
-from .c_types cimport *
-
+from libc.math cimport M_PI
 from libcpp.algorithm cimport swap
 from libcpp.vector cimport vector
-from libcpp.cmath cimport atan, atan2, sin, cos, sqrt, trunc, floor, round as cround
-from libc.math cimport M_PI, INFINITY
+from libcpp.cmath cimport sin, cos, sqrt
+
+from .core cimport Context
+from .wrapper cimport imgui
 
 cdef void t_draw_line(Context context, void* drawlist,
                     float x1, float y1, float x2, float y2,

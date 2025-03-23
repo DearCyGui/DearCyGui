@@ -1,12 +1,28 @@
-from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
-import traceback
-from .core cimport baseItem, baseHandler, Context
+#!python
+#cython: language_level=3
+#cython: boundscheck=False
+#cython: wraparound=False
+#cython: nonecheck=False
+#cython: embedsignature=False
+#cython: cdivision=True
+#cython: cdivision_warnings=False
+#cython: always_allow_keywords=False
+#cython: profile=False
+#cython: infer_types=False
+#cython: initializedcheck=False
+#cython: c_line_in_traceback=False
+#cython: auto_pickle=False
+#distutils: language=c++
 
+from libc.stdint cimport uint32_t, int32_t, int64_t
 from libcpp.string cimport string
 from libcpp.vector cimport vector
-from libc.stdint cimport uint32_t, int32_t, int64_t
 
+from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 
+from .core cimport baseItem, baseHandler, Context
+
+import traceback
 
 """
 System File dialog

@@ -3,12 +3,15 @@
 # to enable external code to link to us using
 # the pxd files and without including imgui.
 
-from .c_types cimport float2, double2, Vec2, Vec4
+
 from libc.stdint cimport uint32_t, int32_t
+
 from cpython.tuple cimport PyTuple_CheckExact
 from cpython.list cimport PyList_CheckExact
 from cpython.sequence cimport PySequence_Check
 cimport cython
+
+from .c_types cimport Vec2
 
 cdef enum child_type:
     cat_drawing

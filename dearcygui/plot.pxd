@@ -1,9 +1,9 @@
+from libc.stdint cimport int32_t
+
 from .core cimport baseItem, baseFont, itemState, \
     plotElement, uiItem, Callback, baseHandler
-from .types cimport *
 from .c_types cimport DCGString, DCGVector, DCG1DArrayView, DCG2DContiguousArrayView
-
-from libc.stdint cimport int32_t
+from .types cimport Vec2
 
 cdef class AxesResizeHandler(baseHandler):
     cdef int[2] _axes

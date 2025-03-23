@@ -1,9 +1,9 @@
+from libc.stdint cimport uint32_t, int32_t
+
 from .core cimport baseItem, uiItem, drawingItem, itemState, \
     baseHandler, SharedValue
 from .c_types cimport Vec2, Vec4, DCGVector, DCGString
 from .texture cimport Texture
-
-from libc.stdint cimport uint32_t, int32_t
 
 cdef class DrawInvisibleButton(drawingItem):
     cdef itemState state

@@ -1,9 +1,13 @@
+from libc.stdint cimport uint32_t, int32_t, int64_t
 from libcpp cimport bool
 from libcpp.atomic cimport atomic
+
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
-from libc.stdint cimport uint32_t, int32_t, int64_t
-from .c_types cimport *
-from .types cimport *
+
+from .c_types cimport DCGMutex, DCGVector, DCGString, ValueOrItem,\
+    unique_lock, defer_lock_t
+from .types cimport Vec2, Positioning, ThemeEnablers, ThemeCategories,\
+    theme_action
 
 """
 Thread safety:

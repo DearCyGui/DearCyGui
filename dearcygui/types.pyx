@@ -14,19 +14,17 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
-
-cimport cython
-from cython.view cimport array as cython_array
-from dearcygui.wrapper cimport imgui
-
 from libc.stdint cimport uint8_t, int32_t, int64_t
 from libcpp.vector cimport vector
 
 from cpython.buffer cimport PyObject_CheckBuffer
+cimport cython
+from cython.view cimport array as cython_array
+
+from .c_types cimport DCG1DArrayView, DCG2DContiguousArrayView, DCGArrayType
+from .wrapper cimport imgui
 
 from enum import IntFlag, IntEnum
-from .c_types cimport DCG1DArrayView, DCG2DContiguousArrayView, DCGArrayType
-
 
 
 

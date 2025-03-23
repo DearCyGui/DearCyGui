@@ -1,13 +1,13 @@
 from libcpp.map cimport map, pair
 from libc.stdint cimport uint32_t, int32_t
 
+from cpython.object cimport PyObject
+
 from .core cimport baseItem, uiItem, \
     itemState
-from .c_types cimport *
+from .c_types cimport DCGMutex, DCGString
 
-from cpython.ref cimport PyObject
 
-cimport cython
 
 # Base structure for table data
 cdef struct TableElementData:

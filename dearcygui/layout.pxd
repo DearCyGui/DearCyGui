@@ -1,9 +1,10 @@
+from libc.stdint cimport int32_t
+
+from cpython.object cimport PyObject
+
 from .core cimport uiItem
 from .c_types cimport Vec2, DCGVector
 from .types cimport Alignment
-
-from cpython.ref cimport PyObject
-from libc.stdint cimport int32_t
 
 cdef class Layout(uiItem):
     cdef bint _force_update

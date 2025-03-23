@@ -1,7 +1,8 @@
-cimport cpython
 from libc.stdint cimport int32_t, uint64_t
-from cython.view cimport array as cython_array
+
+cimport cpython
 from cpython.object cimport PyObject
+from cython.view cimport array as cython_array
 
 cdef extern from * nogil:
     """

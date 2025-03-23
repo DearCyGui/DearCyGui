@@ -17,14 +17,14 @@
 cimport cython
 from cpython.ref cimport PyObject
 
-from dearcygui.wrapper cimport imgui
 from libc.stdint cimport int32_t
 from libcpp.cmath cimport floor
 
 from .core cimport uiItem, Callback, lock_gil_friendly
-from .imgui_types cimport *
-from .c_types cimport *
-from .types cimport *
+from .c_types cimport Vec2, make_Vec2, swap_Vec2, DCGMutex, unique_lock
+from .imgui_types cimport ImVec2Vec2
+from .types cimport Positioning, ThemeCategories, child_type
+from .wrapper cimport imgui
 
 cdef class Layout(uiItem):
     """

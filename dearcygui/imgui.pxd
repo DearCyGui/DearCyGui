@@ -45,10 +45,10 @@ parent_pos (Vec2):
     its transform.
 """
 
+from libc.stdint cimport uint32_t, int32_t
+
 from .core cimport Context
 from .c_types cimport Vec2, Vec4
-
-from libc.stdint cimport uint32_t, int32_t
 
 # Drawing helpers
 cdef void draw_line(Context context, void* drawlist,

@@ -1,11 +1,28 @@
-from .core cimport uiItem, lock_gil_friendly
-from .c_types cimport DCGVector, unique_lock, DCGMutex
+#!python
+#cython: language_level=3
+#cython: boundscheck=False
+#cython: wraparound=False
+#cython: nonecheck=False
+#cython: embedsignature=False
+#cython: cdivision=True
+#cython: cdivision_warnings=False
+#cython: always_allow_keywords=False
+#cython: profile=False
+#cython: infer_types=False
+#cython: initializedcheck=False
+#cython: c_line_in_traceback=False
+#cython: auto_pickle=False
+#distutils: language=c++
 
 from libc.stdint cimport int32_t
 from libcpp.cmath cimport fabs, powf, fmod
-from cpython.object cimport PyObject
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+
+from cpython.object cimport PyObject
+
+from .core cimport uiItem, lock_gil_friendly
+from .c_types cimport DCGVector, unique_lock, DCGMutex
 
 import inspect
 

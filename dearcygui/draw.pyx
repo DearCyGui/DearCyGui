@@ -15,19 +15,19 @@
 #distutils: language=c++
 
 from dearcygui.wrapper cimport imgui
-from .core cimport baseItem, drawingItem, \
-    lock_gil_friendly, draw_drawing_children, read_point, read_coord
+from .core cimport drawingItem, \
+    lock_gil_friendly, draw_drawing_children
 from .widget cimport SharedBool, SharedInt, SharedFloat, SharedDouble, \
     SharedColor, SharedInt4, SharedFloat4, SharedDouble4, SharedStr
-from .imgui_types cimport \
-    unparse_color, parse_color
-from .c_types cimport *
-from .types cimport child_type, Coord
+from .imgui_types cimport unparse_color, parse_color
+from .c_types cimport DCGMutex, DCGString, unique_lock, make_Vec2,\
+    string_from_bytes, string_from_str, string_to_str, Vec4
+from .types cimport child_type, Coord, read_point, read_coord
 
 from libcpp.algorithm cimport swap
-from libcpp.cmath cimport atan, atan2, sin, cos, sqrt, trunc, floor, round as cround
-from libc.math cimport M_PI, INFINITY
-from libc.stdint cimport uint32_t, int32_t
+from libcpp.cmath cimport atan, atan2, sin, cos, sqrt
+from libc.math cimport M_PI
+from libc.stdint cimport int32_t
 from libcpp cimport bool
 from libcpp.vector cimport vector
 

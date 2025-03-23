@@ -14,51 +14,36 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
-from libcpp cimport bool
-import traceback
-
-cimport cython
-from cython.view cimport array as cython_array
-from cython.operator cimport dereference
-from cpython.list cimport PyList_CheckExact
-from cpython.tuple cimport PyTuple_CheckExact
-from cpython.sequence cimport PySequence_Check
-cimport cpython
+from libc.stdint cimport uint32_t, int32_t, int64_t
 from libc.string cimport memset, memcpy
+from libcpp cimport bool
+from libcpp.cmath cimport floor, ceil, round as cround
+from libcpp.set cimport set as cpp_set
 from libcpp.string cimport string
 
-# This file is the only one that is linked to the C++ code
-# Thus it is the only one allowed to make calls to it
+cimport cython
+from cpython.sequence cimport PySequence_Check
 
-from dearcygui.wrapper cimport *
-from dearcygui.backends.backend cimport SDLViewport, platformViewport, GLContext
-# We use unique_lock rather than lock_guard as
-# the latter doesn't support nullary constructor
-# which causes trouble to cython
-from dearcygui.font import AutoFont
+from .backends.backend cimport SDLViewport, platformViewport, GLContext
+cimport dearcygui.backends.time as ctime
+from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t, string_to_str,\
+    set_composite_label, set_uuid_label, string_from_str, Vec2, make_Vec2
+from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color
+from .sizing cimport resolve_size, set_size, RefWidth, RefHeight
+from .texture cimport Texture
+from .types cimport Vec2, MouseButton, child_type, check_Positioning,\
+    Coord, theme_value_types, theme_value_float2_mask, theme_backends,\
+    theme_types, MouseCursor, make_Positioning
+from .wrapper cimport imgui, implot, imnodes
 
 from concurrent.futures import Executor, ThreadPoolExecutor
-from libcpp.cmath cimport floor, ceil
-from libcpp.cmath cimport round as cround
-from libcpp.set cimport set as cpp_set
-from libc.math cimport M_PI, INFINITY
-from libc.stdint cimport uint8_t, uintptr_t, uint32_t, int32_t, int64_t
-
-cimport dearcygui.backends.time as ctime
-
-from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t
-from .imgui_types cimport *
-from .texture cimport Texture
-from .types cimport *
-from .types import ChildType, Key, KeyMod, KeyOrMod
-from .sizing cimport resolve_size, set_size, RefWidth, RefHeight
-
 import os
-
-
 import time as python_time
-import threading
-import weakref
+import traceback
+
+from dearcygui.font import AutoFont
+from .types import ChildType, MouseButton as MouseButton_obj, Key, KeyMod,\
+    MouseCursor as MouseCursor_obj
 
 
 
@@ -170,6 +155,10 @@ cdef class SharedGLContext:
         shared_context.context = context
         shared_context.gl_context = gl_context
         return shared_context
+
+# We use unique_lock rather than lock_guard as
+# the latter doesn't support nullary constructor
+# which causes trouble to cython
 
 cdef void lock_gil_friendly_block(unique_lock[DCGMutex] &m) noexcept:
     """
@@ -508,7 +497,7 @@ cdef class Context:
             return
         with gil:
             try:
-                self._queue.submit(callback, parent_item, target_item, <MouseButton>arg1)
+                self._queue.submit(callback, parent_item, target_item, MouseButton_obj(arg1))
             except Exception as e:
                 print(traceback.format_exc())
 
@@ -602,7 +591,7 @@ cdef class Context:
             return
         with gil:
             try:
-                self._queue.submit(callback, parent_item, target_item, (<MouseButton>(arg1), arg2))
+                self._queue.submit(callback, parent_item, target_item, (MouseButton_obj(arg1), arg2))
             except Exception as e:
                 print(traceback.format_exc())
 
@@ -676,7 +665,7 @@ cdef class Context:
             return
         with gil:
             try:
-                self._queue.submit(callback, parent_item, target_item, (<MouseButton>(arg1), arg2, arg3))
+                self._queue.submit(callback, parent_item, target_item, (MouseButton_obj(arg1), arg2, arg3))
             except Exception as e:
                 print(traceback.format_exc())
 
@@ -3177,16 +3166,16 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return <MouseCursor>self._cursor
+        return MouseCursor_obj(self._cursor)
 
     @cursor.setter
-    def cursor(self, int32_t value):
+    def cursor(self, MouseCursor value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if value < imgui.ImGuiMouseCursor_None or \
-           value >= imgui.ImGuiMouseCursor_COUNT:
+        if <int32_t>value < imgui.ImGuiMouseCursor_None or \
+           <int32_t>value >= imgui.ImGuiMouseCursor_COUNT:
             raise ValueError("Invalid cursor type {value}")
-        self._cursor = value
+        self._cursor = <int32_t>value
 
     @property
     def font(self):

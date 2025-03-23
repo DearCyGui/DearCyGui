@@ -1,7 +1,9 @@
-from dearcygui.wrapper cimport imgui, implot
-from .c_types cimport Vec2, Vec4
 from libc.stdint cimport uint32_t, int32_t
+
 from cpython.sequence cimport PySequence_Check
+
+from .c_types cimport Vec2, Vec4
+from .wrapper cimport imgui, implot
 
 # Here all the types that need a cimport
 # of imgui. In order to enable Cython code

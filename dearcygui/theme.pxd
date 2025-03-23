@@ -1,7 +1,9 @@
 from libcpp.unordered_map cimport unordered_map
-from .core cimport *
-from .types cimport *
+from .core cimport baseTheme
 from .c_types cimport DCGVector
+from .types cimport theme_value, theme_value_types,\
+    theme_value_float2_mask, theme_action, theme_backends,\
+    ThemeEnablers, ThemeCategories
 
 from libc.stdint cimport uint32_t, int32_t
 

@@ -1,8 +1,9 @@
+from libc.stdint cimport int32_t
+
+from cpython.object cimport PyObject
+
 from .core cimport uiItem
 from .c_types cimport DCGMutex, DCGVector, ValueOrItem
-
-from libc.stdint cimport int32_t
-from cpython.object cimport PyObject
 
 cdef class baseSizing:
     cdef DCGMutex mutex

@@ -14,28 +14,20 @@
 #cython: auto_pickle=False
 #distutils: language=c++
 
-cimport cython
+from libc.stdint cimport uint8_t, uintptr_t, int32_t
+
 from cython.view cimport array as cython_array
 from cython.operator cimport dereference
-from cpython.list cimport PyList_CheckExact
-from cpython.tuple cimport PyTuple_CheckExact
-from cpython.sequence cimport PySequence_Check
 cimport cpython
 
 # This file is the only one that is linked to the C++ code
 # Thus it is the only one allowed to make calls to it
 
-from dearcygui.backends.backend cimport platformViewport
-
-from libc.math cimport M_PI, INFINITY
-from libc.stdint cimport uint8_t, uintptr_t, uint32_t, int32_t, int64_t
-
-
+from .backends.backend cimport platformViewport
 from .core cimport baseItem, lock_gil_friendly
 from .c_types cimport unique_lock, DCGMutex
 from .types cimport parse_texture
 
-import os
 
 cdef class Texture(baseItem):
     """

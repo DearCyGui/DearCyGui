@@ -1,5 +1,6 @@
-from .core cimport *
-from .types cimport *
+from libc.stdint cimport int32_t
+from .core cimport baseHandler, baseItem
+from .types cimport MouseButton, Positioning, HandlerListOP, MouseCursor
 
 cdef class CustomHandler(baseHandler):
     cdef bint _has_run
