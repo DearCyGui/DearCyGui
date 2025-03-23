@@ -9,6 +9,7 @@ from dearcygui.imgui_types import *
 from dearcygui.layout import *
 from dearcygui.os import *
 from dearcygui.plot import *
+from dearcygui.sizing import *
 from dearcygui.table import *
 from dearcygui.theme import *
 from dearcygui.types import *
@@ -21,6 +22,7 @@ del handler
 del layout
 del plot
 del os
+del sizing
 del theme
 del types
 del widget

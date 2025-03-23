@@ -7,6 +7,7 @@ from dearcygui.handler cimport *
 from dearcygui.layout cimport *
 from dearcygui.os cimport *
 from dearcygui.plot cimport *
+from dearcygui.sizing cimport *
 from dearcygui.table cimport *
 from dearcygui.theme cimport *
 from dearcygui.types cimport *
