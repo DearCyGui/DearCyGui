@@ -6372,6 +6372,7 @@ cdef class Window(uiItem):
         no_resize
         no_collapse
         no_title_bar
+        no_move
         and running item.focused = True on all the other windows
         """
         cdef unique_lock[DCGMutex] m
@@ -6404,7 +6405,8 @@ cdef class Window(uiItem):
                 imgui.ImGuiWindowFlags_NoSavedSettings | \
 			    imgui.ImGuiWindowFlags_NoResize | \
                 imgui.ImGuiWindowFlags_NoCollapse | \
-                imgui.ImGuiWindowFlags_NoTitleBar
+                imgui.ImGuiWindowFlags_NoTitleBar | \
+                imgui.ImGuiWindowFlags_NoMove
             self.state.cur.pos_to_viewport.x = 0
             self.state.cur.pos_to_viewport.y = 0
             set_size(self.requested_width, 0)
