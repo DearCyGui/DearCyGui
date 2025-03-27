@@ -1271,9 +1271,9 @@ cdef class TableColConfig(baseItem):
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_toggled = True # hide/enable
         self.state.cap.can_be_clicked = True
-        #self.state.cap.can_be_active = True # sort request
-        #self.state.cap.has_position = True
-        #self.state.cap.has_content_region = True
+        #self.state.cap.can_be_active = True # sort request. can be implemented (manual header submission)
+        #self.state.cap.has_position = True # can be implemented (manual header submission)
+        #self.state.cap.has_content_region = True # can be implemented (manual header submission)
         self._flags = <uint32_t>imgui.ImGuiTableColumnFlags_None
         self._width = 0.0
         self._stretch_weight = 1.0
@@ -1932,10 +1932,11 @@ cdef class Table(baseTable):
     """
     def __cinit__(self):
         self.state.cap.can_be_hovered = True
-        self.state.cap.can_be_toggled = True
-        self.state.cap.can_be_active = True
+        #self.state.cap.can_be_toggled = True # TODO needs manual header submission
+        #self.state.cap.can_be_active = True # TODO needs manual header submission
+        self.state.cap.can_be_clicked = True
         self.state.cap.has_position = True
-        self.state.cap.has_content_region = True
+        #self.state.cap.has_content_region = True # TODO, unsure if possible
         self._col_configs = new map[int32_t, PyObject*]()
         self._row_configs = new map[int32_t, PyObject*]()
         self._inner_width = 0.
@@ -2292,6 +2293,9 @@ cdef class Table(baseTable):
             self.context.viewport.parent_size = parent_size_backup
             # end table
             imgui.EndTable()
+            self.update_current_state()
+        else:
+            self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
 
         # Release the row configurations
         for row_data in dereference(self._row_configs):
