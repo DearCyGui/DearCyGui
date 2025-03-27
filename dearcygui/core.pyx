@@ -1591,7 +1591,8 @@ cdef class baseItem:
                 self.attach_to_parent(target_parent)
             else:
                 raise ValueError("Cannot bind sibling if no parent")
-        self.attach_before(next_sibling)
+        else:
+            self.attach_before(next_sibling)
 
     @property
     def next_sibling(self):
