@@ -39,6 +39,12 @@ cdef inline bint is_counter_clockwise(imgui.ImVec2 p1,
     cdef float det = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x)
     return det > 0.
 
+cdef inline bint is_counter_clockwise_array(float[2] p1,
+                                            float[2] p2,
+                                            float[2] p3) noexcept nogil:
+    cdef float det = (p2[0] - p1[0]) * (p3[1] - p1[1]) - (p2[1] - p1[1]) * (p3[0] - p1[0])
+    return det > 0.
+
 cdef class ViewportDrawList(drawingItem):
     """
     A drawing item that renders its children on the viewport's background or foreground.
@@ -628,15 +634,40 @@ cdef class DrawArc(drawingItem):
             thickness *= self.context.viewport.size_multiplier
         thickness = abs(thickness)
 
-        cdef float[2] center
-        self.context.viewport.coordinate_to_screen(center, self._center)
-        
-        # Convert coordinates to screen space
-        cdef float scale = self.context.viewport.size_multiplier
-        cdef imgui.ImVec2 radius = imgui.ImVec2(self._radius[0] * scale, self._radius[1] * scale)
-        # For convert filling, angles must be increasing
         cdef float start_angle = self._start_angle
         cdef float end_angle = self._end_angle
+
+        # Convert coordinates to screen space
+        cdef float[2] center
+        self.context.viewport.coordinate_to_screen(center, self._center)
+        # For proper angle conversion, we need to determine the clockwise
+        # order of the points
+        cdef double[2] p1
+        cdef double[2] p2
+        cdef float[2] p1_converted
+        cdef float[2] p2_converted
+        p1[0] = self._center[0] + cos(start_angle)
+        p1[1] = self._center[1] + sin(start_angle)
+        p2[0] = self._center[0] + cos(end_angle)
+        p2[1] = self._center[1] + sin(end_angle)
+        self.context.viewport.coordinate_to_screen(p1_converted, p1)
+        self.context.viewport.coordinate_to_screen(p2_converted, p2)
+        if not is_counter_clockwise_array(p1_converted, p2_converted, center):
+            start_angle = -start_angle
+            end_angle = -end_angle
+
+        cdef float scale = self.context.viewport.size_multiplier
+        cdef imgui.ImVec2 radius = imgui.ImVec2(self._radius[0], self._radius[1])
+        if radius.x < 0:
+            radius.x = -radius.x
+        else:
+            radius.x = radius.x * scale
+        if radius.y < 0:
+            radius.y = -radius.y
+        else:
+            radius.y = radius.y * scale
+
+        # For convert filling, angles must be increasing
         if start_angle > end_angle:
             swap(start_angle, end_angle)
         
