@@ -132,8 +132,12 @@ cdef class DrawPolygon(drawingItem):
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
+    cdef bint _hull
     cdef DCGVector[double2] _points
-    cdef DCGVector[uint32_t] _triangulation_indices
+    cdef DCGVector[uint32_t] _hull_triangulation
+    cdef DCGVector[uint32_t] _polygon_triangulation
+    cdef DCGVector[uint32_t] _hull_indices
+    cdef bint _constrained_success
     cdef void _triangulate(self)
     cdef void draw(self, void*) noexcept nogil
 

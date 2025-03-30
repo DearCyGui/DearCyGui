@@ -194,6 +194,7 @@ def setup_package():
                     "thirdparty/implot",
                     "thirdparty/gl3w",
                     "thirdparty/delaunator-cpp/include",
+                    "thirdparty/Constrainautor/",
                     "thirdparty/freetype/include",
                     "thirdparty/SDL/include"]
 

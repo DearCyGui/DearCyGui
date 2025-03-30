@@ -30,8 +30,9 @@ from libc.math cimport M_PI
 from libc.stdint cimport int32_t
 from libcpp cimport bool
 from libcpp.vector cimport vector
+from cython.operator cimport dereference
 
-from .wrapper.delaunator cimport delaunator_get_triangles
+from .wrapper.delaunator cimport delaunator_get_triangles, DelaunationResult
 
 cdef inline bint is_counter_clockwise(imgui.ImVec2 p1,
                                       imgui.ImVec2 p2,
@@ -2187,12 +2188,15 @@ cdef class DrawPolygon(drawingItem):
         color (list): RGBA color of the outline
         fill (list): RGBA color of the fill
         thickness (float): Outline thickness
+        hull (bool): If True, draw the convex hull of the points instead of the polygon
     """
     def __cinit__(self):
         # points is empty init by cython
         self._color = 4294967295 # 0xffffffff
         self._fill = 0
         self._thickness = 1.
+        self._hull = False
+        self._constrained_success = False
 
     @property
     def points(self):
@@ -2258,6 +2262,25 @@ cdef class DrawPolygon(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
     @property
+    def hull(self):
+        """
+        Whether to draw the convex hull instead of the exact polygon shape.
+        
+        When True, the polygon drawn will be the convex hull of the provided points.
+        When False, the polygon will be drawn along the path defined by the points.
+        
+        Returns:
+            bool: True if drawing the convex hull
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._hull
+    @hull.setter
+    def hull(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._hull = value
+    @property
     def thickness(self):
         """
         Line thickness of the drawing outline.
@@ -2277,9 +2300,14 @@ cdef class DrawPolygon(drawingItem):
     # ImGui Polygon fill requires clockwise order and convex polygon.
     # We want to be more lenient -> triangulate
     cdef void _triangulate(self):
-        self._triangulation_indices.clear()
+        self._hull_triangulation.clear()
+        self._polygon_triangulation.clear()
+        self._hull_indices.clear()
+        self._constrained_success = False
+        
         if self._points.size() < 3:
             return
+        
         # Convert points to flat coordinate array
         cdef vector[double] coords
         coords.reserve(self._points.size() * 2)
@@ -2289,12 +2317,25 @@ cdef class DrawPolygon(drawingItem):
             coords.push_back(self._points[i].p[1])
 
         # Create triangulation
-        cdef vector[size_t] triangulation = delaunator_get_triangles(coords)
+        cdef DelaunationResult result = delaunator_get_triangles(coords)
+        
+        # Store hull triangulation
+        self._hull_triangulation.reserve(result.hull_triangles.size())
+        for i in range(<int32_t>result.hull_triangles.size()):
+            self._hull_triangulation.push_back(result.hull_triangles[i])
+            
+        # Store hull indices for drawing the hull boundary
+        self._hull_indices.reserve(result.hull_indices.size())
+        for i in range(<int32_t>result.hull_indices.size()):
+            self._hull_indices.push_back(result.hull_indices[i])
+            
+        # Store polygon triangulation if constrained triangulation was successful
+        self._constrained_success = result.constrained_success
+        if result.constrained_success and result.polygon_triangles.size() > 0:
+            self._polygon_triangulation.reserve(result.polygon_triangles.size())
+            for i in range(<int32_t>result.polygon_triangles.size()):
+                self._polygon_triangulation.push_back(result.polygon_triangles[i])
 
-        # Convert to DCGVector instead
-        self._triangulation_indices.reserve(triangulation.size())
-        for i in range(<int32_t>triangulation.size()):
-            self._triangulation_indices.push_back(triangulation[i])
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
@@ -2313,41 +2354,60 @@ cdef class DrawPolygon(drawingItem):
         cdef vector[imgui.ImVec2] ipoints
         cdef int32_t i
         cdef bint ccw
+        
+        # Convert points to screen coordinates
         ipoints.reserve(self._points.size())
         for i in range(<int32_t>self._points.size()):
             self.context.viewport.coordinate_to_screen(p, self._points[i].p)
             ip = imgui.ImVec2(p[0], p[1])
             ipoints.push_back(ip)
 
-        # Draw interior
-        if self._fill & imgui.IM_COL32_A_MASK != 0 and self._triangulation_indices.size() > 0:
-            # imgui requires clockwise order + convexity for correct AA
-            # The triangulation always returns counter-clockwise 
-            # but the matrix can change the order.
-            # The order should be the same for all triangles, except in plot with log
-            # scale.
-            for i in range(<int32_t>self._triangulation_indices.size()//3):
-                ccw = is_counter_clockwise(ipoints[self._triangulation_indices[i*3+0]],
-                                           ipoints[self._triangulation_indices[i*3+1]], 
-                                           ipoints[self._triangulation_indices[i*3+2]])
-                if ccw:
-                    (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ipoints[self._triangulation_indices[i*3+0]],
-                                                      ipoints[self._triangulation_indices[i*3+2]],
-                                                      ipoints[self._triangulation_indices[i*3+1]],
-                                                      self._fill)
-                else:
-                    (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ipoints[self._triangulation_indices[i*3+0]],
-                                                      ipoints[self._triangulation_indices[i*3+1]],
-                                                      ipoints[self._triangulation_indices[i*3+2]],
-                                                      self._fill)
+        cdef DCGVector[uint32_t]* triangulation_ptr = NULL
 
-        # Draw closed boundary
-        # imgui requires clockwise order + convexity for correct AA of AddPolyline
-        # Thus we only call AddLine
-        for i in range(1, <int>self._points.size()):
-            (<imgui.ImDrawList*>drawlist).AddLine(ipoints[i-1], ipoints[i], <imgui.ImU32>self._color, thickness)
-        if self._points.size() > 2:
-            (<imgui.ImDrawList*>drawlist).AddLine(ipoints[0], ipoints[<int>self._points.size()-1], <imgui.ImU32>self._color, thickness)
+        # Draw interior if filling is enabled
+        if self._fill & imgui.IM_COL32_A_MASK != 0:
+            # Select which triangulation to use based on hull flag            
+            if self._hull:
+                triangulation_ptr = &self._hull_triangulation
+            elif self._constrained_success:
+                triangulation_ptr = &self._polygon_triangulation
+                
+            # Draw triangles if we have a valid triangulation
+            if triangulation_ptr != NULL and triangulation_ptr.size() > 0:
+                # imgui requires clockwise order + convexity for correct AA
+                # The triangulation always returns counter-clockwise 
+                # but the matrix can change the order.
+                # The order should be the same for all triangles, except in plot with log scale.
+                for i in range(<int32_t>triangulation_ptr.size()//3):
+                    ccw = is_counter_clockwise(ipoints[dereference(triangulation_ptr)[i*3+0]],
+                                              ipoints[dereference(triangulation_ptr)[i*3+1]], 
+                                              ipoints[dereference(triangulation_ptr)[i*3+2]])
+                    if ccw:
+                        (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ipoints[dereference(triangulation_ptr)[i*3+0]],
+                                                        ipoints[dereference(triangulation_ptr)[i*3+2]],
+                                                        ipoints[dereference(triangulation_ptr)[i*3+1]],
+                                                        self._fill)
+                    else:
+                        (<imgui.ImDrawList*>drawlist).AddTriangleFilled(ipoints[dereference(triangulation_ptr)[i*3+0]],
+                                                        ipoints[dereference(triangulation_ptr)[i*3+1]],
+                                                        ipoints[dereference(triangulation_ptr)[i*3+2]],
+                                                        self._fill)
+
+        # Draw boundary
+        cdef uint32_t idx1, idx2
+        if self._color & imgui.IM_COL32_A_MASK != 0 and thickness > 0:
+            if self._hull and self._hull_indices.size() >= 2:
+                # Draw hull boundary if hull mode is enabled
+                for i in range(<int32_t>self._hull_indices.size()):
+                    idx1 = self._hull_indices[i]
+                    idx2 = self._hull_indices[(i + 1) % self._hull_indices.size()]
+                    (<imgui.ImDrawList*>drawlist).AddLine(ipoints[idx1], ipoints[idx2], <imgui.ImU32>self._color, thickness)
+            else:
+                # Draw original polygon boundary
+                for i in range(1, <int>self._points.size()):
+                    (<imgui.ImDrawList*>drawlist).AddLine(ipoints[i-1], ipoints[i], <imgui.ImU32>self._color, thickness)
+                if self._points.size() > 2:
+                    (<imgui.ImDrawList*>drawlist).AddLine(ipoints[0], ipoints[<int>self._points.size()-1], <imgui.ImU32>self._color, thickness)
 
 cdef class DrawQuad(drawingItem):
     """

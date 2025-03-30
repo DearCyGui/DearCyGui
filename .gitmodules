@@ -15,3 +15,6 @@
 [submodule "thirdparty/delaunator-cpp"]
 	path = thirdparty/delaunator-cpp
 	url = https://github.com/delfrrr/delaunator-cpp
+[submodule "thirdparty/Constrainautor"]
+	path = thirdparty/Constrainautor
+	url = https://github.com/axeldavy/Constrainautor
