@@ -11,7 +11,7 @@ The items to draw have their name beginning with `Draw`
 - `DrawTriangle`, `DrawRect`, `DrawPolygon`, draws respectively a triangle, a rectangle, a polygon
 - `DrawCircle`, `DrawEllipse` draw a circle and an ellipse
 - `DrawingList` enables to group several items. It is useful (by subclassing it) to create custom objects.
-- `DrawingListScale` enables to apply a transform to the coordinates, but you for complex cases `Plot` is more powerful
+- `DrawingScale` enables to apply a transform to the coordinates, but you for complex cases `Plot` is more powerful
 
 All color arguments in **DearCyGui** accept three formats:
 

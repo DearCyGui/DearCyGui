@@ -635,6 +635,17 @@ cdef class DrawArc(drawingItem):
             thickness *= self.context.viewport.size_multiplier
         thickness = abs(thickness)
 
+        cdef float scale = self.context.viewport.size_multiplier
+        cdef imgui.ImVec2 radius = imgui.ImVec2(self._radius[0], self._radius[1])
+        if radius.x < 0:
+            radius.x = -radius.x
+        else:
+            radius.x = radius.x * scale
+        if radius.y < 0:
+            radius.y = -radius.y
+        else:
+            radius.y = radius.y * scale
+
         cdef float start_angle = self._start_angle
         cdef float end_angle = self._end_angle
 
@@ -647,26 +658,18 @@ cdef class DrawArc(drawingItem):
         cdef double[2] p2
         cdef float[2] p1_converted
         cdef float[2] p2_converted
-        p1[0] = self._center[0] + cos(start_angle)
-        p1[1] = self._center[1] + sin(start_angle)
-        p2[0] = self._center[0] + cos(end_angle)
-        p2[1] = self._center[1] + sin(end_angle)
+        cdef float min_radius = min(radius.x, radius.y)
+        # We use min_radius because coordinate_to_screen can cause
+        # a fit of the tested coordinates.
+        p1[0] = self._center[0] + min_radius
+        p1[1] = self._center[1] + 0
+        p2[0] = self._center[0] + 0
+        p2[1] = self._center[1] + min_radius
         self.context.viewport.coordinate_to_screen(p1_converted, p1)
         self.context.viewport.coordinate_to_screen(p2_converted, p2)
         if not is_counter_clockwise_array(p1_converted, p2_converted, center):
             start_angle = -start_angle
             end_angle = -end_angle
-
-        cdef float scale = self.context.viewport.size_multiplier
-        cdef imgui.ImVec2 radius = imgui.ImVec2(self._radius[0], self._radius[1])
-        if radius.x < 0:
-            radius.x = -radius.x
-        else:
-            radius.x = radius.x * scale
-        if radius.y < 0:
-            radius.y = -radius.y
-        else:
-            radius.y = radius.y * scale
 
         # For convert filling, angles must be increasing
         if start_angle > end_angle:
