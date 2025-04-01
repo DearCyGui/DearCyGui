@@ -18,7 +18,7 @@ from cpython.object cimport PyObject
 from cpython.sequence cimport PySequence_Check
 
 from .core cimport baseHandler, baseItem, lock_gil_friendly,\
-    itemState
+    itemState, ensure_correct_im_context
 from .c_types cimport DCGMutex, unique_lock
 from .types cimport check_Positioning, make_Positioning, read_rect, Rect
 from .wrapper cimport imgui
@@ -77,6 +77,7 @@ cdef class CustomHandler(baseHandler):
                 condition = self.check_status(item)
             except Exception as e:
                 print(f"An error occured running check_status of {self} on {item}", traceback.format_exc())
+        ensure_correct_im_context(self.context)
         return condition
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
@@ -100,6 +101,7 @@ cdef class CustomHandler(baseHandler):
                     condition = self.check_status(item)
                 except Exception as e:
                     print(f"An error occured running check_status of {self} on {item}", traceback.format_exc())
+        ensure_correct_im_context(self.context)
         if condition:
             self.run_callback(item)
 

@@ -59,6 +59,7 @@ cdef inline void lock_gil_friendly(unique_lock[DCGMutex] &m,
     # Slow path
     lock_gil_friendly_block(m)
 
+cdef void ensure_correct_im_context(Context context) noexcept nogil
 
 cdef inline void clear_obj_vector(DCGVector[PyObject *] &items) noexcept:
     cdef int32_t i
