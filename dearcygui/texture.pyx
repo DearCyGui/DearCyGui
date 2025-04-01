@@ -188,6 +188,7 @@ cdef class Texture(baseItem):
                 self.height = height
                 self.num_chans = num_chans
                 self._buffer_type = buffer_type
+                self._no_realloc = no_realloc
             self.mutex.unlock()
         if not(success):
             raise MemoryError("Failed to allocate target texture")

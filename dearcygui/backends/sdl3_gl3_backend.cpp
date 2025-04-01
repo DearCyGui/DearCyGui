@@ -462,7 +462,15 @@ SDLViewport* SDLViewport::create(render_fun render,
     SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     viewport->uploadGLContext = SDL_GL_CreateContext(viewport->uploadWindowHandle);
+
+    // If creation failed and we tried to share, try again without sharing
+    if (viewport->uploadGLContext == nullptr) {
+        SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 0);
+        viewport->uploadGLContext = SDL_GL_CreateContext(viewport->uploadWindowHandle);
+    }
+
     if (viewport->uploadGLContext == nullptr)
         return nullptr;
     if (gl3wInit() != GL3W_OK)
