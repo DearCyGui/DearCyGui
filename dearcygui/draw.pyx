@@ -26,7 +26,7 @@ from .types cimport child_type, Coord, read_point, read_coord
 
 from libcpp.algorithm cimport swap
 from libcpp.cmath cimport atan, atan2, sin, cos, sqrt
-from libc.math cimport M_PI
+from libc.math cimport M_PI, fmod
 from libc.stdint cimport int32_t
 from libcpp cimport bool
 from libcpp.vector cimport vector
@@ -1777,6 +1777,7 @@ cdef class DrawImage(drawingItem):
         cdef imgui.ImVec2 ip4
         cdef float actual_width
         cdef double actual_height
+        cdef double direction = fmod(self._direction, M_PI * 2.)
 
         if self._width >= 0 and self._height >= 0:
             self.context.viewport.coordinate_to_screen(p1, self._p1)
@@ -1803,8 +1804,8 @@ cdef class DrawImage(drawingItem):
                         (p2[0] - p3[0]) * (p2[0] - p3[0]) +\
                         (p2[1] - p3[1]) * (p2[1] - p3[1])
                     )
-            dx = 0.5 * cos(self._direction) * actual_width
-            dy = 0.5 * sin(self._direction) * actual_height
+            dx = 0.5 * cos(direction) * actual_width
+            dy = 0.5 * sin(direction) * actual_height
             p1[0] = center[0] - dx
             p1[1] = center[1] - dy
             p3[0] = center[0] + dx
@@ -1896,8 +1897,9 @@ cdef class DrawLine(drawingItem):
 
     cdef void update_extremities(self) noexcept nogil:
         cdef double length = abs(self._length)
-        cdef double dx = cos(self._direction)
-        cdef double dy = sin(self._direction)
+        cdef double direction = fmod(self._direction, M_PI * 2.)
+        cdef double dx = cos(direction)
+        cdef double dy = sin(direction)
         dx = 0.5 * length * dx
         dy = 0.5 * length * dy
         self._p1[0] = self._center[0] - dx
@@ -2022,13 +2024,14 @@ cdef class DrawLine(drawingItem):
         cdef float[2] p2
         cdef float[2] center
         cdef float dx, dy
+        cdef double direction = fmod(self._direction, M_PI * 2.)
         if self._length >= 0:
             self.context.viewport.coordinate_to_screen(p1, self._p1)
             self.context.viewport.coordinate_to_screen(p2, self._p2)
         else:
             self.context.viewport.coordinate_to_screen(center, self._center)
-            dx = -0.5 * cos(self._direction) * self._length
-            dy = -0.5 * sin(self._direction) * self._length
+            dx = -0.5 * cos(direction) * self._length
+            dy = -0.5 * sin(direction) * self._length
             p1[0] = center[0] - dx
             p1[1] = center[1] - dy
             p2[0] = center[0] + dx
@@ -3043,7 +3046,8 @@ cdef class DrawRegularPolygon(drawingItem):
             return
 
         # Angle of the first point
-        cdef float start_angle = -self._direction # - because inverted y
+        cdef double direction = fmod(self._direction, M_PI * 2.)
+        cdef float start_angle = -direction # - because inverted y
 
         cdef float[2] center
         cdef imgui.ImVec2 icenter
@@ -3281,8 +3285,9 @@ cdef class DrawStar(drawingItem):
 
         # Angle of the first point
         cdef float angle
-        cdef float start_angle = -self._direction # - because inverted y
-        cdef float start_angle_inner = -self._direction - M_PI / <float>num_points
+        cdef double direction = fmod(self._direction, M_PI * 2.)
+        cdef float start_angle = -direction # - because inverted y
+        cdef float start_angle_inner = -direction - M_PI / <float>num_points
         
         cdef float[2] center
         cdef imgui.ImVec2 icenter, ip

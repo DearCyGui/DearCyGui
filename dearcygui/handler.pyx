@@ -101,7 +101,7 @@ cdef class CustomHandler(baseHandler):
                     condition = self.check_status(item)
                 except Exception as e:
                     print(f"An error occured running check_status of {self} on {item}", traceback.format_exc())
-        ensure_correct_im_context(self.context)
+        ensure_correct_im_context(self.context) # TODO: should probably be done at the queue level too
         if condition:
             self.run_callback(item)
 
