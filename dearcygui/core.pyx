@@ -67,7 +67,7 @@ cdef inline void ensure_correct_implot_context(Context context) noexcept nogil:
 cdef inline void ensure_correct_imnodes_context(Context context) noexcept nogil:
     imnodes.SetCurrentContext(<imnodes.ImNodesContext*>context.imnodes_context)
 
-cdef inline void ensure_correct_im_context(Context context) noexcept nogil:
+cdef void ensure_correct_im_context(Context context) noexcept nogil:
     ensure_correct_imgui_context(context)
     ensure_correct_implot_context(context)
     ensure_correct_imnodes_context(context)
