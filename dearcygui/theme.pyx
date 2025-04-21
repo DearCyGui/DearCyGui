@@ -3025,15 +3025,18 @@ cdef class ThemeList(baseTheme):
 
     cdef void push(self) noexcept nogil:
         self.mutex.lock()
-        push_theme_children(self)
+        if self._enabled:
+            push_theme_children(self)
 
     cdef void pop(self) noexcept nogil:
-        pop_theme_children(self)
+        if self._enabled:
+            pop_theme_children(self)
         self.mutex.unlock()
     
     cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        push_to_list_children(self, v)
+        if self._enabled:
+            push_to_list_children(self, v)
 
 
 cdef class ThemeListWithCondition(baseTheme):
@@ -3324,7 +3327,7 @@ def resolve_theme(baseItem item, str name, type target_class) -> object:
     parent_tree = parent_tree[::-1]
     # TODO: for each item in parent_tree, build the list
     # of applicable ThemeListWithCondition. If a ThemeStopCondition
-    # is found, reset the list for the next item
+    # is found, reset the list for the next item
     # Starting from the top-most parent, iteratively apply
     # the theme lists with conditions, (stop if a ThemeStopCondition
     # is found), and then apply the theme list without conditions
