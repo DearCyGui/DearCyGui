@@ -1839,7 +1839,7 @@ cdef class baseItem:
            self.can_have_theme_child or \
            self.can_have_widget_child or \
            self.can_have_window_child):
-            print("Warning: {self} cannot have children but is pushed as container")
+            print(f"Warning: {self} cannot have children but is pushed as container")
         self.context.push_next_parent(self)
         return self
 
