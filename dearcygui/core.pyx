@@ -3968,11 +3968,14 @@ cdef class Callback:
             raise TypeError("Callback requires a callable object")
         self.callback = callback
         cdef int32_t num_defaults = 0
-        if callback.__defaults__ is not None:
+        if getattr(callback, "__defaults__", None) is not None:
             num_defaults = len(callback.__defaults__)
-        self.num_args = callback.__code__.co_argcount - num_defaults
-        if hasattr(callback, '__self__'):
-            self.num_args -= 1
+        try:
+            self.num_args = callback.__code__.co_argcount - num_defaults
+            if hasattr(callback, '__self__'):
+                self.num_args -= 1
+        except AttributeError:
+            self.num_args = 3
 
     @property
     def callback(self):
