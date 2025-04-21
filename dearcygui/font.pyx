@@ -353,7 +353,6 @@ cdef class AutoFont(FontMultiScales):
 
     def __del__(self):
         self._font_creation_executor.shutdown(wait=True)
-        super().__del__()
 
     def _on_new_scale(self, sender, target, float scale) -> None:
         """Called when a new global scale is encountered"""
