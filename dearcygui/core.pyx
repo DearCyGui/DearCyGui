@@ -2438,6 +2438,10 @@ cdef class baseItem:
             (<baseItem>self.last_window_child).set_hidden_and_propagate_to_siblings_with_handlers()
         if self.last_widgets_child is not None:
             (<baseItem>self.last_widgets_child).set_hidden_and_propagate_to_siblings_with_handlers()
+        if self.last_tab_child is not None:
+            (<baseItem>self.last_tab_child).set_hidden_and_propagate_to_siblings_with_handlers()
+        if self.last_menubar_child is not None:
+            (<baseItem>self.last_menubar_child).set_hidden_and_propagate_to_siblings_with_handlers()
         if self.last_drawings_child is not None:
             (<baseItem>self.last_drawings_child).set_hidden_and_propagate_to_siblings_with_handlers()
         if self.last_plot_element_child is not None:
