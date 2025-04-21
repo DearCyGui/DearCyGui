@@ -177,6 +177,8 @@ cdef class _FileDialogQuery:
         for (name, pattern) in filters:
             self.filters_backing.push_back(bytes(str(name), encoding="utf-8"))
             pattern = str(pattern)
+            if len(pattern) == 0:
+                raise ValueError(f"Invalid pattern: {pattern}. Extensions may not be empty.")
             if pattern != "*":
                 parts = pattern.split(";")
                 for part in parts:
