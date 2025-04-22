@@ -1527,11 +1527,11 @@ cdef class baseItem:
         The children hold a reference to their parent, and the parent
         holds a reference to its children. Thus to be release memory
         held by an item, two options are possible:
-        . Remove the item from the tree, remove all your references.
+        - Remove the item from the tree, remove all your references.
           If the item has children or siblings, the item will not be
           released until Python's garbage collection detects a
           circular reference.
-        . Use delete_item to remove the item from the tree, and remove
+        - Use delete_item to remove the item from the tree, and remove
           all the internal references inside the item structure and
           the item's children, thus allowing them to be removed from
           memory as soon as the user doesn't hold a reference on them.
@@ -2501,10 +2501,10 @@ cdef class baseItem:
           there will be no jump in the item status (for example
           it won't go from rendered, to not rendered, to rendered),
           as the current state will be overwritten when frame is rendered.
-        . Possibly undesired effect, but with limited implications:
+        - Possibly undesired effect, but with limited implications:
           when the item states will be read by the user before the frame
           is rendered, it will show the default hidden values.
-        . The main reason we are doing this: if the item is not rendered,
+        - The main reason we are doing this: if the item is not rendered,
           the states are correct (else they would remain as rendered forever),
           and thus we can have handlers attached to other items using
           OtherItemHandler to catch this item being not rendered. This is
@@ -2554,10 +2554,10 @@ cdef class baseItem:
         Lock the internal item mutex.
         **Know what you are doing**
         Locking the mutex will prevent:
-        . Other threads from reading/writing
+        - Other threads from reading/writing
           attributes or calling methods with this item,
           editing the children/parent of the item
-        . Any rendering of this item and its children.
+        - Any rendering of this item and its children.
           If the viewport attemps to render this item,
           it will be blocked until the mutex is released.
           (if the rendering thread is holding the mutex,
@@ -2578,7 +2578,7 @@ cdef class baseItem:
         mutex first.
 
         Input argument:
-        . wait (default = False): if locking the mutex fails (mutex
+        - wait (default = False): if locking the mutex fails (mutex
           held by another thread), wait it is released
 
         Returns: True if the mutex is held, False else.
@@ -2625,10 +2625,10 @@ cdef class baseItem:
         Context manager instance for the item mutex
 
         Locking the mutex will prevent:
-        . Other threads from reading/writing
+        - Other threads from reading/writing
           attributes or calling methods with this item,
           editing the children/parent of the item
-        . Any rendering of this item and its children.
+        - Any rendering of this item and its children.
           If the viewport attemps to render this item,
           it will be blocked until the mutex is released.
           (if the rendering thread is holding the mutex,
@@ -3355,10 +3355,10 @@ cdef class Viewport(baseItem):
         Callback to be issued when the viewport is resized.
 
         The data returned is a tuple containing:
-        . The width in pixels
-        . The height in pixels
-        . The width according to the OS (OS dependent)
-        . The height according to the OS (OS dependent)
+        - The width in pixels
+        - The height in pixels
+        - The width according to the OS (OS dependent)
+        - The height according to the OS (OS dependent)
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3390,11 +3390,6 @@ cdef class Viewport(baseItem):
 
     @property
     def metrics(self):
-        cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] m2
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
-
         """
         Return rendering related metrics relative to the last
         frame.
@@ -3412,6 +3407,11 @@ cdef class Viewport(baseItem):
         frame_count corresponds to the frame number to which
         the data refers to.
         """
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        lock_gil_friendly(m, self.context.imgui_mutex)
+        lock_gil_friendly(m2, self.mutex)
+
         return {
             "last_time_before_event_handling" : self.last_t_before_event_handling,
             "last_time_before_rendering" : self.last_t_before_rendering,
@@ -3736,33 +3736,29 @@ cdef class Viewport(baseItem):
 
 
     def render_frame(self, bint can_skip_presenting=False):
-        """
-        Render one frame.
+        """Render one frame of the application.
 
-        Rendering occurs in several separated steps:
-        . Mouse/Keyboard events are processed. it's there
-          that wait_for_input has an effect.
-        . The viewport item, and then all the rendering tree are
-          walked through to query their state and prepare the rendering
-          commands using ImGui, ImPlot and ImNodes
-        . The rendering commands are submitted to the GPU.
-        . The submission is passed to the operating system to handle the
-          window update. It's usually at this step that the system will
-          apply vsync by making the application wait if it rendered faster
-          than the screen refresh rate.
+        Rendering occurs in several sequential steps:
+        1. Mouse/Keyboard events are processed (wait_for_input applies here)
+        2. The viewport and entire rendering tree are traversed to prepare
+        rendering commands using ImGui, ImPlot and ImNodes
+        3. Rendering commands are submitted to the GPU
+        4. The submission is passed to the OS for window update, including
+        vsync if applicable
 
-        can_skip_presenting: rendering will occur (handlers checked, etc),
-            but the backend might decide, if this flag is set, to not
-            submit the rendering commands to the GPU and refresh the
-            window. Can be used to avoid using the GPU in response
-            to a simple mouse motion.
-            Fast checks are used to determine if presenting should occur
-            or not. Thus set this only if you haven't updated any content
-            on the screen.
-            Note wake() will automatically force a redraw the next frame.
+        Parameters
+        ----------
+        can_skip_presenting : bool, default=False
+            If True, rendering will occur (handlers checked, etc.) but the backend
+            might decide not to submit rendering commands to the GPU and refresh
+            the window. Useful to avoid GPU usage for simple mouse motions.
+            Only set this if you haven't updated any screen content.
+            Note that wake() will force a redraw on the next frame.
 
-        Returns True if the frame was presented to the screen,
-            False else (can_skip_presenting)
+        Returns
+        -------
+        bool
+            True if the frame was presented to the screen, False otherwise
         """
         # to lock in this order
         cdef unique_lock[DCGMutex] imgui_m = unique_lock[DCGMutex](self.context.imgui_mutex, defer_lock_t()) # TODO: probably needs to protect processEvents and GetIO
@@ -5411,14 +5407,14 @@ cdef class uiItem(baseItem):
         When it is written, it is set to a 'requested value' that is not
         entirely guaranteed to be enforced.
         Specific values:
-            . 0 is meant to define the default size. For some items,
+            - 0 is meant to define the default size. For some items,
               such as windows, it triggers a fit to the content size.
               For other items, there is a default size deduced from the
               style policy. And for some items (such as child windows),
               it triggers a fit to the full size available within the
               parent window.
-            . > 0 values is meant as a hint for rect_size.
-            . < 0 values to be interpreted as 'take remaining space
+            - > 0 values is meant as a hint for rect_size.
+            - < 0 values to be interpreted as 'take remaining space
               of the parent's content region from the current position,
               and subtract this value'. For example -1 will stretch to the
               remaining area minus one pixel.
@@ -5452,14 +5448,14 @@ cdef class uiItem(baseItem):
         When it is written, it is set to a 'requested value' that is not
         entirely guaranteed to be enforced.
         Specific values:
-            . 0 is meant to define the default size. For some items,
+            - 0 is meant to define the default size. For some items,
               such as windows, it triggers a fit to the content size.
               For other items, there is a default size deduced from the
               style policy. And for some items (such as child windows),
               it triggers a fit to the full size available within the
               parent window.
-            . > 0 values is meant as a hint for rect_size.
-            . < 0 values to be interpreted as 'take remaining space
+            - > 0 values is meant as a hint for rect_size.
+            - < 0 values to be interpreted as 'take remaining space
               of the parent's content region from the current position,
               and subtract this value'. For example -1 will stretch to the
               remaining area minus one pixel.
@@ -5769,18 +5765,18 @@ cdef class uiItem(baseItem):
         """
         Function to override for the core rendering of the item.
         What is already handled outside draw_item (see draw()):
-        . The mutex is held (as is the mutex of the following siblings,
+        - The mutex is held (as is the mutex of the following siblings,
           and the mutex of the parents, including the viewport and imgui
           mutexes)
-        . The previous siblings are already rendered
-        . Current themes, fonts
-        . Widget starting position (GetCursorPos to get it)
-        . Focus
+        - The previous siblings are already rendered
+        - Current themes, fonts
+        - Widget starting position (GetCursorPos to get it)
+        - Focus
 
         What remains to be done by draw_item:
-        . Rendering the item. Set its width, its height, etc
-        . Calling update_current_state or manage itself the state
-        . Render children if any
+        - Rendering the item. Set its width, its height, etc
+        - Calling update_current_state or manage itself the state
+        - Render children if any
 
         The return value indicates if the main callback should be triggered.
         """
