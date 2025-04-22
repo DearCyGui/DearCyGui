@@ -24664,9 +24664,10 @@ class DrawPolygon(drawingItem):
         color (list): RGBA color of the outline
         fill (list): RGBA color of the fill
         thickness (float): Outline thickness
+        hull (bool): If True, draw the convex hull of the points instead of the polygon
     
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         before: Attach the item just before the target item. Default is None (disabled)
@@ -24680,6 +24681,13 @@ class DrawPolygon(drawingItem):
             
             Returns:
                 list: RGBA values in [0,1] range
+        hull: Whether to draw the convex hull instead of the exact polygon shape.
+            
+            When True, the polygon drawn will be the convex hull of the provided points.
+            When False, the polygon will be drawn along the path defined by the points.
+            
+            Returns:
+                bool: True if drawing the convex hull
         next_sibling: child of the parent of the item that
             is rendered just after this item.
         parent: parent of the item in the rendering tree.
@@ -24722,7 +24730,7 @@ class DrawPolygon(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
         
@@ -24736,6 +24744,13 @@ class DrawPolygon(drawingItem):
             
             Returns:
                 list: RGBA values in [0,1] range
+        hull: Whether to draw the convex hull instead of the exact polygon shape.
+            
+            When True, the polygon drawn will be the convex hull of the provided points.
+            When False, the polygon will be drawn along the path defined by the points.
+            
+            Returns:
+                bool: True if drawing the convex hull
         next_sibling: child of the parent of the item that
             is rendered just after this item.
         parent: parent of the item in the rendering tree.
@@ -24931,6 +24946,26 @@ class DrawPolygon(drawingItem):
 
     @fill.setter
     def fill(self, value : Color):
+        ...
+
+
+    @property
+    def hull(self) -> bool:
+        """
+        Whether to draw the convex hull instead of the exact polygon shape.
+        
+        When True, the polygon drawn will be the convex hull of the provided points.
+        When False, the polygon will be drawn along the path defined by the points.
+        
+        Returns:
+            bool: True if drawing the convex hull
+        
+        """
+        ...
+
+
+    @hull.setter
+    def hull(self, value : bool):
         ...
 
 
@@ -77363,7 +77398,7 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 class SimplePlot(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., width : float = 0.0):
         """
         attach: Whether to attach the item to a parent. Default is None (auto)
         autoscale: Whether scale_min and scale_max should be deduced
@@ -77464,15 +77499,6 @@ class SimplePlot(uiItem):
             show is set to False automatically on close.
         theme: bound theme for the item
         user_data: User data of any type.
-        value: main internal value for the object.
-            For buttons, it is set when pressed; For text it is the
-            text itself; For selectable whether it is selected, etc.
-            Reading the value attribute returns a copy, while writing
-            to the value attribute will edit the field of the value.
-            In case the value is shared among items, setting the value
-            attribute will change it for all the sharing items.
-            To share a value attribute among objects, one should use
-            the shareable_value attribute
         width: Requested width of the item.
             When it is written, it is set to a 'requested value' that is not
             entirely guaranteed to be enforced.
@@ -77510,7 +77536,7 @@ class SimplePlot(uiItem):
         ...
 
 
-    def configure(self, autoscale : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : array = array('f'), width : float = 0.0):
+    def configure(self, autoscale : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
         
@@ -77611,15 +77637,6 @@ class SimplePlot(uiItem):
             show is set to False automatically on close.
         theme: bound theme for the item
         user_data: User data of any type.
-        value: main internal value for the object.
-            For buttons, it is set when pressed; For text it is the
-            text itself; For selectable whether it is selected, etc.
-            Reading the value attribute returns a copy, while writing
-            to the value attribute will edit the field of the value.
-            In case the value is shared among items, setting the value
-            attribute will change it for all the sharing items.
-            To share a value attribute among objects, one should use
-            the shareable_value attribute
         width: Requested width of the item.
             When it is written, it is set to a 'requested value' that is not
             entirely guaranteed to be enforced.
@@ -78568,28 +78585,6 @@ class SimplePlot(uiItem):
         preferred to pass the objects directly. 
         
         """
-        ...
-
-
-    @property
-    def value(self) -> array:
-        """
-        Writable attribute: main internal value for the object.
-        For buttons, it is set when pressed; For text it is the
-        text itself; For selectable whether it is selected, etc.
-        Reading the value attribute returns a copy, while writing
-        to the value attribute will edit the field of the value.
-        In case the value is shared among items, setting the value
-        attribute will change it for all the sharing items.
-        To share a value attribute among objects, one should use
-        the shareable_value attribute
-        
-        """
-        ...
-
-
-    @value.setter
-    def value(self, value : array):
         ...
 
 
@@ -87106,28 +87101,6 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def activated(self) -> bool:
-        """
-        Readonly attribute: has the item just turned active
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-        
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        Readonly attribute: is the item active.
-        For example for a button, it is when pressed. For tabs
-        it is when selected, etc.
-        
-        """
-        ...
-
-
-    @property
     def callback(self) -> DCGCallable | None:
         """
         Writable attribute: callback object or list of callback objects
@@ -87189,39 +87162,22 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
+    def clicked(self) -> tuple:
+        """
+        Readonly attribute: has the item just been clicked.
+        The returned value is a tuple of len 5 containing the individual test
+        mouse buttons (up to 5 buttons)
+        If True, the attribute is reset the next frame. It's better to rely
+        on handlers to catch this event.
+        
+        """
+        ...
+
+
+    @property
     def col_config(self) -> TableColConfigView:
         """
         Get the column configuration view.
-        
-        """
-        ...
-
-
-    @property
-    def content_pos(self) -> Coord:
-        """
-        Readable attribute indicating the top left starting
-        position of the item's content in viewport coordinates.
-
-        Only available for items with a content area.
-        The size of the content area is available with
-        content_region_avail.
-        
-        """
-        ...
-
-
-    @property
-    def content_region_avail(self) -> Coord:
-        """
-        Readonly attribute: For windows, child windows,
-        table cells, etc: Available region.
-
-        Only defined for elements that contain other items.
-        Corresponds to the size inside the item to display
-        other items (regions not shown which can
-        be scrolled are not accounted). Basically the item size
-        minus the margins and borders.
         
         """
         ...
@@ -87237,9 +87193,11 @@ Sort the rows using the value in ref_col as index.
 
 
     @property
-    def deactivated(self) -> bool:
+    def double_clicked(self) -> list:
         """
-        Readonly attribute: has the item just turned un-active
+        Readonly attribute: has the item just been double-clicked.
+        The returned value is a tuple of len 5 containing the individual test
+        mouse buttons (up to 5 buttons)
         If True, the attribute is reset the next frame. It's better to rely
         on handlers to catch this event.
         
@@ -87998,17 +87956,6 @@ Sort the rows using the value in ref_col as index.
 
     @theme.setter
     def theme(self, value):
-        ...
-
-
-    @property
-    def toggled(self) -> bool:
-        """
-        Has a menu/bar trigger been hit for the item
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-        
-        """
         ...
 
 
@@ -106185,6 +106132,7 @@ class Window(uiItem):
             no_resize
             no_collapse
             no_title_bar
+            no_move
             and running item.focused = True on all the other windows
         scaling_factor: scaling factor
             that multiplies the global viewport scaling and
@@ -106395,6 +106343,7 @@ class Window(uiItem):
             no_resize
             no_collapse
             no_title_bar
+            no_move
             and running item.focused = True on all the other windows
         scaling_factor: scaling factor
             that multiplies the global viewport scaling and
@@ -107552,6 +107501,7 @@ class Window(uiItem):
         no_resize
         no_collapse
         no_title_bar
+        no_move
         and running item.focused = True on all the other windows
         
         """
