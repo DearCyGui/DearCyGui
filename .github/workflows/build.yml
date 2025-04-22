@@ -39,7 +39,7 @@ jobs:
 
   build_wheels_windows:
     name: Build Windows wheels
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12', '3.13']
