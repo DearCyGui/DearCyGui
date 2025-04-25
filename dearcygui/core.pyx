@@ -3318,7 +3318,7 @@ cdef class Viewport(baseItem):
         ensure_correct_im_context(self.context)
         if value and not((<platformViewport*>self._platform).isVisible):
             (<platformViewport*>self._platform).shouldShow = True
-        elif (<platformViewport*>self._platform).isVisible:
+        elif not value and (<platformViewport*>self._platform).isVisible:
             (<platformViewport*>self._platform).shouldHide = True
 
     @property
