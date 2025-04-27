@@ -37,12 +37,26 @@ from .wrapper.delaunator cimport delaunator_get_triangles, DelaunationResult
 cdef inline bint is_counter_clockwise(imgui.ImVec2 p1,
                                       imgui.ImVec2 p2,
                                       imgui.ImVec2 p3) noexcept nogil:
+    """
+    Determines if three points in ImVec2 format form a counter-clockwise triangle.
+    
+    This function calculates the determinant of the vectors formed by the points
+    to determine their orientation. A positive determinant indicates counter-clockwise
+    order, which is important for proper rendering of filled shapes in ImGui.
+    """
     cdef float det = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x)
     return det > 0.
 
 cdef inline bint is_counter_clockwise_array(float[2] p1,
                                             float[2] p2,
                                             float[2] p3) noexcept nogil:
+    """
+    Determines if three points in array format form a counter-clockwise triangle.
+    
+    Similar to is_counter_clockwise but works with float[2] arrays instead of ImVec2.
+    Used for coordinate calculations where the native array format is more convenient
+    than creating temporary ImVec2 objects.
+    """
     cdef float det = (p2[0] - p1[0]) * (p3[1] - p1[1]) - (p2[1] - p1[1]) * (p3[0] - p1[0])
     return det > 0.
 
@@ -52,18 +66,16 @@ cdef class ViewportDrawList(drawingItem):
 
     This is typically used to draw items that should always be visible,
     regardless of the current window or plot being displayed.
-
-    Attributes:
-        front (bool): When True, renders drawings in front of all items. When False, renders behind.
     """
     def __cinit__(self):
         self.element_child_category = child_type.cat_viewport_drawlist
         self.can_have_drawing_child = True
         self._show = True
         self._front = True
+
     @property
     def front(self):
-        """Writable attribute: Display the drawings in front of all items (rather than behind)"""
+        """Display the drawings in front of all items (rather than behind)"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._front
@@ -158,7 +170,9 @@ cdef class DrawingClip(drawingItem):
     @property
     def pmin(self):
         """
-        (xmin, ymin) corner of the rect that
+        (xmin, ymin) of the clip region
+
+        pmin is the (xmin, ymin) corner of the rect that
         must be on screen for the children to be rendered.
         """
         cdef unique_lock[DCGMutex] m
@@ -169,10 +183,13 @@ cdef class DrawingClip(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmin, value)
+
     @property
     def pmax(self):
         """
-        (xmax, ymax) corner of the rect that
+        (xmax, ymax) of the clip region
+
+        pmax is the (xmax, ymax) corner of the rect that
         must be on screen for the children to be rendered.
         """
         cdef unique_lock[DCGMutex] m
@@ -187,9 +204,11 @@ cdef class DrawingClip(drawingItem):
     @property
     def scale_min(self):
         """
+        Minimum accepted coordinate scaling to screen space.
+
         The coordinate space to screen space scaling
-        must be strictly above this amount (measured pixel size
-        between the coordinate (x=0, y=0) and (x=1, y=0))
+        must be strictly above this amount. The measured pixel size
+        between the coordinate (x=0, y=0) and (x=1, y=0)
         for the children to be rendered.
         """
         cdef unique_lock[DCGMutex] m
@@ -200,12 +219,15 @@ cdef class DrawingClip(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scale_min = value
+
     @property
     def scale_max(self):
         """
+        Maximum accepted coordinate scaling to screen space.
+
         The coordinate space to screen space scaling
-        must be lower or equal to this amount (measured pixel size
-        between the coordinate (x=0, y=0) and (x=1, y=0))
+        must be lower or equal to this amount. The measured pixel size
+        between the coordinate (x=0, y=0) and (x=1, y=0)
         for the children to be rendered.
         """
         cdef unique_lock[DCGMutex] m
@@ -220,6 +242,8 @@ cdef class DrawingClip(drawingItem):
     @property
     def no_global_scaling(self):
         """
+        Disable apply global scale to the min/max scaling.
+
         By default, the pixel size of scale_min/max
         is multiplied by the global scale in order
         to have the same behaviour of various screens.
@@ -229,7 +253,6 @@ cdef class DrawingClip(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_global_scale
-
     @no_global_scaling.setter
     def no_global_scaling(self, bint value):
         cdef unique_lock[DCGMutex] m
@@ -287,6 +310,13 @@ cdef class DrawingClip(drawingItem):
 cdef class DrawingScale(drawingItem):
     """
     A DrawingList, with a change in origin and scaling.
+
+    DrawingScale can be used to defined a custom
+    coordinate system for the children, duplicating
+    what can be done with a Plot.
+
+    It can also be used to cheaply apply shifts and
+    scaling operations to the children.
     """
     def __cinit__(self):
         self._scales = [1., 1.]
@@ -297,19 +327,16 @@ cdef class DrawingScale(drawingItem):
     @property
     def scales(self):
         """
-        Scales applied to the x and y axes
-        for the children.
+        Scales (tuple or value) applied to the x and y axes for the children.
 
         Default is (1., 1.).
 
-        Unless no_parent_scale is True,
-        when applied, scales multiplies any previous
-        scales already set (including plot scales).
+        Note unless no_parent_scale is True, the 
+        parent scales also apply.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._scales)
-
     @scales.setter
     def scales(self, values):
         cdef unique_lock[DCGMutex] m
@@ -324,15 +351,13 @@ cdef class DrawingScale(drawingItem):
     @property
     def origin(self):
         """
-        Position in coordinate space of the
-        new origin for the children.
+        Position in coordinate space of the new origin for the children.
 
-        Default is (0., 0.)
+        Default is (0., 0.).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._shifts)
-
     @origin.setter
     def origin(self, values):
         cdef unique_lock[DCGMutex] m
@@ -354,7 +379,6 @@ cdef class DrawingScale(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_parent_scale
-
     @no_parent_scaling.setter
     def no_parent_scaling(self, bint value):
         cdef unique_lock[DCGMutex] m
@@ -369,7 +393,6 @@ cdef class DrawingScale(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_global_scale
-
     @no_global_scaling.setter
     def no_global_scaling(self, bint value):
         cdef unique_lock[DCGMutex] m
@@ -436,6 +459,8 @@ Useful items
 
 cdef class DrawSplitBatch(drawingItem):
     """
+    Item to force GPU rendering order.
+
     By default the rendering algorithms tries
     to batch drawing primitives together as much
     as possible. It detects when items need to be
@@ -459,57 +484,12 @@ cdef class DrawArc(drawingItem):
     """
     Draws an arc in coordinate space.
     
-    The arc is defined using SVG-like parameters for compatibility with SVG paths.
+    An arc is a portion of an ellipse defined by its center, radii, start and end angles. 
+    The implementation follows SVG-like parametrization allowing both circular and 
+    elliptical arcs with optional rotation.
     
-    Properties
-    ----------
-    center : tuple (x, y)
-        Center point coordinates of the arc in coordinate space
-    
-    radius : tuple (rx, ry)
-        Radii in x and y directions. Controls the ellipse shape:
-        - Equal values (rx=ry) create circular arcs
-        - Different values create elliptical arcs
-    
-    start_angle : float
-        Starting angle in radians (0 = right, π/2 = down, π = left, 3π/2 = up)
-    
-    end_angle : float
-        Ending angle in radians. Arc is drawn counter-clockwise from start to end
-    
-    rotation : float
-        Rotation of the entire arc around its center point in radians
-    
-    color : outline color
-    
-    fill : fill color
-    
-    thickness : float
-        Line thickness in pixels for the arc outline
-        
-    Examples
-    --------
-    # Create a quarter circle
-    arc = DrawArc(context,
-                 center=(0, 0),
-                 radius=(100, 100),
-                 start_angle=0,
-                 end_angle=π/2,
-                 rotation=0,
-                 color=(255,255,255,255),
-                 fill_color=(255,0,0,128),
-                 thickness=2.0)
-    
-    # Create an elliptical arc
-    arc = DrawArc(context,
-                 center=(0, 0),
-                 radius=(200, 100),
-                 start_angle=0,
-                 end_angle=π,
-                 rotation=π/4,
-                 color=(255,255,255,255),
-                 fill_color=(0,0,0,0),
-                 thickness=1.0)
+    Arcs can be filled and/or outlined with different colors and thickness.
+    Negative radius values are interpreted in screen space rather than coordinate space.
     """
     
     def __cinit__(self):
@@ -524,7 +504,12 @@ cdef class DrawArc(drawingItem):
 
     @property
     def center(self):
-        """Center point"""
+        """
+        Center point of the arc in coordinate space.
+        
+        This defines the origin around which the arc is drawn. The arc's radii 
+        extend from this point.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._center)
@@ -536,11 +521,17 @@ cdef class DrawArc(drawingItem):
         
     @property
     def radius(self):
-        """X and Y radii"""
+        """
+        X and Y radii of the arc.
+        
+        Defines the shape of the ellipse from which the arc is drawn:
+        - Equal values create a circular arc
+        - Different values create an elliptical arc
+        - Negative values are interpreted as screen space units rather than coordinate space
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._radius)
-
     @radius.setter
     def radius(self, value):
         cdef unique_lock[DCGMutex] m
@@ -549,12 +540,17 @@ cdef class DrawArc(drawingItem):
 
     @property
     def fill(self):
+        """
+        Fill color of the arc.
+        
+        The area between the center, start angle, and end angle is filled with this color.
+        Transparency is supported through the alpha channel.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
         unparse_color(fill, self._fill)
         return list(fill)
-
     @fill.setter
     def fill(self, value):
         cdef unique_lock[DCGMutex] m
@@ -563,10 +559,15 @@ cdef class DrawArc(drawingItem):
 
     @property
     def thickness(self):
+        """
+        Line thickness of the arc outline.
+        
+        Controls the width of the line along the arc's path. The actual pixel width 
+        is affected by the viewport's scale and DPI settings.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
-
     @thickness.setter
     def thickness(self, float value):
         cdef unique_lock[DCGMutex] m
@@ -575,12 +576,17 @@ cdef class DrawArc(drawingItem):
 
     @property
     def color(self):
+        """
+        Color of the arc outline.
+        
+        Controls the color of the line tracing the path of the arc. Transparency
+        is supported through the alpha channel.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
         return list(color)
-
     @color.setter
     def color(self, value):
         cdef unique_lock[DCGMutex] m
@@ -589,10 +595,15 @@ cdef class DrawArc(drawingItem):
 
     @property
     def start_angle(self):
+        """
+        Starting angle of the arc in radians.
+        
+        The angle is measured from the positive x-axis, with positive values going 
+        counter-clockwise (0 = right, pi/2 = down, pi = left, 3pi/2 = up).
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._start_angle
-
     @start_angle.setter
     def start_angle(self, float value):
         cdef unique_lock[DCGMutex] m
@@ -601,10 +612,15 @@ cdef class DrawArc(drawingItem):
 
     @property
     def end_angle(self):
+        """
+        Ending angle of the arc in radians.
+        
+        The arc is drawn from start_angle to end_angle in counter-clockwise direction.
+        If end_angle is less than start_angle, they are swapped during rendering.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._end_angle
-
     @end_angle.setter
     def end_angle(self, float value):
         cdef unique_lock[DCGMutex] m
@@ -613,10 +629,15 @@ cdef class DrawArc(drawingItem):
 
     @property
     def rotation(self):
+        """
+        Rotation of the entire arc around its center in radians.
+        
+        This allows rotating the ellipse from which the arc is drawn, which is 
+        particularly useful for elliptical arcs to control their orientation.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._rotation
-
     @rotation.setter
     def rotation(self, float value):
         cdef unique_lock[DCGMutex] m
@@ -700,23 +721,27 @@ cdef class DrawArc(drawingItem):
 cdef class DrawArrow(drawingItem):
     """
     Draws an arrow in coordinate space.
-
-    The arrow consists of a line with a triangle at one end.
-
-    Attributes:
-        p1 (tuple): End point coordinates (x, y) 
-        p2 (tuple): Start point coordinates (x, y)
-        color (list): RGBA color of the arrow
-        thickness (float): Line thickness
-        size (float): Size of the arrow head
+    
+    An arrow consists of a line segment from p2 (start) to p1 (end) with a triangular 
+    arrowhead at the p1 end. The arrow's appearance is controlled by its color, 
+    line thickness, and arrowhead size.
+    
+    This drawing element is useful for indicating direction, marking points of interest,
+    or visualizing vectors in coordinate space.
     """
     def __cinit__(self):
         # p1, p2, etc are zero init by cython
         self._color = 4294967295 # 0xffffffff
         self._thickness = 1.
         self._size = 4.
+
     @property
     def p1(self):
+        """
+        End point coordinates of the arrow (where the arrowhead is drawn).
+        
+        This is the destination point of the arrow, where the triangular head appears.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._end)
@@ -726,8 +751,14 @@ cdef class DrawArrow(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._end, value)
         self.__compute_tip()
+
     @property
     def p2(self):
+        """
+        Start point coordinates of the arrow (the tail end).
+        
+        This is the starting point of the arrow, from where the line begins.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._start)
@@ -737,8 +768,14 @@ cdef class DrawArrow(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._start, value)
         self.__compute_tip()
+
     @property
     def color(self):
+        """
+        Color of the arrow.
+        
+        Controls the color of both the line and arrowhead.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
@@ -749,8 +786,15 @@ cdef class DrawArrow(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def thickness(self):
+        """
+        Line thickness of the arrow.
+        
+        Controls the width of the line segment portion of the arrow. The actual pixel width 
+        is affected by the viewport's scale and DPI settings.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
@@ -760,8 +804,15 @@ cdef class DrawArrow(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
         self.__compute_tip()
+
     @property
     def size(self):
+        """
+        Size of the arrow head.
+        
+        Controls how large the triangular head of the arrow appears. Larger values 
+        create a more prominent arrowhead.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._size
@@ -834,17 +885,13 @@ cdef class DrawArrow(drawingItem):
 cdef class DrawBezierCubic(drawingItem):
     """
     Draws a cubic Bezier curve in coordinate space.
-
-    The curve is defined by four control points.
-
-    Attributes:
-        p1 (tuple): First control point coordinates (x, y)
-        p2 (tuple): Second control point coordinates (x, y)
-        p3 (tuple): Third control point coordinates (x, y)
-        p4 (tuple): Fourth control point coordinates (x, y)
-        color (list): RGBA color of the curve
-        thickness (float): Line thickness
-        segments (int): Number of line segments used to approximate the curve
+    
+    A cubic Bezier curve is defined by four control points: starting point (p1), 
+    two intermediate control points (p2, p3) that shape the curvature, and an 
+    endpoint (p4). The curve starts at p1, is pulled toward p2 and p3, and ends at p4.
+    
+    The segments parameter controls the smoothness of the curve approximation,
+    with higher values creating smoother curves at the cost of performance.
     """
     def __cinit__(self):
         # p1, etc are zero init by cython
@@ -854,6 +901,11 @@ cdef class DrawBezierCubic(drawingItem):
 
     @property
     def p1(self):
+        """
+        First control point coordinates of the Bezier curve.
+        
+        This is the starting point of the curve, where the curve begins.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
@@ -862,8 +914,15 @@ cdef class DrawBezierCubic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
+
     @property
     def p2(self):
+        """
+        Second control point coordinates of the Bezier curve.
+        
+        This control point, along with p3, determines the curvature and shape.
+        The curve is pulled toward this point but does not necessarily pass through it.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
@@ -872,8 +931,15 @@ cdef class DrawBezierCubic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
+
     @property
     def p3(self):
+        """
+        Third control point coordinates of the Bezier curve.
+        
+        This control point, along with p2, determines the curvature and shape.
+        The curve is pulled toward this point but does not necessarily pass through it.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p3)
@@ -882,8 +948,14 @@ cdef class DrawBezierCubic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
+
     @property
     def p4(self):
+        """
+        Fourth control point coordinates of the Bezier curve.
+        
+        This is the end point of the curve, where the curve terminates.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p4)
@@ -892,8 +964,15 @@ cdef class DrawBezierCubic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p4, value)
+
     @property
     def color(self):
+        """
+        Color of the Bezier curve.
+        
+        The color is specified as RGBA values. The alpha channel controls 
+        the transparency of the curve.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
@@ -904,8 +983,15 @@ cdef class DrawBezierCubic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def thickness(self):
+        """
+        Line thickness of the Bezier curve.
+        
+        This controls the width of the curve line. The actual pixel width
+        is affected by the viewport's scale and DPI settings.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
@@ -914,8 +1000,15 @@ cdef class DrawBezierCubic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
+
     @property
     def segments(self):
+        """
+        Number of line segments used to approximate the Bezier curve.
+        
+        Higher values create a smoother curve at the cost of performance.
+        A value of 0 uses the default number of segments determined by ImGui.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._segments
@@ -954,16 +1047,13 @@ cdef class DrawBezierCubic(drawingItem):
 cdef class DrawBezierQuadratic(drawingItem):
     """
     Draws a quadratic Bezier curve in coordinate space.
-
-    The curve is defined by three control points.
-
-    Attributes:
-        p1 (tuple): First control point coordinates (x, y)
-        p2 (tuple): Second control point coordinates (x, y)
-        p3 (tuple): Third control point coordinates (x, y)
-        color (list): RGBA color of the curve
-        thickness (float): Line thickness
-        segments (int): Number of line segments used to approximate the curve
+    
+    A quadratic Bezier curve is defined by three control points: starting point (p1), 
+    an intermediate control point (p2) that shapes the curvature, and an endpoint (p3).
+    The curve starts at p1, is pulled toward p2, and ends at p3.
+    
+    The segments parameter controls the smoothness of the curve approximation,
+    with higher values creating smoother curves at the cost of performance.
     """
     def __cinit__(self):
         # p1, etc are zero init by cython
@@ -973,6 +1063,11 @@ cdef class DrawBezierQuadratic(drawingItem):
 
     @property
     def p1(self):
+        """
+        First control point coordinates of the Bezier curve.
+        
+        This is the starting point of the curve, where the curve begins.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
@@ -981,8 +1076,15 @@ cdef class DrawBezierQuadratic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
+
     @property
     def p2(self):
+        """
+        Second control point coordinates of the Bezier curve.
+        
+        This control point determines the curvature and shape of the curve.
+        The curve is pulled toward this point but does not necessarily pass through it.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p2)
@@ -991,8 +1093,14 @@ cdef class DrawBezierQuadratic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
+
     @property
     def p3(self):
+        """
+        Third control point coordinates of the Bezier curve.
+        
+        This is the end point of the curve, where the curve terminates.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p3)
@@ -1001,8 +1109,15 @@ cdef class DrawBezierQuadratic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
+
     @property
     def color(self):
+        """
+        Color of the Bezier curve.
+        
+        The color is specified as RGBA values. The alpha channel controls 
+        the transparency of the curve.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
@@ -1013,8 +1128,15 @@ cdef class DrawBezierQuadratic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def thickness(self):
+        """
+        Line thickness of the Bezier curve.
+        
+        This controls the width of the curve line. The actual pixel width
+        is affected by the viewport's scale and DPI settings.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
@@ -1023,8 +1145,15 @@ cdef class DrawBezierQuadratic(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
+
     @property
     def segments(self):
+        """
+        Number of line segments used to approximate the Bezier curve.
+        
+        Higher values create a smoother curve at the cost of performance.
+        A value of 0 uses the default number of segments determined by ImGui.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._segments
@@ -1060,16 +1189,15 @@ cdef class DrawBezierQuadratic(drawingItem):
 cdef class DrawCircle(drawingItem):
     """
     Draws a circle in coordinate space.
-
-    The circle can be filled and/or outlined.
-
-    Attributes:
-        center (tuple): Center coordinates (x, y)
-        radius (float): Circle radius
-        color (list): RGBA color of the outline
-        fill (list): RGBA color of the fill
-        thickness (float): Outline thickness
-        segments (int): Number of segments used to approximate the circle
+    
+    A circle is defined by its center point and radius. The circle can be both filled 
+    with a solid color and outlined with a different color and thickness.
+    
+    Negative radius values are interpreted in screen space rather than coordinate space,
+    which allows maintaining consistent visual size regardless of zoom level.
+    
+    The number of segments controls how smooth the circle appears - higher values 
+    create a more perfect circle at the cost of rendering performance.
     """
     def __cinit__(self):
         # center is zero init by cython
@@ -1081,6 +1209,12 @@ cdef class DrawCircle(drawingItem):
 
     @property
     def center(self):
+        """
+        Center point of the circle in coordinate space.
+        
+        This defines the origin around which the circle is drawn. The circle's radius
+        extends from this point in all directions.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._center)
@@ -1089,8 +1223,16 @@ cdef class DrawCircle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
+
     @property
     def radius(self):
+        """
+        Radius of the circle.
+        
+        Controls the size of the circle. Positive values are interpreted in coordinate space 
+        and will scale with zoom level. Negative values are interpreted as screen space units
+        and maintain consistent visual size regardless of zoom.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._radius
@@ -1099,8 +1241,15 @@ cdef class DrawCircle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._radius = value
+
     @property
     def color(self):
+        """
+        Color of the circle outline.
+        
+        Controls the color of the line tracing the path of the circle. Transparency
+        is supported through the alpha channel.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
@@ -1111,8 +1260,15 @@ cdef class DrawCircle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def fill(self):
+        """
+        Fill color of the circle.
+        
+        The interior area of the circle is filled with this color.
+        Transparency is supported through the alpha channel.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] fill
@@ -1123,8 +1279,16 @@ cdef class DrawCircle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
+
     @property
     def thickness(self):
+        """
+        Line thickness of the circle outline.
+        
+        Controls the width of the line along the circle's path. The actual pixel width 
+        is affected by the viewport's scale and DPI settings. Negative values are interpreted
+        in screen space units, maintaining consistent visual size regardless of zoom level.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
@@ -1133,8 +1297,15 @@ cdef class DrawCircle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
+
     @property
     def segments(self):
+        """
+        Number of line segments used to approximate the circle.
+        
+        Higher values create a smoother circle at the cost of performance.
+        A value of 0 uses the default number of segments determined by ImGui.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._segments
@@ -1351,24 +1522,17 @@ cdef class DrawEllipse(drawingItem):
 
 cdef class DrawImage(drawingItem):
     """
-    Draw an image in coordinate space.
-
-    DrawImage supports three ways to express its position in space:
-    - p1, p2, p3, p4, the positions of the corners of the image, in
-       a clockwise order
-    - pmin and pmax, where pmin = p1, and pmax = p3, and p2/p4
-        are automatically set such that the image is parallel
-        to the axes.
-    - center, direction, width, height for the coordinate of the center,
-        the angle of (center, middle of p2 and p3) against the x horizontal axis,
-        and the width/height of the image at direction 0.
-
-    uv1/uv2/uv3/uv4 are the normalized texture coordinates at p1/p2/p3/p4
-
-    The systems are similar, but writing to p1/p2/p3/p4 is more expressive
-    as it allows to have non-rectangular shapes.
-    The last system enables to indicate a size in screen space rather
-    than in coordinate space by passing negative values to width and height.
+    Draws an image in coordinate space.
+    
+    An image drawing element displays a texture at a specific position with flexible 
+    positioning options. The image can be positioned using corner coordinates, min/max bounds, 
+    or center with direction and dimensions.
+    
+    The texture coordinates (UV) can be customized to show specific parts of the texture.
+    Images can be tinted with a color multiplier and have rounded corners if needed.
+    
+    Width and height can be specified in coordinate space (positive values) or screen 
+    space (negative values), allowing for consistent visual sizes regardless of zoom level.
     """
 
     def __cinit__(self):
@@ -1377,9 +1541,15 @@ cdef class DrawImage(drawingItem):
         self.uv3 = [1., 1.]
         self.uv4 = [0., 1.]
         self._color_multiplier = 4294967295 # 0xffffffff
+
     @property
     def texture(self):
-        """Image content"""
+        """
+        The image content to be displayed.
+        
+        This should be a Texture object that contains the image data to render.
+        Without a valid texture, nothing will be drawn.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._texture
@@ -1390,13 +1560,14 @@ cdef class DrawImage(drawingItem):
         if not(isinstance(value, Texture)) and value is not None:
             raise TypeError("texture must be a Texture")
         self._texture = value
+
     @property
     def pmin(self):
         """
-        Top-left corner position of the drawing in coordinate space.
+        Top-left corner position of the image in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        Setting this also adjusts p1 directly and affects p2/p4 to maintain
+        a rectangular shape aligned with axes. The center is automatically updated.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1409,13 +1580,14 @@ cdef class DrawImage(drawingItem):
         self._p2[1] = self._p1[1]
         self._p4[0] = self._p1[0]
         self.update_center()
+
     @property
     def pmax(self):
         """
-        Bottom-right corner position of the drawing in coordinate space.
+        Bottom-right corner position of the image in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        Setting this also adjusts p3 directly and affects p2/p4 to maintain
+        a rectangular shape aligned with axes. The center is automatically updated.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1428,13 +1600,15 @@ cdef class DrawImage(drawingItem):
         self._p2[0] = self._p3[0]
         self._p4[1] = self._p3[1]
         self.update_center()
+
     @property
     def center(self):
         """
-        Center of pmin/pmax
+        Center point of the image in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        The center is used as the reference point when working with direction,
+        width and height parameters. Changes to the center will update all four
+        corner points while maintaining the current width, height and direction.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1448,13 +1622,15 @@ cdef class DrawImage(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
         self.update_extremities()
+
     @property
     def height(self):
         """
-        Height of the shape. Negative means screen space.
+        Height of the image.
         
-        Returns:
-            float: Height value
+        Positive values are interpreted in coordinate space and will scale with zoom.
+        Negative values are interpreted as screen space units and maintain constant
+        visual size regardless of zoom level.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1465,13 +1641,15 @@ cdef class DrawImage(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._height = value
         self.update_extremities()
+
     @property
     def width(self):
         """
-        Width of the shape. Negative means screen space.
+        Width of the image.
         
-        Returns:
-            float: Width value
+        Positive values are interpreted in coordinate space and will scale with zoom.
+        Negative values are interpreted as screen space units and maintain constant
+        visual size regardless of zoom level.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1482,13 +1660,15 @@ cdef class DrawImage(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._width = value
         self.update_extremities()
+
     @property
     def direction(self):
         """
-        Angle of (center, middle of p2/p3) with the horizontal axis
+        Rotation angle of the image in radians.
         
-        Returns:
-            float: Angle in radians
+        This is the angle between the horizontal axis and the line from the center 
+        to the middle of the right side of the image. Changes to direction will 
+        rotate the image around its center point.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1499,13 +1679,14 @@ cdef class DrawImage(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._direction = value
         self.update_extremities()
+
     @property
     def p1(self):
         """
-        Top left corner
+        Top-left corner of the image in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This is one of the four corner points that define the image's position and shape.
+        Modifying individual corner points allows creating non-rectangular quad shapes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1516,13 +1697,14 @@ cdef class DrawImage(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
         self.update_center()
+
     @property
     def p2(self):
         """
-        Top right corner
+        Top-right corner of the image in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This is one of the four corner points that define the image's position and shape.
+        Modifying individual corner points allows creating non-rectangular quad shapes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1533,13 +1715,14 @@ cdef class DrawImage(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
         self.update_center()
+
     @property
     def p3(self):
         """
-        Bottom right corner
+        Bottom-right corner of the image in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This is one of the four corner points that define the image's position and shape.
+        Modifying individual corner points allows creating non-rectangular quad shapes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1550,13 +1733,14 @@ cdef class DrawImage(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
         self.update_center()
+
     @property
     def p4(self):
-        """ 
-        Bottom left corner
+        """
+        Bottom-left corner of the image in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This is one of the four corner points that define the image's position and shape.
+        Modifying individual corner points allows creating non-rectangular quad shapes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1567,13 +1751,15 @@ cdef class DrawImage(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p4, value)
         self.update_center()
+
     @property
     def uv_min(self):
         """
-        Texture coordinate for pmin. Writes to uv1/2/4.
+        Texture coordinate for the top-left corner of the image.
         
-        Returns:
-            list: UV coordinates
+        Setting this affects uv1, uv2, and uv4 to create a rectangular texture mapping.
+        Coordinates are normalized in the 0-1 range where (0,0) is the top-left of 
+        the texture and (1,1) is the bottom-right.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1585,13 +1771,15 @@ cdef class DrawImage(drawingItem):
         read_point[float](self._uv1, value)
         self._uv2[1] = self._uv1[0]
         self._uv4[0] = self._uv1[1]
+
     @property
     def uv_max(self):
         """
-        Texture coordinate for pmax. Writes to uv2/3/4.
+        Texture coordinate for the bottom-right corner of the image.
         
-        Returns:
-            list: UV coordinates
+        Setting this affects uv2, uv3, and uv4 to create a rectangular texture mapping.
+        Coordinates are normalized in the 0-1 range where (0,0) is the top-left of 
+        the texture and (1,1) is the bottom-right.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1603,13 +1791,15 @@ cdef class DrawImage(drawingItem):
         read_point[float](self._uv3, value)
         self._uv2[0] = self._uv3[0]
         self._uv4[1] = self._uv3[1]
+
     @property
     def uv1(self):
         """
-        Texture coordinate for p1
+        Texture coordinate for the top-left corner (p1).
         
-        Returns:
-            list: UV coordinates
+        Normalized texture coordinate in the 0-1 range where (0,0) is the top-left 
+        of the texture and (1,1) is the bottom-right. Allows precise control over 
+        which part of the texture is mapped to this corner.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1619,13 +1809,15 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv1, value)
+
     @property
     def uv2(self):
         """
-        Texture coordinate for p2
+        Texture coordinate for the top-right corner (p2).
         
-        Returns:
-            list: UV coordinates
+        Normalized texture coordinate in the 0-1 range where (0,0) is the top-left 
+        of the texture and (1,1) is the bottom-right. Allows precise control over 
+        which part of the texture is mapped to this corner.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1635,13 +1827,15 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv2, value)
+
     @property
     def uv3(self):
         """
-        Texture coordinate for p3
+        Texture coordinate for the bottom-right corner (p3).
         
-        Returns:
-            list: UV coordinates
+        Normalized texture coordinate in the 0-1 range where (0,0) is the top-left 
+        of the texture and (1,1) is the bottom-right. Allows precise control over 
+        which part of the texture is mapped to this corner.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1651,13 +1845,15 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv3, value)
+
     @property
     def uv4(self):
         """
-        Texture coordinate for p4
+        Texture coordinate for the bottom-left corner (p4).
         
-        Returns:
-            list: UV coordinates
+        Normalized texture coordinate in the 0-1 range where (0,0) is the top-left 
+        of the texture and (1,1) is the bottom-right. Allows precise control over 
+        which part of the texture is mapped to this corner.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1667,13 +1863,15 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv4, value)
+
     @property
     def color_multiplier(self):
         """
-        The image is mixed with this color.
+        Color tint applied to the image.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        This color is multiplied with the texture pixels when rendering, allowing 
+        for tinting effects. Use white (1,1,1,1) for no tinting. The alpha channel 
+        controls the overall transparency of the image.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1685,17 +1883,15 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_multiplier = parse_color(value)
+
     @property
     def rounding(self):
         """
-        Rounding of the corners of the shape.
+        Radius of corner rounding applied to the image.
         
-        If non-zero, the renderered image will be rectangular
-        and parallel to the axes.
-        (p1/p2/p3/p4 will behave like pmin/pmax)
-        
-        Returns:
-            float: Rounding radius
+        When non-zero, corners of the image will be rounded with this radius. 
+        Note that using rounding forces the image to be rendered as a rectangle 
+        parallel to the axes, ignoring any non-rectangular quad settings from p1-p4.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1843,17 +2039,15 @@ cdef class DrawImage(drawingItem):
 
 cdef class DrawLine(drawingItem):
     """
-    A line segment is coordinate space.
-
-    DrawLine supports two ways to express its position in space:
-    - p1 and p2 for the coordinate of its extremities
-    - center, direction, length for the coordinate of the center,
-        the angle of (center, p2) against the x horizontal axis,
-        and the segment length.
-
-    Both systems are equivalent and the related fields are always valid.
-    The main difference is that length can be set to a negative value,
-    to indicate a length in screen space rather than in coordinate space.
+    Draws a line segment in coordinate space.
+    
+    A line can be defined in two equivalent ways: by its endpoints (p1, p2) or by 
+    its center point, direction angle, and length. Both representations are maintained 
+    in sync when either is modified.
+    
+    The length parameter can be set to a negative value to indicate that the line's 
+    length should be interpreted in screen space units rather than coordinate space, 
+    allowing for consistent visual size regardless of zoom level.
     """
     def __cinit__(self):
         # p1, p2 are zero init by cython
@@ -1862,13 +2056,13 @@ cdef class DrawLine(drawingItem):
 
     @property
     def p1(self):
-        cdef unique_lock[DCGMutex] m
         """
-        Coordinates of one of the extremities of the line segment
+        First endpoint of the line segment.
         
-        Returns:
-            tuple: (x, y) coordinates
+        When modified, this updates the center, direction, and length properties 
+        to maintain a consistent representation of the line.
         """
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._p1)
     @p1.setter
@@ -1877,13 +2071,14 @@ cdef class DrawLine(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
         self.update_center()
+
     @property
     def p2(self):
         """
-        Coordinates of one of the extremities of the line segment
+        Second endpoint of the line segment.
         
-        Returns:
-            tuple: (x, y) coordinates
+        When modified, this updates the center, direction, and length properties 
+        to maintain a consistent representation of the line.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1909,13 +2104,13 @@ cdef class DrawLine(drawingItem):
 
     @property
     def center(self):
-        cdef unique_lock[DCGMutex] m
         """
-        Coordinates of the center of the line segment
+        Center point of the line segment.
         
-        Returns:
-            tuple: (x, y) coordinates
+        When modified, this updates the endpoints (p1 and p2) while maintaining 
+        the current direction and length of the line.
         """
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._center)
     @center.setter
@@ -1924,13 +2119,15 @@ cdef class DrawLine(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
         self.update_extremities()
+
     @property
     def length(self):
         """
-        Length of the line segment. Negatives mean screen space.
+        Length of the line segment.
         
-        Returns:
-            float: Length value
+        Positive values are interpreted in coordinate space and will scale with zoom.
+        Negative values are interpreted as screen space units and maintain constant 
+        visual size regardless of zoom level.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1941,13 +2138,14 @@ cdef class DrawLine(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._length = value
         self.update_extremities()
+
     @property
     def direction(self):
         """
-        Angle (rad) of the line segment relative to the horizontal axis.
+        Angle of the line segment in radians.
         
-        Returns:
-            float: Angle in radians
+        This is the angle between the horizontal axis and the line from center to p2.
+        When modified, this rotates the line around its center point.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1975,13 +2173,13 @@ cdef class DrawLine(drawingItem):
 
     @property
     def color(self):
-        cdef unique_lock[DCGMutex] m
         """
-        Color of the drawing outline.
+        Color of the line.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        The color is specified as RGBA values. The alpha channel controls 
+        the transparency of the line.
         """
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color
         unparse_color(color, self._color)
@@ -1991,15 +2189,16 @@ cdef class DrawLine(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def thickness(self):
-        cdef unique_lock[DCGMutex] m
         """
-        Line thickness of the drawing outline.
+        Line thickness in pixels.
         
-        Returns:
-            float: Thickness value in pixels
+        This controls the width of the line. The actual pixel width
+        is affected by the viewport's scale and DPI settings.
         """
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._thickness
     @thickness.setter
@@ -2044,15 +2243,10 @@ cdef class DrawLine(drawingItem):
 cdef class DrawPolyline(drawingItem):
     """
     Draws a sequence of connected line segments in coordinate space.
-
-    The line segments connect consecutive points in the given sequence.
-    Can optionally be closed to form a complete loop.
-
-    Attributes:
-        points (list): List of (x,y) coordinates defining the vertices
-        color (list): RGBA color of the lines
-        thickness (float): Line thickness
-        closed (bool): Whether to connect the last point back to the first
+    
+    Each point in the provided sequence is connected to the adjacent points by straight lines.
+    The lines can be customized with color and thickness settings. By enabling the 'closed'
+    property, the last point will be connected back to the first, forming a closed shape.
     """
     def __cinit__(self):
         # points is empty init by cython
@@ -2065,13 +2259,13 @@ cdef class DrawPolyline(drawingItem):
         """
         List of vertex positions defining the shape.
         
-        Returns:
-            list: List of (x,y) coordinate tuples
+        These points define the vertices through which the polyline passes.
+        Each consecutive pair of points forms a line segment. At least two
+        points are needed to draw a visible line.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         res = []
-        cdef double2 p
         cdef int32_t i
         for i in range(<int>self._points.size()):
             res.append(Coord.build(self._points[i].p))
@@ -2086,13 +2280,14 @@ cdef class DrawPolyline(drawingItem):
         for i in range(len(value)):
             read_coord(p.p, value[i])
             self._points.push_back(p)
+
     @property
     def color(self):
         """
-        Color of the drawing outline.
+        Color of the polyline.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of all line segments. The alpha channel can be used
+        to create semi-transparent lines.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2104,13 +2299,15 @@ cdef class DrawPolyline(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def closed(self):
         """
-        Whether the shape is closed by connecting first and last points.
+        Whether the polyline forms a closed shape.
         
-        Returns:
-            bool: True if shape is closed
+        When set to True, an additional line segment connects the last point
+        back to the first point, creating a closed loop. When False, the polyline
+        remains open with distinct start and end points.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2120,13 +2317,15 @@ cdef class DrawPolyline(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._closed = value
+
     @property
     def thickness(self):
         """
-        Line thickness of the drawing outline.
+        Line thickness of the polyline.
         
-        Returns:
-            float: Thickness value in pixels
+        Controls the width of all line segments. The actual pixel width is affected
+        by the viewport's scale and DPI settings. For very thin lines (thickness < 2.0),
+        individual line segments are drawn for better quality.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2180,21 +2379,16 @@ cdef class DrawPolyline(drawingItem):
                 ipoints.push_back(ip1_)
             (<imgui.ImDrawList*>drawlist).AddPolyline(ipoints.data(), <int>ipoints.size(), <imgui.ImU32>self._color, self._closed, thickness)
 
-
 cdef class DrawPolygon(drawingItem):
     """
     Draws a filled polygon in coordinate space.
-
-    The polygon is defined by a sequence of points that form its vertices.
-    Can be filled and/or outlined. Non-convex polygons are automatically
-    triangulated for proper filling.
-
-    Attributes:
-        points (list): List of (x,y) coordinates defining the vertices 
-        color (list): RGBA color of the outline
-        fill (list): RGBA color of the fill
-        thickness (float): Outline thickness
-        hull (bool): If True, draw the convex hull of the points instead of the polygon
+    
+    A polygon is defined by a sequence of points that form its vertices. The polygon
+    can be both filled with a solid color and outlined with a different color and thickness.
+    
+    For non-convex polygons, automatic triangulation is performed to ensure proper
+    filling. When the 'hull' option is enabled, only the convex hull of the points
+    is drawn instead of the exact polygon shape.
     """
     def __cinit__(self):
         # points is empty init by cython
@@ -2209,15 +2403,15 @@ cdef class DrawPolygon(drawingItem):
         """
         List of vertex positions defining the shape.
         
-        Returns:
-            list: List of (x,y) coordinate tuples
+        These points define the vertices of the polygon in coordinate space.
+        The polygon is formed by connecting these points in order, with the
+        last point connected back to the first to close the shape.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         res = []
-        cdef double2 p
         cdef int32_t i
-        for i in range(<int>self._points.size()):
+        for i in range(<int32_t>self._points.size()):
             res.append(Coord.build(self._points[i].p))
         return res
     @points.setter
@@ -2231,13 +2425,14 @@ cdef class DrawPolygon(drawingItem):
             read_coord(p.p, value[i])
             self._points.push_back(p)
         self._triangulate()
+
     @property
     def color(self):
         """
-        Color of the drawing outline.
+        Color of the polygon outline.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of the line tracing the boundary of the polygon.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2249,13 +2444,14 @@ cdef class DrawPolygon(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def fill(self):
         """
-        Fill color of the drawing.
+        Fill color of the polygon.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        The interior area of the polygon is filled with this color.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2267,16 +2463,15 @@ cdef class DrawPolygon(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
+
     @property
     def hull(self):
         """
         Whether to draw the convex hull instead of the exact polygon shape.
         
-        When True, the polygon drawn will be the convex hull of the provided points.
-        When False, the polygon will be drawn along the path defined by the points.
-        
-        Returns:
-            bool: True if drawing the convex hull
+        When enabled, only the convex hull of the provided points is drawn,
+        creating a shape with no concavities. This can be useful for
+        simplifying complex shapes or ensuring convexity.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2286,13 +2481,16 @@ cdef class DrawPolygon(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._hull = value
+
     @property
     def thickness(self):
         """
-        Line thickness of the drawing outline.
+        Line thickness of the polygon outline.
         
-        Returns:
-            float: Thickness value in pixels
+        Controls the width of the line along the polygon's boundary.
+        The actual pixel width is affected by the viewport's scale
+        and DPI settings. Negative values are interpreted in
+        pixel space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2418,18 +2616,14 @@ cdef class DrawPolygon(drawingItem):
 cdef class DrawQuad(drawingItem):
     """
     Draws a quadrilateral in coordinate space.
-
-    The quad is defined by four corner points in clockwise order.
-    Can be filled and/or outlined.
-
-    Attributes:
-        p1 (tuple): First corner coordinates (x,y)
-        p2 (tuple): Second corner coordinates (x,y)
-        p3 (tuple): Third corner coordinates (x,y) 
-        p4 (tuple): Fourth corner coordinates (x,y)
-        color (list): RGBA color of the outline
-        fill (list): RGBA color of the fill
-        thickness (float): Outline thickness
+    
+    A quadrilateral is defined by four corner points that can be positioned freely in coordinate space.
+    This allows creating shapes such as trapezoids, parallelograms, or arbitrary four-sided polygons.
+    
+    The quad can be both filled with a solid color and outlined with a different color and thickness.
+    
+    When filling is enabled, the shape is automatically triangulated into two triangles,
+    with proper orientation handling to ensure correct anti-aliasing.
     """
     def __cinit__(self):
         # p1, p2, p3, p4 are zero init by cython
@@ -2440,10 +2634,9 @@ cdef class DrawQuad(drawingItem):
     @property
     def p1(self):
         """
-        First vertex position in coordinate space.
+        First vertex position of the quadrilateral.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines one of the four corners of the quad.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2453,13 +2646,13 @@ cdef class DrawQuad(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
+
     @property
     def p2(self):
         """
-        Second vertex position in coordinate space.
+        Second vertex position of the quadrilateral.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines one of the four corners of the quad.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2469,13 +2662,13 @@ cdef class DrawQuad(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
+
     @property
     def p3(self):
         """
-        Third vertex position in coordinate space.
+        Third vertex position of the quadrilateral.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines one of the four corners of the quad.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2485,13 +2678,13 @@ cdef class DrawQuad(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
+
     @property
     def p4(self):
         """ 
-        Fourth vertex position in coordinate space.
+        Fourth vertex position of the quadrilateral.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines one of the four corners of the quad.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2501,13 +2694,14 @@ cdef class DrawQuad(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p4, value)
+
     @property
     def color(self):
         """
-        Color of the drawing outline.
+        Color of the quadrilateral outline.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of the lines tracing the perimeter of the quad.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2519,13 +2713,14 @@ cdef class DrawQuad(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def fill(self):
         """
-        Fill color of the drawing.
+        Fill color of the quadrilateral.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        The interior area of the quad is filled with this color.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2537,13 +2732,15 @@ cdef class DrawQuad(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
+
     @property
     def thickness(self):
         """
-        Line thickness of the drawing outline.
+        Line thickness of the quadrilateral outline.
         
-        Returns:
-            float: Thickness value in pixels
+        Controls the width of the lines along the quad's perimeter.
+        The actual pixel width is affected by the viewport's scale and DPI settings.
+        Negative values are interpreted in pixel space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2610,19 +2807,14 @@ cdef class DrawQuad(drawingItem):
 cdef class DrawRect(drawingItem):
     """
     Draws a rectangle in coordinate space.
-
-    The rectangle is defined by its min/max corners.
-    Can be filled with a solid color, a color gradient, and/or outlined.
-    Corners can be rounded.
-
-    Attributes:
-        pmin (tuple): Top-left corner coordinates (x,y)
-        pmax (tuple): Bottom-right corner coordinates (x,y)
-        color (list): RGBA color of the outline
-        fill (list): RGBA color for solid fill
-        fill_p1/p2/p3/p4 (list): RGBA colors for gradient fill at each corner
-        thickness (float): Outline thickness
-        rounding (float): Radius of rounded corners
+    
+    A rectangle is defined by its minimum and maximum points, creating a shape 
+    aligned with the coordinate axes. The rectangle can be customized with solid fill,
+    gradient fill across its corners, outline, and rounded corners.
+    
+    The thickness parameter controls the width of the outline, while rounding controls
+    the radius of rounded corners. When using gradient fills, different colors can be
+    specified for each corner of the rectangle.
     """
     def __cinit__(self):
         self._pmin = [0., 0.]
@@ -2640,10 +2832,10 @@ cdef class DrawRect(drawingItem):
     @property
     def pmin(self):
         """
-        Top-left corner position of the drawing in coordinate space.
+        Top-left corner position of the rectangle in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines the minimum x and y coordinates of the rectangle. When used
+        with pmax, it determines the overall size and position of the rectangle.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2653,13 +2845,14 @@ cdef class DrawRect(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmin, value)
+
     @property
     def pmax(self):
         """
-        Bottom-right corner position of the drawing in coordinate space.
+        Bottom-right corner position of the rectangle in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines the maximum x and y coordinates of the rectangle. When used
+        with pmin, it determines the overall size and position of the rectangle.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2669,13 +2862,14 @@ cdef class DrawRect(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmax, value)
+
     @property
     def color(self):
         """
-        Color of the drawing outline.
+        Color of the rectangle outline.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of the line tracing the perimeter of the rectangle.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2687,13 +2881,15 @@ cdef class DrawRect(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def fill(self):
         """
-        Fill color of the drawing.
+        Solid fill color of the rectangle.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        The interior area of the rectangle is filled with this color.
+        Setting this property also resets all corner gradient colors to match,
+        disabling multi-color gradient filling.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2710,13 +2906,15 @@ cdef class DrawRect(drawingItem):
         self._color_bottom_right = self._fill
         self._color_bottom_left = self._fill
         self._multicolor = False
+
     @property
     def fill_p1(self):
         """
-        Fill color at point p1 for gradient fills.
+        Fill color at the top-left corner (p1) for gradient fills.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        When different colors are set for the four corners, the rectangle 
+        is filled with a smooth gradient between these colors. Setting any
+        corner color enables the gradient fill mode.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2729,13 +2927,15 @@ cdef class DrawRect(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._color_upper_left = parse_color(value)
         self._multicolor = True
+
     @property
     def fill_p2(self):
         """
-        Fill color at point p2 for gradient fills.
+        Fill color at the top-right corner (p2) for gradient fills.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        When different colors are set for the four corners, the rectangle 
+        is filled with a smooth gradient between these colors. Setting any
+        corner color enables the gradient fill mode.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2748,13 +2948,15 @@ cdef class DrawRect(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._color_upper_right = parse_color(value)
         self._multicolor = True
+
     @property
     def fill_p3(self):
         """
-        Fill color at point p3 for gradient fills.
+        Fill color at the bottom-right corner (p3) for gradient fills.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        When different colors are set for the four corners, the rectangle 
+        is filled with a smooth gradient between these colors. Setting any
+        corner color enables the gradient fill mode.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2767,13 +2969,15 @@ cdef class DrawRect(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._color_bottom_right = parse_color(value)
         self._multicolor = True
+
     @property
     def fill_p4(self):
         """
-        Fill color at point p4 for gradient fills.
+        Fill color at the bottom-left corner (p4) for gradient fills.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        When different colors are set for the four corners, the rectangle 
+        is filled with a smooth gradient between these colors. Setting any
+        corner color enables the gradient fill mode.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2786,13 +2990,14 @@ cdef class DrawRect(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._color_bottom_left = parse_color(value)
         self._multicolor = True
+
     @property
     def thickness(self):
         """
-        Line thickness of the drawing outline.
+        Line thickness of the rectangle outline.
         
-        Returns:
-            float: Thickness value in pixels
+        Controls the width of the line along the rectangle's perimeter.
+        The actual pixel width is affected by the viewport's scale and DPI settings.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2802,13 +3007,16 @@ cdef class DrawRect(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
+
     @property
     def rounding(self):
         """
-        Rounding of the corners of the shape.
+        Radius of the rectangle's rounded corners.
         
-        Returns:
-            float: Rounding radius
+        When non-zero, the corners of the rectangle are rounded with this radius.
+        Note that gradient fills with rounded corners are not supported - setting
+        both gradient fill and rounding will prioritize the fill and display
+        sharp corners.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2892,13 +3100,17 @@ cdef class DrawRect(drawingItem):
 
 cdef class DrawRegularPolygon(drawingItem):
     """
-    Draws a regular polygon with n points
-
-    The polygon is defined by the center,
-    the direction of the first point, and
-    the radius.
-
-    Radius can be negative to mean screen space.
+    Draws a regular polygon with n sides in coordinate space.
+    
+    A regular polygon has all sides of equal length and all interior angles equal.
+    The shape is defined by its center point, radius, and number of sides.
+    When num_points is set to a large value (or 1), the polygon approximates a circle.
+    
+    The direction parameter controls the rotation of the polygon by specifying
+    the angle of the first vertex relative to the horizontal axis.
+    
+    Like other shape elements, the polygon can be both filled and outlined
+    with different colors and thicknesses.
     """
     def __cinit__(self):
         # p1, p2 are zero init by cython
@@ -2908,13 +3120,13 @@ cdef class DrawRegularPolygon(drawingItem):
 
     @property
     def center(self):
-        cdef unique_lock[DCGMutex] m
         """
-        Coordinates of the center of the shape
+        Coordinates of the center of the regular polygon.
         
-        Returns:
-            tuple: (x, y) coordinates
+        The center serves as the origin point from which all vertices
+        are positioned at equal distances (the radius).
         """
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._center)
     @center.setter
@@ -2922,13 +3134,16 @@ cdef class DrawRegularPolygon(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
+        
     @property
     def radius(self):
         """
-        Radius of the shape. Negative means screen space.
+        Radius of the regular polygon.
         
-        Returns:
-            float: Radius value
+        This is the distance from the center to each vertex.
+        Positive values are interpreted in coordinate space and will scale with zoom.
+        Negative values are interpreted as screen space units and maintain constant
+        visual size regardless of zoom level.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2938,15 +3153,14 @@ cdef class DrawRegularPolygon(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._radius = value
+        
     @property
     def direction(self):
         """
-        Angle (rad) of the first point of the shape.
-
-        The angle is relative to the horizontal axis.
+        Angle of the first vertex in radians.
         
-        Returns:
-            float: Angle in radians
+        This controls the rotation of the entire polygon around its center.
+        The angle is measured from the positive x-axis in counter-clockwise direction.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2957,14 +3171,16 @@ cdef class DrawRegularPolygon(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._direction = value
         self._dirty = True
+        
     @property
     def num_points(self):
         """
-        Number of points in the shape.
-        num_points=1 gives a circle.
+        Number of sides (vertices) in the regular polygon.
         
-        Returns:
-            int: Number of points
+        Higher values create polygons with more sides. Setting to 3 creates a triangle,
+        4 creates a square, 5 creates a pentagon, and so on.
+        
+        Setting to 1 is a special case that creates a circle.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2975,13 +3191,14 @@ cdef class DrawRegularPolygon(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._num_points = value
         self._dirty = True
+        
     @property
     def color(self):
         """
-        Color of the drawing outline.
+        Color of the polygon outline.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of the lines tracing the perimeter of the polygon.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2993,13 +3210,14 @@ cdef class DrawRegularPolygon(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+        
     @property
     def fill(self):
         """
-        Fill color of the drawing.
+        Fill color of the polygon.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        The interior area of the polygon is filled with this color.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3011,13 +3229,15 @@ cdef class DrawRegularPolygon(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
+        
     @property
     def thickness(self):
         """
-        Line thickness of the drawing outline.
+        Line thickness of the polygon outline.
         
-        Returns:
-            float: Thickness value in pixels
+        Controls the width of the line tracing the perimeter of the polygon.
+        The actual pixel width is affected by the viewport's scale and DPI settings.
+        Negative values are interpreted in pixel space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3104,17 +3324,15 @@ cdef class DrawRegularPolygon(drawingItem):
 
 cdef class DrawStar(drawingItem):
     """
-    Draws a star shaped polygon with n points
-    on the exterior circle.
-
-    The polygon is defined by the center,
-    the direction of the first point, the radius
-    of the exterior circle and the inner radius.
-
-    Crosses, astrisks, etc can be obtained using
-    a radius of 0.
-
-    Radius can be negative to mean screen space.
+    Draws a star shaped polygon with n points in coordinate space.
+    
+    A star is defined by its center, radius of exterior circle, inner radius, and number of points.
+    The direction parameter controls the rotation of the star. When inner_radius is set to 0,
+    the star becomes a cross or asterisk shape with lines intersecting at the center point.
+    
+    Like other drawing elements, the star can be both filled with a solid color and outlined
+    with a different color and thickness. Radius can be specified in coordinate space (positive values) 
+    or screen space (negative values) to maintain consistent visual size regardless of zoom level.
     """
     def __cinit__(self):
         # p1, p2 are zero init by cython
@@ -3125,13 +3343,13 @@ cdef class DrawStar(drawingItem):
 
     @property
     def center(self):
-        cdef unique_lock[DCGMutex] m
         """
-        Coordinates of the center of the shape
+        Coordinates of the center of the star.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines the central point around which the star is constructed. All points
+        of the star extend outward from this position.
         """
+        cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build(self._center)
     @center.setter
@@ -3139,13 +3357,16 @@ cdef class DrawStar(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._center, value)
+
     @property
     def radius(self):
         """
-        Radius of the shape. Negative means screen space.
+        Radius of the outer points of the star.
         
-        Returns:
-            float: Radius value
+        This controls the distance from the center to each outer vertex of the star.
+        Positive values are interpreted in coordinate space and will scale with zoom.
+        Negative values are interpreted as screen space units and maintain constant
+        visual size regardless of zoom level.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3155,13 +3376,15 @@ cdef class DrawStar(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._radius = value
+
     @property
     def inner_radius(self):
         """
-        Radius of the inner shape.
+        Radius of the inner points of the star.
         
-        Returns:
-            float: Inner radius value
+        This controls the distance from the center to each inner vertex of the star.
+        Setting this to 0 creates a cross or asterisk shape instead of a star.
+        The ratio between inner_radius and radius determines how pointed the star appears.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3171,15 +3394,15 @@ cdef class DrawStar(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._inner_radius = value
+
     @property
     def direction(self):
         """
-        Angle (rad) of the first point of the shape.
+        Angle of the first point of the star in radians.
 
-        The angle is relative to the horizontal axis.
-        
-        Returns:
-            float: Angle in radians
+        This controls the rotation of the entire star around its center. The angle is 
+        measured from the positive x-axis in counter-clockwise direction. Changing this
+        value rotates the star while maintaining its shape.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3190,14 +3413,15 @@ cdef class DrawStar(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._direction = value
         self._dirty = True
+
     @property
     def num_points(self):
         """
-        Number of points in the shape.
-        Must be >= 3.
+        Number of outer points in the star.
         
-        Returns:
-            int: Number of points
+        This determines how many points the star has. A value of 5 creates a traditional
+        five-pointed star, while higher values create stars with more points. The minimum
+        valid value is 3, which creates a triangular star.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3208,13 +3432,14 @@ cdef class DrawStar(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._num_points = value
         self._dirty = True
+
     @property
     def color(self):
         """
-        Color of the drawing outline.
+        Color of the star outline.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of the lines tracing the perimeter of the star.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3226,13 +3451,14 @@ cdef class DrawStar(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def fill(self):
         """
-        Fill color of the drawing.
+        Fill color of the star.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        The interior area of the star is filled with this color.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3244,13 +3470,14 @@ cdef class DrawStar(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
+
     @property
     def thickness(self):
         """
-        Line thickness of the drawing outline.
+        Line thickness of the star outline.
         
-        Returns:
-            float: Thickness value in pixels
+        Controls the width of the lines forming the star's outline.
+        The actual pixel width is affected by the viewport's scale and DPI settings.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3374,16 +3601,14 @@ cdef class DrawStar(drawingItem):
 cdef class DrawText(drawingItem):
     """
     Draws text in coordinate space.
-
-    The text is positioned at a specific point and can use a custom font and size.
-    The size can be specified in coordinate space (positive values) or screen space (negative values).
-
-    Attributes:
-        pos (tuple): Position coordinates (x,y) of the text
-        text (str): The text string to display
-        color (list): RGBA color of the text
-        font (Font): Optional custom font to use
-        size (float): Text size. Negative means screen space units.
+    
+    Text is rendered at the specified position using either default or custom font settings.
+    The text can be scaled based on either coordinate space (which changes size with zoom)
+    or screen space (which maintains consistent size regardless of zoom level).
+    
+    Font appearance can be customized with color and size options. When a custom font
+    is provided, the text will use its style, weight, and other characteristics instead
+    of the default font.
     """
     def __cinit__(self):
         self._color = 4294967295 # 0xffffffff
@@ -3392,10 +3617,10 @@ cdef class DrawText(drawingItem):
     @property
     def pos(self):
         """
-        Position of the drawing element in coordinate space.
+        Position of the text in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines the anchor point from which the text begins. By default,
+        text is aligned from the top-left of this position.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3405,13 +3630,15 @@ cdef class DrawText(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pos, value)
+
     @property
     def color(self):
         """
         Color of the text.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of the rendered text characters. Transparency 
+        is supported through the alpha channel, allowing for effects like
+        watermarks or fading text.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3423,15 +3650,19 @@ cdef class DrawText(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def font(self):
         """
-        Writable attribute: font used for the text rendered
+        Custom font for rendering the text.
+        
+        When set to a Font object, the text will use that font's style instead of
+        the default system font. This allows for custom typography, including
+        different weights, styles, or even icon fonts.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._font
-
     @font.setter
     def font(self, baseFont value):
         cdef unique_lock[DCGMutex] m
@@ -3440,6 +3671,12 @@ cdef class DrawText(drawingItem):
 
     @property
     def text(self):
+        """
+        The string content to display.
+        
+        This is the actual text that will be rendered at the specified position.
+        The text can contain multiple lines using newline characters.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._text)
@@ -3448,13 +3685,15 @@ cdef class DrawText(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._text = string_from_str(value)
+
     @property
     def size(self):
         """
-        Text size. Negative means screen space units.
+        Size of the font used to render text.
         
-        Returns:
-            float: Size value
+        Positive values are interpreted in coordinate space and will scale with zoom.
+        Negative values are interpreted as screen space units and maintain constant
+        visual size regardless of zoom level. A value of 0 uses the default font size.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3495,17 +3734,9 @@ cdef class DrawText(drawingItem):
 cdef class DrawTriangle(drawingItem):
     """
     Draws a triangle in coordinate space.
-
-    The triangle is defined by three points.
-    Can be filled and/or outlined.
-
-    Attributes:
-        p1 (tuple): First vertex coordinates (x,y)
-        p2 (tuple): Second vertex coordinates (x,y)
-        p3 (tuple): Third vertex coordinates (x,y)
-        color (list): RGBA color of the outline
-        fill (list): RGBA color of the fill
-        thickness (float): Outline thickness 
+    
+    A triangle is defined by three vertex points that can be positioned freely in coordinate space.
+    The shape can be both filled with a solid color and outlined with a different color and thickness.
     """
     def __cinit__(self):
         # p1, p2, p3 are zero init by cython
@@ -3516,10 +3747,10 @@ cdef class DrawTriangle(drawingItem):
     @property
     def p1(self):
         """
-        First vertex position in coordinate space.
+        First vertex position of the triangle.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines one of the three points that form the triangle. Together with p2 and p3,
+        these coordinates determine the size, shape, and position of the triangle in coordinate space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3529,13 +3760,14 @@ cdef class DrawTriangle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p1, value)
+
     @property
     def p2(self):
         """
-        Second vertex position in coordinate space.
+        Second vertex position of the triangle.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines one of the three points that form the triangle. Together with p1 and p3,
+        these coordinates determine the size, shape, and position of the triangle in coordinate space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3545,13 +3777,14 @@ cdef class DrawTriangle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p2, value)
+
     @property
     def p3(self):
         """
-        Third vertex position in coordinate space.
+        Third vertex position of the triangle.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines one of the three points that form the triangle. Together with p1 and p2,
+        these coordinates determine the size, shape, and position of the triangle in coordinate space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3561,13 +3794,14 @@ cdef class DrawTriangle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._p3, value)
+
     @property
     def color(self):
         """
-        Color of the drawing outline.
+        Color of the triangle outline.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of the lines tracing the perimeter of the triangle.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3579,13 +3813,14 @@ cdef class DrawTriangle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def fill(self):
         """
-        Fill color of the drawing.
+        Fill color of the triangle.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        The interior area of the triangle is filled with this color.
+        Transparency is supported through the alpha channel.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3597,13 +3832,15 @@ cdef class DrawTriangle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
+
     @property
     def thickness(self):
         """
-        Line thickness of the drawing outline.
+        Line thickness of the triangle outline.
         
-        Returns:
-            float: Thickness value in pixels
+        Controls the width of the lines along the triangle's perimeter.
+        The actual pixel width is affected by the viewport's scale and DPI settings.
+        Negative values are interpreted in pixel space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3658,23 +3895,16 @@ cdef class DrawTriangle(drawingItem):
 cdef class DrawValue(drawingItem):
     """
     Draws a SharedValue in coordinate space.
-
-    The text is positioned at a specific point and can use a custom font and size.
-    The size can be specified in coordinate space (positive values) or screen space (negative values).
-
-    Unlike TextValue, SharedFloatVect cannot be displayed, however
-    SharedStr can be.
-
-    For security reasons, an intermediate buffer of fixed size is used,
-    and the limit of characters is currently 256.
-
-    Attributes:
-        pos (tuple): Position coordinates (x,y) of the text
-        text (str): The text string to display
-        color (list): RGBA color of the text
-        font (Font): Optional custom font to use
-        size (float): Text size. Negative means screen space units.
-        shareable_value (SharedValue): SharedValue to display
+    
+    This drawing element displays the content of a SharedValue object at a specific position.
+    It's useful for showing dynamic values that can be updated elsewhere in the application.
+    
+    The value display can be formatted using printf-style format strings, and its appearance
+    can be customized with different fonts, colors and sizes. The size can be specified in 
+    coordinate space (positive values) or screen space (negative values).
+    
+    For security reasons, an intermediate buffer of fixed size is used with a limit of
+    256 characters.
     """
     def __cinit__(self):
         self._print_format = string_from_bytes(b"%.3f")
@@ -3686,10 +3916,10 @@ cdef class DrawValue(drawingItem):
     @property
     def pos(self):
         """
-        Position of the drawing element in coordinate space.
+        Position of the text in coordinate space.
         
-        Returns:
-            tuple: (x, y) coordinates
+        This defines the anchor point from which the text begins. By default,
+        text is aligned from the top-left of this position.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3699,13 +3929,15 @@ cdef class DrawValue(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pos, value)
+
     @property
     def color(self):
         """
         Color of the text.
         
-        Returns:
-            list: RGBA values in [0,1] range
+        Controls the color of the rendered text characters. Transparency
+        is supported through the alpha channel, allowing for effects like
+        watermarks or fading text.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3717,15 +3949,19 @@ cdef class DrawValue(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def font(self):
         """
-        Writable attribute: font used for the text rendered
+        Custom font for rendering the text.
+        
+        When set to a Font object, the text will use that font's style instead of
+        the default system font. This allows for custom typography, including
+        different weights, styles, or even icon fonts.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._font
-
     @font.setter
     def font(self, baseFont value):
         cdef unique_lock[DCGMutex] m
@@ -3735,10 +3971,11 @@ cdef class DrawValue(drawingItem):
     @property
     def size(self):
         """
-        Text size. Negative means screen space units.
+        Size of the font used to render text.
         
-        Returns:
-            float: Size value
+        Positive values are interpreted in coordinate space and will scale with zoom.
+        Negative values are interpreted as screen space units and maintain constant
+        visual size regardless of zoom level. A value of 0 uses the default font size.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3752,11 +3989,14 @@ cdef class DrawValue(drawingItem):
     @property
     def shareable_value(self):
         """
-        Same as the value field, but rather than a copy of the internal value
-        of the object, return a python object that holds a value field that
-        is in sync with the internal value of the object. This python object
-        can be passed to other items using an internal value of the same
-        type to share it.
+        The SharedValue object being displayed.
+        
+        This property provides access to the underlying SharedValue that this element
+        displays. The object holds a value field that is in sync with the internal value
+        of the drawing. This same object can be passed to other items to share its value.
+        
+        Supported types include SharedBool, SharedInt, SharedFloat, SharedDouble,
+        SharedColor, SharedInt4, SharedFloat4, SharedDouble4, and SharedStr.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3803,15 +4043,18 @@ cdef class DrawValue(drawingItem):
     @property
     def print_format(self):
         """
-        Writable attribute: format string
-        for the value -> string conversion
-        for display.
-
-        For example:
-        %d for a SharedInt
-        [%d, %d, %d, %d] for a SharedInt4
-        (%f, %f, %f, %f) for a SharedFloat4 or a SharedColor (which are displayed as floats)
-        %s for a SharedStr
+        Format string for converting the value to a displayed string.
+        
+        This property accepts printf-style format strings that control how the value
+        is displayed. The format depends on the type of the SharedValue:
+        
+        - %d for SharedInt
+        - %f for SharedFloat/SharedDouble
+        - [%d, %d, %d, %d] for SharedInt4
+        - (%f, %f, %f, %f) for SharedFloat4 or SharedColor
+        - %s for SharedStr
+        
+        The default format for floating-point values is "%.3f".
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)

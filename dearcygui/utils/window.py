@@ -162,6 +162,12 @@ class MetricsWindow(dcg.Window):
         self.rendering_metrics = self.context.viewport.metrics
 
     def log_times(self, watcher, target, watcher_data):
+        """Record timing data from a time watcher.
+        
+        This method processes the timing information collected by the time watcher
+        and stores it for later use in metrics calculations. It triggers metrics
+        logging and plot updates based on the received data.
+        """
         start_metrics_rendering = watcher_data[0]
         stop_metrics_rendering = watcher_data[1]
         frame_count = watcher_data[3]
@@ -176,15 +182,22 @@ class MetricsWindow(dcg.Window):
         self.update_plot(frame_count)
 
     def log_metrics(self):
-        """
-        The metrics we retrieve might be from a more
-        recent frame than what log_times received last,
-        or we might have run log_times before the metrics
-        were updated. Thus we need to sync.
+        """Record viewport metrics for performance tracking.
+        
+        This method captures the current viewport metrics and stores them in the
+        metrics queue for later processing. It handles potential timing 
+        differences between when metrics are recorded and when they're processed.
         """
         self.metrics.append(self.context.viewport.metrics)
 
     def update_plot(self, frame_count):
+        """Update visualization plots with the latest metrics data.
+        
+        This method processes collected metrics data, updates the various 
+        performance graphs, and refreshes status text elements. It synchronizes
+        metric data from different sources to ensure consistency, and applies
+        appropriate visual cues based on performance levels.
+        """
         treated_metrics = []
         treated_self_metrics = []
         # Treat frames where we have received both infos
@@ -249,6 +262,11 @@ class MetricsWindow(dcg.Window):
             self.plots[key].Y = self.data[key].get()
 
 def get_children_recursive(item):
+    """Recursively collect all children of an item.
+    
+    This function traverses the item hierarchy and returns a flat list containing
+    the given item and all of its descendants.
+    """
     result = [item]
     children = item.children
     for c in children:
@@ -291,6 +309,12 @@ class ItemInspecter(dcg.Window):
         self.dragging_item_original_pos = None
 
     def setup_handlers(self):
+        """Install inspection handlers on all UI elements.
+        
+        This method installs event handlers on all UI elements in the viewport,
+        enabling them to be inspected and manipulated through the inspector
+        interface. It cleans up any previously installed handlers first.
+        """
         if len(self.inspected_items) > 0:
             # Uninstall previous handlers first
             self.remove_handlers()
@@ -304,6 +328,12 @@ class ItemInspecter(dcg.Window):
                 pass
 
     def remove_handlers(self):
+        """Remove all inspection handlers from UI elements.
+        
+        This method removes the previously installed inspection handlers from
+        all tracked UI elements, effectively disabling the inspection 
+        functionality.
+        """
         for item in self.inspected_items:
             try:
                 handlers = item.handlers
@@ -314,6 +344,12 @@ class ItemInspecter(dcg.Window):
         self.inspected_items = []
 
     def handle_item_dragging(self, handler, item, drag_deltas):
+        """Process UI element dragging events.
+        
+        This method handles the dragging of UI elements, updating their position
+        relative to their parent based on the mouse movement. It tracks the
+        currently dragged item and maintains its original position for reference.
+        """
         # Just to be safe. Might not be needed
         if item is not self.dragging_item and self.dragging_item is not None:
             return
@@ -326,9 +362,21 @@ class ItemInspecter(dcg.Window):
         ]
 
     def handle_item_dragged(self, handler, item):
+        """Handle the completion of a UI element drag operation.
+        
+        This method is called when a drag operation ends, cleaning up the 
+        dragging state and preparing for potential future drag operations.
+        """
         self.dragging_item = None
 
     def handle_item_hovered(self, handler, item):
+        """Display detailed information about a hovered UI element.
+        
+        This method creates a tooltip showing properties of the hovered UI
+        element. It compares the element's current state with default values
+        to highlight customized properties, and presents this information in
+        an organized two-column layout.
+        """
         item_states = dir(item)
         C = self.context
         # Attach the tooltip to our window.
@@ -372,9 +420,11 @@ class ItemInspecter(dcg.Window):
                         dcg.Text(C, value=value)
 
 class StyleEditor(dcg.Window):
-    """
-    A visual tool to edit the global style of the
-    application.
+    """A visual tool to edit the global style of the application.
+    
+    This window provides interactive controls for customizing colors, sizes,
+    spacing and other visual aspects of the UI. It allows real-time preview
+    of changes and provides options to apply, reset or export the theme.
     """
     def __init__(self, context : dcg.Context, **kwargs):
         super().__init__(context, **kwargs)
@@ -507,6 +557,12 @@ class StyleEditor(dcg.Window):
                                        )
 
     def _recursive_reset_values(self, item):
+        """Recursively reset all theme values to their defaults.
+        
+        This internal method traverses the widget hierarchy and resets all
+        color and style values to their default states, ensuring all controls
+        reflect these reset values.
+        """
         for child in item.children:
             self._recursive_reset_values(child)
             if isinstance(child, dcg.ColorEdit):
@@ -520,9 +576,20 @@ class StyleEditor(dcg.Window):
                 child.callbacks[0](self, child, child.value)
 
     def reset_values(self):
+        """Reset all theme values to their defaults.
+        
+        This method resets all color and style values to their default states
+        by triggering a recursive traversal of the style editor's widgets.
+        """
         self._recursive_reset_values(self)
 
     def export_to_text(self):
+        """Convert the current theme to Python code.
+        
+        This method generates Python code that recreates the current theme
+        configuration. It can optionally filter out default values to produce
+        more concise code.
+        """
         non_default_imgui_colors = {}
         non_default_imgui_styles = {}
         non_default_implot_colors = {}
@@ -624,15 +691,21 @@ class StyleEditor(dcg.Window):
         return full_text
 
     def export_to_clipboard(self):
+        """Copy the current theme as Python code to the clipboard.
+        
+        This method generates Python code for the current theme and places it
+        in the system clipboard, allowing for easy pasting into other files.
+        """
         self.context.clipboard = self.export_to_text()
         with dcg.utils.TemporaryTooltip(self.context, target=self.export_button, parent=self):
             dcg.Text(self.context, value="Theme copied to clipboard")
 
     def launch_help_window(self):
-        """
-        Displays a modal window with generic information about what
-        a theme style and theme color is, and visual examples to show what
-        they can do.
+        """Display a help window with information about theming.
+        
+        This method creates a modal window explaining theme concepts and 
+        providing interactive examples to demonstrate how different theme 
+        properties affect the appearance of UI elements.
         """
         C = self.context
         with dcg.Window(C, label="Theme Editor Help", autosize=True, modal=True):
@@ -691,7 +764,3 @@ class StyleEditor(dcg.Window):
                 dcg.Text(C, bullet=True, value="Styles control sizing, spacing, borders and other layout properties")
                 dcg.Text(C, bullet=True, value="Themes can be applied to individual items or entire windows")
                 dcg.Text(C, bullet=True, value="Child items inherit parent themes unless overridden")
-
-
-
-

@@ -559,33 +559,27 @@ cdef class DrawInvisibleButton(drawingItem):
 cdef class DrawInWindow(uiItem):
     """
     An UI item that contains a region for Draw* elements.
-    Enables to insert Draw* Elements inside a window.
 
-    Inside a DrawInWindow elements, the (0, 0) coordinate
-    starts at the top left of the DrawWindow and y increases
-    when going down.
-    The drawing region is clipped by the available width/height
-    of the item (set manually, or deduced).
+    Enables to insert Draw* Elements inside a window. Inside a DrawInWindow 
+    elements, the (0, 0) coordinate starts at the top left of the DrawWindow 
+    and y increases when going down. The drawing region is clipped by the 
+    available width/height of the item (set manually, or deduced).
 
-    An invisible button is created to span the entire drawing
-    area, which is used to retrieve button states on the area
-    (hovering, active, etc). If set, the callback is called when
-    the mouse is pressed inside the area with any of the left,
-    middle or right button.
-    In addition, the use of an invisible button enables the drag
-    and drop behaviour proposed by imgui.
+    An invisible button is created to span the entire drawing area, which is 
+    used to retrieve button states on the area (hovering, active, etc). If set, 
+    the callback is called when the mouse is pressed inside the area with any 
+    of the left, middle or right button. In addition, the use of an invisible 
+    button enables the drag and drop behaviour proposed by imgui.
 
-    If you intend on dragging elements inside the drawing area,
-    you can either implement yourself a hovering test for your
-    specific items and use the context's is_mouse_dragging, or
-    add invisible buttons on top of the elements you want to
-    interact with, and combine the active and mouse dragging
-    handlers. Note if you intend to make an element draggable
-    that way, you must not make the element source of a Drag
-    and Drop, as it impacts the hovering tests.
+    If you intend on dragging elements inside the drawing area, you can either 
+    implement yourself a hovering test for your specific items and use the 
+    context's is_mouse_dragging, or add invisible buttons on top of the elements 
+    you want to interact with, and combine the active and mouse dragging handlers. 
+    Note if you intend to make an element draggable that way, you must not make 
+    the element source of a Drag and Drop, as it impacts the hovering tests.
 
-    Note that Drawing items do not have any hovering/clicked/
-    visible/etc tests maintained and thus do not have a callback.
+    Note that Drawing items do not have any hovering/clicked/visible/etc tests 
+    maintained and thus do not have a callback.
     """
     def __cinit__(self):
         self.can_have_drawing_child = True
@@ -605,11 +599,11 @@ cdef class DrawInWindow(uiItem):
     @property
     def button(self):
         """
-        Writable attribute: If True, the entire DrawInWindow area
-        will behave like a single button.
+        Controls if the entire DrawInWindow area behaves like a single button.
 
-        If False (default), clicks and the hovered status
-        will be forwarded to the window underneath.
+        When True, the area acts as a clickable button with hover detection.
+        When False (default), clicks and the hovered status will be forwarded
+        to the window underneath.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -624,8 +618,10 @@ cdef class DrawInWindow(uiItem):
     @property
     def frame(self):
         """
-        Writable attribute: Whether the item has a frame.
-        By default the frame is disabled for DrawInWindow.
+        Controls whether the item has a visual frame.
+
+        By default the frame is disabled for DrawInWindow. When enabled,
+        a border will be drawn around the drawing area.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -640,7 +636,11 @@ cdef class DrawInWindow(uiItem):
     @property
     def orig_x(self):
         """
-        Starting X coordinate inside the item (top-left)
+        The starting X coordinate inside the item (top-left).
+
+        This value represents the horizontal offset that will be applied to
+        the origin of the drawing coordinates. It effectively shifts all
+        child drawing elements by this amount horizontally.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -655,7 +655,11 @@ cdef class DrawInWindow(uiItem):
     @property
     def orig_y(self):
         """
-        Starting Y coordinate inside the item (top-left)
+        The starting Y coordinate inside the item (top-left).
+
+        This value represents the vertical offset that will be applied to
+        the origin of the drawing coordinates. It effectively shifts all
+        child drawing elements by this amount vertically.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -670,12 +674,11 @@ cdef class DrawInWindow(uiItem):
     @property
     def scale_x(self):
         """
-        X Scaling of items inside the item.
+        The X scaling factor for items inside the drawing area.
 
-        If set to 1. (default), the scaling corresponds
-        to the unit of a pixel (as per global_scale).
-        That is, the coordinate of the end of the visible area
-        corresponds to item.width
+        If set to 1.0 (default), the scaling corresponds to the unit of a pixel
+        (as per global_scale). That is, the coordinate of the end of the visible
+        area corresponds to item.width.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -690,12 +693,11 @@ cdef class DrawInWindow(uiItem):
     @property
     def scale_y(self):
         """
-        Y Scaling of items inside the item.
+        The Y scaling factor for items inside the drawing area.
 
-        If set to 1. (default), the scaling corresponds
-        to the unit of a pixel (as per global_scale).
-        That is, the coordinate of end of the visible area
-        corresponds to item.height
+        If set to 1.0 (default), the scaling corresponds to the unit of a pixel
+        (as per global_scale). That is, the coordinate of the end of the visible
+        area corresponds to item.height.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -710,10 +712,12 @@ cdef class DrawInWindow(uiItem):
     @property
     def relative(self):
         """
-        Writable attribute: If set, the scaling is relative
-        to the item's width and height. That is, the
-        coordinate of the end of the visible area
-        is (orig_x, orig_y) + (scale_x, scale_y)
+        Determines if scaling is relative to the item's dimensions.
+
+        When enabled, the scaling is relative to the item's width and height.
+        This means the coordinate of the end of the visible area is
+        (orig_x, orig_y) + (scale_x, scale_y). When disabled (default),
+        scaling is absolute in pixel units.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -728,12 +732,12 @@ cdef class DrawInWindow(uiItem):
     @property
     def invert_y(self):
         """
-        When set to True, orig_x/orig_y correspond
-        to the bottom left of the item, and y
-        increases when going up.
+        Controls the direction of the Y coordinate axis.
 
-        When False, this is the top left, and y
-        increases when going down.
+        When True, orig_x/orig_y correspond to the bottom left of the item, and y
+        increases when going up (Cartesian coordinates). When False (default),
+        this is the top left, and y increases when going down (screen 
+        coordinates).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -836,6 +840,16 @@ cdef class DrawInWindow(uiItem):
 
 
 cdef class SimplePlot(uiItem):
+    """
+    A simple plot widget that displays data as a line graph or histogram.
+    
+    This widget provides a straightforward way to visualize numerical data
+    with minimal configuration. It supports both line plots and histograms,
+    with automatic or manual scaling.
+    
+    The data to display is stored in a SharedFloatVect, which can be accessed
+    and modified through the value property inherited from uiItem.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_simpleplot
         self._value = <SharedValue>(SharedFloatVect.__new__(SharedFloatVect, self.context))
@@ -853,7 +867,11 @@ cdef class SimplePlot(uiItem):
     @property
     def scale_min(self):
         """
-        Writable attribute: value corresponding to the minimum value of plot scale
+        The minimum value of the plot's vertical scale.
+        
+        When autoscale is False, this value defines the lower bound of the
+        plot's vertical axis. Values below this threshold will be clipped.
+        Ignored when autoscale is True.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -868,7 +886,11 @@ cdef class SimplePlot(uiItem):
     @property
     def scale_max(self):
         """
-        Writable attribute: value corresponding to the maximum value of plot scale
+        The maximum value of the plot's vertical scale.
+        
+        When autoscale is False, this value defines the upper bound of the
+        plot's vertical axis. Values above this threshold will be clipped.
+        Ignored when autoscale is True.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -883,7 +905,10 @@ cdef class SimplePlot(uiItem):
     @property
     def histogram(self):
         """
-        Writable attribute: Whether the data should be plotted as an histogram
+        Determines if the plot displays data as a histogram.
+        
+        When True, data is displayed as a bar chart (histogram). When False,
+        data is displayed as a line plot. Default is False.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -898,8 +923,11 @@ cdef class SimplePlot(uiItem):
     @property
     def autoscale(self):
         """
-        Writable attribute: Whether scale_min and scale_max should be deduced
-        from the data
+        Controls whether the plot automatically scales to fit the data.
+        
+        When True, scale_min and scale_max are automatically calculated based
+        on the minimum and maximum values in the data. When False, the
+        manually set scale_min and scale_max values are used. Default is True.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -914,7 +942,10 @@ cdef class SimplePlot(uiItem):
     @property
     def overlay(self):
         """
-        Writable attribute: Overlay text
+        Text to display as an overlay on the plot.
+        
+        This text appears in the top-left corner of the plot area and can
+        be used to display additional information about the data being shown.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -964,6 +995,14 @@ cdef class SimplePlot(uiItem):
         return False
 
 cdef class Button(uiItem):
+    """
+    A clickable UI button that can trigger actions when pressed.
+    
+    Buttons are one of the most common UI elements for user interaction.
+    They can be styled in different ways (normal, small, arrow) and can
+    be configured to repeat actions when held down. The button's state
+    is stored in a SharedBool value that tracks whether it's active.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_button
         self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
@@ -980,7 +1019,11 @@ cdef class Button(uiItem):
     @property
     def direction(self):
         """
-        Writable attribute: Direction of the arrow if any
+        Direction of the arrow when arrow mode is enabled.
+        
+        This property only affects the appearance when the arrow property is set 
+        to True. Possible values are defined in the ButtonDirection enum: Up, 
+        Down, Left, Right, None.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -997,7 +1040,10 @@ cdef class Button(uiItem):
     @property
     def small(self):
         """
-        Writable attribute: Whether to display a small button
+        Whether the button should be displayed in a small size.
+        
+        Small buttons have a more compact appearance with less padding than 
+        standard buttons. When set to True, overrides the arrow property.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1012,8 +1058,11 @@ cdef class Button(uiItem):
     @property
     def arrow(self):
         """
-        Writable attribute: Whether to display an arrow.
-        Not compatible with small
+        Whether to display the button as a directional arrow.
+        
+        When enabled, the button will be rendered as an arrow pointing in the 
+        direction specified by the direction property. Not compatible with small 
+        buttons - the small property takes precedence.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1028,8 +1077,12 @@ cdef class Button(uiItem):
     @property
     def repeat(self):
         """
-        Writable attribute: Whether to generate many clicked events
-        when the button is held repeatedly, instead of a single.
+        Whether the button generates repeated events when held down.
+        
+        When enabled, the button will trigger clicked events repeatedly while
+        being held down, rather than just a single event when clicked. This
+        is useful for actions that should be repeatable, like incrementing
+        or decrementing values.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1058,6 +1111,21 @@ cdef class Button(uiItem):
 
 
 cdef class Combo(uiItem):
+    """
+    A dropdown selection widget that displays a list of choices.
+    
+    Combo widgets provide an efficient way to select a single option from a
+    list of items. When clicked, the dropdown expands to reveal a scrollable
+    list of selectable options. Only one option can be selected at a time.
+    
+    The widget features configurable height modes, arrow button visibility,
+    preview display options, and alignment settings to accommodate different
+    interface needs.
+
+    The selected value is stored in a SharedStr value, which can be accessed
+    and modified through the value property inherited from uiItem. It corresponds
+    to the currently selected item in the dropdown list.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_combo
         self._value = <SharedValue>(SharedStr.__new__(SharedStr, self.context))
@@ -1074,7 +1142,13 @@ cdef class Combo(uiItem):
     @property
     def items(self):
         """
-        Writable attribute: List of text values to select
+        List of text values to select from in the combo dropdown.
+        
+        This property contains all available options that will be displayed
+        when the combo is opened. If the value of the combo is not in this
+        list, no item will appear selected. When the list is first created
+        and the value is not yet set, the first item in this list (if any)
+        will be automatically selected.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1109,12 +1183,11 @@ cdef class Combo(uiItem):
     @property
     def height_mode(self):
         """
-        Writable attribute: height mode of the combo.
-        Supported values are
-        "small"
-        "regular"
-        "large"
-        "largest"
+        Controls the height of the dropdown portion of the combo.
+        
+        Supported values are "small", "regular", "large", and "largest".
+        This affects how many items are visible at once when the dropdown
+        is open, with "regular" being the default size.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1149,7 +1222,11 @@ cdef class Combo(uiItem):
     @property
     def popup_align_left(self):
         """
-        Writable attribute: Whether to align left
+        Aligns the dropdown popup with the left edge of the combo button.
+        
+        When enabled, the dropdown list will be aligned with the left edge
+        instead of the default alignment. This can be useful when the combo
+        is positioned near the right edge of the screen.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1166,7 +1243,11 @@ cdef class Combo(uiItem):
     @property
     def no_arrow_button(self):
         """
-        Writable attribute: Whether the combo should not display an arrow on top
+        Hides the dropdown arrow button on the combo widget.
+        
+        When enabled, the combo will not display the arrow button that typically
+        appears on the right side. This can be useful for creating more compact
+        interfaces or custom styling.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1183,7 +1264,11 @@ cdef class Combo(uiItem):
     @property
     def no_preview(self):
         """
-        Writable attribute: Whether the preview should be disabled
+        Disables the preview of the selected item in the combo button.
+        
+        When enabled, the combo button will not display the currently selected
+        value. This can be useful for creating more compact interfaces or when
+        the selection is indicated elsewhere.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1200,7 +1285,11 @@ cdef class Combo(uiItem):
     @property
     def fit_width(self):
         """
-        Writable attribute: Whether the combo should fit available width
+        Makes the combo resize to fit the width of its content.
+        
+        When enabled, the combo width will expand to fit the content of the
+        preview. This ensures that long text items don't get truncated in
+        the combo display.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1272,6 +1361,23 @@ cdef class Combo(uiItem):
 
 
 cdef class Checkbox(uiItem):
+    """
+    A checkbox UI element that allows toggling a boolean value.
+    
+    A checkbox is a standard UI control that displays a square box which can be 
+    checked or unchecked by the user. It's commonly used to represent binary 
+    choices or toggle settings in an application.
+    
+    The checkbox's state is stored in a SharedBool value, which can be accessed 
+    and modified through the inherited value property. When clicked, the checkbox 
+    toggles between checked and unchecked states.
+    
+    The checkbox responds to user interaction with proper hover and focus states,
+    and can be disabled to prevent user interaction while still displaying the
+    current value.
+
+    If a label is provided, it will be displayed at the right of the checkbox.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_checkbox
         self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
@@ -1299,6 +1405,19 @@ cdef extern from * nogil:
     imgui.ImVec2 GetDefaultItemSize(imgui.ImVec2)
 
 cdef class Slider(uiItem):
+    """
+    A widget that allows selecting values by dragging a handle along a track.
+    
+    Sliders provide an intuitive way to select numeric values within a defined 
+    range. They can be configured as horizontal or vertical bars, or as drag 
+    controls that adjust values based on mouse movement distance rather than 
+    absolute position.
+    
+    Sliders support several data types (int, float, double) and can display 
+    single values or vectors of up to 4 components. The appearance and behavior 
+    can be customized with various options including logarithmic scaling and 
+    different display formats.
+    """
     def __init__(self, context, **kwargs):
         # Since some options cancel each other, one
         # must enable them in a specific order
@@ -1330,6 +1449,13 @@ cdef class Slider(uiItem):
         self.state.cap.can_be_hovered = True
 
     def configure(self, **kwargs):
+        """
+        Configure the slider with the provided keyword arguments.
+        
+        This method handles special configuration options that have 
+        interdependencies (format, size, logarithmic) before delegating to the 
+        parent class configure method for standard options.
+        """
         # Since some options cancel each other, one
         # must enable them in a specific order
         if "format" in kwargs:
@@ -1344,10 +1470,12 @@ cdef class Slider(uiItem):
     @property
     def format(self):
         """
-        Writable attribute: Format of the slider.
-        Must be "int", "float" or "double".
-        Note that float here means the 32 bits version.
-        The python float corresponds to a double.
+        Format of the slider's data type.
+        
+        Must be "int", "float" or "double". Note that float here means the 
+        32 bits version. The python float corresponds to a double.
+        
+        Changing this value will reallocate the internal value storage.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1397,12 +1525,13 @@ cdef class Slider(uiItem):
     @property
     def size(self):
         """
-        Writable attribute: Size of the slider.
-        Can be 1, 2, 3 or 4.
-        When 1 the item's value is held with
-        a scalar shared value, else it is held
-        with a vector of 4 elements (even for
-        size 2 and 3)
+        Number of components controlled by the slider.
+        
+        Can be 1, 2, 3 or 4. When size is 1, the item's value is held with a 
+        scalar shared value. For sizes greater than 1, the value is held with a 
+        vector of 4 elements (even for size 2 and 3).
+        
+        Changing this value will reallocate the internal value storage.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1443,7 +1572,11 @@ cdef class Slider(uiItem):
     @property
     def clamped(self):
         """
-        Writable attribute: Whether the slider value should be clamped even when keyboard set
+        Whether the slider value should be clamped even when set via keyboard.
+        
+        When enabled, the value will always be restricted to the min_value and 
+        max_value range, even when the value is manually entered via keyboard 
+        input (Ctrl+Click).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1460,9 +1593,12 @@ cdef class Slider(uiItem):
     @property
     def drag(self):
         """
-        Writable attribute: Whether the use a 'drag'
-        slider rather than a regular one.
-        Incompatible with 'vertical'.
+        Whether to use a 'drag' slider rather than a regular one.
+        
+        When enabled, the slider behaves as a draggable control where the value 
+        changes based on the distance the mouse moves, rather than the absolute 
+        position within a fixed track. This is incompatible with the 'vertical' 
+        property and will disable it if set.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1479,8 +1615,12 @@ cdef class Slider(uiItem):
     @property
     def logarithmic(self):
         """
-        Writable attribute: Make the slider logarithmic.
-        Disables round_to_format if enabled
+        Whether the slider should use logarithmic scaling.
+        
+        When enabled, the slider will use logarithmic scaling, making it easier 
+        to select values across different orders of magnitude. Enabling this 
+        option will automatically disable round_to_format as they are not 
+        compatible.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1497,8 +1637,10 @@ cdef class Slider(uiItem):
     @property
     def min_value(self):
         """
-        Writable attribute: Minimum value the slider
-        will be clamped to.
+        Minimum value the slider will be clamped to.
+        
+        This defines the lower bound of the range within which the slider can be 
+        adjusted. Values below this will be clamped to this minimum.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1513,8 +1655,10 @@ cdef class Slider(uiItem):
     @property
     def max_value(self):
         """
-        Writable attribute: Maximum value the slider
-        will be clamped to.
+        Maximum value the slider will be clamped to.
+        
+        This defines the upper bound of the range within which the slider can be 
+        adjusted. Values above this will be clamped to this maximum.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1529,8 +1673,11 @@ cdef class Slider(uiItem):
     @property
     def no_input(self):
         """
-        Writable attribute: Disable Ctrl+Click and Enter key to
-        manually set the value
+        Whether to disable keyboard input for the slider.
+        
+        When enabled, the slider will not respond to Ctrl+Click or Enter key 
+        events that would normally allow manual value entry. The slider can 
+        still be adjusted using the mouse.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1547,11 +1694,12 @@ cdef class Slider(uiItem):
     @property
     def print_format(self):
         """
-        Writable attribute: format string
-        for the value -> string conversion
-        for display. If round_to_format is
-        enabled, the value is converted
-        back and thus appears rounded.
+        Format string for converting the slider value to text for display.
+        
+        This follows standard printf-style formatting. If round_to_format is 
+        enabled, the value will be rounded according to this format.
+        
+        Examples: "%.2f" for 2 decimal places, "%d" for integers.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1566,9 +1714,13 @@ cdef class Slider(uiItem):
     @property
     def round_to_format(self):
         """
-        Writable attribute: If set (default),
-        the value will not have more digits precision
-        than the requested format string for display.
+        Whether to round values according to the print_format.
+        
+        When enabled (default), the slider's value will be rounded to match the 
+        precision specified in the print_format string. This ensures that the 
+        displayed value matches the actual value stored.
+        
+        This cannot be enabled when logarithmic is True.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1590,8 +1742,11 @@ cdef class Slider(uiItem):
     @property
     def speed(self):
         """
-        Writable attribute: When drag is true,
-        this attributes sets the drag speed.
+        The speed at which the value changes when using drag mode.
+        
+        This setting controls how quickly the value changes when dragging in drag 
+        mode. Higher values make the slider more sensitive to movement. Only 
+        applies when the drag property is set to True.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1606,9 +1761,11 @@ cdef class Slider(uiItem):
     @property
     def vertical(self):
         """
-        Writable attribute: Whether the use a vertical
-        slider. Only sliders of size 1 and drag False
-        are supported.
+        Whether to display the slider vertically instead of horizontally.
+        
+        When enabled, the slider will be displayed as a vertical bar. This is 
+        only supported for sliders with size=1 and is incompatible with drag=True. 
+        Setting this to True will automatically set drag to False.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1762,6 +1919,18 @@ cdef class Slider(uiItem):
 
 
 cdef class ListBox(uiItem):
+    """
+    A scrollable list of selectable text items with single selection support.
+    
+    ListBox provides a way to display a list of selectable strings in a scrollable 
+    container. Users can select a single item from the list, which is then stored 
+    in the item's value property.
+    
+    The list height can be controlled by setting the num_items_shown_when_open 
+    property, which determines how many items are visible before scrolling is 
+    required. When an item is selected, the widget's value is updated to contain 
+    the text of the selected item.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_listbox
         self._value = <SharedValue>(SharedStr.__new__(SharedStr, self.context))
@@ -1777,7 +1946,12 @@ cdef class ListBox(uiItem):
     @property
     def items(self):
         """
-        Writable attribute: List of text values to select
+        List of text values from which the user can select.
+        
+        This property contains all available options that will be displayed in the 
+        listbox. If the value of the listbox is not in this list, no item will 
+        appear selected. When the list is first created and the value is not yet 
+        set, the first item in this list (if any) will be automatically selected.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1812,8 +1986,12 @@ cdef class ListBox(uiItem):
     @property
     def num_items_shown_when_open(self):
         """
-        Writable attribute: Number of items
-        shown when the menu is opened
+        Number of items visible in the listbox before scrolling is required.
+        
+        This controls the height of the listbox widget. If set to -1 (default), 
+        the listbox will show up to 7 items or the total number of items if less 
+        than 7. Setting a specific positive value will display that many items 
+        at once, with scrolling enabled for additional items.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1986,6 +2164,21 @@ cdef class RadioButton(uiItem):
 
 
 cdef class InputText(uiItem):
+    """
+    A text input widget for single or multi-line text entry.
+    
+    InputText provides a field for text entry with various configuration options
+    including character filtering, password input, and multiline support. The entered
+    text is stored in a SharedStr value that can be accessed via the value property.
+    
+    The widget supports features like input validation, auto-selection, and custom
+    behaviors for special keys like Tab, Enter and Escape. It can be configured
+    with a hint text that appears when the field is empty, and can limit input to
+    specific character types (decimals, hexadecimal, etc).
+    
+    For multiline text entry, enable the multiline property which creates a text
+    area instead of a single-line field.
+    """
     def __init__(self, context, **kwargs):
         # Must be configured first
         if 'max_characters' in kwargs:
@@ -2015,6 +2208,12 @@ cdef class InputText(uiItem):
             free(<void*>self._buffer)
 
     def configure(self, **kwargs):
+        """
+        Configure the InputText widget with provided keyword arguments.
+        
+        Handles the 'max_characters' option before delegating to the parent class
+        for standard configuration options.
+        """
         if 'max_characters' in kwargs:
             self.max_characters = kwargs.pop('max_characters')
         return uiItem.configure(**kwargs)
@@ -2022,8 +2221,12 @@ cdef class InputText(uiItem):
     @property
     def hint(self):
         """
-        Writable attribute: text hint.
-        Doesn't work with multiline.
+        Placeholder text shown when the input field is empty.
+        
+        This text appears in a light color when the input field contains no text,
+        providing guidance to users about what should be entered. The hint is
+        only available for single-line input fields and cannot be used with
+        multiline mode.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2040,8 +2243,11 @@ cdef class InputText(uiItem):
     @property
     def multiline(self):
         """
-        Writable attribute: multiline text input.
-        Doesn't work with non-empty hint.
+        Whether the input field accepts multiple lines of text.
+        
+        When enabled, the input field becomes a text area that can contain line
+        breaks and supports multiple paragraphs. When multiline is enabled,
+        hint text cannot be used.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2059,7 +2265,11 @@ cdef class InputText(uiItem):
     @property
     def max_characters(self):
         """
-        Writable attribute: Maximal number of characters that can be written
+        Maximum number of characters allowed in the input field.
+        
+        This sets the capacity of the internal buffer used to store the text.
+        The default is 1024 characters. If you need to store longer text,
+        increase this value before adding text that would exceed it.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2088,7 +2298,11 @@ cdef class InputText(uiItem):
     @property
     def decimal(self):
         """
-        Writable attribute: Allow 0123456789.+-
+        Restricts input to decimal numeric characters (0-9, +, -, .).
+        
+        When enabled, the input field will only allow characters suitable for
+        entering decimal numbers. This is useful for creating numeric entry fields
+        that don't require a full numeric widget.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2105,7 +2319,11 @@ cdef class InputText(uiItem):
     @property
     def hexadecimal(self):
         """
-        Writable attribute:  Allow 0123456789ABCDEFabcdef
+        Restricts input to hexadecimal characters (0-9, A-F, a-f).
+        
+        When enabled, the input field will only allow characters suitable for
+        entering hexadecimal numbers. This is useful for entering color codes,
+        memory addresses, or other hexadecimal values.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2122,7 +2340,11 @@ cdef class InputText(uiItem):
     @property
     def scientific(self):
         """
-        Writable attribute: Allow 0123456789.+-*/eE
+        Restricts input to scientific notation characters (0-9, +, -, ., *, /, e, E).
+        
+        When enabled, the input field will only allow characters suitable for
+        entering numbers in scientific notation. This is useful for fields that
+        need to accept very large or small numbers in scientific format.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2139,7 +2361,12 @@ cdef class InputText(uiItem):
     @property
     def uppercase(self):
         """
-        Writable attribute: Turn a..z into A..Z
+        Automatically converts lowercase letters (a-z) to uppercase (A-Z).
+        
+        When enabled, any lowercase letters entered into the field will be
+        automatically converted to uppercase. This is useful for fields where
+        standardized uppercase input is desired, such as product codes or
+        reference numbers.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2156,7 +2383,11 @@ cdef class InputText(uiItem):
     @property
     def no_spaces(self):
         """
-        Writable attribute: Filter out spaces, tabs
+        Prevents spaces and tabs from being entered into the field.
+        
+        When enabled, the input field will reject space and tab characters,
+        ensuring the text contains no whitespace. This is useful for fields
+        that require compact, whitespace-free input like usernames or identifiers.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2173,7 +2404,12 @@ cdef class InputText(uiItem):
     @property
     def tab_input(self):
         """
-        Writable attribute: Pressing TAB input a '\t' character into the text field
+        Allows tab key to insert a tab character into the text.
+        
+        When enabled, pressing the Tab key will insert a tab character ('\t')
+        into the text field instead of moving focus to the next widget. This
+        is particularly useful in multiline text areas where tab indentation
+        is needed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2190,8 +2426,12 @@ cdef class InputText(uiItem):
     @property
     def on_enter(self):
         """
-        Writable attribute: Callback called everytime Enter is pressed,
-        not just when the value is modified.
+        Triggers callback when Enter key is pressed, regardless of edit state.
+        
+        When enabled, the item's callback will be triggered whenever the Enter key
+        is pressed while the input is focused, not just when the value changes.
+        This is useful for creating form-like interfaces where Enter submits the
+        current input.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2208,9 +2448,12 @@ cdef class InputText(uiItem):
     @property
     def escape_clears_all(self):
         """
-        Writable attribute: Escape key clears content if not empty,
-        and deactivate otherwise
-        (contrast to default behavior of Escape to revert)
+        Makes Escape key clear the field's content instead of reverting changes.
+        
+        When enabled, pressing the Escape key will clear the entire text content
+        if the field is not empty, or deactivate the field if it is empty.
+        This differs from the default behavior where Escape reverts the field
+        to its previous content.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2227,9 +2470,11 @@ cdef class InputText(uiItem):
     @property
     def ctrl_enter_for_new_line(self):
         """
-        Writable attribute: In multi-line mode, validate with Enter,
-        add new line with Ctrl+Enter
-        (default is opposite: validate with Ctrl+Enter, add line with Enter).
+        Reverses Enter and Ctrl+Enter behavior in multiline mode.
+        
+        When enabled in multiline mode, pressing Enter will submit the input,
+        while Ctrl+Enter will insert a new line. This is the opposite of the
+        default behavior where Enter inserts a new line and Ctrl+Enter submits.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2246,7 +2491,12 @@ cdef class InputText(uiItem):
     @property
     def readonly(self):
         """
-        Writable attribute: Read-only mode
+        Makes the input field non-editable by the user.
+        
+        When enabled, the text field will display its content but prevent the
+        user from modifying it. The content can still be updated programmatically
+        through the value property. This is useful for displaying information
+        that should not be altered by the user.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2263,7 +2513,12 @@ cdef class InputText(uiItem):
     @property
     def password(self):
         """
-        Writable attribute: Password mode, display all characters as '*', disable copy
+        Hides the input text by displaying asterisks and disables text copying.
+        
+        When enabled, all characters in the input field will be displayed as
+        asterisks (*), hiding the actual content from view. This is useful for
+        password entry fields or other sensitive information. Copy functionality
+        is also disabled for security.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2280,7 +2535,12 @@ cdef class InputText(uiItem):
     @property
     def always_overwrite(self):
         """
-        Writable attribute: Overwrite mode
+        Enables overwrite mode for text input.
+        
+        When enabled, typing in the input field will replace existing text
+        rather than inserting new characters. This mimics the behavior of
+        pressing the Insert key in many text editors, where the cursor
+        overwrites characters instead of pushing them forward.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2297,7 +2557,12 @@ cdef class InputText(uiItem):
     @property
     def auto_select_all(self):
         """
-        Writable attribute: Select entire text when first taking mouse focus
+        Automatically selects the entire text when the field is first clicked.
+        
+        When enabled, clicking on the input field for the first time will
+        select all of its content, making it easy to replace the entire text
+        with a new entry. This is particularly useful for fields that contain
+        default values that users are likely to change completely.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2314,7 +2579,11 @@ cdef class InputText(uiItem):
     @property
     def no_horizontal_scroll(self):
         """
-        Writable attribute: Disable following the scroll horizontally
+        Prevents automatic horizontal scrolling as text is entered.
+        
+        When enabled, the input field will not automatically scroll horizontally
+        when text exceeds the visible width. This can be useful for fields where
+        you want users to be aware of the field's capacity limits visually.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2331,7 +2600,12 @@ cdef class InputText(uiItem):
     @property
     def no_undo_redo(self):
         """
-        Writable attribute: Disable undo/redo.
+        Disables the undo/redo functionality for this input field.
+        
+        When enabled, the field will not store the history of changes,
+        preventing users from using undo (Ctrl+Z) or redo (Ctrl+Y) operations.
+        This can be useful for fields where undoing operations might be
+        confusing or undesirable.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2427,6 +2701,17 @@ cdef inline void clamp4(clamp_types[4] &value, double lower, double upper) noexc
         value[3] = <clamp_types>min(<double>value[3], upper)
 
 cdef class InputValue(uiItem):
+    """
+    A widget for entering numeric values with optional step buttons.
+    
+    This versatile input widget accepts scalar or vector numeric values with support
+    for different data types (int, float, double) and dimensions (1-4 components).
+    It offers precise control over value ranges, step sizes, and formatting options.
+    
+    The widget can be configured with various input restrictions, keyboard behaviors,
+    and visual settings to adapt to different use cases, from simple number entry
+    to multi-dimensional vector editing.
+    """
     def __init__(self, context, **kwargs):
         # Since some options cancel each other, one
         # must enable them in a specific order
@@ -2456,6 +2741,13 @@ cdef class InputValue(uiItem):
         self.state.cap.can_be_hovered = True
 
     def configure(self, **kwargs):
+        """
+        Configure the InputValue widget with provided keyword arguments.
+        
+        Handles special configuration options that have interdependencies
+        (format, size) before delegating to the parent class for standard
+        options.
+        """
         # Since some options cancel each other, one
         # must enable them in a specific order
         if "format" in kwargs:
@@ -2468,10 +2760,12 @@ cdef class InputValue(uiItem):
     @property
     def format(self):
         """
-        Writable attribute: Format of the slider.
-        Must be "int", "float" or "double".
-        Note that float here means the 32 bits version.
-        The python float corresponds to a double.
+        Format of the input data type.
+        
+        Must be "int", "float" or "double". Note that float here means the
+        32 bits version. The python float corresponds to a double.
+        
+        Changing this value will reallocate the internal value storage.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2521,12 +2815,13 @@ cdef class InputValue(uiItem):
     @property
     def size(self):
         """
-        Writable attribute: Size of the slider.
-        Can be 1, 2, 3 or 4.
-        When 1 the item's value is held with
-        a scalar shared value, else it is held
-        with a vector of 4 elements (even for
-        size 2 and 3)
+        Number of components controlled by the input widget.
+        
+        Can be 1, 2, 3 or 4. When size is 1, the item's value is held with a
+        scalar shared value. For sizes greater than 1, the value is held with a
+        vector of 4 elements (even for size 2 and 3).
+        
+        Changing this value will reallocate the internal value storage.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2567,7 +2862,11 @@ cdef class InputValue(uiItem):
     @property
     def step(self):
         """
-        Writable attribute: 
+        Step size for incrementing/decrementing the value with buttons.
+        
+        When step buttons are shown, clicking them will adjust the value by
+        this amount. The step value is applied according to the current format
+        (int, float, double).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2582,7 +2881,10 @@ cdef class InputValue(uiItem):
     @property
     def step_fast(self):
         """
-        Writable attribute: 
+        Fast step size for quick incrementing/decrementing with modifier keys.
+        
+        When using keyboard or clicking step buttons with modifier keys held,
+        this larger step value will be used for quicker adjustments.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2597,8 +2899,11 @@ cdef class InputValue(uiItem):
     @property
     def min_value(self):
         """
-        Writable attribute: Minimum value the input
-        will be clamped to.
+        Minimum value the input will be clamped to.
+        
+        This defines the lower bound of the acceptable range for the input.
+        Any value below this will be automatically clamped to this minimum.
+        Use -INFINITY to specify no lower bound.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2613,8 +2918,11 @@ cdef class InputValue(uiItem):
     @property
     def max_value(self):
         """
-        Writable attribute: Maximum value the input
-        will be clamped to.
+        Maximum value the input will be clamped to.
+        
+        This defines the upper bound of the acceptable range for the input.
+        Any value above this will be automatically clamped to this maximum.
+        Use INFINITY to specify no upper bound.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2629,11 +2937,11 @@ cdef class InputValue(uiItem):
     @property
     def print_format(self):
         """
-        Writable attribute: format string
-        for the value -> string conversion
-        for display. If round_to_format is
-        enabled, the value is converted
-        back and thus appears rounded.
+        Format string for displaying the numeric value.
+        
+        Uses printf-style formatting to control how the value is displayed.
+        Example formats: "%d" for integers, "%.2f" for floats with 2 decimal
+        places, etc.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2648,7 +2956,10 @@ cdef class InputValue(uiItem):
     @property
     def decimal(self):
         """
-        Writable attribute: Allow 0123456789.+-
+        Restricts input to decimal numeric characters.
+        
+        When enabled, only characters valid for decimal numbers (0-9, +, -, .)
+        will be accepted, filtering out any other input.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2665,7 +2976,10 @@ cdef class InputValue(uiItem):
     @property
     def hexadecimal(self):
         """
-        Writable attribute:  Allow 0123456789ABCDEFabcdef
+        Restricts input to hexadecimal characters.
+        
+        When enabled, only characters valid for hexadecimal numbers
+        (0-9, A-F, a-f) will be accepted, filtering out any other input.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2682,7 +2996,11 @@ cdef class InputValue(uiItem):
     @property
     def scientific(self):
         """
-        Writable attribute: Allow 0123456789.+-*/eE
+        Restricts input to scientific notation characters.
+        
+        When enabled, only characters valid for scientific notation
+        (0-9, +, -, ., *, /, e, E) will be accepted, suitable for entering
+        numbers in scientific format.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2699,8 +3017,11 @@ cdef class InputValue(uiItem):
     @property
     def on_enter(self):
         """
-        Writable attribute: Callback called everytime Enter is pressed,
-        not just when the value is modified.
+        Triggers callback when Enter key is pressed.
+        
+        When enabled, the widget's callback will be triggered whenever the user
+        presses Enter, regardless of whether the value has changed. This is
+        useful for form-like interfaces where Enter submits the current input.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2717,9 +3038,11 @@ cdef class InputValue(uiItem):
     @property
     def escape_clears_all(self):
         """
-        Writable attribute: Escape key clears content if not empty,
-        and deactivate otherwise
-        (contrast to default behavior of Escape to revert)
+        Makes Escape key clear the field's content.
+        
+        When enabled, pressing the Escape key will clear all text if the field
+        is not empty, or deactivate the field if it is empty. This differs from
+        the default behavior where Escape reverts to the previous value.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2736,7 +3059,11 @@ cdef class InputValue(uiItem):
     @property
     def readonly(self):
         """
-        Writable attribute: Read-only mode
+        Makes the input field non-editable by the user.
+        
+        When enabled, the input will display its current value but users cannot
+        modify it. The value can still be updated programmatically through the
+        value property.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2753,7 +3080,11 @@ cdef class InputValue(uiItem):
     @property
     def password(self):
         """
-        Writable attribute: Password mode, display all characters as '*', disable copy
+        Hides the input by displaying asterisks and disables copying.
+        
+        When enabled, all characters will be displayed as asterisks (*), hiding
+        the actual content from view. This is useful for password entry or other
+        sensitive numeric information.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2770,7 +3101,11 @@ cdef class InputValue(uiItem):
     @property
     def always_overwrite(self):
         """
-        Writable attribute: Overwrite mode
+        Enables overwrite mode for text input.
+        
+        When enabled, typing in the input field will replace existing text at
+        the cursor position rather than inserting new characters. This mimics
+        the behavior of pressing the Insert key in many text editors.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2787,7 +3122,11 @@ cdef class InputValue(uiItem):
     @property
     def auto_select_all(self):
         """
-        Writable attribute: Select entire text when first taking mouse focus
+        Automatically selects all content when the field is first focused.
+        
+        When enabled, clicking on the input field for the first time will
+        select all of its content, making it easy to replace the entire value
+        with a new entry.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2804,7 +3143,11 @@ cdef class InputValue(uiItem):
     @property
     def empty_as_zero(self):
         """
-        Writable attribute: parse empty string as zero value
+        Treats empty input fields as zero values.
+        
+        When enabled, an empty input field will be interpreted as having a value
+        of zero rather than being treated as invalid input or retaining the
+        previous value.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2821,7 +3164,11 @@ cdef class InputValue(uiItem):
     @property
     def empty_if_zero(self):
         """
-        Writable attribute: when value is zero, do not display it
+        Displays an empty field when the value is zero.
+        
+        When enabled, a value of exactly zero will be displayed as an empty
+        field rather than showing "0". This is useful for cleaner interfaces
+        where zero is the default state.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2838,7 +3185,11 @@ cdef class InputValue(uiItem):
     @property
     def no_horizontal_scroll(self):
         """
-        Writable attribute: Disable following the scroll horizontally
+        Disables automatic horizontal scrolling during input.
+        
+        When enabled, the input field will not automatically scroll horizontally
+        when text exceeds the visible width. This can be useful for fields where
+        you want users to be aware of the field's capacity limits visually.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2855,7 +3206,11 @@ cdef class InputValue(uiItem):
     @property
     def no_undo_redo(self):
         """
-        Writable attribute: Disable undo/redo.
+        Disables the undo/redo functionality for this input field.
+        
+        When enabled, the field will not store the history of changes, 
+        preventing users from using undo (Ctrl+Z) or redo (Ctrl+Y) operations.
+        This can reduce memory usage for frequently changed values.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2994,6 +3349,17 @@ cdef class InputValue(uiItem):
 
 
 cdef class Text(uiItem):
+    """
+    A widget that displays text with customizable appearance.
+    
+    Text widgets provide a way to show informational text in the UI with options
+    for styling, wrapping, and layout. They can display both static text specified
+    by the label property or dynamic text stored in a SharedStr value.
+    
+    Text can be customized with colors, bullets, wrapping, and can be made
+    selectable. Both the label and value can be shown together, providing
+    flexibility for displaying titles alongside dynamic content.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_text
         self._color = 0 # invisible
@@ -3010,10 +3376,11 @@ cdef class Text(uiItem):
     @property
     def color(self):
         """
-        Writable attribute: text color.
-        If set to 0 (default), that is
-        full transparent text, use the
-        default value given by the style
+        Color of the text displayed by the widget.
+        
+        If set to 0 (default), the text uses the default color defined by the
+        current theme style. Otherwise, the provided color value will be used
+        to override the default text color.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3027,12 +3394,15 @@ cdef class Text(uiItem):
 
     @property
     def label(self):
+        """
+        Text content to display in the widget.
+        
+        For Text widgets, this property is handled differently than other UI items.
+        The UUID is not appended to the displayed label, allowing the text to
+        appear exactly as specified without modification.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        """
-        Writable attribute: label assigned to the item.
-        Used for text fields, window titles, etc
-        """
         return self._user_label
     @label.setter
     def label(self, str value):
@@ -3050,10 +3420,15 @@ cdef class Text(uiItem):
     @property
     def wrap(self):
         """
-        Writable attribute: wrap width in pixels
-        -1 for no wrapping
-        The width is multiplied by the global scale
-        unless the no_scaling option is set.
+        Width in pixels at which to wrap the text.
+        
+        Controls text wrapping behavior with these possible values:
+        -1: No wrapping (default)
+         0: Wrap at the edge of the window
+        >0: Wrap at the specified width in pixels
+        
+        The wrap width is automatically scaled by the global scale factor
+        unless DPI scaling is disabled for this widget.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3068,8 +3443,11 @@ cdef class Text(uiItem):
     @property
     def bullet(self):
         """
-        Writable attribute: Whether to add a bullet
-        before the text
+        Whether to display a bullet point before the text.
+        
+        When enabled, a small circular bullet is drawn at the start of the text,
+        similar to list items in bulleted lists. This can be useful for
+        emphasizing important information or creating visual hierarchies.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3084,8 +3462,12 @@ cdef class Text(uiItem):
     @property
     def show_label(self):
         """
-        Writable attribute: Whether to display the
-        label next to the text stored in value
+        Whether to show both the label and value text together.
+        
+        When enabled, both the label property and the text stored in the
+        widget's value are displayed, with the value appearing first followed
+        by the label. This is useful for displaying a description alongside
+        a dynamic value. The label is displayed at the right of the value text.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3137,12 +3519,20 @@ cdef class Text(uiItem):
 
 cdef class TextValue(uiItem):
     """
-    A text item that displays a SharedValue.
-    assign the shareable_value property of another item
-    to the shareable_value property of this item in order
-    to display it.
-    Unlike other items, this items accepts shareable_value of any type (except text).
-    Use Text for SharedStr.
+    A widget that displays values from any type of SharedValue.
+    
+    TextValue provides a way to visualize the current value of any SharedValue
+    in the UI. Unlike the Text widget which only displays string values, TextValue
+    can display values from numeric types, vectors, colors and more.
+    
+    By connecting a SharedValue from another widget to this one through the
+    shareable_value property, you can create displays that automatically
+    update when the source value changes. This is useful for creating
+    readouts, labels, or debugging displays that show the current state
+    of interactive elements.
+    
+    The display format can be customized using printf-style format strings
+    to control precision, alignment, and presentation.
     """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_text
@@ -3159,11 +3549,16 @@ cdef class TextValue(uiItem):
     @property
     def shareable_value(self):
         """
-        Same as the value field, but rather than a copy of the internal value
-        of the object, return a python object that holds a value field that
-        is in sync with the internal value of the object. This python object
-        can be passed to other items using an internal value of the same
-        type to share it.
+        The SharedValue object that provides the displayed value.
+        
+        This property allows connecting any SharedValue object (except SharedStr)
+        to this TextValue widget. The widget will display the current value and
+        update automatically whenever the source value changes.
+        
+        Supported types include SharedBool, SharedInt, SharedFloat, SharedDouble,
+        SharedColor, SharedInt4, SharedFloat4, SharedDouble4, and SharedFloatVect.
+        
+        For displaying string values, use the Text widget instead.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3210,17 +3605,23 @@ cdef class TextValue(uiItem):
     @property
     def print_format(self):
         """
-        Writable attribute: format string
-        for the value -> string conversion
-        for display.
-
-        For example:
-        %d for a SharedInt
-        [%d, %d, %d, %d] for a SharedInt4
-        (%f, %f, %f, %f) for a SharedFloat4 or a SharedColor (which are displayed as floats)
-
-        One exception of SharedFloatVect, as the size is not known.
-        In this case the print_format is applied separately to each value.
+        The format string used to convert values to display text.
+        
+        Uses printf-style format specifiers to control how values are displayed.
+        For scalar values, use a single format specifier like '%d' or '%.2f'.
+        
+        For vector types, provide multiple format specifiers within a template,
+        such as '[%d, %d, %d, %d]' for SharedInt4 or '(%.1f, %.1f, %.1f, %.1f)'
+        for SharedFloat4.
+        
+        For SharedFloatVect, the format is applied individually to each element
+        in the vector as they are displayed on separate lines.
+        
+        Examples:
+          '%d' - Display integers with no decimal places
+          '%.2f' - Display floats with 2 decimal places
+          'Value: %g' - Add prefix text to the displayed value
+          'RGB: (%.0f, %.0f, %.0f)' - Format color values as integers
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3284,6 +3685,19 @@ cdef class TextValue(uiItem):
         return False
 
 cdef class Selectable(uiItem):
+    """
+    A selectable item that can be clicked to change its selected state.
+    
+    Selectable widgets provide a clickable area that can maintain a selected state,
+    similar to checkboxes but with more flexible styling options. They can be 
+    configured to behave in various ways when clicked or hovered, and can span
+    across multiple columns in tables.
+    
+    Selectables are useful for creating list items, menu entries, or any UI element
+    that needs to show a selected/unselected state with custom appearance. The 
+    selection state is stored in a SharedBool value accessible via the value 
+    property.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_selectable
         self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
@@ -3299,7 +3713,12 @@ cdef class Selectable(uiItem):
     @property
     def disable_popup_close(self):
         """
-        Writable attribute: Clicking this doesn't close parent popup window
+        Controls whether clicking the selectable will close parent popup windows.
+        
+        When enabled, clicking this selectable won't automatically close any parent
+        popup window that contains it. This is useful when creating popup menus 
+        where you want to allow multiple selections without the popup closing after
+        each click.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3316,7 +3735,12 @@ cdef class Selectable(uiItem):
     @property
     def span_columns(self):
         """
-        Writable attribute: Frame will span all columns of its container table (text will still fit in current column)
+        Controls whether the selectable spans all columns in a table.
+        
+        When enabled in a table context, the selectable's frame will span across
+        all columns of its container table, while the text content will still be
+        confined to the current column. This creates a visual effect where the
+        highlight/selection extends across the entire row width.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3333,7 +3757,12 @@ cdef class Selectable(uiItem):
     @property
     def on_double_click(self):
         """
-        Writable attribute: call callbacks on double clicks too
+        Controls whether the selectable responds to double-clicks.
+        
+        When enabled, the selectable will also generate callbacks when double-clicked,
+        not just on single clicks. This is useful for items where double-clicking
+        might trigger a secondary action, such as opening a detailed view or 
+        entering an edit mode.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3350,7 +3779,12 @@ cdef class Selectable(uiItem):
     @property
     def highlighted(self):
         """
-        Writable attribute: highlighted as if hovered
+        Controls whether the selectable appears highlighted regardless of hover state.
+        
+        When enabled, the selectable will always draw with a highlighted appearance
+        as if it were being hovered by the mouse, regardless of the actual hover
+        state. This can be useful for drawing attention to a specific item in a
+        list or indicating a special status.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3381,6 +3815,18 @@ cdef class Selectable(uiItem):
 
 
 cdef class MenuItem(uiItem):
+    """
+    A clickable menu item that can be used inside Menu components.
+    
+    MenuItem represents a clickable option in a dropdown menu or context menu.
+    It can be configured to display a checkmark and keyboard shortcut hint,
+    making it suitable for commands and toggleable options.
+    
+    Menu items can be checked/unchecked to represent binary states, and can
+    display shortcut text to inform users of keyboard alternatives. When clicked,
+    menu items trigger their callback function and update their associated
+    SharedBool value.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_menuitem
         self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
@@ -3395,7 +3841,12 @@ cdef class MenuItem(uiItem):
     @property
     def check(self):
         """
-        Writable attribute:
+        Whether the menu item displays a checkmark.
+        
+        When enabled, the menu item shows a checkmark that reflects the state
+        of the associated value. This is useful for options that can be toggled
+        on and off. The checkmark state is controlled through the item's value
+        property.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3410,7 +3861,14 @@ cdef class MenuItem(uiItem):
     @property
     def shortcut(self):
         """
-        Writable attribute:
+        Text displayed on the right side of the menu item as a shortcut hint.
+        
+        This text provides a visual indicator of keyboard shortcuts associated
+        with this menu command. The shortcut is not functional by itself - it
+        only displays text to inform the user. Actual keyboard shortcut handling
+        must be implemented separately.
+        
+        Common formats include "Ctrl+S" or "Alt+F4".
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3434,6 +3892,18 @@ cdef class MenuItem(uiItem):
         return activated
 
 cdef class ProgressBar(uiItem):
+    """
+    A widget that displays a visual indicator of progress.
+    
+    The ProgressBar shows a filled rectangle that grows from left to right
+    proportionally to the current value (0.0 to 1.0). It's useful for showing
+    the status of ongoing operations, loading processes, or completion percentages.
+    
+    The appearance can be customized through themes, and optional text can be 
+    displayed on top of the progress indicator using the overlay property. The
+    widget can also be sized explicitly through the width and height properties
+    inherited from uiItem.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_progressbar
         self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
@@ -3445,7 +3915,11 @@ cdef class ProgressBar(uiItem):
     @property
     def overlay(self):
         """
-        Writable attribute:
+        Optional text to display centered in the progress bar.
+        
+        This text is displayed in the center of the progress bar and can be used
+        to show textual information about the progress, such as percentages or
+        status messages. Leave empty for no text overlay.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3469,6 +3943,21 @@ cdef class ProgressBar(uiItem):
         return False
 
 cdef class Image(uiItem):
+    """
+    A widget that displays a texture image in the UI.
+    
+    Image widgets allow displaying textures with options for resizing, tinting,
+    and UV coordinate mapping. They can be used to show static images, icons,
+    or dynamic content from render targets.
+    
+    The image's appearance can be customized through colors and UV coordinates
+    to display specific regions of a texture. The size can be explicitly set or
+    derived automatically from the texture dimensions with optional DPI scaling.
+    
+    The widget supports hover detection and can be used with callbacks to create
+    interactive image elements without button behavior. For clickable images,
+    use ImageButton instead.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_image
         self.state.cap.can_be_clicked = True
@@ -3481,9 +3970,17 @@ cdef class Image(uiItem):
 
     @property
     def texture(self):
+        """
+        The texture to display in the image widget.
+        
+        This must be a Texture object that has been loaded or created. The image
+        will update automatically if the texture content changes. If no texture
+        is set or the texture is invalid, the image will not be rendered.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._texture
+
     @texture.setter
     def texture(self, value):
         cdef unique_lock[DCGMutex] m
@@ -3491,35 +3988,69 @@ cdef class Image(uiItem):
         if not(isinstance(value, Texture)):
             raise TypeError("texture must be a Texture")
         self._texture = value
+
     @property
     def uv(self):
+        """
+        UV coordinates defining the region of the texture to display.
+        
+        A list of 4 values [u1, v1, u2, v2] that specify the texture coordinates
+        to use for mapping the texture onto the image rectangle. This allows
+        displaying only a portion of the texture. 
+        
+        Default is [0.0, 0.0, 1.0, 1.0], which displays the entire texture.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv)
+
     @uv.setter
     def uv(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_vec4[float](self._uv, value)
+
     @property
     def color_multiplier(self):
+        """
+        Color tint applied to the image texture.
+        
+        A color value used to multiply with the texture's colors, allowing 
+        tinting, fading, or other color adjustments. The color can be specified
+        as an RGBA list with values from 0.0 to 1.0, or as a packed integer.
+        
+        Default is white [1., 1., 1., 1.], which displays the texture with its
+        original colors.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_multiplier
         unparse_color(color_multiplier, self._color_multiplier)
         return list(color_multiplier)
+
     @color_multiplier.setter
     def color_multiplier(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_multiplier = parse_color(value)
+
     @property
     def border_color(self):
+        """
+        Color of the border drawn around the image.
+        
+        A color value for the image's border. The color can be specified as an
+        RGBA list with values from 0.0 to 1.0, or as a packed integer. Setting
+        this to a transparent color (alpha=0) effectively hides the border.
+        
+        Default is transparent black [0, 0, 0, 0], which displays no border.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] border_color
         unparse_color(border_color, self._border_color)
         return list(border_color)
+
     @border_color.setter
     def border_color(self, value):
         cdef unique_lock[DCGMutex] m
@@ -3551,6 +4082,21 @@ cdef class Image(uiItem):
 
 
 cdef class ImageButton(uiItem):
+    """
+    A clickable button that displays an image texture.
+    
+    ImageButton combines the functionality of a Button with the visual display of 
+    an Image. When clicked, it triggers a callback and updates its value. The 
+    button can be styled with custom colors, padding, and UV coordinates.
+    
+    Unlike regular buttons, ImageButtons use a texture image instead of text as 
+    their primary visual element. They can be used to create icon buttons, custom 
+    themed controls, or any UI element where visual representation is preferred 
+    over text labels.
+    
+    The button's appearance can be further customized through frame padding, 
+    background color, and color tinting options.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_imagebutton
         self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
@@ -3565,9 +4111,17 @@ cdef class ImageButton(uiItem):
 
     @property
     def texture(self):
+        """
+        The texture to display in the button.
+        
+        This must be a Texture object that has been loaded or created. The button 
+        will update automatically if the texture content changes. If no texture is 
+        set or the texture is invalid, the button will not be rendered.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._texture
+
     @texture.setter
     def texture(self, value):
         cdef unique_lock[DCGMutex] m
@@ -3575,45 +4129,90 @@ cdef class ImageButton(uiItem):
         if not(isinstance(value, Texture)):
             raise TypeError("texture must be a Texture")
         self._texture = value
+
     @property
     def frame_padding(self):
+        """
+        Padding around the image within the button frame.
+        
+        Controls the space between the image and the button edge. A value of -1 
+        (default) uses the standard padding from the current style. Setting to 0 
+        removes padding, creating a borderless image button, while positive values 
+        increase the padding.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._frame_padding
+
     @frame_padding.setter
     def frame_padding(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._frame_padding = value
+
     @property
     def uv(self):
+        """
+        UV coordinates defining the region of the texture to display.
+        
+        A list of 4 values [u1, v1, u2, v2] that specify the texture coordinates 
+        to use for mapping the texture onto the button rectangle. This allows 
+        displaying only a portion of the texture.
+        
+        Default is [0.0, 0.0, 1.0, 1.0], which displays the entire texture.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return list(self._uv)
+
     @uv.setter
     def uv(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_vec4[float](self._uv, value)
+
     @property
     def color_multiplier(self):
+        """
+        Color tint applied to the image texture.
+        
+        A color value used to multiply with the texture's colors, allowing tinting, 
+        fading, or other color adjustments. The color can be specified as an RGBA 
+        list with values from 0.0 to 1.0, or as a packed integer.
+        
+        Default is white [1., 1., 1., 1.], which displays the texture with its 
+        original colors.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] color_multiplier
         unparse_color(color_multiplier, self._color_multiplier)
         return list(color_multiplier)
+
     @color_multiplier.setter
     def color_multiplier(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color_multiplier = parse_color(value)
+
     @property
     def background_color(self):
+        """
+        Color of the button background behind the image.
+        
+        A color value for the area surrounding the image within the button bounds. 
+        The color can be specified as an RGBA list with values from 0.0 to 1.0, or 
+        as a packed integer. Setting this to a transparent color effectively shows 
+        only the image with no background.
+        
+        Default is transparent black [0, 0, 0, 0].
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float[4] background_color
         unparse_color(background_color, self._background_color)
         return list(background_color)
+
     @background_color.setter
     def background_color(self, value):
         cdef unique_lock[DCGMutex] m
@@ -3652,18 +4251,32 @@ cdef class ImageButton(uiItem):
         return activated
 
 cdef class Separator(uiItem):
+    """
+    A horizontal line that visually separates UI elements.
+    
+    Separator creates a horizontal dividing line that spans the width of its 
+    parent container. It helps organize UI components by creating visual 
+    boundaries between different groups of elements.
+    
+    When a label is provided, the separator will display text centered on the line,
+    creating a section header. Without a label, it renders as a simple line.
+    """
     def __cinit__(self):
         return
-    # TODO: is label override really needed ?
+
     @property
     def label(self):
+        """
+        Text to display centered on the separator line.
+        
+        When set, creates a labeled separator that displays text centered on the
+        horizontal line. This is useful for creating titled sections within a UI.
+        If not set or None, renders as a plain horizontal line.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        """
-        Writable attribute: label assigned to the item.
-        Used for text fields, window titles, etc
-        """
         return self._user_label
+
     @label.setter
     def label(self, str value):
         cdef unique_lock[DCGMutex] m
@@ -3686,8 +4299,20 @@ cdef class Separator(uiItem):
         return False
 
 cdef class Spacer(uiItem):
+    """
+    A blank area that creates space between UI elements.
+    
+    Spacer adds empty vertical or horizontal space between UI components to 
+    improve layout and visual separation. It can be configured with explicit 
+    dimensions or use the default spacing from the current style.
+    
+    Without specified dimensions, Spacer creates a standard-sized gap using the
+    current style's ItemSpacing value. With dimensions, it creates an empty area
+    of the precise requested size.
+    """
     def __cinit__(self):
         self.can_be_disabled = False
+
     cdef bint draw_item(self) noexcept nogil:
         cdef Vec2 requested_size = self.get_requested_size()
         if requested_size.x == 0 and \
@@ -3700,6 +4325,22 @@ cdef class Spacer(uiItem):
         return False
 
 cdef class MenuBar(uiItem):
+    """
+    A horizontal container for menu items at the top of a window.
+    
+    MenuBar creates a horizontal area at the top of a window where menu items and
+    other interactive controls can be placed. It can function as either a main
+    menu bar (attached to the application window) or as a child menu bar within
+    another window.
+    
+    MenuBars can contain Menu widgets, which in turn can contain MenuItem widgets
+    to create dropdown menus. They automatically adapt to different window sizes
+    and can be styled using themes.
+    
+    When placed directly under the viewport, the MenuBar becomes a main menu bar
+    that appears at the top of the application window. When placed within another
+    window, it creates a local menu bar for that window.
+    """
     def __cinit__(self):
         # We should maybe restrict to menuitem ?
         self.can_have_widget_child = True
@@ -3794,6 +4435,14 @@ cdef class MenuBar(uiItem):
 
 
 cdef class Menu(uiItem):
+    """A Menu creates a menu container within a menu bar.
+
+    Menus are used to organize menu items and sub-menus within a menu bar. They
+    provide a hierarchical structure for your application's command system. Each
+    menu can contain multiple menu items or other menus.
+
+    Menus must be created within a MenuBar or as a child of another Menu.
+    """
     # TODO: MUST be inside a menubar
     def __cinit__(self):
         # We should maybe restrict to menuitem ?
@@ -3837,8 +4486,22 @@ cdef class Menu(uiItem):
         return self.state.cur.active and not(self.state.prev.active)
 
 cdef class Tooltip(uiItem):
+    """
+    A floating popup that displays additional information when hovering an item.
+    
+    Tooltips appear when the user hovers over a target element, providing 
+    contextual help or additional details without requiring interaction. They 
+    automatically position themselves near the target and can be configured to 
+    appear after a delay or respond to specific conditions.
+    
+    Tooltips can contain any UI elements as children, allowing for rich content 
+    including text, images, and interactive widgets. They automatically size to 
+    fit their content and disappear when the user moves away from the target.
+    
+    The tooltip's appearance can be controlled through themes, and its behavior 
+    can be customized with properties like delay time and activity-based hiding.
+    """
     def __cinit__(self):
-        # We should maybe restrict to menuitem ?
         self.can_have_widget_child = True
         self._theme_condition_category = ThemeCategories.t_tooltip
         # Tooltip is basically a window but with no control
@@ -3860,13 +4523,15 @@ cdef class Tooltip(uiItem):
     @property
     def target(self):
         """
-        Target item which state will be checked
-        to trigger the tooltip.
-        Note if the item is after this tooltip
-        in the rendering tree, there will be
-        a frame delay.
-        If no target is set, the previous sibling
-        is the target.
+        The UI item that triggers this tooltip when hovered.
+        
+        When set, the tooltip will appear when this target item is hovered by 
+        the mouse. If no target is set, the tooltip will use the previous 
+        sibling in the UI hierarchy as its target.
+        
+        Note that if the target item appears after this tooltip in the rendering 
+        tree, there will be a one-frame delay before the tooltip responds to the 
+        target's hover state.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3890,10 +4555,16 @@ cdef class Tooltip(uiItem):
     @property
     def condition_from_handler(self):
         """
-        When set, the handler referenced in
-        this field will be used to replace
-        the target hovering check. It will
-        apply to target, which must be set.
+        A handler that determines when the tooltip should be displayed.
+        
+        When set, this handler replaces the default hover detection logic for 
+        determining when to show the tooltip. The handler is applied to the 
+        target item (which must be set) and can implement custom conditions 
+        beyond simple hovering.
+        
+        This allows for advanced tooltip behaviors such as showing tooltips 
+        based on item state, user interactions, or application logic rather 
+        than just mouse position.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3910,9 +4581,16 @@ cdef class Tooltip(uiItem):
     @property
     def delay(self):
         """
-        Delay in seconds with no motion before showing the tooltip
-        -1: Use imgui defaults
-        Defaults to 0.
+        Time in seconds to wait before showing the tooltip.
+        
+        Controls how long the mouse must remain stationary over the target 
+        before the tooltip appears. This prevents tooltips from flickering 
+        when the user moves the mouse across the interface.
+        
+        Values:
+        - Positive: Number of seconds to wait
+        - 0: Show immediately (default)
+        - -1: Use ImGui default delay from the current style
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3927,7 +4605,15 @@ cdef class Tooltip(uiItem):
     @property
     def hide_on_activity(self):
         """
-        Hide the tooltip when the mouse moves
+        Whether to hide the tooltip when the mouse moves.
+        
+        When enabled, any mouse movement will immediately hide the tooltip, 
+        even if the mouse remains over the target item. This creates a more 
+        responsive interface where tooltips only appear when the user explicitly 
+        pauses on an item.
+        
+        This can be useful for tooltips that might obscure important UI elements 
+        or for interfaces where the user is expected to perform quick actions.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3999,6 +4685,21 @@ cdef class Tooltip(uiItem):
         return self.state.cur.rendered and not(was_visible)
 
 cdef class TabButton(uiItem):
+    """
+    A button that appears within a tab bar without tab content.
+    
+    TabButton provides a clickable element that looks like a tab but doesn't 
+    have an associated panel. This is useful for creating actions within a 
+    tab bar, such as a "+" button to add new tabs or other special controls.
+    
+    Unlike regular Tab elements, TabButtons don't maintain a content area or 
+    open/closed state. They simply trigger their callbacks when clicked, making
+    them ideal for implementing custom tab bar behaviors.
+    
+    TabButtons can be positioned at specific locations in the tab bar using
+    the leading or trailing properties, and their appearance can be customized
+    using themes.
+    """
     def __cinit__(self):
         self._theme_condition_category = ThemeCategories.t_tabbutton
         self.element_child_category = child_type.cat_tab
@@ -4014,8 +4715,11 @@ cdef class TabButton(uiItem):
     @property
     def no_reorder(self):
         """
-        Writable attribute: Disable reordering this tab or
-        having another tab cross over this tab
+        Prevents this tab button from being reordered or crossed over.
+        
+        When enabled, this tab button cannot be dragged to a new position, and 
+        other tabs cannot be dragged across it. This is useful for pinning 
+        special function tabs in a fixed position within the tab bar.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4032,8 +4736,13 @@ cdef class TabButton(uiItem):
     @property
     def leading(self):
         """
-        Writable attribute: Enforce the tab position to the
-        left of the tab bar (after the tab list popup button)
+        Positions the tab button at the left side of the tab bar.
+        
+        When enabled, the tab button will be positioned at the beginning of the 
+        tab bar, after the tab list popup button (if present). This is useful 
+        for creating primary action buttons that should appear before regular
+        tabs. Setting this property will automatically disable the trailing
+        property if it was enabled.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4051,8 +4760,13 @@ cdef class TabButton(uiItem):
     @property
     def trailing(self):
         """
-        Writable attribute: Enforce the tab position to the
-        right of the tab bar (before the scrolling buttons)
+        Positions the tab button at the right side of the tab bar.
+        
+        When enabled, the tab button will be positioned at the end of the tab
+        bar, before the scrolling buttons (if present). This is useful for
+        creating secondary action buttons that should appear after regular tabs.
+        Setting this property will automatically disable the leading property
+        if it was enabled.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4070,7 +4784,12 @@ cdef class TabButton(uiItem):
     @property
     def no_tooltip(self):
         """
-        Writable attribute: Disable tooltip for the given tab
+        Disables the tooltip that would appear when hovering over the tab button.
+        
+        When enabled, no tooltip will be displayed when the mouse hovers over
+        the tab button, even if a tooltip is associated with it. This can be
+        useful for tab buttons that have self-explanatory icons or text labels
+        that don't require additional explanation.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4093,6 +4812,23 @@ cdef class TabButton(uiItem):
 
 
 cdef class Tab(uiItem):
+    """
+    A content container that appears as a clickable tab within a TabBar.
+    
+    Tabs create labeled sections within a TabBar, allowing users to switch between 
+    different content panels by clicking on tab headers. When a tab is selected, 
+    its contents are displayed below the tab bar while other tab contents are 
+    hidden.
+    
+    Tabs can contain any UI element as children and support various customization 
+    options including positioning (leading/trailing), reordering restrictions, and 
+    optional close buttons. They work in conjunction with the TabBar container, 
+    which manages the overall tab display and interaction.
+    
+    The tab's state is stored in a SharedBool value that tracks whether it's 
+    currently selected/open. This allows programmatic control of tab switching in 
+    addition to user interaction.
+    """
     def __cinit__(self):
         self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
         self.can_have_widget_child = True
@@ -4110,7 +4846,12 @@ cdef class Tab(uiItem):
     @property
     def closable(self):
         """
-        Writable attribute: Can the tab be closed
+        Whether the tab displays a close button.
+        
+        When enabled, a small 'x' button appears on the tab that allows users to 
+        close the tab by clicking it. When a tab is closed this way, the tab's 
+        'show' property is set to False, which can be detected through handlers 
+        or callbacks. Closed tabs are not destroyed, just hidden.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4125,8 +4866,12 @@ cdef class Tab(uiItem):
     @property
     def no_reorder(self):
         """
-        Writable attribute: Disable reordering this tab or
-        having another tab cross over this tab
+        Whether tab reordering is disabled for this tab.
+        
+        When enabled, this tab cannot be dragged to a new position in the tab bar,
+        and other tabs cannot be dragged across it. This is useful for pinning 
+        important tabs in a fixed position or creating sections of fixed and 
+        movable tabs within the same tab bar.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4143,8 +4888,13 @@ cdef class Tab(uiItem):
     @property
     def leading(self):
         """
-        Writable attribute: Enforce the tab position to the
-        left of the tab bar (after the tab list popup button)
+        Whether the tab is positioned at the left side of the tab bar.
+        
+        When enabled, the tab will be positioned at the beginning of the tab bar, 
+        after the tab list popup button (if present). This is useful for creating 
+        primary or frequently used tabs that should always be visible. Setting 
+        this property will automatically disable the trailing property if it was 
+        enabled.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4162,8 +4912,13 @@ cdef class Tab(uiItem):
     @property
     def trailing(self):
         """
-        Writable attribute: Enforce the tab position to the
-        right of the tab bar (before the scrolling buttons)
+        Whether the tab is positioned at the right side of the tab bar.
+        
+        When enabled, the tab will be positioned at the end of the tab bar, 
+        before the scrolling buttons (if present). This is useful for creating 
+        secondary or less frequently used tabs that should be separated from the 
+        main tabs. Setting this property will automatically disable the leading 
+        property if it was enabled.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4181,7 +4936,12 @@ cdef class Tab(uiItem):
     @property
     def no_tooltip(self):
         """
-        Writable attribute: Disable tooltip for the given tab
+        Whether tooltips are disabled for this tab.
+        
+        When enabled, no tooltip will be displayed when hovering over this tab, 
+        even if a tooltip is associated with it. This can be useful for tabs with 
+        self-explanatory labels that don't require additional explanation, or when 
+        you want to selectively enable tooltips for only certain tabs.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4233,6 +4993,22 @@ cdef class Tab(uiItem):
 
 
 cdef class TabBar(uiItem):
+    """
+    A container for Tab and TabButton elements that creates a tabbed interface.
+    
+    TabBar provides a horizontal row of clickable tabs that can be used to switch
+    between different content panels. Each tab corresponds to a Tab widget child
+    that contains its own content.
+    
+    The tab bar supports various interactive behaviors including tab reordering,
+    scrolling, and automatic selection. It can also be styled using themes to
+    match the overall look of your application.
+    
+    Tab elements within the TabBar can contain any UI components, allowing complex
+    layouts to be organized into a compact, user-friendly interface. Only the
+    content of the currently selected tab is visible, while other tab contents are
+    hidden until selected.
+    """
     def __cinit__(self):
         #self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
         self.can_have_tab_child = True
@@ -4247,8 +5023,12 @@ cdef class TabBar(uiItem):
     @property
     def reorderable(self):
         """
-        Writable attribute: Allow manually dragging tabs
-        to re-order them + New tabs are appended at the end of list
+        Whether tabs can be manually dragged to reorder them.
+        
+        When enabled, users can click and drag tabs to reposition them within 
+        the tab bar. New tabs will be appended at the end of the list by default. 
+        This provides a flexible interface where users can organize tabs according 
+        to their preferences.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4265,8 +5045,12 @@ cdef class TabBar(uiItem):
     @property
     def autoselect_new_tabs(self):
         """
-        Writable attribute: Automatically select new
-        tabs when they appear
+        Whether newly created tabs are automatically selected.
+        
+        When enabled, any new tab added to the tab bar will be automatically 
+        selected and displayed. This is useful for workflows where a new tab 
+        should immediately receive focus, such as when creating a new document 
+        or opening a new view that requires immediate attention.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4283,7 +5067,12 @@ cdef class TabBar(uiItem):
     @property
     def no_tab_list_popup_button(self):
         """
-        Writable attribute: Disable buttons to open the tab list popup
+        Whether the popup button for the tab list is disabled.
+        
+        When enabled, the button that would normally appear at the right side of 
+        the tab bar for accessing a dropdown list of all tabs is hidden. This can 
+        be useful for simpler interfaces or when you want to ensure users navigate 
+        only through the visible tabs.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4300,7 +5089,12 @@ cdef class TabBar(uiItem):
     @property
     def no_close_with_middle_mouse_button(self):
         """
-        Writable attribute: Disable behavior of closing tabs with middle mouse button.
+        Whether closing tabs with middle mouse button is disabled.
+        
+        When enabled, the default behavior of closing closable tabs by clicking 
+        them with the middle mouse button is disabled. This can be useful to 
+        prevent accidental closure of tabs or to enforce a specific pattern for 
+        closing tabs through explicit close buttons.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4317,7 +5111,12 @@ cdef class TabBar(uiItem):
     @property
     def no_scrolling_button(self):
         """
-        Writable attribute: Disable scrolling buttons
+        Whether scrolling buttons are hidden when tabs exceed the visible area.
+        
+        When enabled, the arrow buttons that would normally appear when there are 
+        more tabs than can fit in the visible tab bar area are hidden. This forces 
+        users to rely on alternative navigation methods like the tab list popup or 
+        direct horizontal scrolling.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4334,7 +5133,12 @@ cdef class TabBar(uiItem):
     @property
     def no_tooltip(self):
         """
-        Writable attribute: Disable tooltip for all tabs
+        Whether tooltips are disabled for all tabs in this tab bar.
+        
+        When enabled, tooltips that would normally appear when hovering over tabs 
+        are suppressed for all tabs in this tab bar. This can be useful for 
+        creating a cleaner interface or when the tab labels are already clear 
+        enough without additional tooltip information.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4351,7 +5155,12 @@ cdef class TabBar(uiItem):
     @property
     def selected_overline(self):
         """
-        Writable attribute: Draw selected overline markers over selected tab
+        Whether to draw an overline marker on the selected tab.
+        
+        When enabled, the currently selected tab will display an additional line 
+        along its top edge, making the active tab more visually distinct from 
+        inactive tabs. This can help improve visual feedback about which tab is 
+        currently selected, especially in interfaces with custom styling.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4368,7 +5177,12 @@ cdef class TabBar(uiItem):
     @property
     def resize_to_fit(self):
         """
-        Writable attribute: Resize tabs when they don't fit
+        Whether tabs should resize when they don't fit the available space.
+        
+        When enabled, tabs will automatically resize to smaller widths when there 
+        are too many to fit in the available tab bar space. This ensures all tabs 
+        remain visible but with potentially truncated labels. When disabled, tabs 
+        maintain their optimal size but may require scrolling to access.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4385,7 +5199,12 @@ cdef class TabBar(uiItem):
     @property
     def allow_tab_scroll(self):
         """
-        Writable attribute: Add scroll buttons when tabs don't fit
+        Whether to add scroll buttons when tabs don't fit the available space.
+        
+        When enabled and tabs cannot fit in the available tab bar width, scroll 
+        buttons will appear to allow navigation through all tabs. This preserves 
+        the original size and appearance of each tab while ensuring all tabs 
+        remain accessible, even when there are many tabs or limited screen space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4428,6 +5247,22 @@ cdef class TabBar(uiItem):
 
 
 cdef class TreeNode(uiItem):
+    """
+    A collapsible UI element that can contain child widgets in a hierarchical structure.
+    
+    TreeNode creates a collapsible section in the UI that can be expanded or collapsed
+    by the user. When expanded, it displays its child elements, allowing for hierarchical
+    organization of content. When collapsed, children are hidden to save space.
+    
+    TreeNodes can be nested to create multi-level hierarchies, and can be styled with
+    various visual options like bullets, arrows, or leaf nodes. They support different
+    interaction modes including single/double-click expansion, selection highlighting,
+    and variable hit-box sizes.
+    
+    The open/closed state is stored in a SharedBool value that can be accessed through
+    the value property, allowing programmatic control of the tree structure in addition
+    to user interaction.
+    """
     def __cinit__(self):
         self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
         self.can_have_widget_child = True
@@ -4444,7 +5279,11 @@ cdef class TreeNode(uiItem):
     @property
     def selectable(self):
         """
-        Writable attribute: Draw the TreeNode as selected when opened
+        Whether the TreeNode appears selected when opened.
+        
+        When enabled, the tree node will draw with selection highlighting when it's
+        in the open state. This provides visual feedback about which nodes are
+        expanded, making it easier to navigate complex hierarchies.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4459,7 +5298,12 @@ cdef class TreeNode(uiItem):
     @property
     def default_open(self):
         """
-        Writable attribute: Default node to be open
+        Whether the tree node is open by default when first displayed.
+        
+        When enabled, the tree node will start in the expanded state when it's first
+        rendered. This is useful for nodes that should be visible immediately without
+        requiring user interaction, such as important categories or frequently
+        accessed sections.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4476,7 +5320,14 @@ cdef class TreeNode(uiItem):
     @property
     def open_on_double_click(self):
         """
-        Writable attribute: Need double-click to open node
+        Whether a double-click is required to open the node.
+        
+        When enabled, the tree node will only open when double-clicked, making it
+        harder to accidentally expand nodes. This can be useful for dense trees where
+        you want to prevent unintended expansion during navigation or selection.
+        
+        Can be combined with open_on_arrow to allow both arrow single-clicks and
+        label double-clicks to open the node.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4493,9 +5344,14 @@ cdef class TreeNode(uiItem):
     @property
     def open_on_arrow(self):
         """
-        Writable attribute:  Only open when clicking on the arrow part.
-        If ImGuiTreeNodeFlags_OpenOnDoubleClick is also set,
-        single-click arrow or double-click all box to open.
+        Whether the node opens only when clicking the arrow.
+        
+        When enabled, the tree node will only open when the user clicks specifically
+        on the arrow icon, not anywhere on the label. This makes it easier to select
+        nodes without expanding them.
+        
+        If combined with open_on_double_click, the node can be opened either by a
+        single click on the arrow or a double click anywhere on the label.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4512,7 +5368,12 @@ cdef class TreeNode(uiItem):
     @property
     def leaf(self):
         """
-        Writable attribute: No collapsing, no arrow (use as a convenience for leaf nodes).
+        Whether the node is displayed as a leaf with no expand/collapse control.
+        
+        When enabled, the tree node will be displayed without an arrow or expansion
+        capability, indicating it's an end point in the hierarchy. This is useful for
+        terminal nodes that don't contain children, or for creating visual hierarchies
+        where some items are not meant to be expanded.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4529,9 +5390,14 @@ cdef class TreeNode(uiItem):
     @property
     def bullet(self):
         """
-        Writable attribute: Display a bullet instead of arrow.
-        IMPORTANT: node can still be marked open/close if
-        you don't set the _Leaf flag!
+        Whether to display a bullet instead of an arrow.
+        
+        When enabled, the tree node will show a bullet point instead of the default
+        arrow icon. This provides a different visual style that can be used to
+        distinguish certain types of nodes or to create bullet list appearances.
+        
+        Note that the node can still be expanded/collapsed unless the leaf property
+        is also set.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4548,8 +5414,12 @@ cdef class TreeNode(uiItem):
     @property
     def span_text_width(self):
         """
-        Writable attribute: Narrow hit box + narrow hovering
-        highlight, will only cover the label text.
+        Whether the clickable area only covers the text label.
+        
+        When enabled, the hitbox for clicking and hovering will be narrowed to only
+        cover the text label portion of the tree node. This creates a more precise
+        interaction where clicks outside the text (but still on the row) won't
+        activate the node.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4566,8 +5436,12 @@ cdef class TreeNode(uiItem):
     @property
     def span_full_width(self):
         """
-        Writable attribute: Extend hit box to the left-most
-        and right-most edges (cover the indent area).
+        Whether the clickable area spans the entire width of the window.
+        
+        When enabled, the hitbox for clicking and hovering will extend to the full
+        width of the available area, including the indentation space to the left and
+        any empty space to the right. This creates a more accessible target for
+        interaction and makes the entire row visually respond to hovering.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4627,6 +5501,22 @@ cdef class TreeNode(uiItem):
         imgui.PopID()
 
 cdef class CollapsingHeader(uiItem):
+    """
+    A collapsible section header that can show or hide a group of widgets.
+    
+    CollapsingHeader creates a header element that can be expanded or collapsed by 
+    the user to reveal or hide its child elements. This helps organize interfaces 
+    with multiple sections by allowing users to focus on specific content areas.
+    
+    The header's open/closed state is stored in a SharedBool value accessible via 
+    the value property. Headers can be configured with various interaction modes, 
+    visual styles, and can optionally include a close button for hiding the entire 
+    section.
+    
+    CollapsingHeader is often used to create an accordion-like interface where 
+    multiple sections can be independently expanded or collapsed to manage screen 
+    space in complex interfaces.
+    """
     def __cinit__(self):
         self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
         self.can_have_widget_child = True
@@ -4643,7 +5533,12 @@ cdef class CollapsingHeader(uiItem):
     @property
     def closable(self):
         """
-        Writable attribute: Display a close button
+        Whether the header displays a close button.
+        
+        When enabled, a small close button appears on the header that allows users 
+        to hide the entire section. When closed this way, the header's 'show' 
+        property is set to False, which can be detected through handlers or 
+        callbacks. Closed headers are not destroyed, just hidden.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4658,7 +5553,15 @@ cdef class CollapsingHeader(uiItem):
     @property
     def open_on_double_click(self):
         """
-        Writable attribute: Need double-click to open node
+        Whether a double-click is required to open the header.
+        
+        When enabled, the header will only toggle its open state when double-clicked, 
+        making it harder to accidentally expand sections. This can be useful for 
+        dense interfaces where you want to prevent unintended expansion during 
+        navigation.
+        
+        Can be combined with open_on_arrow to allow both arrow single-clicks and 
+        header double-clicks to toggle the section.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4675,9 +5578,14 @@ cdef class CollapsingHeader(uiItem):
     @property
     def open_on_arrow(self):
         """
-        Writable attribute:  Only open when clicking on the arrow part.
-        If ImGuiTreeNodeFlags_OpenOnDoubleClick is also set,
-        single-click arrow or double-click all box to open.
+        Whether the header opens only when clicking the arrow.
+        
+        When enabled, the header will only toggle its open state when the user 
+        clicks specifically on the arrow icon, not anywhere on the header label. 
+        This makes it easier to click on headers without expanding them.
+        
+        If combined with open_on_double_click, the header can be toggled either by 
+        a single click on the arrow or a double click anywhere on the header.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4694,7 +5602,12 @@ cdef class CollapsingHeader(uiItem):
     @property
     def leaf(self):
         """
-        Writable attribute: No collapsing, no arrow (use as a convenience for leaf nodes).
+        Whether the header is displayed without expansion controls.
+        
+        When enabled, the header will be displayed without an arrow or expansion 
+        capability, creating a non-collapsible section header. This is useful for 
+        creating visual hierarchies where some items are fixed headers without 
+        collapsible content.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4711,9 +5624,14 @@ cdef class CollapsingHeader(uiItem):
     @property
     def bullet(self):
         """
-        Writable attribute: Display a bullet instead of arrow.
-        IMPORTANT: node can still be marked open/close if
-        you don't set the _Leaf flag!
+        Whether to display a bullet instead of an arrow.
+        
+        When enabled, the header will show a bullet point instead of the default 
+        arrow icon. This provides a different visual style that can be used to 
+        distinguish certain types of sections or to create bullet list appearances.
+        
+        Note that the header can still be expanded/collapsed unless the leaf 
+        property is also set.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4764,59 +5682,21 @@ cdef class CollapsingHeader(uiItem):
                 draw_ui_children(self)
                 self.context.viewport.parent_pos = pos_p
                 self.context.viewport.parent_size = parent_size_backup
-        # TODO: rect_size from group ?
+        # TODO: rect_size from group ?
         return not(was_open) and self.state.cur.open
 
 cdef class ChildWindow(uiItem):
-    """A child window container that enables hierarchical UI layout.
-
-    A child window creates a scrollable/clippable region within a parent window that can contain any UI elements 
-    and apply its own visual styling.
-
-    Key Features:
-    - Independent scrolling/clipping region 
-    - Optional borders and background
-    - Can contain most UI elements including other child windows
-    - Automatic size fitting to content or parent
-    - Optional scrollbars (vertical & horizontal)
-    - Optional menu bar
-    - DPI-aware scaling
-
-    Properties:
-    -----------
-    always_show_vertical_scrollvar : bool
-        Always show vertical scrollbar even when content fits. Default is False.
-
-    always_show_horizontal_scrollvar : bool
-        Always show horizontal scrollbar when enabled. Default is False. 
-
-    no_scrollbar : bool
-        Hide scrollbars but still allow scrolling with mouse/keyboard. Default is False.
-
-    no_scroll_with_mouse : bool
-        If set, mouse wheel scrolls parent instead of this child (unless no_scrollbar is set). Default is False.
-
-    horizontal_scrollbar : bool
-        Enable horizontal scrollbar. Default is False.
-
-    menubar : bool 
-        Enable menu bar at top of window. Default is False.
-
-    border : bool
-        Show window border and enable padding. Default is True.
-
-    flattened_navigation: bool
-        Share focus scope and allow keyboard/gamepad navigation to cross between parent and child.
-        Default is True.
-
-    Notes:
-    ------
-    - Child windows provide independent scrolling regions within a parent window
-    - Content is automatically clipped to the visible region
-    - Content size can be fixed or dynamic based on settings
-    - Can enable borders and backgrounds independently
-    - Keyboard focus and navigation can be customized
-    - Menu bar support allows structured layouts
+    """
+    A child window container that enables hierarchical UI layout.
+    
+    A child window creates a scrollable/clippable region within a parent window 
+    that can contain any UI elements and apply its own visual styling.
+    
+    Child windows provide independent scrolling regions within a parent window
+    with content automatically clipped to the visible region. Content size can
+    be fixed or dynamic based on settings. You can enable borders and backgrounds
+    independently, customize keyboard focus navigation, and add menu bars for
+    structured layouts.
     """
     def __cinit__(self):
         self._child_flags = imgui.ImGuiChildFlags_Borders | imgui.ImGuiChildFlags_NavFlattened
@@ -4834,8 +5714,11 @@ cdef class ChildWindow(uiItem):
     @property
     def always_show_vertical_scrollvar(self):
         """
-        Writable attribute to tell to always show a vertical scrollbar
-        even when the size does not require it
+        Always show a vertical scrollbar even when content fits.
+        
+        When enabled, the vertical scrollbar will always be displayed regardless
+        of whether the content requires scrolling. This can be useful for
+        maintaining consistent layouts where scrollbars may appear and disappear.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4852,9 +5735,11 @@ cdef class ChildWindow(uiItem):
     @property
     def always_show_horizontal_scrollvar(self):
         """
-        Writable attribute to tell to always show a horizontal scrollbar
-        even when the size does not require it (only if horizontal scrollbar
-        are enabled)
+        Always show a horizontal scrollbar when horizontal scrolling is enabled.
+        
+        When enabled, the horizontal scrollbar will always be displayed if
+        horizontal scrolling is enabled, regardless of content width. This creates
+        a consistent layout where the scrollbar space is always reserved.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4870,8 +5755,13 @@ cdef class ChildWindow(uiItem):
 
     @property
     def no_scrollbar(self):
-        """Writable attribute to indicate the window should have no scrollbar
-           Does not disable scrolling via mouse or keyboard
+        """
+        Hide scrollbars but still allow scrolling with mouse/keyboard.
+        
+        When enabled, the window will not display scrollbars but content can
+        still be scrolled using mouse wheel, keyboard, or programmatically.
+        This creates a cleaner visual appearance while maintaining scrolling
+        functionality.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4888,7 +5778,12 @@ cdef class ChildWindow(uiItem):
     @property
     def horizontal_scrollbar(self):
         """
-        Writable attribute to enable having an horizontal scrollbar
+        Enable horizontal scrolling and show horizontal scrollbar.
+        
+        When enabled, the window will support horizontal scrolling and display
+        a horizontal scrollbar when content exceeds the window width. This is
+        useful for wide content such as tables or long text lines that shouldn't
+        wrap.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4905,10 +5800,12 @@ cdef class ChildWindow(uiItem):
     @property
     def menubar(self):
         """
-        Writable attribute to indicate whether the window has a menu bar.
-
-        There will be menubar if either the user has asked for it,
-        or there is a menubar child.
+        Enable a menu bar at the top of the child window.
+        
+        When enabled, the child window will display a menu bar at the top that
+        can contain Menu elements. This property returns True if either the
+        user has explicitly enabled it or if the window contains MenuBar child
+        elements.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4925,8 +5822,12 @@ cdef class ChildWindow(uiItem):
     @property
     def no_scroll_with_mouse(self):
         """
-        Writable attribute: mouse wheel will be forwarded to the parent
-        unless NoScrollbar is also set.
+        Forward mouse wheel events to parent instead of scrolling this window.
+        
+        When enabled, mouse wheel scrolling over this window will be forwarded
+        to the parent window instead of scrolling this child window's content.
+        This setting is ignored if no_scrollbar is also enabled. Useful for
+        windows where you want to prioritize the parent's scrolling behavior.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4943,10 +5844,12 @@ cdef class ChildWindow(uiItem):
     @property
     def flattened_navigation(self):
         """
-        Writable attribute: share focus scope, allow gamepad/keyboard
-        navigation to cross over parent border to this child or
-        between sibling child windows.
-        Defaults to True.
+        Share focus scope with parent window for keyboard/gamepad navigation.
+        
+        When enabled, the focus scope is shared between parent and child windows,
+        allowing keyboard and gamepad navigation to seamlessly cross between the
+        parent window and this child or between sibling child windows. This
+        creates a more intuitive navigation experience.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4963,8 +5866,12 @@ cdef class ChildWindow(uiItem):
     @property
     def border(self):
         """
-        Writable attribute: show an outer border and enable WindowPadding.
-        Defaults to True.
+        Show an outer border and enable window padding.
+        
+        When enabled, the child window will display a border around its edges
+        and automatically apply padding inside. This helps visually separate
+        the child window's content from its surroundings and creates a cleaner,
+        more structured appearance.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4981,9 +5888,12 @@ cdef class ChildWindow(uiItem):
     @property
     def always_auto_resize(self):
         """
-        Writable attribute: combined with AutoResizeX/AutoResizeY.
-        Always measure size even when child is hidden,
-        Note the item will render its children even if hidden.
+        Measure content size even when window is hidden.
+        
+        When enabled in combination with auto_resize_x/auto_resize_y, the window
+        will always measure its content size even when hidden. This causes the
+        children to be rendered (though not visible) which allows for more
+        consistent layouts when showing/hiding child windows.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5000,9 +5910,12 @@ cdef class ChildWindow(uiItem):
     @property
     def always_use_window_padding(self):
         """
-        Writable attribute: pad with style WindowPadding even if
-        no border are drawn (no padding by default for non-bordered
-        child windows)
+        Apply window padding even when borders are disabled.
+        
+        When enabled, the child window will use the style's WindowPadding even if
+        no borders are drawn. By default, non-bordered child windows don't apply
+        padding. This creates consistent internal spacing regardless of whether
+        borders are displayed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5019,8 +5932,12 @@ cdef class ChildWindow(uiItem):
     @property
     def auto_resize_x(self):
         """
-        Writable attribute: enable auto-resizing width based on the content
-        Set instead width to 0 to use the remaining size of the parent
+        Automatically adjust width based on content.
+        
+        When enabled, the child window will automatically resize its width based
+        on the content inside it. Setting width to 0 with this option disabled
+        will instead use the remaining width of the parent. This option is
+        incompatible with resizable_x.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5037,8 +5954,12 @@ cdef class ChildWindow(uiItem):
     @property
     def auto_resize_y(self):
         """
-        Writable attribute: enable auto-resizing height based on the content
-        Set instead height to 0 to use the remaining size of the parent
+        Automatically adjust height based on content.
+        
+        When enabled, the child window will automatically resize its height based
+        on the content inside it. Setting height to 0 with this option disabled
+        will instead use the remaining height of the parent. This option is
+        incompatible with resizable_y.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5055,9 +5976,12 @@ cdef class ChildWindow(uiItem):
     @property
     def frame_style(self):
         """
-        Writable attribute: if set, style the child window like a framed item.
-        That is: use FrameBg, FrameRounding, FrameBorderSize, FramePadding
-        instead of ChildBg, ChildRounding, ChildBorderSize, WindowPadding.
+        Style the child window like a framed item instead of a window.
+        
+        When enabled, the child window will use frame-related style variables
+        (FrameBg, FrameRounding, FrameBorderSize, FramePadding) instead of
+        window-related ones (ChildBg, ChildRounding, ChildBorderSize,
+        WindowPadding). This creates visual consistency with other framed elements.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5074,7 +5998,12 @@ cdef class ChildWindow(uiItem):
     @property
     def resizable_x(self):
         """
-        Writable attribute: allow resize from right border (layout direction).
+        Allow the user to resize the window width by dragging the right border.
+        
+        When enabled, the user can click and drag the right border of the child
+        window to adjust its width. The direction respects the current layout
+        direction. This option is incompatible with auto_resize_x and provides
+        interactive resizing abilities to the child window.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5091,7 +6020,12 @@ cdef class ChildWindow(uiItem):
     @property
     def resizable_y(self):
         """
-        Writable attribute: allow resize from bottom border (layout direction).
+        Allow the user to resize the window height by dragging the bottom border.
+        
+        When enabled, the user can click and drag the bottom border of the child
+        window to adjust its height. The direction respects the current layout
+        direction. This option is incompatible with auto_resize_y and provides
+        interactive resizing abilities to the child window.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5157,6 +6091,21 @@ cdef class ChildWindow(uiItem):
         return False # maybe True when visible ?
 
 cdef class ColorButton(uiItem):
+    """
+    A button that displays a color preview and opens a color picker when clicked.
+    
+    ColorButton creates an interactive color swatch that can be clicked to open a
+    color picker popup. It displays the current color value and allows users to
+    select a new color through the popup interface.
+    
+    The button's appearance can be customized with options for alpha display,
+    borders, tooltips, and drag-and-drop functionality. The color value is stored
+    in a SharedColor object accessible through the value property.
+    
+    When clicked, the button opens a color picker popup with the same options
+    and behavior as the ColorPicker widget. This provides a compact way to
+    integrate color selection into interfaces with limited space.
+    """
     def __cinit__(self):
         self._flags = imgui.ImGuiColorEditFlags_DefaultOptions_
         self._theme_condition_category = ThemeCategories.t_colorbutton
@@ -5170,7 +6119,12 @@ cdef class ColorButton(uiItem):
     @property
     def no_alpha(self):
         """
-        Writable attribute: ignore Alpha component (will only read 3 components from the input pointer)
+        Whether to ignore the Alpha component of the color.
+        
+        When enabled, the button will display and operate only on the RGB
+        components of the color, ignoring transparency. This is useful for
+        interfaces where you only need to select solid colors without alpha
+        transparency.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5187,7 +6141,12 @@ cdef class ColorButton(uiItem):
     @property
     def no_tooltip(self):
         """
-        Writable attribute: disable default tooltip when hovering the preview
+        Whether to disable the default tooltip when hovering.
+        
+        When enabled, the automatic tooltip showing color information when
+        hovering over the button will be suppressed. This is useful for cleaner
+        interfaces or when you want to provide your own tooltip through a
+        separate Tooltip widget.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5204,7 +6163,12 @@ cdef class ColorButton(uiItem):
     @property
     def no_drag_drop(self):
         """
-        Writable attribute: disable drag and drop source
+        Whether to disable drag and drop functionality for the button.
+        
+        When enabled, the button won't work as a drag source for color values.
+        By default, color buttons can be dragged to compatible drop targets
+        (like other color widgets) to transfer their color value. Disabling this
+        prevents that behavior.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5221,7 +6185,11 @@ cdef class ColorButton(uiItem):
     @property
     def no_border(self):
         """
-        Writable attribute: disable the default border
+        Whether to disable the default border around the color button.
+        
+        When enabled, the button will be displayed without its normal border.
+        This can be useful for creating a cleaner look or when you want the
+        color swatch to blend seamlessly with surrounding elements.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5238,7 +6206,15 @@ cdef class ColorButton(uiItem):
     @property
     def alpha_preview(self):
         """
-        Writable attribute: Show preview with either full alpha or checker pattern
+        How transparency is displayed in the color button.
+        
+        Controls how the alpha component of colors is displayed:
+        - "none": No special alpha visualization (default)
+        - "full": Shows the entire button with alpha applied
+        - "half": Shows half the button with alpha applied
+        
+        The "half" mode is particularly useful as it allows seeing both the
+        color with alpha applied and without in a single preview.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5263,7 +6239,14 @@ cdef class ColorButton(uiItem):
     @property
     def data_type(self):
         """
-        Writable attribute: Data type: float vs uint8
+        The data type used for color representation.
+        
+        Controls how color values are stored and processed:
+        - "float": Colors as floating point values from 0.0 to 1.0
+        - "uint8": Colors as 8-bit integers from 0 to 255
+        
+        This affects both the internal representation and how colors are passed
+        to and from other widgets when using drag and drop.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5295,6 +6278,22 @@ cdef class ColorButton(uiItem):
 
 
 cdef class ColorEdit(uiItem):
+    """
+    A widget for editing RGB or RGBA color values with customizable input methods.
+    
+    ColorEdit provides interactive color editing through various input methods
+    including sliders, hex input fields, and preview swatches. The chosen color
+    is stored in a SharedColor value that can be accessed via the value property.
+    
+    The editor supports different color formats (RGB, HSV, Hex), input modes,
+    and display options including alpha transparency. It can be configured to
+    show or hide specific components like input fields, preview swatches,
+    or alpha controls.
+    
+    When clicked, the color editor can optionally open a more comprehensive
+    color picker popup for additional selection methods. The widget also supports
+    drag-and-drop functionality for transferring colors between compatible widgets.
+    """
     def __cinit__(self):
         self._flags = imgui.ImGuiColorEditFlags_DefaultOptions_
         self._theme_condition_category = ThemeCategories.t_coloredit
@@ -5308,7 +6307,12 @@ cdef class ColorEdit(uiItem):
     @property
     def no_alpha(self):
         """
-        Writable attribute: ignore Alpha component (will only read 3 components from the input pointer)
+        Whether to ignore the Alpha component of the color.
+        
+        When enabled, the color editor will display and operate only on the RGB
+        components of the color, ignoring transparency. This is useful for
+        interfaces where you only need to select solid colors without alpha
+        transparency.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5325,7 +6329,12 @@ cdef class ColorEdit(uiItem):
     @property
     def no_picker(self):
         """
-        Writable attribute: disable picker when clicking on color square.
+        Whether to disable the color picker popup when clicking the color square.
+        
+        When enabled, clicking on the color preview square won't open the more
+        comprehensive color picker popup. This creates a simpler interface limited
+        to the main editing controls and can prevent users from accessing the
+        additional selection methods in the popup.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5342,7 +6351,12 @@ cdef class ColorEdit(uiItem):
     @property
     def no_options(self):
         """
-        Writable attribute: disable toggling options menu when right-clicking on inputs/small preview.
+        Whether to disable the right-click options menu.
+        
+        When enabled, right-clicking on the inputs or small preview won't open
+        the options context menu. This simplifies the interface by removing
+        access to the format switching and other advanced options that would
+        normally be available through the right-click menu.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5359,7 +6373,12 @@ cdef class ColorEdit(uiItem):
     @property
     def no_small_preview(self):
         """
-        Writable attribute: disable color square preview next to the inputs. (e.g. to show only the inputs)
+        Whether to hide the color square preview next to the inputs.
+        
+        When enabled, the small color swatch that normally appears next to the
+        input fields will be hidden, showing only the numeric inputs. This is
+        useful for minimalist interfaces or when space is limited, especially
+        when combined with other preview options.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5376,7 +6395,12 @@ cdef class ColorEdit(uiItem):
     @property
     def no_inputs(self):
         """
-        Writable attribute: disable inputs sliders/text widgets (e.g. to show only the small preview color square).
+        Whether to hide the input sliders and text fields.
+        
+        When enabled, the numeric input fields and sliders will be hidden,
+        showing only the color preview swatch. This creates a compact color
+        selector that still allows choosing colors through the picker popup
+        when clicked, while taking minimal screen space.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5393,7 +6417,12 @@ cdef class ColorEdit(uiItem):
     @property
     def no_tooltip(self):
         """
-        Writable attribute: disable default tooltip when hovering the preview
+        Whether to disable the tooltip when hovering the preview.
+        
+        When enabled, no tooltip will be shown when hovering over the color
+        preview. By default, hovering the preview shows a tooltip with the
+        color's values in different formats (RGB, HSV, Hex). This option
+        creates a cleaner interface with less automatic popups.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5410,7 +6439,12 @@ cdef class ColorEdit(uiItem):
     @property
     def no_label(self):
         """
-        Writable attribute: disable display of inline text label (the label is still forwarded to the tooltip and picker).
+        Whether to hide the text label next to the color editor.
+        
+        When enabled, the widget's label won't be displayed inline with the
+        color controls. The label text is still used for tooltips and in the
+        color picker popup title if enabled. This creates a more compact
+        interface when the label content is obvious from context.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5427,7 +6461,13 @@ cdef class ColorEdit(uiItem):
     @property
     def no_drag_drop(self):
         """
-        Writable attribute: disable drag and drop target
+        Whether to disable drag and drop functionality.
+        
+        When enabled, the color editor won't work as a drag source or drop
+        target for color values. By default, colors can be dragged from 
+        this widget to other color widgets, and this widget can receive
+        dragged colors. Disabling this creates a simpler interface with no
+        drag interaction.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5444,7 +6484,12 @@ cdef class ColorEdit(uiItem):
     @property
     def alpha_bar(self):
         """
-        Writable attribute: Show vertical alpha bar/gradient
+        Whether to show a vertical alpha bar/gradient.
+        
+        When enabled and when alpha editing is supported, a vertical bar will
+        be displayed showing the alpha gradient from transparent to opaque.
+        This provides a visual reference for selecting alpha values and makes
+        transparency editing more intuitive.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5461,7 +6506,15 @@ cdef class ColorEdit(uiItem):
     @property
     def alpha_preview(self):
         """
-        Writable attribute: Show preview with either full alpha or checker pattern
+        How transparency is displayed in color previews.
+        
+        Controls how the alpha component of colors is displayed in previews:
+        - "none": No special alpha visualization (default)
+        - "full": Shows the entire preview with alpha applied  
+        - "half": Shows half the preview with alpha applied
+        
+        The "half" mode is particularly useful as it allows seeing both the
+        color with alpha applied and without in a single preview.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5486,7 +6539,15 @@ cdef class ColorEdit(uiItem):
     @property
     def display_mode(self):
         """
-        Writable attribute: Color display mode: RGB/HSV/Hex
+        The color display format for the input fields.
+        
+        Controls how color values are displayed in the editor:
+        - "rgb": Red, Green, Blue components (default)
+        - "hsv": Hue, Saturation, Value components
+        - "hex": Hexadecimal color code
+        
+        This affects only the display format in the editor; the underlying
+        color value storage remains consistent regardless of the display mode.
         """  
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5515,7 +6576,15 @@ cdef class ColorEdit(uiItem):
     @property
     def input_mode(self):
         """
-        Writable attribute: Color input mode: RGB/HSV
+        The color input format for editing operations.
+        
+        Controls which color model is used for input operations:
+        - "rgb": Edit in Red, Green, Blue color space (default)
+        - "hsv": Edit in Hue, Saturation, Value color space
+        
+        This determines how slider adjustments behave - HSV mode often provides
+        more intuitive color editing since it separates color (hue) from
+        brightness and intensity.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5536,7 +6605,14 @@ cdef class ColorEdit(uiItem):
     @property
     def data_type(self):
         """
-        Writable attribute: Data type: float vs uint8
+        The data type used for color representation.
+        
+        Controls how color values are stored and processed:
+        - "float": Colors as floating point values from 0.0 to 1.0
+        - "uint8": Colors as 8-bit integers from 0 to 255
+        
+        This affects both the internal representation and how colors are passed
+        to and from other widgets when using drag and drop.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5557,7 +6633,12 @@ cdef class ColorEdit(uiItem):
     @property
     def hdr(self):
         """
-        Writable attribute: Support HDR colors (multiplier can go beyond 1.0f and values can go above 1.0)
+        Whether to support HDR (High Dynamic Range) colors.
+        
+        When enabled, the color editor will support values outside the standard
+        0.0-1.0 range, allowing for HDR color selection. This is useful for
+        applications working with lighting, rendering, or other contexts where
+        color intensities can exceed standard display ranges.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5589,6 +6670,21 @@ cdef class ColorEdit(uiItem):
         return activated
 
 cdef class ColorPicker(uiItem):
+    """
+    A comprehensive color selection widget with multiple input and display options.
+    
+    ColorPicker provides a full-featured interface for selecting colors with 
+    multiple input methods including RGB/HSV sliders, color wheels, and hex input. 
+    It includes preview panels showing both the current and previous color, and 
+    supports advanced features like alpha transparency editing.
+    
+    The picker can be configured with various display modes, input formats, and 
+    visual options to adjust its appearance and behavior. It's ideal for 
+    applications requiring precise color selection with immediate visual feedback.
+    
+    The selected color is stored in a SharedColor value accessible through the
+    value property inherited from uiItem.
+    """
     def __cinit__(self):
         self._flags = imgui.ImGuiColorEditFlags_DefaultOptions_
         self._theme_condition_category = ThemeCategories.t_colorpicker
@@ -5602,7 +6698,12 @@ cdef class ColorPicker(uiItem):
     @property
     def no_alpha(self):
         """
-        Writable attribute: ignore Alpha component (will only read 3 components from the input pointer)
+        Whether to ignore the Alpha component of the color.
+        
+        When enabled, the color picker will display and operate only on the RGB
+        components of the color, ignoring transparency. This is useful for
+        interfaces where you only need to select solid colors without alpha
+        transparency.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5619,7 +6720,12 @@ cdef class ColorPicker(uiItem):
     @property
     def no_small_preview(self):
         """
-        Writable attribute: disable color square preview next to the inputs. (e.g. to show only the inputs)
+        Whether to hide the color square preview next to the inputs.
+        
+        When enabled, the small color swatch that normally appears next to the
+        input fields will be hidden, showing only the numeric inputs. This is
+        useful for minimalist interfaces or when space is limited, especially
+        when combined with other preview options.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5636,7 +6742,12 @@ cdef class ColorPicker(uiItem):
     @property
     def no_inputs(self):
         """
-        Writable attribute: disable inputs sliders/text widgets (e.g. to show only the small preview color square).
+        Whether to hide the input sliders and text fields.
+        
+        When enabled, the numeric input fields and sliders will be hidden,
+        showing only the color preview and picker elements. This creates a more
+        visual color selection experience focused on the color wheel or bars
+        rather than numeric precision.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5653,7 +6764,12 @@ cdef class ColorPicker(uiItem):
     @property
     def no_tooltip(self):
         """
-        Writable attribute: disable default tooltip when hovering the preview
+        Whether to disable the tooltip when hovering the preview.
+        
+        When enabled, no tooltip will be shown when hovering over the color
+        preview. By default, hovering the preview shows a tooltip with the
+        color's values in different formats (RGB, HSV, Hex). This option
+        creates a cleaner interface with less automatic popups.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5670,7 +6786,12 @@ cdef class ColorPicker(uiItem):
     @property
     def no_label(self):
         """
-        Writable attribute: disable display of inline text label (the label is still forwarded to the tooltip and picker).
+        Whether to hide the text label next to the color picker.
+        
+        When enabled, the widget's label won't be displayed inline with the
+        color controls. The label text is still used for tooltips and in the
+        picker title. This creates a more compact interface when the label
+        content is obvious from context.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5687,7 +6808,12 @@ cdef class ColorPicker(uiItem):
     @property
     def no_side_preview(self):
         """
-        Writable attribute: disable bigger color preview on right side of the picker
+        Whether to disable the large color preview on the picker's side.
+        
+        When enabled, the larger color preview area on the right side of the 
+        picker (which typically shows both current and original colors) will be 
+        hidden. This reduces the picker's width and creates a more compact 
+        interface when space is limited.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5704,7 +6830,13 @@ cdef class ColorPicker(uiItem):
     @property
     def picker_mode(self):
         """
-        Writable attribute: Color picker mode: bar vs wheel
+        The visual style of the color picker control.
+        
+        Controls whether the color picker uses a bar or wheel interface for hue 
+        selection. The "bar" mode shows horizontal bars for hue, saturation and 
+        value, while "wheel" mode displays a circular hue selector with a 
+        square saturation/value selector. Different modes may be preferred 
+        depending on personal preference or specific color selection tasks.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)  
@@ -5725,7 +6857,12 @@ cdef class ColorPicker(uiItem):
     @property
     def alpha_bar(self):
         """
-        Writable attribute: Show vertical alpha bar/gradient
+        Whether to show a vertical alpha bar/gradient.
+        
+        When enabled and when alpha editing is supported, a vertical bar will
+        be displayed showing the alpha gradient from transparent to opaque.
+        This provides a visual reference for selecting alpha values and makes
+        transparency editing more intuitive.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5742,7 +6879,15 @@ cdef class ColorPicker(uiItem):
     @property
     def alpha_preview(self):
         """
-        Writable attribute: Show preview with either full alpha or checker pattern
+        How transparency is displayed in color previews.
+        
+        Controls how the alpha component of colors is displayed in previews:
+        - "none": No special alpha visualization (default)
+        - "full": Shows the entire preview with alpha applied  
+        - "half": Shows half the preview with alpha applied
+        
+        The "half" mode is particularly useful as it allows seeing both the
+        color with alpha applied and without in a single preview.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5767,7 +6912,15 @@ cdef class ColorPicker(uiItem):
     @property
     def display_mode(self):
         """
-        Writable attribute: Color display mode: RGB/HSV/Hex
+        The color display format for the input fields.
+        
+        Controls how color values are displayed in the picker:
+        - "rgb": Red, Green, Blue components (default)
+        - "hsv": Hue, Saturation, Value components
+        - "hex": Hexadecimal color code
+        
+        This affects only the display format in the editor; the underlying
+        color value storage remains consistent regardless of the display mode.
         """  
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5796,7 +6949,15 @@ cdef class ColorPicker(uiItem):
     @property
     def input_mode(self):
         """
-        Writable attribute: Color input mode: RGB/HSV
+        The color input format for editing operations.
+        
+        Controls which color model is used for input operations:
+        - "rgb": Edit in Red, Green, Blue color space (default)
+        - "hsv": Edit in Hue, Saturation, Value color space
+        
+        This determines how slider adjustments behave - HSV mode often provides
+        more intuitive color editing since it separates color (hue) from
+        brightness and intensity.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5817,7 +6978,14 @@ cdef class ColorPicker(uiItem):
     @property
     def data_type(self):
         """
-        Writable attribute: Data type: float vs uint8
+        The data type used for color representation.
+        
+        Controls how color values are stored and processed:
+        - "float": Colors as floating point values from 0.0 to 1.0
+        - "uint8": Colors as 8-bit integers from 0 to 255
+        
+        This affects both the internal representation and how colors are passed
+        to and from other widgets when using drag and drop.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)

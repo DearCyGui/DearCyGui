@@ -31,14 +31,12 @@ from .types cimport parse_texture
 
 cdef class Texture(baseItem):
     """
-    Represents a texture that can be used in the UI.
-
-    Attributes:
-    - hint_dynamic: Boolean indicating if the texture is dynamic.
-    - nearest_neighbor_upsampling: Boolean indicating if nearest neighbor upsampling is used.
-    - width: Width of the texture.
-    - height: Height of the texture.
-    - num_chans: Number of channels in the texture.
+    Represents a texture that can be used in the UI or drawings.
+    
+    A texture holds image data that can be displayed in the UI or manipulated.
+    Textures can be created from various array-like data sources and can be
+    dynamically updated. They support different color formats, filtering modes,
+    and can be read from or written to.
     """
 
     def __init__(self, context, *args, **kwargs):
@@ -78,10 +76,10 @@ cdef class Texture(baseItem):
     @property
     def hint_dynamic(self):
         """
-        Hint for texture placement that
-        the texture will be updated very
-        frequently.
-        Must be set before set_value/allocate.
+        Hint that the texture will be updated frequently.
+        
+        This property should be set before calling set_value or allocate to
+        optimize texture memory placement for frequent updates.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -91,12 +89,15 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._hint_dynamic = value
+        
     @property
     def nearest_neighbor_upsampling(self):
         """
-        Whether to use nearest neighbor interpolation
-        instead of bilinear interpolation when upscaling
-        the texture. Must be set before set_value/allocate.
+        Whether to use nearest neighbor interpolation when upscaling.
+        
+        When True, nearest neighbor interpolation is used instead of bilinear
+        interpolation when upscaling the texture. This should be set before
+        calling set_value or allocate.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -106,30 +107,45 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._filtering_mode = 1 if value else 0
+        
     @property
     def width(self):
-        """ Width of the current texture content """
+        """
+        Width of the current texture content in pixels.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.width
+        
     @property
     def height(self):
-        """ Height of the current texture content """
+        """
+        Height of the current texture content in pixels.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.height
+        
     @property
     def num_chans(self):
-        """ Number of channels of the current texture content """
+        """
+        Number of channels in the current texture content.
+        
+        This value is typically 1 (grayscale), 3 (RGB), or 4 (RGBA).
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.num_chans
 
     @property
     def texture_id(self):
-        """ Internal texture ID used by the rendering backend
-        for the current allocation. May change if set_value is
-        called, and is released when the Texture is freed."""
+        """
+        Internal texture ID used by the rendering backend.
+        
+        This ID may change if set_value is called and is released when the 
+        Texture is freed. It can be used for advanced integration with external
+        rendering systems.
+        """
         return <uintptr_t>self.allocated_texture
 
     def allocate(self, *,
@@ -140,24 +156,22 @@ cdef class Texture(baseItem):
                  bint float32 = False,
                  bint no_realloc = True):
         """
-        Allocate the buffer backing. You don't need
-        to use this for normal texture usage as it is done
-        automatically by set_value.
-
-        This function is useful when needing to write to a texture
-        using external rendering tools (OpenGL, etc) and you don't
-        want to do a first set_value to initialize
-
-        Inputs:
-        - width: width of the target texture
-        - height: height of the target texture
-        - num_chans: number of channels (1, 2, 3, 4)
-        - uint8: (False by default) the texture format is unsigned bytes
-        - float32: (False by default) the texture format is float32
-        - no_realloc: (True by default) reallocations of the texture
-            will be prevented (set_value, etc), thus guaranteeing a fixed
-            allocated_texture ID.
-        uint8 or float32 must be set.
+        Allocate the buffer backing for the texture.
+        
+        This function is primarily useful when working with external rendering 
+        tools (OpenGL, etc.) and you need a texture handle without setting 
+        initial content. For normal texture usage, set_value will handle 
+        allocation automatically.
+        
+        Parameters:
+        - width: Width of the target texture in pixels
+        - height: Height of the target texture in pixels
+        - num_chans: Number of channels (1, 2, 3, or 4)
+        - uint8: Whether the texture format is unsigned bytes (default: False)
+        - float32: Whether the texture format is float32 (default: False)
+        - no_realloc: Whether to prevent future reallocations (default: True)
+        
+        Either uint8 or float32 must be set to True.
         """
         if self.allocated_texture != NULL and self._no_realloc:
             raise ValueError("Texture backing cannot be reallocated")
@@ -196,29 +210,19 @@ cdef class Texture(baseItem):
 
     def set_value(self, src):
         """
-        Pass an array as texture data.
-        The currently native formats are:
-        - data type: uint8 or float32.
-            Anything else will be converted to float32
-            float32 data must be normalized between 0 and 1.
-        - number of channels: 1 (R), 2 (RG), 3 (RGB), 4 (RGBA)
-
-        In the case of single channel textures, during rendering, R is
-        duplicated on G and B, thus the texture is displayed as gray,
-        not red.
-
-        If set_value is called on a texture which already
-        has content, the previous allocation will be reused
-        if the size, type and number of channels is identical.
-
-        The data is uploaded right away during set_value,
-        thus the call is not instantaneous.
-        The data can be discarded after set_value.
-
-        If you change the data of a texture, you don't
-        need to bind it again to the objects it is
-        bound. The objects will automatically take
-        the updated texture.
+        Set the texture data from an array.
+        
+        The data is uploaded immediately during this call. After uploading,
+        the source data can be safely discarded. If the texture already has
+        content, the previous allocation will be reused if compatible.
+        
+        Supported formats:
+        - Data type: uint8 (0-255) or float32 (0.0-1.0)
+          (other types will be converted to float32)
+        - Channels: 1 (R), 2 (RG), 3 (RGB), or 4 (RGBA)
+          
+        Note that for single-channel textures, R is duplicated to G and B
+        during rendering, displaying as gray rather than red.
         """
         cdef int chan, row, col
         cdef int num_chans, num_rows, num_cols
@@ -371,17 +375,19 @@ cdef class Texture(baseItem):
 
     def read(self, int32_t x0=0, int32_t y0=0, int32_t crop_width=0, int32_t crop_height=0):
         """
-        Read the texture content. The texture must be
-        allocated and have content.
-
-        Inputs:
-        - x0: x coordinate of the top left corner of the crop
-        - y0: y coordinate of the top left corner of the crop
-        - crop_width: width of the crop (0 for full width)
-        - crop_height: height of the crop (0 for full_height)
-
+        Read the texture content.
+        
+        Retrieves the current texture data, with optional cropping. The texture
+        must be allocated and have content before calling this method.
+        
+        Parameters:
+        - x0: X coordinate of the top-left corner of the crop (default: 0)
+        - y0: Y coordinate of the top-left corner of the crop (default: 0)
+        - crop_width: Width of the crop, 0 for full width (default: 0)
+        - crop_height: Height of the crop, 0 for full height (default: 0)
+        
         Returns:
-        - cython array: the texture content (similar to numpy array)
+        - A Cython array containing the texture data
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -432,13 +438,12 @@ cdef class Texture(baseItem):
 
     def gl_begin_read(self):
         """
-        Locks a texture for a read operation for an external GL context.
-
-        The target GL context MUST be current.
-
-        The call inserts a GPU fence to ensure any previous
-        DearCyGui rendering or upload finishes before the texture
-        is read.
+        Lock a texture for external GL context read operations.
+        
+        This method must be called before reading from the texture in an
+        external GL context. The target GL context MUST be current when calling
+        this method. A GPU fence is created to ensure any previous DearCyGui
+        rendering or uploads finish before the texture is read.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -453,13 +458,12 @@ cdef class Texture(baseItem):
 
     def gl_end_read(self):
         """
-        Unlocks a texture after a read operation for an external GL context.
-
-        The target GL context MUST be current.
-
-        The call issues a GPU fence that will be used by
-        DearCyGui to ensure the texture is not written to
-        before the read operation has finished.
+        Unlock a texture after an external GL context read operation.
+        
+        This method must be called after reading from the texture in an
+        external GL context. The target GL context MUST be current when calling
+        this method. A GPU fence is created to ensure DearCyGui won't write to
+        the texture until the read operation has completed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -474,13 +478,12 @@ cdef class Texture(baseItem):
 
     def gl_begin_write(self):
         """
-        Locks a texture for a write operation for an external GL context.
-
-        The target GL context MUST be current.
-
-        The call inserts a GPU fence to ensure any previous
-        DearCyGui rendering reading from the texture finishes
-        before the texture is written to.
+        Lock a texture for external GL context write operations.
+        
+        This method must be called before writing to the texture in an
+        external GL context. The target GL context MUST be current when calling
+        this method. A GPU fence is created to ensure any previous DearCyGui
+        rendering reading from the texture finishes before writing.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -495,13 +498,12 @@ cdef class Texture(baseItem):
 
     def gl_end_write(self):
         """
-        Unlocks a texture after a write operation for an external GL context.
-
-        The target GL context MUST be current.
-
-        The call issues a GPU fence that will be used by
-        DearCyGui to ensure the texture is not read from
-        before the write operation has finished.
+        Unlock a texture after an external GL context write operation.
+        
+        This method must be called after writing to the texture in an
+        external GL context. The target GL context MUST be current when calling
+        this method. A GPU fence is created to ensure DearCyGui won't read from
+        the texture until the write operation has completed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)

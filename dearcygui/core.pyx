@@ -75,8 +75,7 @@ cdef void ensure_correct_im_context(Context context) noexcept nogil:
 
 cdef class BackendRenderingContext:
     """
-    Object used to create contexts
-    with object sharing with the internal context.
+    Object used to create contexts with object sharing with the internal context.
     """
     cdef Context context
     def __init__(self):
@@ -118,7 +117,9 @@ cdef class SharedGLContext:
             del self.gl_context
 
     def make_current(self):
-        """ Make the attached context current.
+        """
+        Make the attached context current.
+
         Only one thread can make the context current at a time.
         release() has to be called after make_current()
         """
@@ -256,31 +257,18 @@ cdef extern from * nogil:
 # and vice-versa
 
 cdef class Context:
-    """Main class managing the DearCyGui items and imgui context.
+    """
+    Main class managing the DearCyGui items and imgui context.
 
     The Context class serves as the central manager for the DearCyGui application, handling:
-    - GUI rendering and event processing
-    - Item creation and lifecycle management
-    - Thread-safe callback execution
-    - Global viewport management
-    - ImGui/ImPlot/ImNodes context management
+        - GUI rendering and event processing
+        - Item creation and lifecycle management
+        - Thread-safe callback execution
+        - Global viewport management
+        - ImGui/ImPlot/ImNodes context management
 
     There is exactly one viewport per context. The last created context can be accessed 
     as dearcygui.C.
-
-    Attributes
-    ----------
-    queue : Executor
-        Executor for managing thread-pooled callbacks. Defaults to ThreadPoolExecutor with max_workers=1.
-
-    viewport : Viewport
-        Root item from where rendering starts. Read-only attribute.
-
-    running : bool
-        Whether the context is currently running and processing frames.
-
-    clipboard : str
-        Content of the system clipboard. Can be read/written.
 
     Implementation Notes
     -------------------
@@ -292,7 +280,8 @@ cdef class Context:
 
     def __init__(self,
                  queue=None):
-        """Initialize the Context.
+        """
+        Initialize the Context.
 
         Parameters
         ----------
@@ -1225,12 +1214,8 @@ cdef class Context:
 
     @property 
     def running(self):
-        """Whether the context is currently running and processing frames.
-        
-        Returns
-        -------
-        bool
-            True if the context is running, False otherwise.
+        """
+        Whether the context is currently running and processing frames.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1244,15 +1229,12 @@ cdef class Context:
 
     @property
     def clipboard(self):
-        """Content of the system clipboard.
+        """
+        Content of the system clipboard.
 
         The clipboard can be read and written to interact with the system clipboard.
-        Reading returns an empty string if the viewport is not yet initialized.
 
-        Returns
-        -------
-        str
-            Current content of the system clipboard
+        Reading returns an empty string if the viewport is not yet initialized.
         """
         cdef unique_lock[DCGMutex] m
         if not(self.viewport._initialized):
@@ -1274,45 +1256,35 @@ cdef class Context:
 
 
 cdef class baseItem:
-    """Base class for all items (except shared values).
+    """
+    Base class for all items (except shared values).
 
     To be rendered, an item must be in the child tree of the viewport (context.viewport).
 
     Parent-Child Relationships:
     -------------------------
     The parent of an item can be set in several ways:
-    1. Using the parent attribute: `item.parent = target_item`
-    2. Passing `parent=target_item` during item creation 
-    3. Using the context manager ('with' statement) - if no parent is explicitly set, the last item in the 'with' block becomes the parent
-    4. Setting previous_sibling or next_sibling attributes to insert the item between existing siblings
+        1. Using the parent attribute: `item.parent = target_item`
+        2. Passing `parent=target_item` during item creation 
+        3. Using the context manager ('with' statement) - if no parent is explicitly set, the last item in the 'with' block becomes the parent
+        4. Setting previous_sibling or next_sibling attributes to insert the item between existing siblings
 
     Tree Structure:
     --------------
-    - Items are rendered in order from first child to last child
-    - New items are inserted last by default unless previous_sibling/next_sibling is used
-    - Items can be manually detached by setting parent = None
-    - Most items have restrictions on what parents/children they can have
-    - Some items can have multiple incompatible child lists that are concatenated when reading item.children
+        - Items are rendered in order from first child to last child
+        - New items are inserted last by default unless previous_sibling/next_sibling is used
+        - Items can be manually detached by setting parent = None
+        - Most items have restrictions on what parents/children they can have
+        - Some items can have multiple incompatible child lists that are concatenated when reading item.children
+
+    The parent, previous_sibling and next_sibling relationships form a doubly-linked tree structure that determines rendering order and hierarchy.
+    The children attribute provides access to all child items.
 
     Special Cases:
     -------------
     Some items cannot be children in the rendering tree:
-    - PlaceHolderParent: Can be parent to any item but cannot be in rendering tree
-    - Textures, themes, colormaps and fonts: Cannot be children but can be bound to items
-
-    Attributes:
-        context (Context): The context this item belongs to
-        user_data (Any): Custom user data that can be attached to the item
-        uuid (int): Unique identifier for this item
-        parent (baseItem): Parent item in the rendering tree
-        previous_sibling (baseItem): Previous sibling in parent's child list
-        next_sibling (baseItem): Next sibling in parent's child list
-        children (List[baseItem]): List of child items in rendering order
-        children_types (ChildType): Bitmask of allowed child types
-        item_type (ChildType): Type of this item as a child
-
-    The parent, previous_sibling and next_sibling relationships form a doubly-linked tree structure that determines rendering order and hierarchy.
-    The children attribute provides access to all child items.
+        - PlaceHolderParent: Can be parent to any item but cannot be in rendering tree
+        - Textures, themes, colormaps and fonts: Cannot be children but can be bound to items
     """
 
     def __init__(self, context, **kwargs):
@@ -1414,8 +1386,6 @@ cdef class baseItem:
 
     def __getstate__(self):
         """
-        Generic implementation.
-
         Retrieve the item configuration and child tree (Pickle support.)
         """
         result = {}
@@ -1478,7 +1448,7 @@ cdef class baseItem:
     @property
     def context(self):
         """
-        Read-only attribute: Context in which the item resides
+        Context in which the item resides
         """
         return self.context
 
@@ -1486,6 +1456,16 @@ cdef class baseItem:
     def user_data(self):
         """
         User data of any type.
+
+        To prevent programmer mistakes and improved performance,
+        base DearCyGui items do only accept predefined attributes.
+
+        This attribute is meant to be used by the user to attach
+        any custom data to the item.
+
+        An alternative for more complex needs is to subclass
+        the item and add your own attributes. Subclassed items
+        (unless using slots explicitly) do accept any attribute.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1500,11 +1480,11 @@ cdef class baseItem:
     @property
     def uuid(self):
         """
-        Readonly attribute: uuid is an unique identifier created
-        by the context for the item.
-        uuid can be used to access the object by name for parent=,
-        previous_sibling=, next_sibling= arguments, but it is
-        preferred to pass the objects directly. 
+        Unique identifier created by the context for the item.
+
+        uuid serves as an internal identifier for the item.
+        It is not meant to be used as a key for the item, use the
+        item directly for that purpose.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1513,7 +1493,7 @@ cdef class baseItem:
     @property
     def parent(self):
         """
-        Writable attribute: parent of the item in the rendering tree.
+        Parent of the item in the rendering tree.
 
         Rendering starts from the viewport. Then recursively each child
         is rendered from the first to the last, and each child renders
@@ -1527,14 +1507,14 @@ cdef class baseItem:
         The children hold a reference to their parent, and the parent
         holds a reference to its children. Thus to be release memory
         held by an item, two options are possible:
-        - Remove the item from the tree, remove all your references.
-          If the item has children or siblings, the item will not be
-          released until Python's garbage collection detects a
-          circular reference.
-        - Use delete_item to remove the item from the tree, and remove
-          all the internal references inside the item structure and
-          the item's children, thus allowing them to be removed from
-          memory as soon as the user doesn't hold a reference on them.
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
 
         Note the viewport is referenced by the context.
 
@@ -1559,8 +1539,7 @@ cdef class baseItem:
     @property 
     def previous_sibling(self):
         """
-        Writable attribute: child of the parent of the item that
-        is rendered just before this item.
+        Child of the parent rendered just before this item.
 
         It is not possible to have siblings if you have no parent,
         thus if you intend to attach together items outside the
@@ -1597,8 +1576,7 @@ cdef class baseItem:
     @property
     def next_sibling(self):
         """
-        Writable attribute: child of the parent of the item that
-        is rendered just after this item.
+        Child of the parent rendered just after this item.
 
         It is not possible to have siblings if you have no parent,
         thus if you intend to attach together items outside the
@@ -1620,8 +1598,7 @@ cdef class baseItem:
     @property
     def children(self):
         """
-        Writable attribute: List of all the children of the item,
-        from first rendered, to last rendered.
+        List of all the children of the item, from first rendered, to last rendered.
 
         When written to, an error is raised if the children already
         have other parents. This error is meant to prevent programming
@@ -1781,7 +1758,9 @@ cdef class baseItem:
 
     @property
     def children_types(self):
-        """Returns which types of children can be attached to this item"""
+        """
+        Returns which types of children can be attached to this item
+        """
         type = ChildType.NOCHILD
         if self.can_have_drawing_child:
             type = type | ChildType.DRAWING
@@ -1807,7 +1786,9 @@ cdef class baseItem:
 
     @property
     def item_type(self):
-        """Returns which type of child this item is"""
+        """
+        Returns which type of child this item is
+        """
         if self.element_child_category == child_type.cat_drawing:
             return ChildType.DRAWING
         elif self.element_child_category == child_type.cat_handler:
@@ -1891,8 +1872,8 @@ cdef class baseItem:
 
     cdef void lock_and_previous_siblings(self) noexcept nogil:
         """
-        Used when the parent needs to prevent any change to its
-        children.
+        Used when the parent needs to prevent any change to its children.
+
         Note when the parent mutex is held, it can rely that
         its list of children is fixed. However this is used
         when the parent needs to read the individual state
@@ -1912,6 +1893,7 @@ cdef class baseItem:
     def copy(self, target_context=None):
         """
         Shallow copy of the item to the target context.
+
         Performs a deep copy of the child tree.
 
         Parameters:
@@ -1974,6 +1956,7 @@ cdef class baseItem:
     cdef void _copy_children(self, baseItem target):
         """
         Copy children from source to target.
+
         Assumes both source and target are locked.
         """
         cdef baseItem child, new_child
@@ -1999,8 +1982,7 @@ cdef class baseItem:
 
     cpdef void attach_to_parent(self, target):
         """
-        Same as item.parent = target, but
-        target must not be None
+        Same as item.parent = target, but target must not be None
         """
         cdef baseItem target_parent
         if self.context is None:
@@ -2176,8 +2158,7 @@ cdef class baseItem:
 
     cpdef void attach_before(self, target):
         """
-        Same as item.next_sibling = target,
-        but target must not be None
+        Same as item.next_sibling = target, but target must not be None
         """
         cdef baseItem target_before
         if self.context is None:
@@ -2306,6 +2287,8 @@ cdef class baseItem:
 
     cpdef void delete_item(self):
         """
+        Deletes the item and all its children.
+
         When an item is not referenced anywhere, it might
         not get deleted immediately, due to circular references.
         The Python garbage collector will eventually catch
@@ -2497,7 +2480,7 @@ cdef class baseItem:
         What this function does is set the current state of item and
         its children to a hidden state, but not running any handler.
         This has these effects:
-        TODO . If item was shown the frame before and is still shown,
+        TODO - If item was shown the frame before and is still shown,
           there will be no jump in the item status (for example
           it won't go from rendered, to not rendered, to rendered),
           as the current state will be overwritten when frame is rendered.
@@ -2540,7 +2523,8 @@ cdef class baseItem:
     cdef void set_hidden_and_propagate_to_children_no_handlers(self) noexcept:
         """
         See set_hidden_and_propagate_to_siblings_no_handlers.
-        Assumes the lock is already held
+
+        Assumes the lock is already held.
         """
 
         # Skip propagating and handlers if already hidden.
@@ -2552,20 +2536,24 @@ cdef class baseItem:
     def lock_mutex(self, wait=False):
         """
         Lock the internal item mutex.
+
         **Know what you are doing**
+
         Locking the mutex will prevent:
-        - Other threads from reading/writing
-          attributes or calling methods with this item,
-          editing the children/parent of the item
-        - Any rendering of this item and its children.
-          If the viewport attemps to render this item,
-          it will be blocked until the mutex is released.
-          (if the rendering thread is holding the mutex,
-           no blocking occurs)
+            - Other threads from reading/writing
+            attributes or calling methods with this item,
+            editing the children/parent of the item
+            - Any rendering of this item and its children.
+            If the viewport attemps to render this item,
+            it will be blocked until the mutex is released.
+            (if the rendering thread is holding the mutex,
+            no blocking occurs)
+
         This is useful if you want to edit several attributes
         in several commands of an item or its subtree,
         and prevent rendering or other threads from accessing
         the item until you have finished.
+
         If you plan on moving the item position in the rendering
         tree, to avoid deadlock you must hold the mutex of a
         parent of all the items involved in the motion (a common
@@ -2578,8 +2566,8 @@ cdef class baseItem:
         mutex first.
 
         Input argument:
-        - wait (default = False): if locking the mutex fails (mutex
-          held by another thread), wait it is released
+            - wait (default = False): if locking the mutex fails (mutex
+            held by another thread), wait it is released
 
         Returns: True if the mutex is held, False else.
 
@@ -2606,6 +2594,7 @@ cdef class baseItem:
     def unlock_mutex(self):
         """
         Unlock a previously held mutex on this object by this thread.
+
         Returns True on success, False if no lock was held by this thread.
         """
         cdef bint locked = False
@@ -2625,14 +2614,14 @@ cdef class baseItem:
         Context manager instance for the item mutex
 
         Locking the mutex will prevent:
-        - Other threads from reading/writing
-          attributes or calling methods with this item,
-          editing the children/parent of the item
-        - Any rendering of this item and its children.
-          If the viewport attemps to render this item,
-          it will be blocked until the mutex is released.
-          (if the rendering thread is holding the mutex,
-           no blocking occurs)
+            - Other threads from reading/writing
+            attributes or calling methods with this item,
+            editing the children/parent of the item
+            - Any rendering of this item and its children.
+            If the viewport attemps to render this item,
+            it will be blocked until the mutex is released.
+            (if the rendering thread is holding the mutex,
+            no blocking occurs)
 
         In general, you don't need to use any mutex in your code,
         unless you are writing a library and cannot make assumptions
@@ -2651,7 +2640,8 @@ cdef class baseItem:
 
     @property
     def parents_mutex(self):
-        """Context manager instance for the item mutex and all its parents
+        """
+        Context manager instance for the item mutex and all its parents
         
         Similar to mutex but locks not only this item, but also all
         its current parents.
@@ -2716,42 +2706,8 @@ class wrap_this_and_parents_mutex:
 cdef class Viewport(baseItem):
     """
     The viewport corresponds to the main item containing all the visuals.
-    It is decorated by the operating system and can be minimized/maximized/made fullscreen.
 
-    Attributes:
-    - clear_color: Color used to clear the viewport.
-    - small_icon: Small icon for the viewport.
-    - large_icon: Large icon for the viewport.
-    - x_pos: X position of the viewport.
-    - y_pos: Y position of the viewport.
-    - width: DPI invariant width of the viewport (width * dpi scale -> pixel width).
-    - height: DPI invariant height of the viewport (height * dpi scale -> pixel height).
-    - pixel_width: Width of the viewport in actual pixels.
-    - pixel_height: Height of the viewport in actual pixels.
-    - resizable: Boolean indicating if the viewport is resizable.
-    - vsync: Boolean indicating if vsync is enabled.
-    - dpi: Requested scaling (DPI) from the OS for this window.
-    - scale: Multiplicative scale used to scale automatically all items.
-    - min_width: DPI invariant Minimum width of the viewport.
-    - max_width: DPI invariant Maximum width of the viewport.
-    - min_height: DPI invariant Minimum height of the viewport.
-    - max_height: DPI invariant Maximum height of the viewport.
-    - always_on_top: Boolean indicating if the viewport is always on top.
-    - decorated: Boolean indicating if the viewport is decorated.
-    - handlers: Bound handler (or handlerList) for the viewport.
-    - cursor: Mouse cursor for the viewport.
-    - font: Global font for the viewport.
-    - theme: Global theme for the viewport.
-    - title: Title of the viewport.
-    - disable_close: Boolean indicating if the close button is disabled.
-    - fullscreen: Boolean indicating if the viewport is in fullscreen mode.
-    - minimized: Boolean indicating if the viewport is minimized.
-    - maximized: Boolean indicating if the viewport is maximized.
-    - wait_for_input: Boolean indicating if rendering should wait for input.
-    - shown: Boolean indicating if the viewport window has been created by the OS.
-    - resize_callback: Callback to be issued when the viewport is resized.
-    - close_callback: Callback to be issued when the viewport is closed.
-    - metrics: Rendering related metrics relative to the last frame.
+    It is decorated by the operating system and can be minimized/maximized/made fullscreen.
     """
     def __cinit__(self, context):
         self.resize_callback = None
@@ -2853,6 +2809,13 @@ cdef class Viewport(baseItem):
 
     @property
     def clear_color(self):
+        """
+        Color used to clear the viewport background.
+        
+        This RGBA color is applied to the entire viewport before any rendering takes
+        place. Setting an appropriate clear color helps establish the visual
+        foundation for your application and improves contrast with UI elements.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return ((<platformViewport*>self._platform).clearColor[0],
@@ -2869,6 +2832,13 @@ cdef class Viewport(baseItem):
 
     @property
     def small_icon(self):
+        """
+        Path to the small icon displayed in the viewport's window decoration.
+        
+        The small icon appears in the window title bar, taskbar, and other OS-specific
+        locations. For best results, use an appropriate size as required by your
+        target platform (typically 16x16 or 32x32 pixels).
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return str((<platformViewport*>self._platform).iconSmall)
@@ -2882,6 +2852,13 @@ cdef class Viewport(baseItem):
 
     @property
     def large_icon(self):
+        """
+        Path to the large icon displayed for the viewport's window.
+        
+        The large icon is used in places where a higher resolution icon is needed,
+        such as Alt+Tab switching on Windows. For best results, use an appropriate
+        size as required by your target platform (typically 48x48 or 64x64 pixels).
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return str((<platformViewport*>self._platform).iconLarge)
@@ -2896,6 +2873,16 @@ cdef class Viewport(baseItem):
 
     @property
     def x_pos(self):
+        """
+        X position of the viewport window on the screen.
+        
+        Represents the horizontal position of the top-left corner of the viewport
+        window in screen coordinates. This position is relative to the primary
+        monitor's origin and may include OS-specific decorations.
+
+        Note: Not all platforms support setting the X position of the window.
+        In which case, this property may be ignored.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).positionX
@@ -2911,6 +2898,16 @@ cdef class Viewport(baseItem):
 
     @property
     def y_pos(self):
+        """
+        Y position of the viewport window on the screen.
+        
+        Represents the vertical position of the top-left corner of the viewport
+        window in screen coordinates. This position is relative to the primary
+        monitor's origin and may include OS-specific decorations.
+
+        Note: Not all platforms support setting the Y position of the window.
+        In which case, this property may be ignored.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).positionY
@@ -2926,6 +2923,14 @@ cdef class Viewport(baseItem):
 
     @property
     def width(self):
+        """
+        DPI invariant width of the viewport window.
+        
+        Represents the logical width of the viewport in DPI-independent units.
+        The actual pixel width may differ based on the DPI scaling factor of the
+        display. Use this value when you want consistent sizing across different
+        display configurations.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).windowWidth
@@ -2941,6 +2946,14 @@ cdef class Viewport(baseItem):
 
     @property
     def height(self):
+        """
+        DPI invariant height of the viewport window.
+        
+        Represents the logical height of the viewport in DPI-independent units.
+        The actual pixel height may differ based on the DPI scaling factor of the
+        display. Use this value when you want consistent sizing across different
+        display configurations.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).windowHeight
@@ -2956,6 +2969,13 @@ cdef class Viewport(baseItem):
 
     @property
     def pixel_width(self):
+        """
+        Actual width of the viewport in pixels.
+        
+        This is the true width in device pixels after applying DPI scaling. When
+        rendering custom graphics or calculating exact screen positions, use this
+        value rather than the logical width.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).frameWidth
@@ -2971,6 +2991,13 @@ cdef class Viewport(baseItem):
 
     @property
     def pixel_height(self):
+        """
+        Actual height of the viewport in pixels.
+        
+        This is the true height in device pixels after applying DPI scaling. When
+        rendering custom graphics or calculating exact screen positions, use this
+        value rather than the logical height.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).frameHeight
@@ -2986,6 +3013,13 @@ cdef class Viewport(baseItem):
 
     @property
     def resizable(self) -> bool:
+        """
+        Whether the viewport window can be resized by the user.
+        
+        When enabled, the user can resize the window by dragging its edges or
+        corners. When disabled, the window size remains fixed and can only be 
+        changed programmatically through the width and height properties.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).windowResizable
@@ -2999,6 +3033,14 @@ cdef class Viewport(baseItem):
 
     @property
     def vsync(self) -> bool:
+        """
+        Whether vertical synchronization is enabled.
+        
+        When enabled, frame rendering synchronizes with the display refresh rate
+        to eliminate screen tearing. This provides smoother visuals but may limit
+        the maximum frame rate to the display's refresh rate. Disabling vsync can
+        increase responsiveness at the cost of potential visual artifacts.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).hasVSync
@@ -3012,16 +3054,12 @@ cdef class Viewport(baseItem):
     @property
     def dpi(self) -> float:
         """
-        Requested scaling (DPI) from the OS for
-        this window. The value is valid after
-        initialize() and might change over time,
-        for instance if the window is moved to another
-        monitor.
-
-        The DPI is used to scale all items automatically.
-        From the developper point of view, everything behaves
-        as if the DPI is 1. This behaviour can be disabled
-        using the related scaling settings.
+        Requested scaling (DPI) from the OS for this window.
+        
+        This value represents the display scaling factor for the current monitor.
+        It's used to automatically scale UI elements for readability across
+        different screen densities. The value is valid after initialization and
+        may change if the window moves to another monitor with different DPI.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3030,11 +3068,12 @@ cdef class Viewport(baseItem):
     @property
     def scale(self) -> float:
         """
-        Multiplicative scale that, multiplied by
-        the value of dpi, is used to scale
-        automatically all items.
-
-        Defaults to 1.
+        Multiplicative scale applied on top of the system DPI scaling.
+        
+        This user-defined scaling factor is combined with the system DPI to
+        determine the final size of UI elements. Increasing this value makes
+        all UI elements appear larger, which can improve readability or
+        accommodate specific usability needs.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3048,6 +3087,14 @@ cdef class Viewport(baseItem):
 
     @property
     def min_width(self):
+        """
+        Minimum width the viewport window can be resized to.
+        
+        This sets a lower bound on the window width when the window is resizable.
+        The user will not be able to resize the window smaller than this value
+        horizontally. This helps ensure your interface remains usable at smaller
+        sizes.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).minWidth
@@ -3061,6 +3108,14 @@ cdef class Viewport(baseItem):
 
     @property
     def max_width(self):
+        """
+        Maximum width the viewport window can be resized to.
+        
+        This sets an upper bound on the window width when the window is resizable.
+        The user will not be able to resize the window larger than this value
+        horizontally. This can be useful to prevent the window from becoming
+        impractically large.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).maxWidth
@@ -3074,6 +3129,14 @@ cdef class Viewport(baseItem):
 
     @property
     def min_height(self):
+        """
+        Minimum height the viewport window can be resized to.
+        
+        This sets a lower bound on the window height when the window is resizable.
+        The user will not be able to resize the window smaller than this value
+        vertically. This helps ensure your interface remains usable at smaller
+        sizes.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).minHeight
@@ -3087,6 +3150,14 @@ cdef class Viewport(baseItem):
 
     @property
     def max_height(self):
+        """
+        Maximum height the viewport window can be resized to.
+        
+        This sets an upper bound on the window height when the window is resizable.
+        The user will not be able to resize the window larger than this value
+        vertically. This can be useful to prevent the window from becoming
+        impractically large.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).maxHeight
@@ -3100,6 +3171,14 @@ cdef class Viewport(baseItem):
 
     @property
     def always_on_top(self) -> bool:
+        """
+        Whether the viewport window stays above other windows.
+        
+        When enabled, the viewport window will remain visible on top of other
+        application windows even when it doesn't have focus. This is useful for
+        tool palettes, monitoring displays, or any window that needs to remain
+        visible while the user interacts with other applications.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).windowAlwaysOnTop
@@ -3113,6 +3192,14 @@ cdef class Viewport(baseItem):
 
     @property
     def decorated(self) -> bool:
+        """
+        Whether the viewport window shows OS-provided decorations.
+        
+        When enabled, the window includes standard OS decorations such as title bar,
+        borders, and window control buttons. When disabled, the window appears as a
+        plain rectangle without these decorations, which is useful for custom UI
+        designs that implement their own window controls.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).windowDecorated
@@ -3127,10 +3214,12 @@ cdef class Viewport(baseItem):
     @property
     def handlers(self):
         """
-        Writable attribute: bound handler (or handlerList)
-        for the viewport.
-        Only Key and Mouse handlers are compatible.
-        Handlers that check item states won't work.
+        Event handlers attached to the viewport.
+        
+        Handlers allow responding to keyboard and mouse events at the viewport
+        level, regardless of which specific UI element has focus. Only Key and
+        Mouse handlers are compatible with the viewport; handlers that check item
+        states won't work at this level.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3166,8 +3255,12 @@ cdef class Viewport(baseItem):
     @property
     def cursor(self):
         """
-        Change the mouse cursor to one of MouseCursor.
-        The mouse cursor is reset every frame.
+        Current mouse cursor appearance.
+        
+        Controls which cursor shape is displayed when the mouse is over the viewport.
+        The cursor is reset to the default arrow at the beginning of each frame,
+        so this property must be set each frame to maintain a consistent non-default
+        cursor appearance.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3185,7 +3278,12 @@ cdef class Viewport(baseItem):
     @property
     def font(self):
         """
-        Writable attribute: global font
+        Global font applied to all text within the viewport.
+        
+        Sets the default font used for rendering text throughout the application.
+        Individual UI elements can override this by setting their own font
+        property. The font is automatically scaled according to the viewport's
+        DPI and scale settings.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3200,7 +3298,12 @@ cdef class Viewport(baseItem):
     @property
     def theme(self):
         """
-        Writable attribute: global theme
+        Global theme applied to all elements within the viewport.
+        
+        Sets the default visual style for all UI elements in the application.
+        Individual UI elements can override this by setting their own theme
+        property. The theme controls colors, spacing, and other appearance
+        aspects of the interface.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3214,6 +3317,13 @@ cdef class Viewport(baseItem):
 
     @property
     def title(self):
+        """
+        Text displayed in the viewport window's title bar.
+        
+        Sets the title text shown in the window decoration and in OS task
+        switchers. This property has no effect if the window is undecorated
+        or if the title bar is hidden.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef string title = (<platformViewport*>self._platform).windowTitle
@@ -3228,6 +3338,18 @@ cdef class Viewport(baseItem):
 
     @property
     def disable_close(self) -> bool:
+        """
+        Whether window close operations are blocked.
+        
+        When enabled, the viewport ignores close requests triggered by clicking
+        the window's close button or by other OS-specific close mechanisms.
+        The window can still be closed programmatically. This is useful for
+        applications that need to perform cleanup or prompt for confirmation
+        before closing.
+
+        Note: This property does not affect the close callback; it only
+        prevents the window from being closed through standard OS interactions.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._disable_close
@@ -3240,6 +3362,14 @@ cdef class Viewport(baseItem):
 
     @property
     def fullscreen(self):
+        """
+        Whether the viewport is currently in fullscreen mode.
+        
+        When in fullscreen mode, the window occupies the entire screen area
+        without decorations. This is useful for immersive applications or
+        presentations. Setting this property toggles between windowed and
+        fullscreen modes.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).isFullScreen
@@ -3260,6 +3390,14 @@ cdef class Viewport(baseItem):
             (<platformViewport*>self._platform).shouldFullscreen = True
     @property
     def minimized(self):
+        """
+        Whether the viewport is currently minimized.
+        
+        When minimized, the window is hidden from view and typically appears as an
+        icon in the taskbar or dock. Setting this property to True minimizes the
+        window, while setting it to False when minimized restores the window to
+        its previous size and position.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).isMinimized
@@ -3280,6 +3418,14 @@ cdef class Viewport(baseItem):
 
     @property
     def maximized(self):
+        """
+        Whether the viewport is currently maximized.
+        
+        When maximized, the window occupies the maximum available space on the
+        screen while still preserving its decorations. Setting this property to
+        True maximizes the window, while setting it to False when maximized
+        restores the window to its previous size and position.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).isMaximized
@@ -3300,9 +3446,12 @@ cdef class Viewport(baseItem):
 
     @property
     def visible(self):
-        """State to control whether the viewport is associated to a window.
+        """
+        State to control whether the viewport is associated to a window.
+
         If False, no window will be displayed for the viewport (offscreen rendering).
-        Defaults to True"""
+        Defaults to True.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (<platformViewport*>self._platform).isVisible
@@ -3324,12 +3473,27 @@ cdef class Viewport(baseItem):
     @property
     def wait_for_input(self):
         """
-        Writable attribute: When the app doesn't need to be
-        refreshed, one can save power comsumption by not
-        rendering. wait_for_input will pause rendering until
-        a mouse or keyboard event is received.
-        wake() can also be used to restart rendering
-        for one frame.
+        Stop refreshing when no mouse/keyboard event is detected.
+
+        When this state is set, render_frame will block until
+        a mouse or keyboard event is detected.
+
+        It is possible to manually unblock render_frame by
+        calling wake().
+
+        In addition to mouse and keyboard events, many internal
+        events also trigger a refresh. For instance DrawStream
+        will trigger a refresh when it is time to draw the next
+        element of the stream, or Tooltip will trigger a refresh
+        after the requested delay without mouse movement.
+
+        The goal is that any DearCyGui item handles viewport
+        waking automatically themselves. This way, the user
+        only needs to call wake() when he has appended new items,
+        modified visual item properties or when he wants to.
+        wake() is not called for the user for such operations
+        because the idea is for the user to call wake() after a
+        batch of operations.
         """
         return self.wait_for_input
 
@@ -3342,8 +3506,7 @@ cdef class Viewport(baseItem):
     @property
     def shown(self) -> bool:
         """
-        Whether the viewport window has been created by the
-        operating system.
+        Whether the viewport window has been created by the operating system.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3354,11 +3517,12 @@ cdef class Viewport(baseItem):
         """
         Callback to be issued when the viewport is resized.
 
-        The data returned is a tuple containing:
-        - The width in pixels
-        - The height in pixels
-        - The width according to the OS (OS dependent)
-        - The height according to the OS (OS dependent)
+        The callback takes as input (sender, target, data), where
+        data is a tuple containing:
+            - The width in pixels
+            - The height in pixels
+            - The width according to the OS (OS dependent)
+            - The height according to the OS (OS dependent)
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3391,9 +3555,9 @@ cdef class Viewport(baseItem):
     @property
     def metrics(self):
         """
-        Return rendering related metrics relative to the last
-        frame.
-        times are returned in ns and use the monotonic clock
+        Return rendering related metrics relative to the last frame.
+
+        Times are returned in ns and use the monotonic clock
         delta of times are return in float as seconds.
 
         Render frames does in the folowing order:
@@ -3432,6 +3596,7 @@ cdef class Viewport(baseItem):
     def retrieve_framebuffer(self):
         """
         Whether to activate the framebuffer retrieval.
+
         If set to true, the framebuffer field will be
         populated. This has a performance cost.
         """
@@ -3447,6 +3612,12 @@ cdef class Viewport(baseItem):
 
     @property
     def framebuffer(self):
+        """
+        Content of the framebuffer (dcg.Texture)
+
+        This field is only populated upon frame rendering
+        when retrieve_framebuffer is set.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._frame_buffer
@@ -3898,6 +4069,8 @@ cdef class Viewport(baseItem):
 
     def wake(self):
         """
+        Wake the viewport to force a redraw.
+
         In case rendering is waiting for an input (wait_for_input),
         generate a fake input to force rendering.
 
@@ -3951,10 +4124,10 @@ cdef class Callback:
     Wrapper class that automatically encapsulate callbacks.
 
     Callbacks in DCG mode can take up to 3 arguments:
-    - source_item: the item to which the callback was attached
-    - target_item: the item for which the callback was raised.
-        Is only different to source_item for handlers' callback.
-    - call_info: If applicable information about the call (key button, etc)
+        - source_item: the item to which the callback was attached
+        - target_item: the item for which the callback was raised.
+            Is only different to source_item for handlers' callback.
+        - call_info: If applicable information about the call (key button, etc)
     """
     def __init__(self, *args, **kwargs):
         if self.num_args > 3:
@@ -4101,7 +4274,8 @@ cdef class drawingItem(baseItem):
     @property
     def show(self):
         """
-        Writable attribute: Should the object be drawn/shown ?
+        Should the object be drawn/shown ?
+
         In case show is set to False, this disables any
         callback (for example the close callback won't be called
         if a window is hidden with show = False).
@@ -4111,6 +4285,7 @@ cdef class drawingItem(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._show
+
     @show.setter
     def show(self, bint value):
         cdef unique_lock[DCGMutex] m
@@ -4409,14 +4584,20 @@ Sources
 
 cdef class SharedValue:
     """
-    Represents a shared value that can be used by multiple items.
-
-    Attributes:
-    - value: Main value of the shared object.
-    - shareable_value: Shareable value of the shared object.
-    - last_frame_update: Last frame index when the value was updated.
-    - last_frame_change: Last frame index when the value was changed.
-    - num_attached: Number of items sharing this value.
+    Represents a value that can be shared between multiple UI items.
+    
+    Shared values allow multiple UI elements to reference the same underlying data
+    without duplicating it. When one item updates the value, all items sharing it
+    will immediately reflect the change, providing a straightforward way to link
+    elements together.
+    
+    SharedValue tracks when the value was last changed or updated, making it
+    possible to detect changes and optimize rendering when the value hasn't
+    been modified.
+    
+    Each concrete shared value type (like SharedFloat, SharedStr, etc.) extends
+    this base class to provide type-specific functionality while maintaining
+    consistent behavior around tracking and sharing.
     """
     def __init__(self, *args, **kwargs):
         # We create all shared objects using __new__, thus
@@ -4424,14 +4605,25 @@ cdef class SharedValue:
         # from the user.
         # __init__ is called after __cinit__
         self._num_attached = 0
+
     def __cinit__(self, Context context, *args, **kwargs):
         self.context = context
         self._last_frame_change = context.viewport.frame_count
         self._last_frame_update = context.viewport.frame_count
         self._num_attached = 1
+
     @property
     def value(self):
+        """
+        The current value stored by this object.
+        
+        This property represents the actual data being shared between UI elements.
+        Reading this property returns a copy of the value. Modifying the returned
+        value will not affect the shared value unless it is set back using this
+        property.
+        """
         return None
+
     @value.setter
     def value(self, value):
         if value is None:
@@ -4442,30 +4634,49 @@ cdef class SharedValue:
 
     @property
     def shareable_value(self):
+        """
+        Reference to the shared value object itself.
+        
+        Returns a reference to this SharedValue instance, allowing it to be
+        assigned to another item's shareable_value property to establish
+        value sharing between items.
+        
+        This property is primarily used when connecting multiple UI elements
+        to the same data source.
+        """
         return self
 
     @property
     def last_frame_update(self):
         """
-        Readable attribute: last frame index when the value
-        was updated (can be identical value).
+        Frame index when the value was last updated.
+        
+        Tracks the frame number when the value was last modified or validated,
+        even if the new value was identical to the previous one. This can be
+        used to detect when any access or modification attempt occurred.
         """
         return self._last_frame_update
 
     @property
     def last_frame_change(self):
         """
-        Readable attribute: last frame index when the value
-        was changed (different value).
-        For non-scalar data (color, point, vector), equals to
-        last_frame_update to avoid heavy comparisons.
+        Frame index when the value was last changed to a different value.
+        
+        Records the frame number when the value actually changed. For scalar
+        types, this differs from last_frame_update when a value is set to
+        its current value (no actual change). For complex data types like
+        vectors or colors, this equals last_frame_update for efficiency.
         """
         return self._last_frame_change
 
     @property
     def num_attached(self):
         """
-        Readable attribute: Number of items sharing this value
+        Number of items currently sharing this value.
+        
+        Counts how many UI items are currently using this shared value. When
+        this count reaches zero, the shared value becomes eligible for garbage
+        collection if no other references exist.
         """
         return self._num_attached
 
@@ -4492,10 +4703,14 @@ UI input event handlers
 cdef class baseHandler(baseItem):
     """
     Base class for UI input event handlers.
-
-    Attributes:
-    - enabled: Boolean indicating if the handler is enabled.
-    - callback: Callback function for the handler.
+    
+    Handlers track and respond to various UI states and events, allowing callbacks
+    to be triggered when specific conditions are met. They can be attached to any
+    item to monitor its state changes.
+    
+    Handlers provide a flexible way to implement interactive behavior without 
+    cluttering application logic with state checking code. Multiple handlers can be
+    attached to a single item to respond to different aspects of its state.
     """
     def __cinit__(self):
         self._enabled = True
@@ -4503,6 +4718,13 @@ cdef class baseHandler(baseItem):
         self.element_child_category = child_type.cat_handler
     @property
     def enabled(self):
+        """
+        Controls whether the handler is active and processing events.
+        
+        When disabled, the handler will not check states or trigger callbacks,
+        effectively pausing its functionality without removing it. This allows
+        for temporarily disabling interaction behaviors.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled
@@ -4514,6 +4736,12 @@ cdef class baseHandler(baseItem):
     # for backward compatibility
     @property
     def show(self):
+        """
+        Alias for the enabled property provided for backward compatibility.
+        
+        This property mirrors the enabled property in all aspects, maintaining
+        compatibility with code that uses show instead of enabled.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled
@@ -4525,6 +4753,14 @@ cdef class baseHandler(baseItem):
 
     @property
     def callback(self):
+        """
+        Function called when the handler's condition is met.
+        
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._callback
@@ -4536,8 +4772,7 @@ cdef class baseHandler(baseItem):
 
     cdef void check_bind(self, baseItem item):
         """
-        Must raise en error if the handler cannot be bound for the
-        target item.
+        Must raise en error if the handler cannot be bound for the target item.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4546,6 +4781,7 @@ cdef class baseHandler(baseItem):
     cdef bint check_state(self, baseItem item) noexcept nogil:
         """
         Returns whether the target state it True.
+
         Is called by the default implementation of run_handler,
         which will call the default callback in this case.
         Classes that might issue non-standard callbacks should
@@ -4566,66 +4802,67 @@ cdef class baseHandler(baseItem):
 
 
 cdef class uiItem(baseItem):
-    """Base class for UI items with various properties and states.
+    """
+    Base class for UI items with various properties and states.
 
     Core class for items that can be interacted with and displayed in the UI. Handles positioning,
     state tracking, themes, callbacks, and layout management.
 
     State Properties:
     ---------------
-    - active: Whether the item is currently active (pressed, selected, etc.)
-    - activated: Whether the item just became active this frame  
-    - clicked: Whether any mouse button was clicked on the item
-    - double_clicked: Whether any mouse button was double-clicked
-    - deactivated: Whether the item just became inactive
-    - deactivated_after_edited: Whether the item was edited and then deactivated
-    - edited: Whether the item's value was modified
-    - focused: Whether the item has keyboard focus
-    - hovered: Whether the mouse is over the item
-    - resized: Whether the item's size changed
-    - toggled: Whether a menu/tree node was opened/closed
-    - visible: Whether the item is currently rendered
+        - active: Whether the item is currently active (pressed, selected, etc.)
+        - activated: Whether the item just became active this frame  
+        - clicked: Whether any mouse button was clicked on the item
+        - double_clicked: Whether any mouse button was double-clicked
+        - deactivated: Whether the item just became inactive
+        - deactivated_after_edited: Whether the item was edited and then deactivated
+        - edited: Whether the item's value was modified
+        - focused: Whether the item has keyboard focus
+        - hovered: Whether the mouse is over the item
+        - resized: Whether the item's size changed
+        - toggled: Whether a menu/tree node was opened/closed
+        - visible: Whether the item is currently rendered
 
     Appearance Properties:
     -------------------
-    - enabled: Whether the item is interactive or greyed out
-    - font: Font used for text rendering
-    - theme: Visual theme/style settings
-    - show: Whether the item should be drawn
-    - no_scaling: Disable DPI/viewport scaling
+        - enabled: Whether the item is interactive or greyed out
+        - font: Font used for text rendering
+        - theme: Visual theme/style settings
+        - show: Whether the item should be drawn
+        - no_scaling: Disable DPI/viewport scaling
     
     Layout Properties:
     ----------------
-    - pos_to_viewport: Position relative to viewport top-left
-    - pos_to_window: Position relative to containing window 
-    - pos_to_parent: Position relative to parent item
-    - pos_to_default: Position relative to default layout flow
-    - rect_size: Current size in pixels including padding
-    - content_region_avail: Available content area within item for children
-    - pos_policy: How the item should be positioned
-    - height/width: Requested size of the item
-    - indent: Left indentation amount
-    - no_newline: Don't advance position after item
+        - pos_to_viewport: Position relative to viewport top-left
+        - pos_to_window: Position relative to containing window 
+        - pos_to_parent: Position relative to parent item
+        - pos_to_default: Position relative to default layout flow
+        - rect_size: Current size in pixels including padding
+        - content_region_avail: Available content area within item for children
+        - pos_policy: How the item should be positioned
+        - height/width: Requested size of the item
+        - indent: Left indentation amount
+        - no_newline: Don't advance position after item
 
     Value Properties:
     ---------------
-    - value: Main value stored by the item 
-    - shareable_value: Allows sharing values between items
-    - label: Text label shown with the item
+        - value: Main value stored by the item 
+        - shareable_value: Allows sharing values between items
+        - label: Text label shown with the item
 
     Event Properties:  
     ---------------
-    - handlers: Event handlers attached to the item
-    - callbacks: Functions called when value changes
+        - handlers: Event handlers attached to the item
+        - callbacks: Functions called when value changes
 
     Positioning Rules:
     ----------------
     Items use a combination of absolute and relative positioning:
-    - Default flow places items vertically with automatic width
-    - pos_policy controls how position attributes are enforced
-    - Positions can be relative to viewport, window, parent or flow
-    - Size can be fixed, automatic, or stretch to fill space
-    - indent and no_newline provide fine-grained layout control
+        - Default flow places items vertically with automatic width
+        - pos_policy controls how position attributes are enforced
+        - Positions can be relative to viewport, window, parent or flow
+        - Size can be fixed, automatic, or stretch to fill space
+        - indent and no_newline provide fine-grained layout control
 
     All attributes are protected by mutexes to enable thread-safe access.
     """
@@ -4670,17 +4907,18 @@ cdef class uiItem(baseItem):
     cdef void update_current_state(self) noexcept nogil:
         """
         Helper to update the state of the last imgui object.
+
         Are updated:
-        - hovered state
-        - active state
-        - clicked state and related (dragging, etc)
-        - deactivated after edit, though unsure if actually used
-        - edited state
-        - focused state
-        - rect size
-        - sets rendered to ItemIsVisible, which is not 100% reliable (
-            will return True if visible and rendered, but might miss
-            rendered and not visible).
+            - hovered state
+            - active state
+            - clicked state and related (dragging, etc)
+            - deactivated after edit, though unsure if actually used
+            - edited state
+            - focused state
+            - rect size
+            - sets rendered to ItemIsVisible, which is not 100% reliable (
+                will return True if visible and rendered, but might miss
+                rendered and not visible).
         """
         if self.state.cap.can_be_hovered:
             self.state.cur.hovered = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_AllowWhenDisabled)
@@ -4708,14 +4946,15 @@ cdef class uiItem(baseItem):
     cdef void update_current_state_subset(self) noexcept nogil:
         """
         Helper for items that manage themselves a part of the states.
+
         Are updated:
-        - hovered state
-        - focused state
-        - clicked state and related (dragging, etc)
-        - rect size
-        - sets rendered to ItemIsVisible, which is not 100% reliable (
-            will return True if visible and rendered, but might miss
-            rendered and not visible).
+            - hovered state
+            - focused state
+            - clicked state and related (dragging, etc)
+            - rect size
+            - sets rendered to ItemIsVisible, which is not 100% reliable (
+                will return True if visible and rendered, but might miss
+                rendered and not visible).
         """
         if self.state.cap.can_be_hovered:
             self.state.cur.hovered = imgui.IsItemHovered(imgui.ImGuiHoveredFlags_None)
@@ -4744,9 +4983,11 @@ cdef class uiItem(baseItem):
     @property
     def active(self):
         """
-        Readonly attribute: is the item active.
-        For example for a button, it is when pressed. For tabs
-        it is when selected, etc.
+        Whether the item is in an active state.
+        
+        Active states vary by item type: for buttons it means pressed; for tabs,
+        selected; for input fields, being edited. This state is tracked between
+        frames to enable interactive behaviors.
         """
         if not(self.state.cap.can_be_active):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4757,9 +4998,11 @@ cdef class uiItem(baseItem):
     @property
     def activated(self):
         """
-        Readonly attribute: has the item just turned active
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the item just transitioned to the active state this frame.
+        
+        This property is only true during the frame when the item becomes active,
+        making it useful for one-time actions. For persistent monitoring, use 
+        event handlers instead as they provide more robust state tracking.
         """
         if not(self.state.cap.can_be_active):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4770,11 +5013,11 @@ cdef class uiItem(baseItem):
     @property
     def clicked(self):
         """
-        Readonly attribute: has the item just been clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether any mouse button was clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the click occurs.
+        For consistent event handling across frames, use click handlers instead.
         """
         if not(self.state.cap.can_be_clicked):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4785,11 +5028,11 @@ cdef class uiItem(baseItem):
     @property
     def double_clicked(self):
         """
-        Readonly attribute: has the item just been double-clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether any mouse button was double-clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the double-click occurs.
+        For consistent event handling across frames, use click handlers instead.
         """
         if not(self.state.cap.can_be_clicked):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4800,9 +5043,11 @@ cdef class uiItem(baseItem):
     @property
     def deactivated(self):
         """
-        Readonly attribute: has the item just turned un-active
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the item just transitioned from active to inactive this frame.
+        
+        This property is only true during the frame when deactivation occurs.
+        For persistent monitoring across frames, use event handlers instead
+        as they provide more robust state tracking.
         """
         if not(self.state.cap.can_be_active):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4813,10 +5058,11 @@ cdef class uiItem(baseItem):
     @property
     def deactivated_after_edited(self):
         """
-        Readonly attribute: has the item just turned un-active after having
-        been edited.
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the item was edited and then deactivated in this frame.
+        
+        Useful for detecting when user completes an edit operation, such as
+        finishing text input or adjusting a value. This property is only true
+        for the frame when the deactivation occurs after editing.
         """
         if not(self.state.cap.can_be_deactivated_after_edited):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4827,9 +5073,11 @@ cdef class uiItem(baseItem):
     @property
     def edited(self):
         """
-        Readonly attribute: has the item just been edited ?
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the item's value was modified this frame.
+        
+        This flag indicates that the user has made a change to the item's value,
+        such as typing in an input field or adjusting a slider. It is only true
+        for the frame when the edit occurs.
         """
         if not(self.state.cap.can_be_edited):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4840,9 +5088,11 @@ cdef class uiItem(baseItem):
     @property
     def focused(self):
         """
-        Writable attribute: Is the item focused ?
-        For windows it means the window is at the top,
-        while for items it could mean the keyboard inputs are redirected to it.
+        Whether this item has input focus.
+        
+        For windows, focus means the window is at the top of the stack. For
+        input items, focus means keyboard inputs are directed to this item.
+        Unlike hover state, focus persists until explicitly changed or lost.
         """
         if not(self.state.cap.can_be_focused):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4852,11 +5102,6 @@ cdef class uiItem(baseItem):
 
     @focused.setter
     def focused(self, bint value):
-        """
-        Writable attribute: Is the item focused ?
-        For windows it means the window is at the top,
-        while for items it could mean the keyboard inputs are redirected to it.
-        """
         if not(self.state.cap.can_be_focused):
             raise AttributeError("Field undefined for type {}".format(type(self)))
         cdef unique_lock[DCGMutex] m
@@ -4867,9 +5112,11 @@ cdef class uiItem(baseItem):
     @property
     def hovered(self):
         """
-        Readonly attribute: Is the mouse inside the region of the item.
-        Only one element is hovered at a time, thus
-        subitems/subwindows take priority over their parent.
+        Whether the mouse cursor is currently positioned over this item.
+        
+        Only one element can be hovered at a time in the UI hierarchy. When
+        elements overlap, the topmost item (typically a child item rather than
+        a parent) receives the hover state.
         """
         if not(self.state.cap.can_be_hovered):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4880,9 +5127,11 @@ cdef class uiItem(baseItem):
     @property
     def resized(self):
         """
-        Readonly attribute: has the item size just changed
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the item's size changed this frame.
+        
+        This property is true only for the frame when the size change occurs.
+        It can detect both user-initiated resizing (like dragging a window edge)
+        and programmatic size changes.
         """
         if not(self.state.cap.has_rect_size):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4894,9 +5143,11 @@ cdef class uiItem(baseItem):
     @property
     def toggled(self):
         """
-        Has a menu/bar trigger been hit for the item
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the item was just toggled open this frame.
+        
+        Applies to items that can be expanded or collapsed, such as tree nodes,
+        collapsing headers, or menus. This property is only true during the frame
+        when the toggle from closed to open occurs.
         """
         if not(self.state.cap.can_be_toggled):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -4907,9 +5158,11 @@ cdef class uiItem(baseItem):
     @property
     def visible(self):
         """
-        True if the item was rendered (inside the rendering region + show = True
-        for the item and its ancestors). Note when an item is not visible,
-        rendering is skipped (as well as running their handlers, etc).
+        Whether the item was rendered in the current frame.
+        
+        An item is visible when it and all its ancestors have show=True and are
+        within the visible region of their containers. Invisible items skip
+        rendering and event handling entirely.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4918,10 +5171,11 @@ cdef class uiItem(baseItem):
     @property
     def callbacks(self):
         """
-        Writable attribute: callback object or list of callback objects
-        which is called when the value of the item is changed.
-        If read, always returns a list of callbacks. This enables
-        to do item.callbacks += [new_callback]
+        List of callbacks to invoke when the item's value changes.
+        
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4953,10 +5207,11 @@ cdef class uiItem(baseItem):
     @property
     def callback(self):
         """
-        Writable attribute: callback object or list of callback objects
-        which is called when the value of the item is changed.
-        If read, always returns a list of callbacks. This enables
-        to do item.callbacks += [new_callback]
+        Alias for the callbacks property for backward compatibility.
+        
+        This property provides the same functionality as the callbacks property
+        but maintains compatibility with older code that uses the singular form.
+        It is recommended to use the callbacks property in new code.
         """
         # TODO: drop callback or callbacks
         return self.callbacks
@@ -4968,12 +5223,12 @@ cdef class uiItem(baseItem):
     @property
     def enabled(self):
         """
-        Writable attribute: Should the object be displayed as enabled ?
-        the enabled state can be used to prevent edition of editable fields,
-        or to use a specific disabled element theme.
-        Note a disabled item is still rendered. Use show=False to hide
-        an object.
-        A disabled item does not react to hovering or clicking.
+        Whether the item is interactive and fully styled.
+        
+        When disabled, items appear grayed out and do not respond to user
+        interaction like hovering, clicking, or keyboard input. Unlike hidden
+        items (show=False), disabled items still appear in the interface but
+        with visual cues indicating their non-interactive state.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4992,8 +5247,11 @@ cdef class uiItem(baseItem):
     @property
     def font(self):
         """
-        Writable attribute: font used for the text rendered
-        of this item and its subitems
+        Font used for rendering text in this item and its children.
+        
+        Specifies a font to use when rendering text within this item's hierarchy.
+        When set, this overrides any font specified by parent items. Setting to
+        None uses the parent's font or the default font if no parent specifies one.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5008,8 +5266,11 @@ cdef class uiItem(baseItem):
     @property
     def label(self):
         """
-        Writable attribute: label assigned to the item.
-        Used for text fields, window titles, etc
+        Text label displayed with or within the item.
+        
+        The label is displayed differently depending on the item type. For buttons
+        and selectable items it appears inside them, for windows it becomes the
+        title, and for sliders and input fields it appears next to them.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5032,15 +5293,12 @@ cdef class uiItem(baseItem):
     @property
     def value(self):
         """
-        Writable attribute: main internal value for the object.
-        For buttons, it is set when pressed; For text it is the
-        text itself; For selectable whether it is selected, etc.
-        Reading the value attribute returns a copy, while writing
-        to the value attribute will edit the field of the value.
-        In case the value is shared among items, setting the value
-        attribute will change it for all the sharing items.
-        To share a value attribute among objects, one should use
-        the shareable_value attribute
+        Main value associated with this item.
+        
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5055,11 +5313,12 @@ cdef class uiItem(baseItem):
     @property
     def shareable_value(self):
         """
-        Same as the value field, but rather than a copy of the internal value
-        of the object, return a python object that holds a value field that
-        is in sync with the internal value of the object. This python object
-        can be passed to other items using an internal value of the same
-        type to share it.
+        Reference to the underlying value that can be shared between items.
+        
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5080,12 +5339,12 @@ cdef class uiItem(baseItem):
     @property
     def show(self):
         """
-        Writable attribute: Should the object be drawn/shown ?
-        In case show is set to False, this disables any
-        callback (for example the close callback won't be called
-        if a window is hidden with show = False).
-        In the case of items that can be closed,
-        show is set to False automatically on close.
+        Whether the item should be rendered and process events.
+        
+        When set to False, the item and all its children are skipped during
+        rendering, effectively hiding them and disabling all their functionality
+        including callbacks and event handling. This is different from the enabled
+        property which renders items but in a non-interactive state.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5105,10 +5364,12 @@ cdef class uiItem(baseItem):
     @property
     def handlers(self):
         """
-        Writable attribute: bound handlers for the item.
-        If read returns a list of handlers. Accept
-        a handler or a list of handlers as input.
-        This enables to do item.handlers += [new_handler].
+        List of event handlers attached to this item.
+        
+        Handlers are objects that monitor the item's state and trigger callbacks
+        when specific conditions are met, like when an item is clicked, hovered,
+        or has its value changed. Multiple handlers can be attached to respond to
+        different events or the same event in different ways.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5144,7 +5405,12 @@ cdef class uiItem(baseItem):
     @property
     def theme(self):
         """
-        Writable attribute: bound theme for the item
+        Visual styling applied to this item and its children.
+        
+        Themes control the appearance of items including colors, spacing, and
+        other visual attributes. When set, this theme overrides any theme specified
+        by parent items. Setting to None uses the parent's theme or the default
+        theme if no parent specifies one.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5159,12 +5425,12 @@ cdef class uiItem(baseItem):
     @property
     def no_scaling(self):
         """
-        boolean. Defaults to False.
-        By default, the requested width and
-        height are multiplied internally by the global
-        scale which is defined by the dpi and the
-        viewport/window scale.
-        If set, disables this automated scaling.
+        Whether DPI scaling should be disabled for this item.
+        
+        When True, the item ignores the global scaling factor that normally
+        adjusts UI elements based on screen DPI and viewport settings. This can
+        be useful for elements that should maintain specific pixel dimensions
+        regardless of display resolution or scaling settings.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5179,13 +5445,12 @@ cdef class uiItem(baseItem):
     @property 
     def scaling_factor(self):
         """
-        Writable attribute: scaling factor
-        that multiplies the global viewport scaling and
-        applies to this item and its children.
-        The global scaling (thus this parameter as well)
-        impacts themes, sizes and fonts. Themes and fonts
-        that were applied by a parent are unaffected.
-        Defaults to 1.0.
+        Additional scaling multiplier applied to this item and its children.
+        
+        This factor multiplies the global scaling to adjust the size of this
+        item hierarchy. It affects sizes, themes, and fonts that are applied
+        directly to this item or its children, but not those inherited from
+        parent items. Default is 1.0 (no additional scaling).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5204,24 +5469,18 @@ cdef class uiItem(baseItem):
     @property
     def pos_to_viewport(self):
         """
-        Writable attribute:
-        Current screen-space position of the top left
-        of the item's rectangle. Basically the coordinate relative
-        to the top left of the viewport.
-
-        User writing this attribute automatically switches
-        the positioning mode to REL_VIEWPORT position.
-
-        Note that item is still clipped from the parent's clipping
-        region, and thus the item will not be visible if placed
-        outside.
-
-        Setting None to one of component will ignore the update
-        of this component.
-        For example item.pos_to_viewport = (x, None) will only
-        set the horizontal component of the pos_to_viewport position,
-        and update the positioning policy for this component
-        only.
+        Position relative to the viewport's top-left corner.
+        
+        This coordinate represents the position of the item's top-left corner
+        relative to the entire viewport. Setting this property automatically
+        switches the positioning mode to REL_VIEWPORT for the affected axis.
+        
+        The item remains subject to the parent's clipping region, so positioning
+        an item outside its parent's boundaries may make it invisible despite
+        having valid coordinates.
+        
+        When setting this property, you can use None for either component to
+        leave that coordinate unchanged.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5230,23 +5489,18 @@ cdef class uiItem(baseItem):
     @property
     def pos_to_window(self):
         """
-        Writable attribute:
-        Relative position to the window's starting inner
-        content area.
-
-        The position corresponds to the top left of the item's
-        rectangle
-
-        User writing this attribute automatically switches
-        the positioning policy to relative position to the
-        window.
-
-        Note that the position may place the item outside the
-        parent's content region, in which case the item is not
-        visible.
-
-        Setting None to one of component will ignore the update
-        of this component.
+        Position relative to the containing window's content area.
+        
+        This coordinate represents the position of the item's top-left corner
+        relative to the inner content area of the containing window. Setting
+        this property automatically switches the positioning mode to REL_WINDOW
+        for the affected axis.
+        
+        The position can place the item outside the parent's content region,
+        which would make the item invisible.
+        
+        When setting this property, you can use None for either component to
+        leave that coordinate unchanged.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5255,23 +5509,17 @@ cdef class uiItem(baseItem):
     @property
     def pos_to_parent(self):
         """
-        Writable attribute:
-        Relative position to the parent's position, or to
-        its starting inner content area if any.
-
-        The position corresponds to the top left of the item's
-        rectangle
-
-        User writing this attribute automatically switches
-        the positioning policy to relative position to the
-        parent.
-
-        Note that the position may place the item outside the
-        parent's content region, in which case the item is not
-        visible.
-
-        Setting None to one of component will ignore the update
-        of this component.
+        Position relative to the parent item's content area.
+        
+        This coordinate represents the position of the item's top-left corner
+        relative to its parent's content area. Setting this property automatically
+        switches the positioning mode to REL_PARENT for the affected axis.
+        
+        The position can place the item outside the parent's content region,
+        which would make the item invisible.
+        
+        When setting this property, you can use None for either component to
+        leave that coordinate unchanged.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5280,19 +5528,18 @@ cdef class uiItem(baseItem):
     @property
     def pos_to_default(self):
         """
-        Writable attribute:
-        Relative position to the item's default position.
-
-        User set attribute to offset the object relative to
-        the position it would be drawn by default given the other
-        items drawn. The position corresponds to the top left of
-        the item's rectangle.
-
-        User writing this attribute automatically switches the 
-        positioning policy to relative to the default position.
-
-        Setting None to one of component will ignore the update
-        of this component.
+        Offset from the item's default layout position.
+        
+        This coordinate represents an offset from the position where the item
+        would naturally appear in the layout flow. Setting this property
+        automatically switches the positioning mode to REL_DEFAULT for the 
+        affected axis.
+        
+        This provides a way to fine-tune positioning while still mostly
+        respecting the normal layout flow.
+        
+        When setting this property, you can use None for either component to
+        leave that coordinate unchanged.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5301,15 +5548,15 @@ cdef class uiItem(baseItem):
     @property
     def rect_size(self):
         """
-        Readonly attribute: actual (width, height) of the element,
-        including margins.
-
-        The space taken by the item corresponds to a rectangle
-        of size rect_size with top left coordinate
-        the position given by the position fields.
-
-        Not the rect_size refers to the size within the parent
-        window. If a popup menu is opened, it is not included.
+        Actual pixel size of the element including margins.
+        
+        This property represents the width and height of the rectangle occupied
+        by the item in the layout. The rectangle's top-left corner is at the
+        position given by the relevant position property.
+        
+        Note that this size refers only to the item within its parent window and
+        does not include any popup or child windows that might be spawned by
+        this item.
         """
         if not(self.state.cap.has_rect_size):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -5320,14 +5567,14 @@ cdef class uiItem(baseItem):
     @property
     def content_region_avail(self):
         """
-        Readonly attribute: For windows, child windows,
-        table cells, etc: Available region.
-
-        Only defined for elements that contain other items.
-        Corresponds to the size inside the item to display
-        other items (regions not shown which can
-        be scrolled are not accounted). Basically the item size
-        minus the margins and borders.
+        Available space for child items.
+        
+        For container items like windows, child windows, this
+        property represents the available space for placing child items. This is
+        the item's inner area after accounting for padding, borders, and other
+        non-content elements.
+        
+        Areas that require scrolling to see are not included in this measurement.
         """
         if not(self.state.cap.has_content_region):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -5338,12 +5585,14 @@ cdef class uiItem(baseItem):
     @property
     def content_pos(self):
         """
-        Readable attribute indicating the top left starting
-        position of the item's content in viewport coordinates.
-
-        Only available for items with a content area.
-        The size of the content area is available with
-        content_region_avail.
+        Position of the content area's top-left corner.
+        
+        This property provides the viewport-relative coordinates of the starting
+        point for an item's content area. This is where child elements begin to be
+        placed by default.
+        
+        Used together with content_region_avail, this defines the rectangle
+        available for child elements.
         """
         if not(self.state.cap.has_content_region):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -5356,77 +5605,47 @@ cdef class uiItem(baseItem):
     @property
     def pos_policy(self):
         """
-        Writable attribute: Positioning policy
-
-        Changing the policy enables the user to
-        change the position of the item relative to
-        its default position.
-
-        - DEFAULT: The item is drawn at the position
-          given by ImGUI's cursor position, which by
-          default is incremented vertically after each item is
-          rendered.
-        - REL_DEFAULT: The item is drawn at the same position
-          as default, but after adding as offset the value
-          contained in the pos_to_default field.
-        - REL_PARENT: The item is rendered at the position
-          contained in the pos_to_parent's field,
-          which is respective to the top left of the content
-          area of the parent.
-        - REL_WINDOW: The item is rendered at the position
-          contained in the pos_to_window's field,
-          which is respective to the top left of the containing
-          window or child window content area.
-        - REL_VIEWPORT: The item is rendered in viewport
-          coordinates, at the position pos_to_viewport.
-
-        Items rendered with the DEFAULT or REL_DEFAULT policy do
-        increment the cursor position, while REL_PARENT, REL_WINDOW
-        and REL_VIEWPORT do not.
-
-        Each axis has it's own positioning policy.
-        pos_policy = DEFAULT will update both policies, while
-        pos_policy = (None, DEFAULT) will only update the vertical
-        axis policy.
-
-        Regardless of the policy, all position fields are updated
-        when the item is rendered. Only the position corresponding to
-        the positioning policy can be expected to remain fixed, with no
-        strong guarantees.
-
-        Since some items react dynamically to the size of their contents,
-        while items react dynamically to the size of their parent, a few
-        frames may be needed for positions to stabilize.
+        Positioning strategy for placing the item in the layout.
+        
+        This property controls how the item's position is determined:
+            - DEFAULT: Placed at ImGui's cursor position, which advances vertically
+            after each item is rendered.
+            - REL_DEFAULT: Placed at the default position plus an offset specified
+            by pos_to_default.
+            - REL_PARENT: Positioned at coordinates specified by pos_to_parent
+            relative to the parent's content area.
+            - REL_WINDOW: Positioned at coordinates specified by pos_to_window
+            relative to the containing window's content area.
+            - REL_VIEWPORT: Positioned at absolute viewport coordinates specified
+            by pos_to_viewport.
+        
+        Items using DEFAULT or REL_DEFAULT advance the layout cursor, while other
+        policies do not. Each axis (horizontal and vertical) has its own policy.
+        
+        All position fields are updated when the item is rendered, but only the
+        position corresponding to the active policy is guaranteed to remain stable.
         """
         return (make_Positioning(self.pos_policy[0]), make_Positioning(self.pos_policy[1]))
 
     @property
     def height(self):
         """
-        Writable attribute: Requested height of the item.
-        When it is written, it is set to a 'requested value' that is not
-        entirely guaranteed to be enforced.
-        Specific values:
-            - 0 is meant to define the default size. For some items,
-              such as windows, it triggers a fit to the content size.
-              For other items, there is a default size deduced from the
-              style policy. And for some items (such as child windows),
-              it triggers a fit to the full size available within the
-              parent window.
-            - > 0 values is meant as a hint for rect_size.
-            - < 0 values to be interpreted as 'take remaining space
-              of the parent's content region from the current position,
-              and subtract this value'. For example -1 will stretch to the
-              remaining area minus one pixel.
-
-        Note that for some items, the actual rect_size of the element cannot
-        be changed to the requested values (for example Text). In that case, the
-        item is not resized, but it behaves as if it has the requested size in terms
-        of impact on the layout (default position of other items).
-
-        In addition the real height may change if the object is resizable.
-        In this case, the height may be changed back by setting again the value
-        of this field.
+        Requested height for the item.
+        
+        This property specifies the desired height for the item, though the
+        actual height may differ depending on item type and constraints. 
+        
+        Special values:
+            - 0: Use default height. May trigger content-fitting for windows or
+                containers, or style-based sizing for other items.
+            - Positive values: Request a specific height in scaled pixels.
+            - Negative values: Request a height that fills the remaining parent space
+                minus the absolute value (e.g., -1 means "fill minus 1 scaled pixel").
+            - string: A string specification to automatically size the item. See the
+                documentation for details on how to use this feature.
+        
+        Some items may ignore this property or interpret it differently. The
+        actual final height in real pixels is available via the rect_size property.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5444,30 +5663,22 @@ cdef class uiItem(baseItem):
     @property
     def width(self):
         """
-        Writable attribute: Requested width of the item.
-        When it is written, it is set to a 'requested value' that is not
-        entirely guaranteed to be enforced.
-        Specific values:
-            - 0 is meant to define the default size. For some items,
-              such as windows, it triggers a fit to the content size.
-              For other items, there is a default size deduced from the
-              style policy. And for some items (such as child windows),
-              it triggers a fit to the full size available within the
-              parent window.
-            - > 0 values is meant as a hint for rect_size.
-            - < 0 values to be interpreted as 'take remaining space
-              of the parent's content region from the current position,
-              and subtract this value'. For example -1 will stretch to the
-              remaining area minus one pixel.
-
-        Note that for some items, the actual rect_size of the element cannot
-        be changed to the requested values (for example Text). In that case, the
-        item is not resized, but it behaves as if it has the requested size in terms
-        of impact on the layout (default position of other items).
-
-        In addition the real width may change if the object is resizable.
-        In this case, the width may be changed back by setting again the value
-        of this field.
+        Requested width for the item.
+        
+        This property specifies the desired width for the item, though the
+        actual width may differ depending on item type and constraints.
+        
+        Special values:
+            - 0: Use default width. May trigger content-fitting for windows or
+                containers, or style-based sizing for other items.
+            - Positive values: Request a specific width in scaled pixels.
+            - Negative values: Request a width that fills the remaining parent space
+                minus the absolute value (e.g., -1 means "fill minus 1 scaled pixel").
+            - string: A string specification to automatically size the item. See the
+                documentation for details on how to use this feature.
+        
+        Some items may ignore this property or interpret it differently. The
+        actual final width in real pixels is available via the rect_size property.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5485,11 +5696,14 @@ cdef class uiItem(baseItem):
     @property
     def indent(self):
         """
-        Writable attribute: Shifts horizontally the DEFAULT
-        position of the item by the requested amount of pixels.
-
-        A value < 0 indicates an indentation of the default size
-        according to the style policy.
+        Horizontal indentation applied to the item.
+        
+        This property shifts the default horizontal position of the item by the
+        specified number of scaled pixels, creating an indented appearance.
+        
+        A negative value indicates an indentation of the default size based on
+        the current style settings, typically equivalent to the standard tab
+        size. A value of 0 means no indentation is applied.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5498,11 +5712,15 @@ cdef class uiItem(baseItem):
     @property
     def no_newline(self):
         """
-        Writable attribute: Disables moving the
-        cursor (DEFAULT position) by one line
-        after this item.
-
-        Might be modified by the layout
+        Controls whether to advance to the next line after rendering.
+        
+        When True, the cursor position (DEFAULT positioning) does not advance
+        to the next line after this item is drawn, allowing the next item to
+        appear on the same line. When False, the cursor advances as normal,
+        placing the next item on a new line.
+        
+        This property is commonly used to create horizontal layouts or to place
+        multiple items side-by-side.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5765,18 +5983,18 @@ cdef class uiItem(baseItem):
         """
         Function to override for the core rendering of the item.
         What is already handled outside draw_item (see draw()):
-        - The mutex is held (as is the mutex of the following siblings,
-          and the mutex of the parents, including the viewport and imgui
-          mutexes)
-        - The previous siblings are already rendered
-        - Current themes, fonts
-        - Widget starting position (GetCursorPos to get it)
-        - Focus
+            - The mutex is held (as is the mutex of the following siblings,
+            and the mutex of the parents, including the viewport and imgui
+            mutexes)
+            - The previous siblings are already rendered
+            - Current themes, fonts
+            - Widget starting position (GetCursorPos to get it)
+            - Focus
 
         What remains to be done by draw_item:
-        - Rendering the item. Set its width, its height, etc
-        - Calling update_current_state or manage itself the state
-        - Render children if any
+            - Rendering the item. Set its width, its height, etc
+            - Calling update_current_state or manage itself the state
+            - Render children if any
 
         The return value indicates if the main callback should be triggered.
         """
@@ -5839,37 +6057,18 @@ cdef class TimeWatcher(uiItem):
 
 cdef class Window(uiItem):
     """
-    Represents a window in the UI with various configurable properties.
-
-    Attributes:
-    - no_title_bar: Boolean indicating if the title bar should be hidden.
-    - no_resize: Boolean indicating if resizing should be disabled.
-    - no_move: Boolean indicating if moving should be disabled.
-    - no_scrollbar: Boolean indicating if the scrollbar should be hidden.
-    - no_scroll_with_mouse: Boolean indicating if scrolling with the mouse should be disabled.
-    - no_collapse: Boolean indicating if collapsing should be disabled.
-    - autosize: Boolean indicating if the window should autosize.
-    - no_background: Boolean indicating if the background should be hidden.
-    - no_saved_settings: Boolean indicating if saved settings should be disabled.
-    - no_mouse_inputs: Boolean indicating if mouse inputs should be disabled.
-    - no_keyboard_inputs: Boolean indicating if keyboard inputs should be disabled.
-    - menubar: Boolean indicating if the menubar should be shown.
-    - horizontal_scrollbar: Boolean indicating if the horizontal scrollbar should be shown.
-    - no_focus_on_appearing: Boolean indicating if focus on appearing should be disabled.
-    - no_bring_to_front_on_focus: Boolean indicating if bringing to front on focus should be disabled.
-    - always_show_vertical_scrollvar: Boolean indicating if the vertical scrollbar should always be shown.
-    - always_show_horizontal_scrollvar: Boolean indicating if the horizontal scrollbar should always be shown.
-    - unsaved_document: Boolean indicating if the document is unsaved.
-    - disallow_docking: Boolean indicating if docking should be disallowed.
-    - no_open_over_existing_popup: Boolean indicating if opening over existing popup should be disabled.
-    - modal: Boolean indicating if the window is modal.
-    - popup: Boolean indicating if the window is a popup.
-    - has_close_button: Boolean indicating if the close button should be shown.
-    - collapsed: Boolean indicating if the window is collapsed.
-    - on_close: Callback function for the close event.
-    - primary: Boolean indicating if the window is primary.
-    - min_size: Minimum size of the window.
-    - max_size: Maximum size of the window.
+    A window with configurable behaviors, appearance, and parent-child relationships.
+    
+    Windows provide containers for other UI elements and can be styled in various ways.
+    They support features like collapsing, resizing, scrolling, and dragging, with
+    optional title bars and close buttons.
+    
+    Windows can be configured as popups (temporary windows that close when clicking 
+    outside), modals (blocking windows that require explicit closure), or as primary 
+    windows (covering the entire viewport and serving as application backgrounds).
+    
+    Child items can be added using the standard parent-child mechanisms, and additional
+    menu bars can be attached using menubar items.
     """
     def __cinit__(self):
         self._window_flags = imgui.ImGuiWindowFlags_None
@@ -5910,7 +6109,12 @@ cdef class Window(uiItem):
 
     @property
     def no_title_bar(self):
-        """Writable attribute to disable the title-bar"""
+        """
+        Hides the title bar of the window.
+        
+        When enabled, the window will not display its title bar, which includes
+        the window title, collapse button, and close button if enabled.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoTitleBar) else False
@@ -5925,7 +6129,12 @@ cdef class Window(uiItem):
 
     @property
     def no_resize(self):
-        """Writable attribute to block resizing"""
+        """
+        Disables resizing of the window by the user.
+        
+        When enabled, the window cannot be resized by dragging its borders or corners.
+        The size can still be changed programmatically.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoResize) else False
@@ -5940,7 +6149,12 @@ cdef class Window(uiItem):
 
     @property
     def no_move(self):
-        """Writable attribute the window to be move with interactions"""
+        """
+        Prevents the window from being moved by the user.
+        
+        When enabled, the window cannot be repositioned by dragging the title bar.
+        The position can still be changed programmatically.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if (self._window_flags & imgui.ImGuiWindowFlags_NoMove) else False
@@ -5955,8 +6169,12 @@ cdef class Window(uiItem):
 
     @property
     def no_scrollbar(self):
-        """Writable attribute to indicate the window should have no scrollbar
-           Does not disable scrolling via mouse or keyboard
+        """
+        Hides the scrollbars when content overflows.
+        
+        When enabled, scrollbars will not be shown even when content exceeds the
+        window's size. Note that this only affects the visual appearance - scrolling
+        via keyboard or mouse wheel remains possible unless disabled separately.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5972,8 +6190,11 @@ cdef class Window(uiItem):
     
     @property
     def no_scroll_with_mouse(self):
-        """Writable attribute to indicate the mouse wheel
-           should have no effect on scrolling of this window
+        """
+        Disables scrolling the window content with the mouse wheel.
+        
+        When enabled, the mouse wheel will not scroll the window's content, though
+        scrolling via keyboard or programmatic means remains possible.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5989,7 +6210,11 @@ cdef class Window(uiItem):
 
     @property
     def no_collapse(self):
-        """Writable attribute to disable user collapsing window by double-clicking on it
+        """
+        Disables collapsing the window by double-clicking the title bar.
+        
+        When enabled, the window cannot be collapsed (minimized) by double-clicking
+        its title bar. The collapsed state can still be changed programmatically.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6005,8 +6230,12 @@ cdef class Window(uiItem):
 
     @property
     def autosize(self):
-        """Writable attribute to tell the window should
-           automatically resize to fit its content
+        """
+        Makes the window automatically resize to fit its contents.
+        
+        When enabled, the window will continuously adjust its size to fit its
+        content area. This can be useful for dialog boxes or panels that should
+        always show all their contents without scrolling.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6023,8 +6252,11 @@ cdef class Window(uiItem):
     @property
     def no_background(self):
         """
-        Writable attribute to disable drawing background
-        color and outside border
+        Makes the window background transparent and removes the border.
+        
+        When enabled, the window's background color and border will not be drawn,
+        allowing content behind the window to show through. Useful for overlay windows
+        or custom-drawn windows.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6041,7 +6273,11 @@ cdef class Window(uiItem):
     @property
     def no_saved_settings(self):
         """
-        Writable attribute to never load/save settings in .ini file
+        Prevents the window from saving its position and size between sessions.
+        
+        When enabled, the window's position, size, and collapsed state will not be
+        saved to or loaded from the ImGui .ini file, keeping the window's appearance
+        consistent across application restarts.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6058,9 +6294,11 @@ cdef class Window(uiItem):
     @property
     def no_mouse_inputs(self):
         """
-        Writable attribute to disable mouse input event catching of the window.
-        Events such as clicked, hovering, etc will be passed to items behind the
-        window.
+        Disables mouse input events for the window and its contents.
+        
+        When enabled, mouse events like clicking, hovering, and dragging will pass
+        through the window to items behind it. Items within the window will not
+        receive mouse events either.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6077,9 +6315,11 @@ cdef class Window(uiItem):
     @property
     def no_keyboard_inputs(self):
         """
-        Writable attribute to disable keyboard manipulation (scroll).
-        The window will not take focus of the keyboard.
-        Does not affect items inside the window.
+        Disables keyboard input and keyboard navigation for the window.
+        
+        When enabled, the window will not take keyboard focus or respond to keyboard
+        navigation commands. Items inside the window can still receive keyboard focus
+        and inputs if focused directly.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6096,10 +6336,12 @@ cdef class Window(uiItem):
     @property
     def menubar(self):
         """
-        Writable attribute to indicate whether the window has a menu bar.
-
-        There will be menubar if either the user has asked for it,
-        or there is a menubar child.
+        Controls whether the window displays a menu bar.
+        
+        When enabled, the window will reserve space for a menu bar at the top.
+        Menu items can be added as child elements with the appropriate type.
+        The menu bar will appear automatically if any menu child items exist,
+        even if this property is set to False.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6116,7 +6358,11 @@ cdef class Window(uiItem):
     @property
     def horizontal_scrollbar(self):
         """
-        Writable attribute to enable having an horizontal scrollbar
+        Enables horizontal scrolling for content that exceeds window width.
+        
+        When enabled, the window will display a horizontal scrollbar when content
+        extends beyond the window's width. Otherwise, content will simply be clipped
+        at the window's edge.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6133,9 +6379,11 @@ cdef class Window(uiItem):
     @property
     def no_focus_on_appearing(self):
         """
-        Writable attribute to indicate when the windows moves from
-        an un-shown to a shown item shouldn't be made automatically
-        focused
+        Prevents the window from gaining focus when it first appears.
+        
+        When enabled, the window will not automatically gain keyboard focus when it
+        is first shown or when changing from hidden to visible state. This can be
+        useful for non-interactive windows or background panels.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6152,8 +6400,11 @@ cdef class Window(uiItem):
     @property
     def no_bring_to_front_on_focus(self):
         """
-        Writable attribute to indicate when the window takes focus (click on it, etc)
-        it shouldn't be shown in front of other windows
+        Prevents the window from coming to the front when focused.
+        
+        When enabled, the window will not rise to the top of the window stack when
+        clicked or otherwise focused. This is useful for background windows that
+        should remain behind other windows even when interacted with.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6170,8 +6421,11 @@ cdef class Window(uiItem):
     @property
     def always_show_vertical_scrollvar(self):
         """
-        Writable attribute to tell to always show a vertical scrollbar
-        even when the size does not require it
+        Always displays the vertical scrollbar even when content fits.
+        
+        When enabled, the vertical scrollbar will always be visible, even when the
+        content does not exceed the window height. This can provide a more consistent
+        appearance across different content states.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6188,9 +6442,11 @@ cdef class Window(uiItem):
     @property
     def always_show_horizontal_scrollvar(self):
         """
-        Writable attribute to tell to always show a horizontal scrollbar
-        even when the size does not require it (only if horizontal scrollbar
-        are enabled)
+        Always displays the horizontal scrollbar even when content fits.
+        
+        When enabled, the horizontal scrollbar will always be visible (if horizontal
+        scrolling is enabled), even when the content does not exceed the window width.
+        This provides a consistent appearance across different content states.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6207,8 +6463,11 @@ cdef class Window(uiItem):
     @property
     def unsaved_document(self):
         """
-        Writable attribute to display a dot next to the title, as if the window
-        contains unsaved changes.
+        Displays a dot next to the window title to indicate unsaved changes.
+        
+        When enabled, the window's title bar will display a small indicator dot,
+        similar to how many applications mark documents with unsaved changes.
+        This is purely visual and does not affect window behavior.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6226,7 +6485,10 @@ cdef class Window(uiItem):
     @property
     def disallow_docking(self):
         """
-        Writable attribute to disable docking for the window
+        Disables docking the window into dock nodes.
+        
+        When enabled, the window will not participate in ImGui's docking system,
+        preventing it from being docked with other windows or into dock spaces.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6244,8 +6506,11 @@ cdef class Window(uiItem):
     @property
     def no_open_over_existing_popup(self):
         """
-        Writable attribute for modal and popup windows to prevent them from
-        showing if there is already an existing popup/modal window
+        Prevents opening if another popup is already visible.
+        
+        When enabled for modal and popup windows, the window will not open if another
+        popup/modal window is already active. This prevents layering of popups that
+        could confuse users.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6260,10 +6525,11 @@ cdef class Window(uiItem):
     @property
     def modal(self):
         """
-        Writable attribute to indicate the window is a modal window.
-        Modal windows are similar to popup windows, but they have a close
-        button and are not closed by clicking outside.
-        Clicking has no effect of items outside the modal window until it is closed.
+        Makes the window a modal dialog that blocks interaction with other windows.
+        
+        When enabled, the window will behave as a modal dialog - it will capture all
+        input until closed, preventing interaction with any other windows behind it.
+        Modal windows typically have close buttons and must be explicitly dismissed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6278,10 +6544,11 @@ cdef class Window(uiItem):
     @property
     def popup(self):
         """
-        Writable attribute to indicate the window is a popup window.
-        Popup windows are centered (unless a pos is set), do not have a
-        close button, and are closed when they lose focus (clicking outside the
-        window).
+        Makes the window a popup that closes when clicking outside it.
+        
+        When enabled, the window will behave as a popup - it will be centered on
+        screen by default and will close automatically when the user clicks outside
+        of it. Popups do not have close buttons.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6296,8 +6563,11 @@ cdef class Window(uiItem):
     @property
     def has_close_button(self):
         """
-        Writable attribute to indicate the window has a close button.
-        Has effect only for normal and modal windows.
+        Controls whether the window displays a close button in its title bar.
+        
+        When enabled, the window will show a close button in its title bar that
+        allows users to close the window. This applies only to regular and
+        modal windows, as popup windows do not have close buttons.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6312,7 +6582,12 @@ cdef class Window(uiItem):
     @property
     def collapsed(self):
         """
-        Writable attribute to collapse (~minimize) or uncollapse the window
+        Controls and reflects the collapsed state of the window.
+        
+        When True, the window is collapsed (minimized) showing only its title bar.
+        When False, the window is expanded showing its full content. This property
+        can both be read to detect the current state and written to collapse or
+        expand the window.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6328,9 +6603,12 @@ cdef class Window(uiItem):
     @property
     def on_close(self):
         """
-        Callback to call when the window is closed.
-        Note closing the window does not destroy or unattach the item.
-        Instead it is switched to a show=False state.
+        Callback that will be triggered when the window is closed.
+        
+        This callback is invoked when the window is closed, either by clicking the
+        close button or programmatically. Note that closing a window doesn't destroy
+        it, but sets its show property to False. The callback receives the window as
+        both source and target parameters.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6345,14 +6623,12 @@ cdef class Window(uiItem):
     @property
     def on_drop(self):
         """
-        Callback to call when the window receives a system
-        drag&drop operation.
-        The callback takes as input (sender, target, data),
-        where sender and target are always the viewport in
-        this context. data is a tuple of two elements.
-        The first one is 0 (for text) or 1 (for file) depending on the
-        type of dropped data, and the second is a list of
-        strings corresponding to the dropped content.
+        Callback triggered when items are drag-dropped onto the window.
+        
+        This callback is invoked when the user drags external content (files or text)
+        and drops it onto the window. The callback receives source, target, and data
+        parameters, where data is a tuple containing the drop type (0=text, 1=files)
+        and a list of strings with the actual content.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6367,17 +6643,14 @@ cdef class Window(uiItem):
     @property
     def primary(self):
         """
-        Writable attribute: Indicate if the window is the primary window.
-        There is maximum one primary window. The primary window covers the whole
-        viewport and can be used to draw on the background.
-        It is equivalent to setting:
-        no_bring_to_front_on_focus
-        no_saved_settings
-        no_resize
-        no_collapse
-        no_title_bar
-        no_move
-        and running item.focused = True on all the other windows
+        Controls whether this window serves as the primary application window.
+        
+        When set to True, the window becomes the primary window covering the entire
+        viewport. It will be drawn behind all other windows, have no decorations,
+        and cannot be moved or resized. Only one window can be primary at a time.
+        
+        Primary windows are useful for implementing main application backgrounds
+        or base layouts that other windows will overlay.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6407,7 +6680,7 @@ cdef class Window(uiItem):
             self._window_flags = \
                 imgui.ImGuiWindowFlags_NoBringToFrontOnFocus | \
                 imgui.ImGuiWindowFlags_NoSavedSettings | \
-			    imgui.ImGuiWindowFlags_NoResize | \
+                imgui.ImGuiWindowFlags_NoResize | \
                 imgui.ImGuiWindowFlags_NoCollapse | \
                 imgui.ImGuiWindowFlags_NoTitleBar | \
                 imgui.ImGuiWindowFlags_NoMove
@@ -6439,7 +6712,11 @@ cdef class Window(uiItem):
     @property
     def min_size(self):
         """
-        Writable attribute to indicate the minimum window size
+        Sets the minimum allowed size for the window.
+        
+        Defines the minimum width and height the window can be resized to, either
+        by the user or programmatically. Values are given as (width, height) in
+        logical pixels, and will be multiplied by the DPI scaling factor.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6455,7 +6732,11 @@ cdef class Window(uiItem):
     @property
     def max_size(self):
         """
-        Writable attribute to indicate the maximum window size
+        Sets the maximum allowed size for the window.
+        
+        Defines the maximum width and height the window can be resized to, either
+        by the user or programmatically. Values are given as (width, height) in
+        logical pixels, and will be multiplied by the DPI scaling factor.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6724,13 +7005,15 @@ cdef class Window(uiItem):
 
 cdef class plotElement(baseItem):
     """
-    Base class for plot children.
-
-    Attributes:
-    - show: Boolean indicating if the plot element should be shown.
-    - axes: Axes for the plot element.
-    - label: Label for the plot element.
-    - theme: Theme for the plot element.
+    Base class for plot children with rendering capabilities.
+    
+    Provides the foundation for all plot elements like lines, scatter plots, 
+    and bars. These elements can be attached to a parent plot and will be 
+    rendered according to their configuration.
+    
+    Plot elements can be assigned to specific axes pairs, allowing for 
+    multiple data series with different scales to coexist on the same plot.
+    They also support themes for consistent visual styling.
     """
     def __cinit__(self):
         #self._imgui_label = string_from_bytes(bytes(b'###%ld'% self.uuid))
@@ -6746,12 +7029,11 @@ cdef class plotElement(baseItem):
     @property
     def show(self):
         """
-        Writable attribute: Should the object be drawn/shown ?
-        In case show is set to False, this disables any
-        callback (for example the close callback won't be called
-        if a window is hidden with show = False).
-        In the case of items that can be closed,
-        show is set to False automatically on close.
+        Controls whether the plot element is visible.
+        
+        When set to False, the element is not rendered and its callbacks are not
+        executed. This allows for temporarily hiding plot elements without
+        removing them from the plot hierarchy.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6768,9 +7050,12 @@ cdef class plotElement(baseItem):
     @property
     def axes(self):
         """
-        Writable attribute: (X axis, Y axis)
-        used for this plot element.
-        Default is (X1, Y1)
+        The X and Y axes that the plot element is attached to.
+        
+        Returns a tuple of (X axis, Y axis) identifiers that determine which
+        coordinate system this element will use. Each plot can have up to three
+        X axes and three Y axes, allowing for multiple scales on the same plot.
+        Default is (X1, Y1).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6797,7 +7082,11 @@ cdef class plotElement(baseItem):
     @property
     def label(self):
         """
-        Writable attribute: label assigned to the element
+        Text label for the plot element.
+        
+        This label is used in the plot legend and for tooltip identification.
+        Setting a meaningful label helps users understand what each element
+        represents in a multi-element plot.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6820,7 +7109,11 @@ cdef class plotElement(baseItem):
     @property
     def theme(self):
         """
-        Writable attribute: theme for the legend and plot
+        Visual theme applied to the plot element.
+        
+        The theme controls the appearance of the plot element, including line
+        colors, point styles, fill patterns, and other visual attributes. A theme
+        can be shared between multiple plot elements for consistent styling.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6868,8 +7161,15 @@ cdef class plotElement(baseItem):
 
 cdef class AxisTag(baseItem):
     """
-    Class for Axis tags. Can only be child
-    of a plot Axis.
+    Visual marker with text attached to a specific coordinate on a plot axis.
+    
+    Axis tags provide a way to highlight and label specific values on a plot axis.
+    Tags appear as small markers with optional text labels and background colors.
+    They can be used to mark thresholds, important values, or add explanatory
+    annotations directly on the axes.
+    
+    Tags can only be attached as children to plot axes, and their position is
+    specified as a coordinate value on that axis.
     """
     def __cinit__(self):
         self.can_have_sibling = True
@@ -6883,7 +7183,10 @@ cdef class AxisTag(baseItem):
     @property
     def show(self):
         """
-        Writable attribute: Should the object be drawn/shown ?
+        Controls the visibility of the axis tag.
+        
+        When set to True, the tag is visible on the axis. When set to False,
+        the tag is not rendered, though it remains in the object hierarchy.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6898,13 +7201,15 @@ cdef class AxisTag(baseItem):
     @property
     def bg_color(self):
         """
-        Writable attribute: Background color of the tag.
-        0 means no background, in which case ImPlotCol_AxisText
-        is used for the text color. Else Text is automatically
-        set to white or black depending on the background color
-
-        Returns:
-            list: RGBA values in [0,1] range
+        Background color of the tag as RGBA values.
+        
+        A value of 0 (default) means no background color will be applied, and
+        ThemeStyleImPlot's AxisText will be used for the text color. When a background
+        color is specified, the text color automatically adjusts to white or
+        black for optimal contrast with the background.
+        
+        Color values are represented as a list of RGBA components in the [0,1]
+        range.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6921,7 +7226,11 @@ cdef class AxisTag(baseItem):
     @property
     def coord(self):
         """
-        Writable attribute: Coordinate of the tag.
+        Position of the tag along the parent axis.
+        
+        Specifies the coordinate value where the tag should be placed on the
+        parent axis. The coordinate is in the same units as the axis data
+        (not in pixels or screen coordinates).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6936,7 +7245,12 @@ cdef class AxisTag(baseItem):
     @property
     def text(self):
         """
-        Writable attribute: Text of the tag.
+        Text label displayed with the axis tag.
+        
+        The text is rendered alongside the tag marker. If no text is provided,
+        only the marker itself will be shown. Formatting options such as color
+        and size are controlled by the tag's style properties rather than
+        embedded in this text.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6962,10 +7276,18 @@ cdef class baseFont(baseItem):
 
 cdef class baseTheme(baseItem):
     """
-    Base theme element. Contains a set of theme elements to apply for a given category (color, style)/(imgui/implot/imnode).
-
-    Attributes:
-    - enabled: Boolean indicating if the theme is enabled.
+    Base theme element containing visual style settings.
+    
+    A theme defines a set of visual properties that can be applied to UI elements
+    to control their appearance. Themes can target different backends (ImGui, ImPlot, 
+    ImNodes) and different aspects (colors, styles).
+    
+    Themes are applied hierarchically - a theme attached to a parent item will 
+    affect all its children unless overridden. Multiple themes can be combined,
+    with more specific themes taking precedence over more general ones.
+    
+    Themes can be conditionally applied based on element states (enabled/disabled,
+    hovered/unhovered) and element categories (window, plot, node, etc).
     """
     def __init__(self, context, **kwargs):
         self._enabled = kwargs.pop("enabled", self._enabled)
@@ -6981,6 +7303,13 @@ cdef class baseTheme(baseItem):
         baseItem.configure(self, **kwargs)
     @property
     def enabled(self):
+        """
+        Controls whether the theme is currently active.
+        
+        When set to False, the theme will not be applied when its push() method is
+        called, effectively disabling its visual effects without removing it from
+        the item hierarchy.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._enabled

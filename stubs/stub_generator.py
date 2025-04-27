@@ -6,7 +6,7 @@ level1 = "    "
 level2 = level1 + level1
 level3 = level2 + level1
 
-def remove_jumps_start_and(s : str | None):
+def remove_jumps_start_and_end(s : str | None):
     if s is None:
         return None
     if len(s) < 2:
@@ -16,6 +16,17 @@ def remove_jumps_start_and(s : str | None):
     if s[-1] == '\n':
         s = s[:-1]
     return s
+
+def get_short_docstring(s : str | None):
+    if s is None:
+        return None
+    s = remove_jumps_start_and_end(s)
+    if s is None:
+        return None
+    s = s.split("\n")
+    if len(s) == 0:
+        return None
+    return s[0]
 
 def indent(s: list[str] | str, trim_start=False, short=False):
     was_str = isinstance(s, str)
@@ -175,7 +186,7 @@ def generate_docstring_for_class(object_class, instance):
         if attr_inst is not None and inspect.isbuiltin(attr_inst):
             continue
         is_dynamic = attr in dynamic_attributes
-        docs[attr] = remove_jumps_start_and(getattr(attr_inst, '__doc__', None))
+        docs[attr] = remove_jumps_start_and_end(getattr(attr_inst, '__doc__', None))
         default_value = None
         is_accessible = False
         is_writable = False
@@ -222,7 +233,7 @@ def generate_docstring_for_class(object_class, instance):
             f"class {object_class.__name__}:"
         ]
     docstring = getattr(object_class, '__doc__', None)
-    docstring = remove_jumps_start_and(docstring)
+    docstring = remove_jumps_start_and_end(docstring)
     if docstring is not None:
         result += [
             level1 + '"""',
@@ -272,16 +283,9 @@ def generate_docstring_for_class(object_class, instance):
                 for prop in sorted(additional_properties):
                     if docs[prop] is not None:
                         doc = docs[prop]
-                        if doc is not None:
-                            doc = doc.split("attribute:")
-                            if len(doc) == 1:
-                                doc = doc[0]
-                            elif len(doc) == 2:
-                                doc = doc[1]
-                            else:
-                                assert(False)
+                        doc = get_short_docstring(doc)
                         doc = indent(doc, trim_start=True, short=True)
-                        kwargs_docs.append(f"{level2}{prop}: {doc}")
+                        kwargs_docs.append(f"{level2}- {prop}: {doc}")
                     v = default_values[prop]
                     v_type = typename(object_class, instance, prop, v)
                     if v_type is None:
@@ -306,13 +310,16 @@ def generate_docstring_for_class(object_class, instance):
         else:
             call_str += f' -> {call_sig.return_annotation}:'
         result.append(call_str)
-        docstring = remove_jumps_start_and(getattr(method, '__doc__', None))
+        docstring = remove_jumps_start_and_end(getattr(method, '__doc__', None))
         if len(kwargs_docs) > 0:
+            kwargs_docs = [f"{level2}Parameters", f"{level2}----------"] + kwargs_docs
             kwargs_docs = "\n".join(kwargs_docs)
             if docstring is None or "help(type(self))" in docstring:
                 docstring = kwargs_docs
             else:
                 docstring += "\n" + kwargs_docs
+        elif docstring is not None and "help(type(self))" in docstring:
+            docstring = None
         if docstring is not None:
             result += [
                 level2 + '"""',
@@ -348,15 +355,22 @@ def generate_docstring_for_class(object_class, instance):
             result.append(f"{level1}{definition} -> {tname_read}:")
         docstring = docs[property]
         if docstring is not None:
+            if property in read_only_properties:
+                docstring_prefix = "(Read-only) "
+            else:
+                docstring_prefix = ""
             if docstring[0] == " ":
+                # Count leading spaces
+                leading_spaces_count = len(docstring) - len(docstring.lstrip())
+                leading_spaces = docstring[:leading_spaces_count]
                 result += [
                     level2 + '"""',
-                    docstring,
+                    leading_spaces + docstring_prefix + docstring[leading_spaces_count:],
                     level2 + '"""'
                 ]
             else:
                 result += [
-                    level2 + '"""' + docstring,
+                    level2 + '"""' + docstring_prefix + docstring,
                     level2 + '"""'
                 ]
         result.append(level2 + "...")
@@ -371,6 +385,10 @@ def generate_docstring_for_class(object_class, instance):
             result.append(f"{level1}def {property}(self, value : {tname}):")
         result.append(level2 + "...")
         result.append("\n")
+
+    # Strip trailing spaces
+    for i in range(len(result)):
+        result[i] = "\n".join([row.rstrip() for row in result[i].split("\n")])
 
     return result
 

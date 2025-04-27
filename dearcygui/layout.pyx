@@ -28,35 +28,27 @@ from .wrapper cimport imgui
 
 cdef class Layout(uiItem):
     """
-    A layout is a group of elements organized
-    together.
-    The layout states correspond to the OR
-    of all the item states, and the rect size
-    corresponds to the minimum rect containing
-    all the items. The position of the layout
-    is used to initialize the default position
-    for the first item.
-    For example setting indent will shift all
-    the items of the Layout.
+    A layout is a group of elements organized together.
+    
+    The layout states correspond to the OR of all the item states, and the rect 
+    size corresponds to the minimum rect containing all the items. The position 
+    of the layout is used to initialize the default position for the first item.
+    For example setting indent will shift all the items of the Layout.
 
     Subclassing Layout:
-    For custom layouts, you can use Layout with
-    a callback. The callback is called whenever
-    the layout should be updated.
+    For custom layouts, you can use Layout with a callback. The callback is 
+    called whenever the layout should be updated.
 
-    If the automated update detection is not
-    sufficient, update_layout() can be called
-    to force a recomputation of the layout.
+    If the automated update detection is not sufficient, update_layout() can be 
+    called to force a recomputation of the layout.
 
-    Currently the update detection detects a change in
-    the size of the remaining content area available
-    locally within the window, or if the last item has changed.
+    Currently the update detection detects a change in the size of the remaining 
+    content area available locally within the window, or if the last item has 
+    changed.
 
-    The layout item works by changing the positioning
-    policy and the target position of its children, and
-    thus there is no guarantee that the user set
-    positioning and position states of the children are
-    preserved.
+    The layout item works by changing the positioning policy and the target 
+    position of its children, and thus there is no guarantee that the user set
+    positioning and position states of the children are preserved.
     """
     def __cinit__(self):
         self.can_have_widget_child = True
@@ -73,6 +65,13 @@ cdef class Layout(uiItem):
         self._previous_last_child = NULL
 
     def update_layout(self):
+        """
+        Force an update of the layout next time the scene is rendered.
+        
+        This method triggers the recalculation of item positions and sizes 
+        within the layout. It's useful when the automated update detection 
+        is not sufficient to detect layout changes.
+        """
         cdef int32_t i
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -180,8 +179,16 @@ cdef class Layout(uiItem):
 
 cdef class HorizontalLayout(Layout):
     """
-    A basic layout to organize the items
-    horizontally.
+    A layout that organizes items horizontally from left to right.
+    
+    HorizontalLayout arranges child elements in a row, with customizable 
+    alignment modes, spacing, and wrapping options. It can align items to 
+    the left or right edge, center them, distribute them evenly using the
+    justified mode, or position them manually.
+    
+    The layout automatically tracks content width changes and repositions 
+    children when needed. Wrapping behavior can be customized to control 
+    how items overflow when they exceed available width.
     """
     def __cinit__(self):
         self._alignment_mode = Alignment.LEFT
@@ -190,18 +197,16 @@ cdef class HorizontalLayout(Layout):
     def alignment_mode(self):
         """
         Horizontal alignment mode of the items.
+        
         LEFT: items are appended from the left
         RIGHT: items are appended from the right
         CENTER: items are centered
-        JUSTIFIED: spacing is organized such
-        that items start at the left and end
-        at the right.
-        MANUAL: items are positionned at the requested
-        positions
-
-        FOR LEFT/RIGHT/CENTER, ItemSpacing's style can
-        be used to control spacing between the items.
-        Default is LEFT.
+        JUSTIFIED: spacing is organized such that items start at the left 
+            and end at the right
+        MANUAL: items are positioned at the requested positions
+        
+        For LEFT/RIGHT/CENTER, ItemSpacing's style can be used to control 
+        spacing between the items. Default is LEFT.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -221,8 +226,11 @@ cdef class HorizontalLayout(Layout):
     @property
     def no_wrap(self):
         """
-        Disable wrapping to the next row when the
-        elements cannot fit in the available region.
+        Controls whether items wrap to the next row when exceeding available width.
+        
+        When set to True, items will continue on the same row even if they exceed
+        the layout's width. When False (default), items that don't fit will
+        continue on the next row.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -240,14 +248,12 @@ cdef class HorizontalLayout(Layout):
     @property
     def wrap_x(self):
         """
-        When wrapping, on the second row and later rows,
-        start from the wrap_x position relative to the
-        starting position. Note the value is in pixel value
-        and you must scale it if needed. The wrapping position
-        is clamped such that you always start at a position >= 0
-        relative to the window content area, thus passing
-        a significant negative value will bring back to
-        the start of the window.
+        X position from which items start on wrapped rows.
+        
+        When items wrap to a second or later row, this value determines the
+        horizontal offset from the starting position. The value is in pixels
+        and must be scaled if needed. The position is clamped to ensure items
+        always start at a position >= 0 relative to the window content area.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -262,20 +268,17 @@ cdef class HorizontalLayout(Layout):
     @property
     def positions(self):
         """
-        When in MANUAL mode, the x position starting
-        from the top left of this item at which to
-        place the children items.
-
-        If the positions are between 0 and 1, they are
-        interpreted as percentages relative to the
-        size of the Layout width.
-        If the positions are negatives, they are interpreted
-        as in reference to the right of the layout rather
-        than the left. Items are still left aligned to
-        the target position though.
-
-        Setting this field sets the alignment mode to
-        MANUAL.
+        X positions for items when using MANUAL alignment mode.
+        
+        When in MANUAL mode, these are the x positions from the top left of this
+        layout at which to place the children items.
+        
+        Values between 0 and 1 are interpreted as percentages relative to the
+        layout width. Negative values are interpreted as relative to the right
+        edge rather than the left. Items are still left-aligned to the target
+        position.
+        
+        Setting this property automatically sets alignment_mode to MANUAL.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -299,8 +302,11 @@ cdef class HorizontalLayout(Layout):
 
     def update_layout(self):
         """
-        Force an update of the layout next time the scene
-        is rendered
+        Force an update of the layout next time the scene is rendered.
+        
+        This method triggers the recalculation of item positions and sizes 
+        within the layout. It's useful when the automated update detection 
+        is not sufficient to detect layout changes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -538,7 +544,16 @@ cdef class HorizontalLayout(Layout):
 
 cdef class VerticalLayout(Layout):
     """
-    Same as HorizontalLayout but vertically
+    A layout that organizes items vertically from top to bottom.
+    
+    VerticalLayout arranges child elements in a column, with customizable 
+    alignment modes, spacing, and positioning options. It can align items to 
+    the top or bottom edge, center them, distribute them evenly using the 
+    justified mode, or position them manually.
+    
+    The layout automatically tracks content height changes and repositions 
+    children when needed. Different alignment modes can be used to control 
+    how items are positioned within the available vertical space.
     """
     def __cinit__(self):
         self._alignment_mode = Alignment.TOP
@@ -547,18 +562,16 @@ cdef class VerticalLayout(Layout):
     def alignment_mode(self):
         """
         Vertical alignment mode of the items.
+        
         TOP: items are appended from the top
-        BOTTOM: items are appended from the BOTTOM
+        BOTTOM: items are appended from the bottom
         CENTER: items are centered
-        JUSTIFIED: spacing is organized such
-        that items start at the TOP and end
-        at the BOTTOM.
-        MANUAL: items are positionned at the requested
-        positions
-
-        FOR TOP/BOTTOM/CENTER, ItemSpacing's style can
-        be used to control spacing between the items.
-        Default is TOP.
+        JUSTIFIED: spacing is organized such that items start at the top 
+            and end at the bottom
+        MANUAL: items are positioned at the requested positions
+        
+        For TOP/BOTTOM/CENTER, ItemSpacing's style can be used to control 
+        spacing between items. Default is TOP.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -575,20 +588,17 @@ cdef class VerticalLayout(Layout):
     @property
     def positions(self):
         """
-        When in MANUAL mode, the y position starting
-        from the top left of this item at which to
-        place the children items.
-
-        If the positions are between 0 and 1, they are
-        interpreted as percentages relative to the
-        size of the Layout height.
-        If the positions are negatives, they are interpreted
-        as in reference to the bottom of the layout rather
-        than the top. Items are still top aligned to
-        the target position though.
-
-        Setting this field sets the alignment mode to
-        MANUAL.
+        Y positions for items when using MANUAL alignment mode.
+        
+        When in MANUAL mode, these are the y positions from the top left of this
+        layout at which to place the children items.
+        
+        Values between 0 and 1 are interpreted as percentages relative to the
+        layout height. Negative values are interpreted as relative to the bottom
+        edge rather than the top. Items are still top-aligned to the target
+        position.
+        
+        Setting this property automatically sets alignment_mode to MANUAL.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -611,8 +621,11 @@ cdef class VerticalLayout(Layout):
 
     def update_layout(self):
         """
-        Force an update of the layout next time the scene
-        is rendered
+        Force an update of the layout next time the scene is rendered.
+        
+        This method triggers the recalculation of item positions and sizes 
+        within the layout. It's useful when the automated update detection 
+        is not sufficient to detect layout changes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -928,22 +941,15 @@ cdef class WindowLayout(uiItem):
 cdef class WindowHorizontalLayout(WindowLayout):
     """
     Layout to organize windows horizontally.
-
+    
     Similar to HorizontalLayout but handles window positioning.
     Windows will be arranged left-to-right with customizable alignment
-    and spacing.
-
-    Attributes:
-    ----------
-    alignment_mode : Alignment
-        Horizontal alignment of windows.
-        LEFT: Windows start from left edge
-        RIGHT: Windows start from right edge  
-        CENTER: Windows are centered
-        JUSTIFIED: Space is distributed evenly between windows
-        MANUAL: Windows positioned at specified positions
-    positions : list[float]
-        When in MANUAL mode, the x positions for each window
+    and spacing options.
+    
+    Windows can be aligned to the left or right edge, centered, distributed 
+    evenly using justified mode, or positioned manually. The layout 
+    automatically tracks content width changes and repositions windows 
+    when needed.
     """
 
     def __cinit__(self):
@@ -953,15 +959,14 @@ cdef class WindowHorizontalLayout(WindowLayout):
     def alignment_mode(self):
         """
         Horizontal alignment mode of the windows.
+        
         LEFT: windows are appended from the left
         RIGHT: windows are appended from the right
         CENTER: windows are centered
-        JUSTIFIED: spacing is organized such
-        that windows start at the left and end
-        at the right.
-        MANUAL: windows are positionned at the requested
-        positions
-
+        JUSTIFIED: spacing is organized such that windows start at the left 
+            and end at the right
+        MANUAL: windows are positioned at the requested positions
+        
         The default is LEFT.
         """
         cdef unique_lock[DCGMutex] m 
@@ -982,8 +987,11 @@ cdef class WindowHorizontalLayout(WindowLayout):
     @property 
     def no_wrap(self):
         """
-        Disable wrapping to the next row when the
-        windows cannot fit in the available region.
+        Controls whether windows wrap to the next row when exceeding width.
+        
+        When set to True, windows will continue on the same row even if they 
+        exceed the layout's width. When False (default), windows that don't 
+        fit will continue on the next row.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1001,13 +1009,12 @@ cdef class WindowHorizontalLayout(WindowLayout):
     @property
     def wrap_y(self):
         """
-        When wrapping, on the second row and later rows,
-        start from the wrap_y position relative to the
-        starting position. The wrapping position
-        is clamped such that you always start at a position >= 0
-        relative to the viewport, thus passing
-        a significant negative value will bring back to
-        the start of the viewport.
+        Y position from which windows start on wrapped rows.
+        
+        When windows wrap to a second or later row, this value determines the
+        vertical offset from the starting position. The position is clamped
+        to ensure windows always start at a position >= 0 relative to the
+        viewport.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1022,19 +1029,16 @@ cdef class WindowHorizontalLayout(WindowLayout):
     @property
     def positions(self):
         """
-        When in MANUAL mode, the x position starting
-        from the top left of this item at which to
-        place the windows.
-
-        If the positions are between 0 and 1, they are
-        interpreted as percentages relative to the
-        available viewport width.
-        If the positions are negatives, they are interpreted
-        as in reference to the right of the viewport rather
-        than the left.
-
-        Setting this field sets the alignment mode to
-        MANUAL.
+        X positions for windows when using MANUAL alignment mode.
+        
+        When in MANUAL mode, these are the x positions from the top left of this
+        layout at which to place the windows.
+        
+        Values between 0 and 1 are interpreted as percentages relative to the
+        available viewport width. Negative values are interpreted as relative to 
+        the right edge rather than the left.
+        
+        Setting this property automatically sets alignment_mode to MANUAL.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1158,24 +1162,16 @@ cdef class WindowHorizontalLayout(WindowLayout):
 cdef class WindowVerticalLayout(WindowLayout):
     """
     Layout to organize windows vertically.
-
+    
     Similar to VerticalLayout but handles window positioning.
     Windows will be arranged top-to-bottom with customizable alignment
-    and spacing.
-
-    Attributes:
-    ----------
-    alignment_mode : Alignment
-        Vertical alignment of windows.
-        TOP: Windows start from top edge
-        BOTTOM: Windows start from bottom edge  
-        CENTER: Windows are centered
-        JUSTIFIED: Space is distributed evenly between windows
-        MANUAL: Windows positioned at specified positions
-    positions : list[float]
-        When in MANUAL mode, the y positions for each window.
-        Values between 0-1 are interpreted as percentages.
-        Negative values reference from bottom edge.
+    and spacing options. It can align windows to the top or bottom edge, 
+    center them, distribute them evenly using the justified mode, or position 
+    them manually.
+    
+    The layout automatically tracks content height changes and repositions 
+    windows when needed. Different alignment modes can be used to control 
+    how windows are positioned within the available vertical space.
     """
 
     def __cinit__(self):
@@ -1185,18 +1181,16 @@ cdef class WindowVerticalLayout(WindowLayout):
     def alignment_mode(self):
         """
         Vertical alignment mode of the windows.
+        
         TOP: windows are appended from the top
         BOTTOM: windows are appended from the bottom 
         CENTER: windows are centered
-        JUSTIFIED: spacing is organized such 
-        that windows start at the TOP and end
-        at the BOTTOM.
-        MANUAL: windows are positionned at the requested
-        positions
-
-        FOR TOP/BOTTOM/CENTER, ItemSpacing's style can
-        be used to control spacing between the windows.
-        Default is TOP.
+        JUSTIFIED: spacing is organized such that windows start at the top 
+            and end at the bottom
+        MANUAL: windows are positioned at the requested positions
+        
+        For TOP/BOTTOM/CENTER, ItemSpacing's style can be used to control 
+        spacing between the windows. Default is TOP.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1216,20 +1210,17 @@ cdef class WindowVerticalLayout(WindowLayout):
     @property
     def positions(self):
         """
-        When in MANUAL mode, the y position starting
-        from the top left of this item at which to
-        place the windows.
-
-        If the positions are between 0 and 1, they are
-        interpreted as percentages relative to the
-        size of the Layout height.
-        If the positions are negatives, they are interpreted
-        as in reference to the bottom of the layout rather
-        than the top. Items are still top aligned to
-        the target position though.
-
-        Setting this field sets the alignment mode to
-        MANUAL.
+        Y positions for windows when using MANUAL alignment mode.
+        
+        When in MANUAL mode, these are the y positions from the top left of this
+        layout at which to place the windows.
+        
+        Values between 0 and 1 are interpreted as percentages relative to the
+        layout height. Negative values are interpreted as relative to the bottom
+        edge rather than the top. Windows are still top-aligned to the target
+        position.
+        
+        Setting this property automatically sets alignment_mode to MANUAL.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)

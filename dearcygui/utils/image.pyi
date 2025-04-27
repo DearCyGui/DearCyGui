@@ -32,17 +32,21 @@ class DrawTiledImage(dcg.drawingItem):
         """
         ...
     
-    def add_tile(self, content, coord, opposite_coord=..., visible=...) -> None:
+    def add_tile(self, content, coord, opposite_coord=..., nearest_neighbor_upsampling=..., visible=...) -> None:
         """
         Add a tile to the list of tiles.
         Inputs:
-            content: numpy array, the content of the tile
+            content: numpy array, the content of the tile.
+                Alternatively a dcg.Texture object, in which
+                case nearest_neighbor_upsampling is ignored.
             coord: the top-left coordinate of the tile
             opposite_coord (optional): if not given,
                 defaults to coord + content.shape.
                 Else corresponds to the opposite coordinate
                 of the tile.
             visible (optional): whether the tile should start visible or not.
+            nearest_neighbor_upsampling: whether to use nearest neighbor
+                upsampling when rendering the tile.
         Outputs:
             Unique uuid of the tile.
         """
@@ -156,19 +160,18 @@ class DrawSVG(dcg.drawingItem):
     The SVG is rendered to a texture at an appropriate resolution
     based on the visible area, and reuses the texture when possible
     to avoid unnecessary re-rendering.
-
-    Attributes:
-        pmin (tuple): Top-left position in coordinate space
-        pmax (tuple): Bottom-right position in coordinate space
-        svg_path (str): Path to SVG file to load
-        preserve_ratio (bool): Whether to preserve aspect ratio when fitting
     """
     def __init__(self, *args, **kwargs) -> None:
         ...
     
     @property
     def svg_path(self): # -> str:
-        """Path to SVG file"""
+        """
+        Path to the SVG file being displayed.
+
+        This path identifies the SVG file loaded by the renderer. Setting this
+        property will create a new renderer instance with the provided file.
+        """
         ...
     
     @svg_path.setter
@@ -177,7 +180,12 @@ class DrawSVG(dcg.drawingItem):
     
     @property
     def pmin(self): # -> Coord:
-        """Top-left position in coordinate space"""
+        """
+        Top-left position in coordinate space.
+
+        Defines the upper-left corner of the rectangle where the SVG will be
+        drawn. Together with pmax, this determines the display area bounds.
+        """
         ...
     
     @pmin.setter
@@ -186,7 +194,12 @@ class DrawSVG(dcg.drawingItem):
     
     @property
     def pmax(self): # -> Coord:
-        """Bottom-right position in coordinate space"""
+        """
+        Bottom-right position in coordinate space.
+
+        Defines the lower-right corner of the rectangle where the SVG will be
+        drawn. Together with pmin, this determines the display area bounds.
+        """
         ...
     
     @pmax.setter
@@ -195,7 +208,13 @@ class DrawSVG(dcg.drawingItem):
     
     @property
     def no_preserve_ratio(self): # -> bool:
-        """Whether to preserve aspect ratio when fitting"""
+        """
+        Whether to allow stretching the SVG to fit the area.
+
+        When True, the SVG can be stretched in both dimensions independently to
+        fill the entire display area. When False (default), the aspect ratio is
+        preserved.
+        """
         ...
     
     @no_preserve_ratio.setter
@@ -204,7 +223,12 @@ class DrawSVG(dcg.drawingItem):
     
     @property
     def no_centering(self): # -> bint:
-        """Whether to align SVG to top-left instead of centering"""
+        """
+        Whether to align SVG to top-left instead of centering.
+
+        When True, the SVG is aligned to the top-left corner of the display area.
+        When False (default), the SVG is centered within the display area.
+        """
         ...
     
     @no_centering.setter

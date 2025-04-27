@@ -67,26 +67,32 @@ cdef extern from * nogil:
 
 cdef class AxesResizeHandler(baseHandler):
     """
-    Handler that can only be bound to a plot,
-    and that triggers the callback whenever the
-    axes min/max OR the plot region box changes.
-    Basically whenever the size
-    of a pixel within plot coordinate has likely changed.
-
-    The data field passed to the callback contains
-    ((min, max, scale), (min, max, scale)) where
-    scale = (max-min) / num_real_pixels
-    and the first tuple is for the target X axis (default X1),
-    and the second tuple for the target Y axis (default Y1)
+    Handler that detects changes in plot axes dimensions or view area.
+    
+    This handler monitors both the axes min/max values and the plot region size,
+    triggering the callback whenever these dimensions change. This is useful for
+    detecting when the scale of pixels within plot coordinates has changed, such 
+    as after zoom operations or window resizing.
+    
+    The data field passed to the callback contains:
+    ((x_min, x_max, x_scale), (y_min, y_max, y_scale))
+    
+    Where:
+    - x_min, x_max: Current axis limits
+    - x_scale: Scaling factor (max-min)/pixels
+    - First tuple is for X axis (default X1)
+    - Second tuple is for Y axis (default Y1)
     """
     def __cinit__(self):
         self._axes = [implot.ImAxis_X1, implot.ImAxis_Y1]
     @property
     def axes(self):
         """
-        Writable attribute: (X axis, Y axis)
-        used for this handler.
-        Default is (X1, Y1)
+        The (X axis, Y axis) pair monitored by this handler.
+        
+        Specifies which axes this handler should monitor for dimensional changes.
+        Valid X axes are X1, X2, X3. Valid Y axes are Y1, Y2, Y3.
+        Default is (X1, Y1).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -187,6 +193,16 @@ cdef class AxesResizeHandler(baseHandler):
 
 # BaseItem that has has no parent/child nor sibling
 cdef class PlotAxisConfig(baseItem):
+    """
+    Configuration for a plot axis.
+    
+    Controls the appearance, behavior and limits of an axis in a plot. Each plot 
+    can have up to six axes (X1, X2, X3, Y1, Y2, Y3) that can be configured 
+    individually. By default, only X1 and Y1 are enabled.
+    
+    Can have AxisTag elements as children to add markers at specific positions
+    along the axis.
+    """
     def __cinit__(self):
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_clicked = True
@@ -208,8 +224,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def enabled(self):
         """
-        Whether elements using this axis should
-        be drawn.
+        Whether elements using this axis should be drawn.
+        
+        When disabled, plot elements assigned to this axis will not be rendered.
+        At least one X and one Y axis must be enabled for the plot to display
+        properly.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -224,8 +243,13 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def scale(self):
         """
-        Current AxisScale.
-        Default is AxisScale.linear
+        Current axis scale type.
+        
+        Controls how values are mapped along the axis. Options include:
+        - LINEAR: Linear mapping (default)
+        - TIME: Display values as dates/times
+        - LOG10: Logarithmic scale (base 10)
+        - SYMLOG: Symmetric logarithmic scale
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -246,9 +270,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def min(self):
         """
-        Current minimum of the range displayed.
-        Do not set max <= min. Set invert to change
-        the axis order.
+        Current minimum value of the axis range.
+        
+        Sets the lower bound of the visible range. Should be less than max.
+        To reverse the axis direction, use the invert property instead of
+        swapping min/max values.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -264,9 +290,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def max(self):
         """
-        Current maximum of the range displayed.
-        Do not set max <= min. Set invert to change
-        the axis order.
+        Current maximum value of the axis range.
+        
+        Sets the upper bound of the visible range. Should be greater than min.
+        To reverse the axis direction, use the invert property instead of
+        swapping min/max values.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -282,8 +310,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def constraint_min(self):
         """
-        Constraint on the minimum value
-        of min.
+        Minimum allowed value for the axis minimum.
+        
+        Sets a hard limit on how far the axis can be zoomed or panned out.
+        The minimum value of the axis will never go below this value.
+        Default is negative infinity (no constraint).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -298,8 +329,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def constraint_max(self):
         """
-        Constraint on the maximum value
-        of max.
+        Maximum allowed value for the axis maximum.
+        
+        Sets a hard limit on how far the axis can be zoomed or panned out.
+        The maximum value of the axis will never go above this value.
+        Default is positive infinity (no constraint).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -314,8 +348,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def zoom_min(self):
         """
-        Constraint on the minimum value
-        of the zoom
+        Minimum allowed width of the axis range.
+        
+        Constrains the minimum zoom level by enforcing a minimum distance
+        between min and max. Prevents extreme zooming in.
+        Default is 0 (no constraint).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -330,8 +367,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def zoom_max(self):
         """
-        Constraint on the maximum value
-        of the zoom
+        Maximum allowed width of the axis range.
+        
+        Constrains the maximum zoom level by enforcing a maximum distance
+        between min and max. Prevents extreme zooming out.
+        Default is infinity (no constraint).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -346,7 +386,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def no_label(self):
         """
-        Writable attribute to not render the axis label
+        Whether to hide the axis label.
+        
+        When True, the axis label will not be displayed, saving space in
+        the plot. Useful for minimalist plots or when space is limited.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -363,7 +406,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def no_gridlines(self):
         """
-        Writable attribute to not render grid lines
+        Whether to hide the grid lines.
+        
+        When True, the grid lines that extend from the axis ticks across
+        the plot area will not be drawn, creating a cleaner appearance.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -380,7 +426,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def no_tick_marks(self):
         """
-        Writable attribute to not render tick marks
+        Whether to hide the tick marks on the axis.
+        
+        When True, the small lines that indicate tick positions on the axis
+        will not be drawn, while still keeping tick labels if enabled.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -397,7 +446,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def no_tick_labels(self):
         """
-        Writable attribute to not render tick labels
+        Whether to hide the text labels for tick marks.
+        
+        When True, the numerical or text labels that display the value at
+        each tick position will not be drawn, while still keeping the tick
+        marks themselves if enabled.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -414,8 +467,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def no_initial_fit(self):
         """
-        Writable attribute to disable fitting the extent
-        of the axis to the data on the first frame.
+        Whether to disable automatic fitting on the first frame.
+        
+        When True, the axis will not automatically adjust to fit the data 
+        on the first frame. The axis will maintain its default range until 
+        explicitly fitted or adjusted.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -433,8 +489,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def no_menus(self):
         """
-        Writable attribute to prevent right-click to
-        open context menus.
+        Whether to disable context menus for this axis.
+        
+        When True, right-clicking on the axis will not open the context menu
+        that provides options to fit data, set scales, etc.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -451,8 +509,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def no_side_switch(self):
         """
-        Writable attribute to prevent the user from switching
-        the axis by dragging it.
+        Whether to prevent the user from switching the axis side.
+        
+        When True, the user cannot drag the axis to the opposite side of the
+        plot. For example, an X-axis cannot be moved from bottom to top.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -469,8 +529,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def no_highlight(self):
         """
-        Writable attribute to not highlight the axis background
-        when hovered or held
+        Whether to disable axis highlighting when hovered or selected.
+        
+        When True, the axis background will not be highlighted when the mouse
+        hovers over it or when it is selected, providing a more consistent
+        appearance.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -487,8 +550,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def opposite(self):
         """
-        Writable attribute to render ticks and labels on
-        the opposite side.
+        Whether to display ticks and labels on the opposite side of the axis.
+        
+        When True, labels and ticks are rendered on the opposite side from
+        their default position. For example, ticks on an X-axis would appear
+        above rather than below the axis line.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -505,8 +571,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def foreground_grid(self):
         """
-        Writable attribute to render gridlines on top of
-        the data rather than behind.
+        Whether to draw grid lines in the foreground.
+        
+        When True, grid lines are drawn on top of plot data rather than
+        behind it. This can improve grid visibility when plot elements would
+        otherwise obscure the grid.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -523,7 +592,12 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def invert(self):
         """
-        Writable attribute to invert the values of the axis
+        Whether the axis direction is inverted.
+        
+        When True, the axis will be displayed in the reverse direction, with
+        values decreasing rather than increasing along the axis direction.
+        This is the proper way to flip axis direction, rather than swapping
+        min/max values.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -540,8 +614,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def auto_fit(self):
         """
-        Writable attribute to force the axis to fit its range
-        to the data every frame.
+        Whether the axis automatically fits to data every frame.
+        
+        When True, the axis will continuously adjust its range to ensure
+        all plotted data is visible, regardless of user interactions. This
+        overrides manual zooming and panning.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -558,9 +635,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def restrict_fit_to_range(self):
         """
-        Writable attribute to ignore points that are outside
-        the visible region of the opposite axis when fitting
-        this axis.
+        Whether to restrict fitting to data within the opposing axis range.
+        
+        When True, data points that are outside the visible range of the
+        opposite axis will be ignored when auto-fitting this axis. This can
+        prevent outliers from one dimension affecting the scale of the other.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -577,9 +656,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def pan_stretch(self):
         """
-        Writable attribute that when set, if panning in a locked or
-        constrained state, will cause the axis to stretch
-        if possible.
+        Whether panning can stretch locked or constrained axes.
+        
+        When True, if the axis is being panned while in a locked or 
+        constrained state, it will stretch instead of maintaining fixed 
+        bounds. Useful for maintaining context while exploring limited ranges.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -596,8 +677,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def lock_min(self):
         """
-        Writable attribute to lock the axis minimum value
-        when panning/zooming
+        Whether the axis minimum value is locked when panning/zooming.
+        
+        When True, the minimum value of the axis will not change during
+        panning or zooming operations. Only the maximum value will adjust.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -614,8 +697,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def lock_max(self):
         """
-        Writable attribute to lock the axis maximum value
-        when panning/zooming
+        Whether the axis maximum value is locked when panning/zooming.
+        
+        When True, the maximum value of the axis will not change during
+        panning or zooming operations. Only the minimum value will adjust.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -632,7 +717,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def hovered(self):
         """
-        Readonly attribute: Is the mouse inside the axis label area
+        Whether the mouse is hovering over the axis label area.
+        
+        Useful for implementing custom hover effects or tooltips for axis
+        elements. This state updates automatically during rendering.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -641,11 +729,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def clicked(self):
         """
-        Readonly attribute: has the item just been clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the axis was clicked in the current frame.
+        
+        Returns a tuple containing the clicked state for each mouse button.
+        This state is reset on the next frame, so it's recommended to use
+        handlers to respond to click events rather than polling this property.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -654,14 +742,13 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def mouse_coord(self):
         """
-        Readonly attribute:
-        The last estimated mouse position in plot space
-        for this axis.
-        Beware not to assign the same instance of
-        PlotAxisConfig to several axes if you plan on using
-        this.
-        The mouse position is updated everytime the plot is
-        drawn and the axis is enabled.
+        Current mouse position in plot units for this axis.
+        
+        Contains the estimated coordinate of the mouse cursor along this axis.
+        Updated every time the plot is drawn when this axis is enabled.
+        
+        When using the same axis instance with multiple plots, this value will
+        reflect whichever plot was last rendered.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -670,8 +757,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def handlers(self):
         """
-        Writable attribute: bound handlers for the axis.
-        Only visible, hovered and clicked handlers are compatible.
+        Event handlers attached to this axis.
+        
+        Handlers can respond to visibility changes, hover events, and click
+        events. Use this to implement custom interactions with the axis.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -706,7 +795,11 @@ cdef class PlotAxisConfig(baseItem):
 
     def fit(self):
         """
-        Request for a fit of min/max to the data the next time the plot is drawn
+        Request an axis fit to the data on the next frame.
+        
+        This will adjust the axis range to encompass all plotted data during
+        the next rendering cycle. The fit operation is a one-time action that
+        doesn't enable auto-fitting for subsequent frames.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -715,7 +808,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def label(self):
         """
-        Writable attribute: axis name
+        Text label for the axis.
+        
+        This text appears beside the axis and describes what the axis
+        represents. For example, "Time (s)" or "Voltage (V)".
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -730,7 +826,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def format(self):
         """
-        Writable attribute: format string to display axis values
+        Format string for displaying tick labels.
+        
+        Controls how numeric values are formatted on the axis. Uses printf-style
+        format specifiers like "%.2f" for 2 decimal places or "%d" for integers.
+        Leave empty to use the default format.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -745,7 +845,11 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def labels(self):
         """
-        Writable attribute: array of strings to display as labels
+        Custom text labels for specific tick positions.
+        
+        Replace default numeric tick labels with text. Must be used in
+        conjunction with labels_coord to specify positions. Useful for 
+        categorical data or custom annotations.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -775,8 +879,10 @@ cdef class PlotAxisConfig(baseItem):
     @property
     def labels_coord(self):
         """
-        Writable attribute: coordinate for each label in labels at
-        which to display the labels
+        Coordinate positions for custom tick labels.
+        
+        Specifies where to place each label from the labels property along
+        the axis. Must contain the same number of elements as labels.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -802,9 +908,11 @@ cdef class PlotAxisConfig(baseItem):
     @property 
     def keep_default_ticks(self):
         """
-        If set to True, when custom labels are provided via the labels property,
-        the default ticks will be kept in addition to the custom labels.
-        Default is False.
+        Whether to keep default ticks when using custom labels.
+        
+        When True and custom labels are set, both the default numeric ticks
+        and the custom labels will be displayed. When False, only the
+        custom labels will be shown.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -970,6 +1078,14 @@ cdef class PlotAxisConfig(baseItem):
 
 
 cdef class PlotLegendConfig(baseItem):
+    """
+    Configuration for a plot's legend.
+    
+    Controls the appearance, behavior and position of the legend in a plot. 
+    The legend displays labels for each plotted element and allows the user 
+    to toggle visibility of individual plot items. Various options control 
+    interaction behavior and layout.
+    """
     def __cinit__(self):
         self._show = True
         self._location = <int>LegendLocation.NORTHWEST
@@ -998,8 +1114,12 @@ cdef class PlotLegendConfig(baseItem):
     @property
     def location(self):
         """
-        Position of the legend.
-        Default is LegendLocation.northwest
+        Position of the legend within the plot.
+        
+        Controls where the legend is positioned relative to the plot area.
+        Default is LegendLocation.northwest (top-left corner of the plot).
+        If the 'outside' property is True, this determines position outside
+        the plot area.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1025,8 +1145,11 @@ cdef class PlotLegendConfig(baseItem):
     @property
     def no_buttons(self):
         """
-        Writable attribute to prevent legend icons
-        to function as hide/show buttons
+        Whether legend icons can be clicked to hide/show plot items.
+        
+        When True, the legend entries will not function as interactive buttons.
+        Users won't be able to toggle visibility of plot elements by clicking
+        on their legend entries.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1043,8 +1166,11 @@ cdef class PlotLegendConfig(baseItem):
     @property
     def no_highlight_item(self):
         """
-        Writable attribute to disable highlighting plot items
-        when their legend entry is hovered
+        Whether to disable highlighting plot items on legend hover.
+        
+        When True, hovering over a legend entry will not highlight the 
+        corresponding plot item. This can be useful for dense plots where
+        highlighting might be visually distracting.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1061,9 +1187,10 @@ cdef class PlotLegendConfig(baseItem):
     @property
     def no_highlight_axis(self):
         """
-        Writable attribute to disable highlighting axes
-        when their legend entry is hovered
-        (only relevant if x/y-axis count > 1)
+        Whether to disable highlighting axes on legend hover.
+        
+        When True, hovering over an axis entry in the legend will not highlight
+        that axis. Only relevant when multiple axes are enabled (X2/X3/Y2/Y3).
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1080,8 +1207,11 @@ cdef class PlotLegendConfig(baseItem):
     @property
     def no_menus(self):
         """
-        Writable attribute to disable right-clicking
-        to open context menus.
+        Whether to disable context menus in the legend.
+        
+        When True, right-clicking on legend entries will not open the context
+        menu that provides additional options for controlling the plot. This
+        simplifies the interface when these advanced features aren't needed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1098,8 +1228,11 @@ cdef class PlotLegendConfig(baseItem):
     @property
     def outside(self):
         """
-        Writable attribute to render the legend outside
-        of the plot area
+        Whether to render the legend outside the plot area.
+        
+        When True, the legend will be positioned outside the main plot area,
+        preserving more space for the actual plot content. The location 
+        property still controls which side or corner the legend appears on.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1116,8 +1249,11 @@ cdef class PlotLegendConfig(baseItem):
     @property
     def horizontal(self):
         """
-        Writable attribute to display the legend entries
-        horizontally rather than vertically
+        Whether to arrange legend entries horizontally instead of vertically.
+        
+        When True, legend entries will be displayed in a horizontal row rather
+        than the default vertical column. This can be useful for plots with
+        many elements when the legend would otherwise be too tall.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1134,8 +1270,11 @@ cdef class PlotLegendConfig(baseItem):
     @property
     def sorted(self):
         """
-        Writable attribute to display the legend entries
-        in alphabetical order
+        Whether to sort legend entries alphabetically.
+        
+        When True, legend entries will be displayed in alphabetical order
+        rather than in the order they were added to the plot. This can make
+        it easier to locate specific items in plots with many elements.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1163,22 +1302,19 @@ cdef class PlotLegendConfig(baseItem):
 
 cdef class Plot(uiItem):
     """
-    Plot. Can have Plot elements as child.
-
-    By default the axes X1 and Y1 are enabled,
-    but other can be enabled, up to X3 and Y3.
-    For instance:
-    my_plot.X2.enabled = True
-
-    By default, the legend and axes have reserved space.
-    They can have their own handlers that can react to
-    when they are hovered by the mouse or clicked.
-
-    The states of the plot relate to the rendering area (excluding
-    the legend, padding and axes). Thus if you want to react
-    to mouse event inside the plot area (for example implementing
-    clicking an curve), you can do it with using handlers bound
-    to the plot (+ some logic in your callbacks). 
+    Interactive 2D plot that displays data with customizable axes and legend.
+    
+    A plot provides a canvas for visualizing data through various plot elements
+    like lines, scatter points, bars, etc. The plot has up to six configurable
+    axes (X1-X3, Y1-Y3) with X1 and Y1 enabled by default.
+    
+    The plot supports user interactions like panning, zooming, and context menus.
+    Mouse hover and click events can be handled through the plot's handlers to
+    implement custom interactions with the plotted data.
+    
+    Child elements are added as plot elements that represent different
+    visualizations of data. These elements are rendered in the plotting area
+    and can appear in the legend.
     """
     def __cinit__(self, context, *args, **kwargs):
         self.can_have_plot_element_child = True
@@ -1211,6 +1347,13 @@ cdef class Plot(uiItem):
 
     @property
     def X1(self):
+        """
+        Configuration for the primary X-axis.
+        
+        This is the main horizontal axis, enabled by default. Use this property
+        to configure axis appearance, scale, range limits, and other settings
+        for the primary X-axis.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X1
@@ -1223,6 +1366,13 @@ cdef class Plot(uiItem):
 
     @property
     def X2(self):
+        """
+        Configuration for the secondary X-axis.
+        
+        This is a supplementary horizontal axis, disabled by default. Enable
+        it to plot data against a different horizontal scale than X1, useful
+        for comparing different units or scales on the same plot.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X2
@@ -1235,6 +1385,13 @@ cdef class Plot(uiItem):
 
     @property
     def X3(self):
+        """
+        Configuration for the tertiary X-axis.
+        
+        This is an additional horizontal axis, disabled by default. Enable
+        it when you need a third horizontal scale, which can be useful for
+        complex multi-scale plots or specialized scientific visualizations.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._X3
@@ -1247,6 +1404,13 @@ cdef class Plot(uiItem):
 
     @property
     def Y1(self):
+        """
+        Configuration for the primary Y-axis.
+        
+        This is the main vertical axis, enabled by default. Use this property
+        to configure axis appearance, scale, range limits, and other settings
+        for the primary Y-axis.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y1
@@ -1259,6 +1423,13 @@ cdef class Plot(uiItem):
 
     @property
     def Y2(self):
+        """
+        Configuration for the secondary Y-axis.
+        
+        This is a supplementary vertical axis, disabled by default. Enable
+        it to plot data against a different vertical scale than Y1, useful
+        for displaying relationships between variables with different units.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y2
@@ -1271,6 +1442,13 @@ cdef class Plot(uiItem):
 
     @property
     def Y3(self):
+        """
+        Configuration for the tertiary Y-axis.
+        
+        This is an additional vertical axis, disabled by default. Enable
+        it when you need a third vertical scale, useful for specialized
+        visualizations with multiple related but differently scaled variables.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._Y3
@@ -1284,8 +1462,11 @@ cdef class Plot(uiItem):
     @property
     def axes(self):
         """
-        Helper read-only property to retrieve the 6 axes
-        in an array [X1, X2, X3, Y1, Y2, Y3]
+        All six axes configurations in a list.
+        
+        Returns the axes in the order [X1, X2, X3, Y1, Y2, Y3]. This property
+        provides a convenient way to access all axes at once, for operations
+        that need to apply to multiple axes simultaneously.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1294,6 +1475,13 @@ cdef class Plot(uiItem):
 
     @property
     def legend_config(self):
+        """
+        Configuration for the plot legend.
+        
+        Controls the appearance and behavior of the legend, which displays
+        labels for each plotted element. The legend can be positioned, styled,
+        and configured to allow different interactions with plot elements.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._legend
@@ -1307,8 +1495,11 @@ cdef class Plot(uiItem):
     @property
     def pan_button(self):
         """
-        Button that when held enables to navigate inside the plot
-        Default is the left mouse button.
+        Mouse button used for panning the plot.
+        
+        When this button is held down while the cursor is over the plot area,
+        moving the mouse will pan the view. The default is the left mouse button.
+        Can be combined with pan_mod for more complex interaction patterns.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1325,9 +1516,11 @@ cdef class Plot(uiItem):
     @property
     def pan_mod(self):
         """
-        Modifier combination (shift/ctrl/alt/super) that must be
-        pressed for pan_button to have effect.
-        Default is no modifier.
+        Keyboard modifier required for panning the plot.
+        
+        Specifies which keyboard keys (Shift, Ctrl, Alt, etc.) must be held
+        down along with the pan_button to initiate panning. Default is no
+        modifier, meaning pan_button works without any keys pressed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1344,9 +1537,11 @@ cdef class Plot(uiItem):
     @property
     def fit_button(self):
         """
-        Button that must be double-clicked to initiate
-        a fit of the axes to the displayed data.
-        Default is the left mouse button.
+        Mouse button used to fit axes to data when double-clicked.
+        
+        When this button is double-clicked while the cursor is over the plot area,
+        the axes will automatically adjust to fit all visible data. Default is
+        the left mouse button.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1363,9 +1558,11 @@ cdef class Plot(uiItem):
     @property
     def menu_button(self):
         """
-        Button that opens context menus
-        (if enabled) when clicked.
-        Default is the right mouse button.
+        Mouse button used to open context menus.
+        
+        When this button is clicked over various parts of the plot, context
+        menus will appear with relevant options. Default is the right mouse
+        button. Context menus can be disabled entirely with no_menus.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1382,10 +1579,11 @@ cdef class Plot(uiItem):
     @property
     def zoom_mod(self):
         """
-        Modifier combination (shift/ctrl/alt/super) that
-        must be hold for the mouse wheel to trigger a zoom
-        of the plot.
-        Default is no modifier.
+        Keyboard modifier required for mouse wheel zooming.
+        
+        Specifies which keyboard keys (Shift, Ctrl, Alt, etc.) must be held
+        down for the mouse wheel to zoom the plot. Default is no modifier,
+        meaning the wheel zooms without any keys pressed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1402,10 +1600,11 @@ cdef class Plot(uiItem):
     @property
     def zoom_rate(self):
         """
-        Zoom rate for scroll (e.g. 0.1 = 10% plot range every
-        scroll click);
-        make negative to invert.
-        Default is 0.1
+        Zooming speed when using the mouse wheel.
+        
+        Determines how much the plot zooms with each mouse wheel tick. Default
+        is 0.1 (10% of plot range per tick). Negative values invert the zoom
+        direction, making scrolling up zoom out instead of in.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1420,8 +1619,10 @@ cdef class Plot(uiItem):
     @property
     def use_local_time(self):
         """
-        If set, axis labels will be formatted for the system
-        timezone when ImPlotAxisFlag_Time is enabled.
+        Whether to display time axes in local timezone.
+        
+        When True and an axis is in time scale mode, times will be displayed
+        according to the system's timezone. When False, UTC is used instead.
         Default is False.
         """
         return self._use_local_time
@@ -1435,10 +1636,11 @@ cdef class Plot(uiItem):
     @property
     def use_ISO8601(self):
         """
-        If set, dates will be formatted according to ISO 8601
-        where applicable (e.g. YYYY-MM-DD, YYYY-MM,
-        --MM-DD, etc.)
-        Default is False.
+        Whether to format dates according to ISO 8601.
+        
+        When True and an axis is in time scale mode, dates will be formatted
+        according to the ISO 8601 standard (YYYY-MM-DD, etc.). Default is False,
+        using locale-specific date formatting.
         """
         return self._use_ISO8601
 
@@ -1451,8 +1653,11 @@ cdef class Plot(uiItem):
     @property
     def use_24hour_clock(self):
         """
-        If set, times will be formatted using a 24 hour clock.
-        Default is False
+        Whether to use 24-hour time format.
+        
+        When True and an axis is displaying time, times will use 24-hour format
+        (e.g., 14:30 instead of 2:30 PM). Default is False, using 12-hour format
+        with AM/PM indicators where appropriate.
         """
         return self._use_24hour_clock
 
@@ -1465,8 +1670,11 @@ cdef class Plot(uiItem):
     @property
     def no_title(self):
         """
-        Writable attribute to disable the display of the
-        plot title
+        Whether to hide the plot title.
+        
+        When True, the plot's title (provided in the label parameter) will not
+        be displayed, saving vertical space. Useful for plots where the title
+        is redundant or when maximizing the plotting area.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1483,8 +1691,11 @@ cdef class Plot(uiItem):
     @property
     def no_menus(self):
         """
-        Writable attribute to disable the user interactions
-        to open the context menus
+        Whether to disable context menus.
+        
+        When True, right-clicking (or using the assigned menu_button) will not
+        open context menus that provide options for fitting data, changing
+        scales, etc. Useful for plots meant for viewing only.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1501,8 +1712,11 @@ cdef class Plot(uiItem):
     @property
     def no_mouse_pos(self):
         """
-        Writable attribute to disable the display of the
-        mouse position
+        Whether to hide the mouse position text.
+        
+        When True, the current coordinates of the mouse cursor within the plot
+        area will not be displayed. Useful for cleaner appearance or when
+        mouse position information is not relevant.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1519,8 +1733,11 @@ cdef class Plot(uiItem):
     @property
     def crosshairs(self):
         """
-        Writable attribute to replace the default mouse
-        cursor by a crosshair when hovered
+        Whether to display crosshair lines at the mouse position.
+        
+        When True, horizontal and vertical lines will follow the mouse cursor
+        while hovering over the plot area, making it easier to visually align
+        points with the axes values.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1537,8 +1754,11 @@ cdef class Plot(uiItem):
     @property
     def equal_aspects(self):
         """
-        Writable attribute to constrain x/y axes
-        pairs to have the same units/pixels
+        Whether to maintain equal pixel-to-data ratio for X and Y axes.
+        
+        When True, the plot ensures that one unit along the X axis has the
+        same pixel length as one unit along the Y axis. Essential for
+        visualizations where spatial proportions matter, like maps or shapes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1555,8 +1775,11 @@ cdef class Plot(uiItem):
     @property
     def no_inputs(self):
         """
-        Writable attribute to disable user interactions with
-        the plot.
+        Whether to disable all user interactions with the plot.
+        
+        When True, the plot becomes view-only, disabling panning, zooming,
+        and all other mouse/keyboard interactions. Useful for display-only
+        plots or when handling interactions through custom code.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1573,8 +1796,11 @@ cdef class Plot(uiItem):
     @property
     def no_frame(self):
         """
-        Writable attribute to disable the drawing of the
-        imgui frame.
+        Whether to hide the plot's outer frame.
+        
+        When True, the rectangular border around the entire plot will not be
+        drawn. Creates a more minimal appearance, especially when plots need to
+        blend with the surrounding UI.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1591,8 +1817,11 @@ cdef class Plot(uiItem):
     @property
     def no_legend(self):
         """
-        Writable attribute to disable the display of the
-        legend
+        Whether to hide the plot legend.
+        
+        When True, the legend showing labels for plotted elements will not be
+        displayed. Useful when plot elements are self-explanatory or to
+        maximize the plotting area when space is limited.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1609,8 +1838,11 @@ cdef class Plot(uiItem):
     @property
     def mouse_location(self):
         """
-        Location where the mouse position text will be displayed.
-        Default is LegendLocation.southeast.
+        Position where mouse coordinates are displayed within the plot.
+        
+        Controls where the text showing the current mouse position (in plot
+        coordinates) appears. Default is the southeast corner (bottom-right).
+        Only relevant when no_mouse_pos is False.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1738,10 +1970,14 @@ cdef class Plot(uiItem):
 
 cdef class plotElementWithLegend(plotElement):
     """
-    Base class for plot children with a legend.
-
-    Children of plot elements are rendered on a legend
-    popup entry that gets shown on a right click (by default).
+    Base class for plot children with a legend entry.
+    
+    Plot elements derived from this class appear in the plot legend and can
+    have their own popup menu when their legend entry is right-clicked. This
+    popup can contain additional widgets as children of the element.
+    
+    The legend entry can be hovered, clicked, or toggled to show/hide the
+    element. Custom handlers can be attached to respond to these interactions.
     """
     def __cinit__(self):
         self.state.cap.can_be_hovered = True # The legend only
@@ -1756,8 +1992,11 @@ cdef class plotElementWithLegend(plotElement):
     @property
     def no_legend(self):
         """
-        Writable attribute to disable the legend for this plot
-        element
+        Whether to hide this element from the plot legend.
+        
+        When True, this element will not appear in the legend, though the
+        element itself will still be plotted. This is useful for auxiliary
+        elements that don't need their own legend entry.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1776,8 +2015,11 @@ cdef class plotElementWithLegend(plotElement):
     @property
     def ignore_fit(self):
         """
-        Writable attribute to make this element
-        be ignored during plot fits
+        Whether to exclude this element when auto-fitting axes.
+        
+        When True, this element's data range will be ignored when automatically
+        determining the plot's axis limits. This is useful for reference lines
+        or annotations that shouldn't affect the data view.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1794,9 +2036,12 @@ cdef class plotElementWithLegend(plotElement):
     @property
     def enabled(self):
         """
-        Writable attribute: show/hide
-        the item while still having a toggable
-        entry in the menu.
+        Whether this element is currently visible in the plot.
+        
+        Controls the visibility of this element while keeping its entry in the
+        legend. When False, the element isn't drawn but can still be toggled
+        through the legend. This is different from the show property which
+        completely hides both the element and its legend entry.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1813,8 +2058,11 @@ cdef class plotElementWithLegend(plotElement):
     @property
     def font(self):
         """
-        Writable attribute: font used for the text rendered
-        of this item and its subitems
+        Font used for rendering this element's text.
+        
+        Determines the font applied to any text rendered as part of this
+        element and its child elements. If None, the parent plot's font
+        is used instead.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1829,9 +2077,10 @@ cdef class plotElementWithLegend(plotElement):
     @property
     def legend_button(self):
         """
-        Button that opens the legend entry for
-        this element.
-        Default is the right mouse button.
+        Mouse button that opens this element's legend popup.
+        
+        Specifies which mouse button activates the popup menu when clicked on
+        this element's legend entry. Default is the right mouse button.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1848,11 +2097,11 @@ cdef class plotElementWithLegend(plotElement):
     @property
     def legend_handlers(self):
         """
-        Writable attribute: bound handlers for the legend.
-        Only visible (set for the plot) and hovered (set 
-        for the legend) handlers are compatible.
-        To detect if the plot element is hovered, check
-        the hovered state of the plot.
+        Event handlers attached to this element's legend entry.
+        
+        These handlers respond to interactions with this element's legend
+        entry, such as when it's hovered or clicked. They don't respond to
+        interactions with the plotted element itself.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1888,8 +2137,11 @@ cdef class plotElementWithLegend(plotElement):
     @property
     def legend_hovered(self):
         """
-        Readonly attribute: Is the legend of this
-        item hovered.
+        Whether the legend entry for this element is currently hovered.
+        
+        Indicates if the mouse cursor is currently over this element's entry
+        in the plot legend. Useful for implementing hover effects or tooltips
+        specific to the legend entry.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1978,7 +2230,8 @@ cdef class plotElementXY(plotElementWithLegend):
 
     @property 
     def X(self):
-        """Values on the X axis.
+        """
+        Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
         Supported types for no copy are int32, float32, float64,
@@ -1999,7 +2252,13 @@ cdef class plotElementXY(plotElementWithLegend):
 
     @property
     def Y(self):
-        """Values on the Y axis"""
+        """
+        Values on the Y axis
+        
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return get_object_from_1D_array_view(self._Y)
@@ -2026,10 +2285,21 @@ cdef class plotElementXY(plotElementWithLegend):
                 self._Y.ensure_contiguous()
 
 cdef class PlotLine(plotElementXY):
+    """
+    Plots a line graph from X,Y data points.
+    
+    Displays a connected line through a series of data points defined by X and Y
+    coordinates. Various styling options like segmented lines, closed loops, 
+    shading beneath the line, and NaN handling can be configured.
+    """
     @property
     def segments(self):
         """
-        Plot segments rather than a full line
+        Whether to draw disconnected line segments rather than a continuous line.
+        
+        When enabled, line segments are drawn between consecutive points without
+        connecting the whole series. Useful for representing discontinuous data
+        or creating dashed/dotted effects.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2046,7 +2316,11 @@ cdef class PlotLine(plotElementXY):
     @property
     def loop(self):
         """
-        Connect the first and last points
+        Whether to connect the first and last points of the line.
+        
+        When enabled, the line plot becomes a closed shape by adding a segment
+        from the last point back to the first point. Useful for plotting cyclic
+        data or creating closed shapes.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2063,8 +2337,11 @@ cdef class PlotLine(plotElementXY):
     @property
     def skip_nan(self):
         """
-        A NaN data point will be ignored instead of
-        being rendered as missing data.
+        Whether to skip NaN values instead of breaking the line.
+        
+        When enabled, NaN values in the data will be skipped, connecting the
+        points on either side directly. When disabled, a NaN creates a break
+        in the line. Useful for handling missing data points.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2081,7 +2358,11 @@ cdef class PlotLine(plotElementXY):
     @property
     def no_clip(self):
         """
-        Markers (if displayed) on the edge of a plot will not be clipped.
+        Whether to disable clipping of markers at the plot edges.
+        
+        When enabled, point markers that would normally be clipped at the edge of
+        the plot will be fully visible. This can be useful for ensuring all data
+        points are displayed, even when they are partially outside the plotting area.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2098,8 +2379,11 @@ cdef class PlotLine(plotElementXY):
     @property
     def shaded(self):
         """
-        A filled region between the line and horizontal
-        origin will be rendered.
+        Whether to fill the area between the line and the x-axis.
+        
+        When enabled, the region between the line and the horizontal axis will
+        be filled with the line's color at reduced opacity. This is useful for
+        emphasizing areas under curves or visualizing integrals.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2161,7 +2445,8 @@ cdef class plotElementXYY(plotElementWithLegend):
 
     @property 
     def X(self):
-        """Values on the X axis.
+        """
+        Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
         Supported types for no copy are int32, float32, float64,
@@ -2182,7 +2467,13 @@ cdef class plotElementXYY(plotElementWithLegend):
 
     @property
     def Y1(self):
-        """Values on the Y1 axis"""
+        """
+        Values on the Y1 axis.
+
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return get_object_from_1D_array_view(self._Y1)
@@ -2198,7 +2489,13 @@ cdef class plotElementXYY(plotElementWithLegend):
 
     @property
     def Y2(self):
-        """Values on the Y2 axis"""
+        """
+        Values on the Y2 axis.
+
+        Accepts numpy arrays or buffer compatible objects.
+        Supported types for no copy are int32, float32, float64,
+        else a float64 copy is used.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return get_object_from_1D_array_view(self._Y2)
@@ -2271,10 +2568,24 @@ cdef class PlotShadedLine(plotElementXYY):
                                       self._X.stride())
 
 cdef class PlotStems(plotElementXY):
+    """
+    Plots stem graphs from X,Y data points.
+    
+    Displays a series of data points as vertical or horizontal lines (stems)
+    extending from a baseline to each point. This representation emphasizes 
+    individual data points and their values relative to a fixed reference.
+    Useful for discrete data visualization like impulse responses or digital
+    signals.
+    """
     @property
     def horizontal(self):
         """
-        Stems will be rendered horizontally
+        Whether to render stems horizontally instead of vertically.
+        
+        When True, the stems extend horizontally from the Y-axis to each data
+        point. When False (default), stems extend vertically from the X-axis
+        to each data point. Horizontal stems are useful when the independent
+        variable is on the Y-axis.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2332,13 +2643,26 @@ cdef class PlotStems(plotElementXY):
                                     self._X.stride())
 
 cdef class PlotBars(plotElementXY):
+    """
+    Plots bar graphs from X,Y data points.
+    
+    Displays a series of bars at the X positions with heights determined by Y
+    values. Unlike PlotBarGroups which shows grouped categorical data, this 
+    element shows individual bars for continuous or discrete data points. 
+    Suitable for histograms, bar charts, and column graphs.
+    """
     def __cinit__(self):
         self._weight = 1.
 
     @property
     def weight(self):
         """
-        bar_size. TODO better document
+        Width of each bar in plot units.
+        
+        Controls the thickness of each bar. A value of 1.0 means bars will 
+        touch when X values are spaced 1.0 units apart. Smaller values create
+        thinner bars with gaps between them, larger values create overlapping
+        bars.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2353,7 +2677,11 @@ cdef class PlotBars(plotElementXY):
     @property
     def horizontal(self):
         """
-        Bars will be rendered horizontally
+        Whether to render bars horizontally instead of vertically.
+        
+        When True, bars extend horizontally from the Y-axis with lengths
+        determined by Y values. When False (default), bars extend vertically
+        from the X-axis with heights determined by Y values.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2411,12 +2739,23 @@ cdef class PlotBars(plotElementXY):
                                     self._X.stride())
 
 cdef class PlotStairs(plotElementXY):
+    """
+    Plots a stair-step graph from X,Y data points.
+    
+    Creates a step function visualization where values change abruptly at each
+    X coordinate rather than smoothly as in a line plot. This is useful for
+    representing discrete state changes, piecewise constant functions, or
+    signals that maintain a value until an event causes a change.
+    """
     @property
     def pre_step(self):
         """
-        The y value is continued constantly to the left
-        from every x position, i.e. the interval
-        (x[i-1], x[i]] has the value y[i].
+        Whether steps occur before or after each X position.
+        
+        When True, the Y value steps happen before (to the left of) each X
+        position, making the interval (x[i-1], x[i]] have the value y[i].
+        When False (default), steps happen after each X position, making the
+        interval [x[i], x[i+1]) have value y[i].
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2433,9 +2772,12 @@ cdef class PlotStairs(plotElementXY):
     @property
     def shaded(self):
         """
-        a filled region between the stairs and horizontal
-        origin will be rendered; use PlotShadedLine for
-        more advanced cases.
+        Whether to fill the area between the stairs and the axis.
+        
+        When True, the region between the step function and the X-axis is
+        filled with the line's color at reduced opacity. This creates a more
+        prominent visual representation and helps emphasize the cumulative
+        effect of the steps.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2495,7 +2837,8 @@ cdef class plotElementX(plotElementWithLegend):
 
     @property
     def X(self):
-        """Values on the X axis.
+        """
+        Values on the X axis.
         
         Accepts numpy arrays or buffer compatible objects.
         Supported types for no copy are int32, float32, float64,
@@ -2520,13 +2863,21 @@ cdef class plotElementX(plotElementWithLegend):
 
 cdef class PlotInfLines(plotElementX):
     """
-    Draw vertical (or horizontal) infinite lines at
-    the passed coordinates
+    Draw infinite lines at specified positions.
+    
+    Creates vertical or horizontal lines that span the entire plot area at each
+    X coordinate provided. These lines are useful for highlighting specific values,
+    thresholds, or reference points across the entire plotting area.
     """
     @property
     def horizontal(self):
         """
-        Plot horizontal lines rather than plots
+        Whether to draw horizontal lines instead of vertical.
+        
+        When True, lines are drawn horizontally across the plot at each Y position.
+        When False (default), lines are drawn vertically at each X position.
+        Horizontal lines span the entire width of the plot while vertical lines
+        span the entire height.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2576,10 +2927,24 @@ cdef class PlotInfLines(plotElementX):
                                     self._X.stride())
 
 cdef class PlotScatter(plotElementXY):
+    """
+    Plot data points as individual markers.
+    
+    Creates a scatter plot from X,Y coordinate pairs with customizable point
+    markers. Unlike line plots, scatter plots show individual data points
+    without connecting lines, making them ideal for visualizing discrete
+    data points, correlations, or distributions where the relationship
+    between points is not continuous.
+    """
     @property
     def no_clip(self):
         """
-        Markers on the edge of a plot will not be clipped
+        Whether to prevent clipping markers at plot edges.
+        
+        When True, point markers that would normally be clipped at the edge of
+        the plot will be fully visible. This can be useful for ensuring all data
+        points are displayed completely, even when they are partially outside
+        the plotting area.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2821,10 +3186,16 @@ cdef class plotDraggable(plotElement):
 
 cdef class DrawInPlot(plotElementWithLegend):
     """
-    A plot element that enables to insert Draw* items
-    inside a plot in plot coordinates.
-
-    defaults to no_legend = True
+    Enables drawing items inside a plot using plot coordinates.
+    
+    This element allows you to add drawing elements (shapes, texts, etc.) 
+    as children that will be rendered within the plot area and positioned
+    according to the plot's coordinate system. This makes it easy to add
+    annotations, highlights, and custom visualizations that adapt to plot
+    scaling.
+    
+    By default, this element does not show up in the legend, though this
+    can be changed.
     """
     def __cinit__(self):
         self.can_have_drawing_child = True
@@ -2834,8 +3205,12 @@ cdef class DrawInPlot(plotElementWithLegend):
     @property
     def ignore_fit(self):
         """
-        Writable attribute to make this element
-        be ignored during plot fits
+        Whether this element should be excluded when auto-fitting axes.
+        
+        When set to True, the drawing elements within this container won't 
+        influence the automatic fitting of axes. This is useful when adding
+        reference elements or annotations that shouldn't affect the scale of
+        the plot.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2939,25 +3314,14 @@ cdef class Subplots(uiItem):
     """
     Creates a grid of plots that share various axis properties.
     
-    Can have Plot items as children. The plots are added in row-major order
-    by default (can be changed to column major).
-
-    Attributes:
-    - rows (int): Number of subplot rows 
-    - cols (int): Number of subplot columns
-    - row_ratios (List[float]): Size ratios for each row
-    - col_ratios (List[float]): Size ratios for each column
-    - no_legend (bool): Hide subplot legends (if share_legends is True)
-    - no_title (bool): Hide subplot titles
-    - no_menus (bool): Disable context menus
-    - no_resize (bool): Disable subplot resize splitters 
-    - no_align (bool): Disable subplot edge alignment
-    - col_major (bool): Add plots in column-major order
-    - share_legends (bool): Share legend items across subplots
-    - share_rows (bool): Link X1/Y1-axis limits by rows
-    - share_cols (bool): Link X1/Y1-axis limits by columns
-    - share_x_all (bool): Link X1-axis limits across all plots
-    - share_y_all (bool): Link Y1-axis limits across all plots
+    Organizes multiple Plot objects in a grid layout, allowing for shared axes, 
+    synchronized zooming/panning, and compact visualization of related data. 
+    Plots can share legends to conserve space and maintain consistency of 
+    visualization across the grid.
+    
+    The grid dimensions are configurable, and individual row/column sizes can 
+    be customized through size ratios. Plot children are added in row-major 
+    order by default, but can be changed to column-major ordering as needed.
     """
     def __cinit__(self):
         self.can_have_widget_child = True
@@ -2970,7 +3334,13 @@ cdef class Subplots(uiItem):
 
     @property
     def rows(self):
-        """Number of subplot rows"""
+        """
+        Number of subplot rows in the grid.
+        
+        Controls the vertical division of the subplot area. Each row can 
+        contain multiple plots depending on the number of columns. Must be 
+        at least 1.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex) 
         return self._rows
@@ -2985,7 +3355,13 @@ cdef class Subplots(uiItem):
 
     @property
     def cols(self):
-        """Number of subplot columns"""
+        """
+        Number of subplot columns in the grid.
+        
+        Controls the horizontal division of the subplot area. Each column can 
+        contain multiple plots depending on the number of rows. Must be at 
+        least 1.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._cols
@@ -3000,7 +3376,13 @@ cdef class Subplots(uiItem):
 
     @property
     def row_ratios(self):
-        """Size ratios for subplot rows"""
+        """
+        Size ratios for subplot rows.
+        
+        Controls the relative height of each row in the grid. For example, 
+        setting [1, 2] would make the second row twice as tall as the first.
+        When not specified, rows have equal heights.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
@@ -3025,7 +3407,13 @@ cdef class Subplots(uiItem):
 
     @property
     def col_ratios(self):
-        """Size ratios for subplot columns"""
+        """
+        Size ratios for subplot columns.
+        
+        Controls the relative width of each column in the grid. For example, 
+        setting [1, 2, 1] would make the middle column twice as wide as the 
+        others. When not specified, columns have equal widths.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         result = []
@@ -3050,14 +3438,26 @@ cdef class Subplots(uiItem):
 
     @property
     def no_legend(self):
-        """Hide subplot legends"""
+        """
+        Whether to hide subplot legends.
+        
+        When True and share_legends is active, the shared legend is hidden.
+        When False, the legend is displayed according to the legend settings
+        of each individual plot or the shared legend if enabled.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoLegend) != 0
 
     @property 
     def no_title(self):
-        """Hide subplot titles"""
+        """
+        Whether to hide subplot titles.
+        
+        When True, titles of all subplot children are hidden, even if they have
+        titles specified in their label property. This creates a cleaner, more
+        compact appearance when titles would be redundant or unnecessary.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoTitle) != 0
@@ -3072,7 +3472,14 @@ cdef class Subplots(uiItem):
 
     @property 
     def no_menus(self):
-        """Disable subplot context menus"""
+        """
+        Whether to disable subplot context menus.
+        
+        When True, right-clicking on any subplot will not open the context menu
+        that provides options for fitting data, changing scales, etc. This 
+        simplifies the interface and prevents accidental changes to the 
+        appearance.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoMenus) != 0
@@ -3087,7 +3494,14 @@ cdef class Subplots(uiItem):
 
     @property
     def no_resize(self):
-        """Disable subplot resize splitters"""
+        """
+        Whether to disable subplot resize splitters.
+        
+        When True, the splitter bars between subplots are removed, preventing
+        users from adjusting the relative sizes of individual plots. This 
+        ensures a consistent layout and prevents accidental resizing during
+        interaction.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoResize) != 0
@@ -3102,7 +3516,14 @@ cdef class Subplots(uiItem):
 
     @property
     def no_align(self): 
-        """Disable subplot edge alignment"""
+        """
+        Whether to disable subplot edge alignment.
+        
+        When True, edge alignment between subplots is disabled, allowing 
+        for more flexible layout but potentially creating misaligned axes.
+        When False, subplot edges are aligned to create a clean grid 
+        appearance.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_NoAlign) != 0
@@ -3117,7 +3538,14 @@ cdef class Subplots(uiItem):
 
     @property
     def col_major(self):
-        """Add plots in column-major order"""
+        """
+        Whether to add plots in column-major order.
+        
+        When True, child plots are arranged going down columns first, then 
+        across rows. When False (default), plots are arranged across rows first, 
+        then down columns. This affects the order in which child plots are 
+        assigned to grid positions.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_ColMajor) != 0
@@ -3132,7 +3560,14 @@ cdef class Subplots(uiItem):
 
     @property
     def share_legends(self):
-        """Share legend items across subplots"""
+        """
+        Whether to share legend items across all subplots.
+        
+        When True, legend entries from all plots are combined into a single 
+        legend. This creates a cleaner appearance and avoids duplicate entries 
+        when the same data series appears in multiple plots. The location of 
+        this shared legend is determined by the first plot's legend settings.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_ShareItems) != 0
@@ -3147,7 +3582,14 @@ cdef class Subplots(uiItem):
 
     @property
     def share_x_all(self):
-        """Link X1-axis limits across all plots"""
+        """
+        Whether to link X1-axis limits across all plots.
+        
+        When True, all plots share the same X1-axis limits, meaning that 
+        zooming or panning on the X-axis of any plot affects all other plots. 
+        This is useful for comparing multiple series across the same domain, 
+        such as time series over the same period.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_LinkAllX) != 0
@@ -3162,7 +3604,14 @@ cdef class Subplots(uiItem):
 
     @property
     def share_rows(self):
-        """Link X1/Y1-axis limits within each row"""
+        """
+        Whether to link X1/Y1-axis limits within each row.
+        
+        When True, plots in the same row share the same X1-axis limits, and 
+        plots in the same column share the same Y1-axis limits. This creates 
+        alignment for comparing data across related plots while preserving 
+        independence between different rows and columns.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_LinkRows) != 0
@@ -3177,7 +3626,14 @@ cdef class Subplots(uiItem):
 
     @property
     def share_cols(self):
-        """Link X1/Y1-axis limits within each column""" 
+        """
+        Whether to link X1/Y1-axis limits within each column.
+        
+        When True, plots in the same column share the same Y1-axis limits, and
+        plots in the same row share the same X1-axis limits. This is useful for
+        comparing distributions or trends across different groups while 
+        maintaining aligned scales.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_LinkCols) != 0
@@ -3192,7 +3648,14 @@ cdef class Subplots(uiItem):
 
     @property
     def share_y_all(self):
-        """Link Y1-axis limits across all plots"""
+        """
+        Whether to link Y1-axis limits across all plots.
+        
+        When True, all plots share the same Y1-axis limits, meaning that 
+        zooming or panning on the Y-axis of any plot affects all other plots. 
+        This ensures consistent scale across all visualizations, making direct 
+        value comparisons easier between plots.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotSubplotFlags_LinkAllY) != 0
@@ -3265,6 +3728,14 @@ cdef class Subplots(uiItem):
         return False
 
 cdef class PlotBarGroups(plotElementWithLegend):
+    """
+    Plots grouped bar charts with multiple series of data.
+    
+    Creates groups of bars where each group has multiple bars side-by-side (or
+    stacked). This is ideal for comparing multiple data series across different
+    categories. Each row in the values array represents a series (with consistent
+    color), and each column represents a group position.
+    """
     def __cinit__(self):
         self._group_size = 0.67
         self._shift = 0
@@ -3275,17 +3746,12 @@ cdef class PlotBarGroups(plotElementWithLegend):
     @property
     def values(self):
         """
-        A row-major array with item_count columns and group_size rows.
-        Basically a 2D array where
-        - array.shape[0] = number of groups (=labels)
-        - array.shape[1] = number of items
-
-        Each row represents one label/plotline/color.
-
-        By default, will try to use the passed array
-        directly for its internal backing (no copy).
-        Supported types for no copy are np.int32,
-        np.float32, np.float64.
+        2D array containing the values for each bar.
+        
+        The array should be row-major where each row represents one data series 
+        (one color/legend entry) and each column represents a group position.
+        For example, with 3 series and 4 groups, the shape would be (3,4).
+        By default, the implementation tries to use the array without copying.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3306,7 +3772,12 @@ cdef class PlotBarGroups(plotElementWithLegend):
     @property
     def labels(self):
         """
-        Array of item labels. Must match the number of rows in values.
+        Labels for each data series.
+        
+        These labels appear in the legend and identify each data series (row in
+        the values array). The number of labels should match the number of rows
+        in the values array. If not enough labels are provided, default labels
+        like "Item N" will be generated.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3337,8 +3808,12 @@ cdef class PlotBarGroups(plotElementWithLegend):
     @property 
     def group_size(self):
         """
-        Portion of the reserved width used for the bars of each group.
-        Default is 0.67
+        Portion of the available width used for bars within each group.
+        
+        Controls how much of the available space between groups is filled with
+        bars. Value ranges from 0.0 to 1.0, where 1.0 means no space between
+        groups and 0.0 means no visible bars. The default value of 0.67 leaves
+        some space between groups while making bars large enough to read easily.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3353,8 +3828,12 @@ cdef class PlotBarGroups(plotElementWithLegend):
     @property
     def shift(self):
         """
-        Shift in plot units to offset groups.
-        Default is 0 
+        Horizontal offset for all groups in plot units.
+        
+        Allows shifting the entire group chart left or right. This is useful for
+        aligning multiple bar group plots or creating animations. A positive value
+        shifts all groups to the right, while a negative value shifts them to
+        the left.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3369,7 +3848,13 @@ cdef class PlotBarGroups(plotElementWithLegend):
     @property
     def horizontal(self):
         """
-        Bar groups will be rendered horizontally on the current y-axis
+        Whether bars are oriented horizontally instead of vertically.
+        
+        When True, bars extend horizontally from the Y-axis with groups arranged
+        vertically. When False (default), bars extend vertically from the X-axis
+        with groups arranged horizontally. Horizontal orientation is useful when
+        dealing with long category names or when comparing values across many
+        groups.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3386,7 +3871,12 @@ cdef class PlotBarGroups(plotElementWithLegend):
     @property
     def stacked(self):
         """
-        Items in a group will be stacked on top of each other
+        Whether bars within each group are stacked.
+        
+        When True, bars in each group are stacked on top of each other (or side
+        by side for horizontal orientation) rather than being displayed side by
+        side. Stacking is useful for showing both individual components and their
+        sum, such as for part-to-whole relationships within categories.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3445,6 +3935,15 @@ cdef class PlotBarGroups(plotElementWithLegend):
                                       self._flags)
 
 cdef class PlotPieChart(plotElementWithLegend):
+    """
+    Plots a pie chart from value arrays.
+    
+    Creates a circular pie chart where each slice represents a value from the provided
+    array. The chart can be positioned anywhere in the plot area and sized as needed.
+    Each slice can have a label and a value displayed alongside it. The chart can
+    automatically normalize values to ensure a complete circle, or maintain relative
+    proportions of the values as provided.
+    """
     def __cinit__(self):
         # self._values = DCG1DArrayView()
         self._x = 0.0
@@ -3459,7 +3958,7 @@ cdef class PlotPieChart(plotElementWithLegend):
     def values(self):
         """
         Array of values for each pie slice.
-
+        
         By default, will try to use the passed array directly for its 
         internal backing (no copy). Supported types for no copy are 
         np.int32, np.float32, np.float64.
@@ -3484,7 +3983,11 @@ cdef class PlotPieChart(plotElementWithLegend):
     @property
     def labels(self):
         """
-        Array of labels for each pie slice. Must match the number of values.
+        Array of labels for each pie slice.
+        
+        These labels identify each slice in the chart and appear in the legend
+        if enabled. If fewer labels than values are provided, default labels like
+        "Slice N" will be generated for the remaining slices.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3512,7 +4015,12 @@ cdef class PlotPieChart(plotElementWithLegend):
 
     @property
     def x(self):
-        """X coordinate of pie chart center in plot units"""
+        """
+        X coordinate of pie chart center in plot units.
+        
+        Determines the horizontal position of the pie chart within the plot area.
+        This position is in plot coordinate space, not screen pixels.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._x
@@ -3525,7 +4033,12 @@ cdef class PlotPieChart(plotElementWithLegend):
 
     @property
     def y(self):
-        """Y coordinate of pie chart center in plot units"""
+        """
+        Y coordinate of pie chart center in plot units.
+        
+        Determines the vertical position of the pie chart within the plot area.
+        This position is in plot coordinate space, not screen pixels.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._y
@@ -3538,7 +4051,12 @@ cdef class PlotPieChart(plotElementWithLegend):
 
     @property
     def radius(self):
-        """Radius of pie chart in plot units"""
+        """
+        Radius of pie chart in plot units.
+        
+        Controls the size of the pie chart. The radius is in plot coordinate units,
+        not screen pixels, so the visual size will adjust when zooming the plot.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._radius
@@ -3551,7 +4069,13 @@ cdef class PlotPieChart(plotElementWithLegend):
 
     @property
     def angle(self):
-        """Starting angle for first slice in degrees. Default is 90."""
+        """
+        Starting angle for first slice in degrees.
+        
+        Controls the rotation of the entire pie chart. The default value of 90 
+        places the first slice at the top. The angle increases clockwise with 0
+        being at the right side of the circle.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._angle
@@ -3565,8 +4089,12 @@ cdef class PlotPieChart(plotElementWithLegend):
     @property
     def normalize(self):
         """
-        Force normalization of pie chart values (i.e. always make
-        a full circle if sum < 0)
+        Whether to normalize values to always create a full circle.
+        
+        When enabled, the values will be treated as relative proportions and scaled
+        to fill the entire circle, regardless of their sum. When disabled, the
+        slices will maintain their exact proportions, potentially not completing
+        a full circle if the sum is less than the expected total.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3583,8 +4111,11 @@ cdef class PlotPieChart(plotElementWithLegend):
     @property
     def ignore_hidden(self):
         """
-        Ignore hidden slices when drawing the pie chart
-        (as if they were not there)
+        Whether to ignore hidden slices when drawing the pie chart.
+        
+        When enabled, slices that have been hidden (via legend toggling) will be
+        completely removed from the chart as if they were not present. When disabled,
+        hidden slices still take up their space in the pie but are not visible.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3600,7 +4131,13 @@ cdef class PlotPieChart(plotElementWithLegend):
 
     @property
     def label_format(self):
-        """Format string for slice value labels. Set to empty string to disable labels."""
+        """
+        Format string for slice value labels.
+        
+        Controls how numeric values are displayed alongside each slice. Uses 
+        printf-style formatting like "%.1f" for one decimal place. Set to an
+        empty string to disable value labels entirely.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._label_format)
@@ -3666,8 +4203,12 @@ cdef class PlotPieChart(plotElementWithLegend):
 cdef class PlotDigital(plotElementXY):
     """
     Plots a digital signal as a step function from X,Y data.
-    Digital plots are always referenced to the bottom of the plot,
-    do not respond to y axis zooming.
+    
+    Digital plots represent binary or multi-level signals where values change
+    instantaneously rather than continuously. These plots are anchored to the 
+    bottom of the plot area and do not scale with Y-axis zooming, making them
+    ideal for displaying digital signals, logic traces, or state changes over
+    time.
     """
 
     cdef void draw_element(self) noexcept nogil:
@@ -3713,7 +4254,12 @@ cdef class PlotDigital(plotElementXY):
 cdef class PlotErrorBars(plotElementXY):
     """
     Plots vertical or horizontal error bars for X,Y data points.
-    Each error bar can have a different positive/negative error value.
+    
+    Error bars visualize uncertainty or variation in measurements by displaying
+    a line extending from each data point. Each error bar can have different 
+    positive and negative values, allowing for asymmetrical error representation.
+    This is particularly useful for scientific data where measurements have known
+    or estimated uncertainties.
     """
     def __cinit__(self):
         return
@@ -3722,10 +4268,12 @@ cdef class PlotErrorBars(plotElementXY):
 
     @property
     def positives(self):
-        """Positive error values array.
+        """
+        Positive error values array.
         
-        If negatives is empty, error bars will be symmetrical
-        around the Y value.
+        Specifies the positive (upward for vertical, rightward for horizontal) 
+        error magnitude for each data point. If negatives is not provided, these 
+        values will be used for both directions, creating symmetrical error bars.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3742,10 +4290,13 @@ cdef class PlotErrorBars(plotElementXY):
 
     @property
     def negatives(self):
-        """Negative error values array.
+        """
+        Negative error values array.
         
-        If empty, the error bars will be symmetrical
-        (equivalent to negatives=positives)
+        Specifies the negative (downward for vertical, leftward for horizontal)
+        error magnitude for each data point. When not provided or empty, the
+        error bars will be symmetrical, using the values in positives for both
+        directions.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3763,7 +4314,12 @@ cdef class PlotErrorBars(plotElementXY):
     @property
     def horizontal(self):
         """
-        Error bars will be rendered horizontally on the current y-axis
+        Whether error bars are oriented horizontally instead of vertically.
+        
+        When True, error bars extend horizontally from each data point along the
+        X axis. When False (default), error bars extend vertically along the Y
+        axis. Horizontal error bars are useful when the uncertainty is in the
+        independent variable rather than the dependent one.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3836,8 +4392,12 @@ cdef class PlotErrorBars(plotElementXY):
 
 cdef class PlotAnnotation(plotElement):
     """
-    Adds an annotation to the plot.
-    Annotations are always rendered on top.
+    Adds a text annotation at a specific point in a plot.
+    
+    Annotations are small text bubbles that can be attached to specific points
+    in the plot to provide additional context, labels, or explanations. They
+    are always rendered on top of other plot elements and can have customizable
+    background colors, offsets, and clamping behavior to ensure visibility.
     """
     def __cinit__(self):
         self._x = 0.0
@@ -3846,7 +4406,13 @@ cdef class PlotAnnotation(plotElement):
 
     @property
     def x(self):
-        """X coordinate of the annotation in plot units"""
+        """
+        X coordinate of the annotation in plot units.
+        
+        Specifies the horizontal position of the annotation anchor point within
+        the plot's coordinate system. This position will be used as the base
+        point from which the annotation offset is applied.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._x
@@ -3859,7 +4425,13 @@ cdef class PlotAnnotation(plotElement):
 
     @property
     def y(self):
-        """Y coordinate of the annotation in plot units"""
+        """
+        Y coordinate of the annotation in plot units.
+        
+        Specifies the vertical position of the annotation anchor point within
+        the plot's coordinate system. This position will be used as the base
+        point from which the annotation offset is applied.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._y
@@ -3872,7 +4444,13 @@ cdef class PlotAnnotation(plotElement):
 
     @property
     def text(self):
-        """Text of the annotation"""
+        """
+        Text content of the annotation.
+        
+        The string to display in the annotation bubble. This text can include
+        any characters and will be rendered using the current font settings.
+        For dynamic annotations, this property can be updated on each frame.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._text)
@@ -3885,13 +4463,13 @@ cdef class PlotAnnotation(plotElement):
 
     @property
     def bg_color(self):
-        """Background color of the annotation
-        0 means no background, in which case ImPlotCol_InlayText
-        is used for the text color. Else Text is automatically
-        set to white or black depending on the background color
-
-        Returns:
-            list: RGBA values in [0,1] range
+        """
+        Background color of the annotation bubble.
+        
+        Color values are provided as an RGBA list with values in the [0,1] range.
+        When set to 0 (fully transparent), the text color is determined by the
+        ImPlotCol_InlayText style. Otherwise, the text color is automatically 
+        set to white or black for optimal contrast with the background.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3907,8 +4485,14 @@ cdef class PlotAnnotation(plotElement):
 
     @property
     def offset(self):
-        """Offset in pixels from the plot coordinate
-        at which to display the annotation"""
+        """
+        Offset in pixels from the anchor point.
+        
+        Specifies the displacement of the annotation bubble from its anchor 
+        position in screen pixels. This allows placing the annotation near 
+        a data point without overlapping it. Provided as a tuple of (x, y)
+        values, where positive values move right and down.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._offset.x, self._offset.y)
@@ -3923,10 +4507,13 @@ cdef class PlotAnnotation(plotElement):
 
     @property
     def clamp(self):
-        """Clamp the annotation to the plot area.
-        Without this setting, the annotation will not be
-        drawn if outside the plot area. Else it is displayed
-        no matter what.
+        """
+        Whether to ensure the annotation stays within the plot area.
+        
+        When enabled, the annotation will always be visible within the plot area
+        even if its anchor point is outside or near the edge. When disabled,
+        annotations may be partially or completely hidden if their anchor points
+        are outside the plot boundaries.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3950,7 +4537,13 @@ cdef class PlotAnnotation(plotElement):
 
 cdef class PlotHistogram(plotElementX):
     """
-    Plots a histogram from X,Y data points. Several binning options are available.
+    Plots a histogram from X data points.
+    
+    Creates bins from input data and displays the count (or density) of values 
+    falling within each bin as vertical or horizontal bars. Various binning 
+    methods are available to automatically determine appropriate bin sizes,
+    or explicit bin counts can be specified. The display can be customized
+    with cumulative counts, density normalization, and range constraints.
     """
     def __cinit__(self):
         self._bins = -1  # Default to sqrt
@@ -3961,12 +4554,15 @@ cdef class PlotHistogram(plotElementX):
 
     @property
     def bins(self):
-        """Number of bins or binning method:
-        - Positive integer for explicit bin count
-        - -1 for sqrt(n) bins [default]
-        - -2 for Sturges formula: k = log2(n) + 1
-        - -3 for Rice rule: k = 2 * cuberoot(n)
-        - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
+        """
+        Number of bins or automatic binning method to use.
+        
+        Accepts positive integers for explicit bin count or negative values for 
+        automatic binning methods:
+        - -1: sqrt(n) bins [default]
+        - -2: Sturges formula: k = log2(n) + 1
+        - -3: Rice rule: k = 2 * cuberoot(n)
+        - -4: Scott's rule: h = 3.49 sigma/cuberoot(n)
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -3982,7 +4578,13 @@ cdef class PlotHistogram(plotElementX):
 
     @property
     def bar_scale(self):
-        """Scale factor for each bar. Default is 1.0"""
+        """
+        Scale factor for bar heights.
+        
+        Multiplies all bin heights by this value before display. This allows 
+        visual amplification or reduction of the histogram without changing the
+        underlying data. Default is 1.0.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._bar_scale
@@ -3995,8 +4597,14 @@ cdef class PlotHistogram(plotElementX):
 
     @property 
     def range(self):
-        """Optional (min,max) range for binning. Values outside this range are ignored.
-        Returns None if no range set."""
+        """
+        Optional (min, max) range for binning.
+        
+        When set, only values within this range will be included in the
+        histogram bins. Values outside this range are either ignored or counted 
+        toward the edge bins, depending on the no_outliers property. Returns 
+        None if no range constraint is set.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._has_range:
@@ -4018,7 +4626,14 @@ cdef class PlotHistogram(plotElementX):
 
     @property
     def horizontal(self):
-        """Histogram bars will be rendered horizontally"""
+        """
+        Whether to render the histogram with horizontal bars.
+        
+        When True, histogram bars extend horizontally from the Y-axis with
+        bar lengths representing bin counts. When False (default), bars extend
+        vertically from the X-axis. Horizontal orientation is useful for
+        better visibility of labels when dealing with many narrow bins.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_Horizontal) != 0
@@ -4033,7 +4648,14 @@ cdef class PlotHistogram(plotElementX):
 
     @property
     def cumulative(self):
-        """Each bin contains its count plus all previous bins"""
+        """
+        Whether to display the histogram as a cumulative distribution.
+        
+        When True, each bin displays a count that includes all previous bins, 
+        creating a cumulative distribution function (CDF). When False (default),
+        each bin shows only its own count. This is useful for visualizing 
+        percentiles and distribution properties.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_Cumulative) != 0
@@ -4048,7 +4670,14 @@ cdef class PlotHistogram(plotElementX):
 
     @property
     def density(self):
-        """Normalize counts to form a probability density"""
+        """
+        Whether to normalize counts to form a probability density.
+        
+        When True, bin heights are scaled so that the total area of the 
+        histogram equals 1, creating a probability density function (PDF).
+        This allows comparison of distributions with different sample sizes
+        and bin widths. When False (default), raw counts are displayed.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_Density) != 0
@@ -4063,7 +4692,14 @@ cdef class PlotHistogram(plotElementX):
 
     @property
     def no_outliers(self):
-        """Exclude values outside of range from contributing to count/density"""
+        """
+        Whether to exclude values outside the specified range.
+        
+        When True and a range is specified, values outside the range will not 
+        contribute to the counts or density. When False (default), outliers are 
+        counted in the edge bins. This property has no effect if no range is 
+        specified.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_NoOutliers) != 0
@@ -4128,7 +4764,12 @@ cdef class PlotHistogram(plotElementX):
 cdef class PlotHistogram2D(plotElementXY):
     """
     Plots a 2D histogram as a heatmap from X,Y coordinate pairs.
-    Several binning options are available.
+    
+    Creates a two-dimensional histogram where the frequency of data points 
+    falling within each 2D bin is represented by color intensity. This is 
+    useful for visualizing the joint distribution of two variables, density 
+    estimation, and identifying clusters or patterns in bivariate data.
+    Various binning methods are available for both X and Y dimensions.
     """
     def __cinit__(self):
         self._x_bins = -1  # Default to sqrt
@@ -4142,12 +4783,15 @@ cdef class PlotHistogram2D(plotElementXY):
 
     @property
     def x_bins(self):
-        """Number of X-axis bins or binning method:
-        - Positive integer for explicit bin count
-        - -1 for sqrt(n) bins [default]
-        - -2 for Sturges formula: k = log2(n) + 1
-        - -3 for Rice rule: k = 2 * cuberoot(n)
-        - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
+        """
+        Number of X-axis bins or automatic binning method to use.
+        
+        Accepts positive integers for explicit bin count or negative values for 
+        automatic binning methods:
+        - -1: sqrt(n) bins [default]
+        - -2: Sturges formula: k = log2(n) + 1
+        - -3: Rice rule: k = 2 * cuberoot(n)
+        - -4: Scott's rule: h = 3.49 sigma/cuberoot(n)
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4163,12 +4807,15 @@ cdef class PlotHistogram2D(plotElementXY):
 
     @property
     def y_bins(self):
-        """Number of Y-axis bins or binning method:
-        - Positive integer for explicit bin count
-        - -1 for sqrt(n) bins [default]
-        - -2 for Sturges formula: k = log2(n) + 1
-        - -3 for Rice rule: k = 2 * cuberoot(n)
-        - -4 for Scott's rule: h = 3.49 sigma/cuberoot(n)
+        """
+        Number of Y-axis bins or automatic binning method to use.
+        
+        Accepts positive integers for explicit bin count or negative values for 
+        automatic binning methods:
+        - -1: sqrt(n) bins [default]
+        - -2: Sturges formula: k = log2(n) + 1
+        - -3: Rice rule: k = 2 * cuberoot(n)
+        - -4: Scott's rule: h = 3.49 sigma/cuberoot(n)
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4184,8 +4831,14 @@ cdef class PlotHistogram2D(plotElementXY):
 
     @property
     def range_x(self):
-        """Optional (min,max) range for X-axis binning. Values outside this range are ignored.
-        Returns None if no range set."""
+        """
+        Optional (min, max) range for X-axis binning.
+        
+        When set, only X values within this range will be included in the
+        histogram bins. X values outside this range are either ignored or 
+        counted toward the edge bins, depending on the no_outliers property.
+        Returns None if no range constraint is set.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._has_range_x:
@@ -4207,8 +4860,14 @@ cdef class PlotHistogram2D(plotElementXY):
 
     @property
     def range_y(self):
-        """Optional (min,max) range for Y-axis binning. Values outside this range are ignored.
-        Returns None if no range set."""
+        """
+        Optional (min, max) range for Y-axis binning.
+        
+        When set, only Y values within this range will be included in the
+        histogram bins. Y values outside this range are either ignored or 
+        counted toward the edge bins, depending on the no_outliers property.
+        Returns None if no range constraint is set.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._has_range_y:
@@ -4230,7 +4889,14 @@ cdef class PlotHistogram2D(plotElementXY):
 
     @property
     def density(self):
-        """Normalize counts to form a probability density"""
+        """
+        Whether to normalize counts to form a probability density.
+        
+        When True, bin values are scaled so that the total volume of the 
+        histogram equals 1, creating a probability density function (PDF).
+        This allows comparison of distributions with different sample sizes
+        and bin sizes. When False (default), raw counts are displayed.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_Density) != 0
@@ -4245,7 +4911,14 @@ cdef class PlotHistogram2D(plotElementXY):
 
     @property
     def no_outliers(self):
-        """Exclude values outside of range from contributing to count/density"""
+        """
+        Whether to exclude values outside the specified ranges.
+        
+        When True and range(s) are specified, data points with coordinates
+        outside the range(s) will not contribute to the counts or density. When 
+        False (default), outliers are counted in the edge bins. This property
+        has no effect if no ranges are specified.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHistogramFlags_NoOutliers) != 0
@@ -4325,10 +4998,16 @@ cdef class PlotHistogram2D(plotElementXY):
 
 cdef class PlotHeatmap(plotElementWithLegend):
     """
-    Plots a 2D heatmap. Values are expected to be in row-major order by default.
+    Plots a 2D grid of values as a color-mapped heatmap.
     
-    The heatmap is rendered using a colormap whose range can be specified with
-    scale_min/scale_max. Setting both to 0 enables automatic color scaling.
+    Visualizes 2D data by assigning colors to values based on their magnitude.
+    Each cell in the grid is colored according to a colormap that maps values 
+    to colors. The heatmap can display patterns, correlations or distributions
+    in 2D data such as matrices, images, or gridded measurements.
+    
+    The data is provided as a 2D array and can be interpreted in either row-major
+    or column-major order. Optional value labels can be displayed on each cell,
+    and the color scaling can be automatic or manually specified.
     """
     def __cinit__(self):
         #self._values = DCG2DContiguousArrayView()
@@ -4343,14 +5022,15 @@ cdef class PlotHeatmap(plotElementWithLegend):
 
     @property
     def values(self):
-        """2D array of values to plot.
+        """
+        2D array of values to visualize in the heatmap.
         
-        The array shape should be (rows, cols) for row-major order,
-        or (cols, rows) for column-major order.
-
-        By default, will try to use the passed array directly for its 
-        internal backing (no copy). Supported types for no copy are 
-        np.int32, np.float32, np.float64.
+        The array shape should be (rows, cols) for row-major order, or 
+        (cols, rows) when col_major is True. The values determine the colors
+        assigned to each cell based on the current colormap and scale settings.
+        
+        By default, compatible arrays are used directly without copying.
+        Supported types for direct use are int32, float32, and float64.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4374,7 +5054,14 @@ cdef class PlotHeatmap(plotElementWithLegend):
 
     @property
     def scale_min(self):
-        """Minimum value for color scaling. Set to 0 for auto-scaling."""
+        """
+        Minimum value for color mapping.
+        
+        Sets the lower bound of the color scale. Values at or below this level
+        will be assigned the minimum color in the colormap. When both scale_min
+        and scale_max are 0, automatic scaling is used based on the data's
+        actual minimum and maximum values.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_min
@@ -4388,7 +5075,14 @@ cdef class PlotHeatmap(plotElementWithLegend):
 
     @property
     def scale_max(self):
-        """Maximum value for color scaling. Set to 0 for auto-scaling."""
+        """
+        Maximum value for color mapping.
+        
+        Sets the upper bound of the color scale. Values at or above this level
+        will be assigned the maximum color in the colormap. When both scale_min
+        and scale_max are 0, automatic scaling is used based on the data's
+        actual minimum and maximum values.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_max
@@ -4402,7 +5096,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
 
     @property
     def label_format(self):
-        """Format string for cell labels. Set to empty string to disable labels."""
+        """
+        Format string for displaying cell values.
+        
+        Controls how numeric values are formatted when displayed on each cell.
+        Uses printf-style format specifiers like "%.2f" for 2 decimal places.
+        Set to an empty string to disable value labels completely.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._label_format)
@@ -4415,7 +5115,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
 
     @property
     def bounds_min(self):
-        """Lower-left corner coordinates of the heatmap in plot space"""
+        """
+        Bottom-left corner position of the heatmap in plot coordinates.
+        
+        Specifies the (x,y) coordinates of the lower-left corner of the heatmap
+        within the plot area. Combined with bounds_max, this determines the
+        size and position of the heatmap. Default is (0,0).
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._bounds_min[0], self._bounds_min[1])
@@ -4431,7 +5137,13 @@ cdef class PlotHeatmap(plotElementWithLegend):
 
     @property
     def bounds_max(self):
-        """Upper-right corner coordinates of the heatmap in plot space"""
+        """
+        Top-right corner position of the heatmap in plot coordinates.
+        
+        Specifies the (x,y) coordinates of the upper-right corner of the heatmap
+        within the plot area. Combined with bounds_min, this determines the
+        size and position of the heatmap. Default is (1,1).
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._bounds_max[0], self._bounds_max[1])
@@ -4447,7 +5159,14 @@ cdef class PlotHeatmap(plotElementWithLegend):
 
     @property
     def col_major(self):
-        """If True, values array is interpreted in column-major order"""
+        """
+        Whether values array is interpreted in column-major order.
+        
+        When True, the values array is interpreted as having dimensions 
+        (columns, rows) rather than the default row-major order (rows, columns).
+        Column-major is typical for some data formats like Fortran arrays or
+        certain image processing libraries.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotHeatmapFlags_ColMajor) != 0

@@ -84,12 +84,12 @@ def get_system_fonts():
 cdef class Font(baseFont):
     """
     Represents a font that can be used in the UI.
-
-    Attributes:
-    - texture: Texture for the font.
-    - size: Size of the font.
-    - scale: Scale of the font.
-    - no_scaling: Boolean indicating if scaling should be disabled for the font.
+    
+    A Font object encapsulates the rendering information for text in the UI. 
+    It contains the texture data, size information, and scaling behavior.
+    
+    Fonts are typically created through FontTexture.add_font_file() or 
+    FontTexture.add_custom_font() rather than directly instantiated.
     """
     def __cinit__(self, context, *args, **kwargs):
         self.can_have_sibling = False
@@ -100,20 +100,39 @@ cdef class Font(baseFont):
 
     @property
     def texture(self):
+        """
+        The FontTexture containing this font.
+        
+        This property returns the parent FontTexture object that created and 
+        contains this font. The texture stores the actual bitmap data used 
+        for rendering.
+        """
         return self._container
 
     @property
     def size(self):
-        """Readonly attribute: native height of characters"""
+        """
+        Native height of characters in pixels.
+        
+        This is the original size at which the font was created. The actual 
+        rendered size will be affected by the scale property and the global 
+        scaling factor.
+        """
         if self._font == NULL:
             raise ValueError("Uninitialized font")
         return (<imgui.ImFont*>self._font).FontSize
 
     @property
     def scale(self):
+        """
+        Multiplicative factor to scale the font when used.
+        
+        This scale is applied in addition to any global scaling. Can be used 
+        to make specific fonts larger or smaller than others. A value of 1.0 
+        means no additional scaling.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        """Writable attribute: multiplicative factor to scale the font when used"""
         return self._scale
 
     @scale.setter
@@ -127,10 +146,11 @@ cdef class Font(baseFont):
     @property
     def no_scaling(self):
         """
-        boolean. Defaults to False.
-        If set, disables the automated scaling to the dpi
-        scale value for this font.
-        The manual user-set scale is still applied.
+        Controls whether font is affected by DPI scaling.
+        
+        When True, the font ignores the global DPI scaling and only uses its own
+        scale property. This is useful for fonts that should maintain consistent
+        size regardless of screen resolution. Default is False.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -167,14 +187,16 @@ cdef class Font(baseFont):
 
 cdef class FontMultiScales(baseFont):
     """
-    A font container that can hold multiple Font objects at different scales.
-    When used, it automatically selects and pushes the font with the 
-    invert scale closest to the current global scale.
-    The purpose is to automatically select the Font that when
-    scaled by global_scale will be stretched the least.
-
-    This is useful for having sharp fonts at different DPI scales without
-    having to manually manage font switching.
+    A font container that manages multiple Font objects at different scales.
+    
+    Automatically selects the font with the inverse scale closest to the 
+    current global scale when used. This provides sharp text rendering across 
+    different display densities without manual font switching. The font with 
+    scale closest to 1/global_scale will be selected to minimize distortion.
+    
+    This class tracks recently encountered scales to optimize font selection 
+    and provides a callback mechanism to notify when new scales are encountered, 
+    allowing for dynamic font creation as needed.
     """
 
     def __cinit__(self, context, *args, **kwargs):
@@ -187,7 +209,12 @@ cdef class FontMultiScales(baseFont):
     @property
     def fonts(self):
         """
-        List of attached fonts. Each font should have a different scale.
+        List of attached fonts with different scales.
+        
+        Each font in this list should have a different scale value to provide 
+        optimal rendering at different display densities. The font with scale 
+        closest to 1/global_scale will be used when this FontMultiScales is 
+        pushed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -222,7 +249,11 @@ cdef class FontMultiScales(baseFont):
     def recent_scales(self):
         """
         List of up to 10 most recent global scales encountered during rendering.
-        The scales are not in a particular order
+        
+        These scales represent the display density values recently seen while 
+        rendering UI. This information can be used to create additional font 
+        instances optimized for these specific scales. The scales are not stored 
+        in any particular order.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -231,8 +262,11 @@ cdef class FontMultiScales(baseFont):
     @property
     def callbacks(self):
         """
-        Callbacks that get triggered when a new scale is stored.
-        Each callback receives the new scale value that was added.
+        Callbacks triggered when a new scale is encountered.
+        
+        Each callback is called with the sender (this object), the target (also 
+        this object), and the new scale value that was just encountered. This 
+        mechanism enables dynamic font generation for new display densities.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)

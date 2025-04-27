@@ -534,12 +534,6 @@ cdef class DrawSVG(dcg.drawingItem):
     The SVG is rendered to a texture at an appropriate resolution
     based on the visible area, and reuses the texture when possible
     to avoid unnecessary re-rendering.
-
-    Attributes:
-        pmin (tuple): Top-left position in coordinate space
-        pmax (tuple): Bottom-right position in coordinate space
-        svg_path (str): Path to SVG file to load
-        preserve_ratio (bool): Whether to preserve aspect ratio when fitting
     """
 
     cdef str _svg_path
@@ -581,7 +575,12 @@ cdef class DrawSVG(dcg.drawingItem):
 
     @property
     def svg_path(self):
-        """Path to SVG file"""
+        """
+        Path to the SVG file being displayed.
+
+        This path identifies the SVG file loaded by the renderer. Setting this
+        property will create a new renderer instance with the provided file.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return str(self._svg_path, encoding='utf-8')
@@ -596,7 +595,12 @@ cdef class DrawSVG(dcg.drawingItem):
 
     @property
     def pmin(self):
-        """Top-left position in coordinate space"""
+        """
+        Top-left position in coordinate space.
+
+        Defines the upper-left corner of the rectangle where the SVG will be
+        drawn. Together with pmax, this determines the display area bounds.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return dcg.Coord.build(self._pmin)
@@ -609,7 +613,12 @@ cdef class DrawSVG(dcg.drawingItem):
 
     @property 
     def pmax(self):
-        """Bottom-right position in coordinate space"""
+        """
+        Bottom-right position in coordinate space.
+
+        Defines the lower-right corner of the rectangle where the SVG will be
+        drawn. Together with pmin, this determines the display area bounds.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return dcg.Coord.build(self._pmax)
@@ -622,7 +631,13 @@ cdef class DrawSVG(dcg.drawingItem):
 
     @property
     def no_preserve_ratio(self):
-        """Whether to preserve aspect ratio when fitting"""
+        """
+        Whether to allow stretching the SVG to fit the area.
+
+        When True, the SVG can be stretched in both dimensions independently to
+        fill the entire display area. When False (default), the aspect ratio is
+        preserved.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return not(self._preserve_ratio)
@@ -650,7 +665,12 @@ cdef class DrawSVG(dcg.drawingItem):
 
     @property
     def no_centering(self):
-        """Whether to align SVG to top-left instead of centering"""
+        """
+        Whether to align SVG to top-left instead of centering.
+
+        When True, the SVG is aligned to the top-left corner of the display area.
+        When False (default), the SVG is centered within the display area.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_centering

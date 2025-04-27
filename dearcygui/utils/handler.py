@@ -2,10 +2,11 @@ import dearcygui as dcg
 
 class AnyKeyPressHandler(dcg.HandlerList):
     """
-    Helper to test all keys in one handler.
-    Obviously it would be better for performance
-    to only test the target keys. Do not attach
-    this to every item.
+    Handler that responds to any key press event.
+    
+    This helper class creates a collection of key press handlers covering all keys.
+    While convenient for global key monitoring, it comes with performance overhead
+    and should be used sparingly rather than attached to many individual items.
     """
     def __init__(self, context, **kwargs):
         self._callback = None
@@ -20,6 +21,12 @@ class AnyKeyPressHandler(dcg.HandlerList):
 
     @property
     def callback(self):
+        """
+        Function to call when any key is pressed.
+        
+        The callback will receive the key event information and can be used
+        to implement custom behavior in response to key presses.
+        """
         return self._callback
 
     @callback.setter
@@ -30,6 +37,13 @@ class AnyKeyPressHandler(dcg.HandlerList):
 
     @property
     def repeat(self):
+        """
+        Whether the handler should trigger repeatedly while a key is held down.
+        
+        When True, the callback will be called multiple times as the key remains
+        pressed. When False, the callback is only called once when the key is
+        initially pressed.
+        """
         return self._repeat
 
     @repeat.setter
@@ -40,10 +54,11 @@ class AnyKeyPressHandler(dcg.HandlerList):
 
 class AnyKeyReleaseHandler(dcg.HandlerList):
     """
-    Helper to test all keys in one handler.
-    Obviously it would be better for performance
-    to only test the target keys. Do not attach
-    this to every item.
+    Handler that responds to any key release event.
+    
+    This helper class creates a collection of handlers covering all key releases.
+    Use this when you need to detect when any key is released, but be aware of
+    the performance impact of monitoring all keys simultaneously.
     """
     def __init__(self, context, **kwargs):
         self._callback = None
@@ -56,6 +71,12 @@ class AnyKeyReleaseHandler(dcg.HandlerList):
 
     @property
     def callback(self):
+        """
+        Function to call when any key is released.
+        
+        The callback will receive the key event information and can be used
+        to implement custom behavior in response to key releases.
+        """
         return self._callback
 
     @callback.setter
@@ -66,10 +87,11 @@ class AnyKeyReleaseHandler(dcg.HandlerList):
 
 class AnyKeyDownHandler(dcg.HandlerList):
     """
-    Helper to test all keys in one handler.
-    Obviously it would be better for performance
-    to only test the target keys. Do not attach
-    this to every item.
+    Handler that responds when any key is in the down state.
+    
+    This helper class creates handlers for detecting when any key is currently
+    pressed down. It's useful for checking key state rather than key events,
+    but should be used judiciously due to its performance implications.
     """
     def __init__(self, context, **kwargs):
         self._callback = None
@@ -82,6 +104,12 @@ class AnyKeyDownHandler(dcg.HandlerList):
 
     @property
     def callback(self):
+        """
+        Function to call when any key is in the down state.
+        
+        The callback will receive information about which key is down and can
+        be used to implement custom behavior based on the current key state.
+        """
         return self._callback
 
     @callback.setter

@@ -12,6 +12,13 @@ from libc.stdint cimport int32_t
 from libc.math cimport fmod
 
 class DragPoint(dcg.DrawingList):
+    """A draggable point represented as a circle.
+    
+    This drawing element can be dragged by the user and will report its position.
+    It provides hover and drag callbacks for interactive behavior.
+    It can optionally be constrained to stay within plot boundaries when clamping
+    is enabled.
+    """
     def __init__(self, context : dcg.Context, *args, **kwargs):
         # Create the drawing elements
         with self:
@@ -33,6 +40,12 @@ class DragPoint(dcg.DrawingList):
         super().__init__(context, *args, **kwargs)
 
     def setup_callbacks(self):
+        """Setup the handlers that respond to user interaction.
+        
+        Creates and attaches handlers for hover, drag, and cursor appearance.
+        This is called during initialization before the element is attached
+        to the parent tree.
+        """
         # Note: Since this is done before configure,
         # we are not in the parent tree yet
         # and do not need the mutex
@@ -49,7 +62,10 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def radius(self):
-        """Radius of the draggable point"""
+        """Radius of the draggable point.
+        
+        Controls both the visual circle size and the interactive hit area.
+        """
         with getattr(self, "mutex"):
             return self._radius
 
@@ -66,7 +82,10 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def x(self):
-        """X coordinate in screen space"""
+        """X coordinate in screen space.
+        
+        The horizontal position of the point.
+        """
         with getattr(self, "mutex"):
             return self.invisible.p1[0]
 
@@ -80,7 +99,10 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def y(self):
-        """Y coordinate in screen space"""
+        """Y coordinate in screen space.
+        
+        The vertical position of the point.
+        """
         with getattr(self, "mutex"):
             return self.invisible.p1[1]
 
@@ -94,19 +116,16 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def clamp_inside(self):
-        """
-        If set, the point will be forced to remain
-        in the plot visible area.
+        """Controls whether the point is constrained to remain inside the plot area.
+        
+        When enabled, the point will be automatically repositioned if it would
+        otherwise fall outside the plot's visible boundaries.
         """
         with getattr(self, "mutex"):
             return self._clamp_inside
 
     @clamp_inside.setter
     def clamp_inside(self, value):
-        """
-        If set, the point will be forced to remain
-        in the plot visible area.
-        """
         # We access parent elements
         # It's simpler to lock the toplevel parent in case of doubt.
         with self.parents_mutex:
@@ -131,7 +150,10 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def color(self):
-        """Color of the displayed circle"""
+        """Color of the displayed circle.
+        
+        The fill color for the draggable point, specified as an RGBA tuple.
+        """
         with getattr(self, "mutex"):
             return self.visible.fill
 
@@ -142,9 +164,10 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def on_hover(self):
-        """
-        Callback that is called whenever the item
-        is hovered
+        """Callback triggered when the point is hovered by the cursor.
+        
+        This callback is invoked whenever the mouse cursor hovers over the
+        draggable point.
         """
         with getattr(self, "mutex"):
             return self._on_hover
@@ -158,9 +181,10 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def on_dragging(self):
-        """
-        Callback that is called whenever the item
-        changes position due to user interaction
+        """Callback triggered during active dragging.
+        
+        This callback is continuously invoked while the user is dragging the
+        point, allowing real-time tracking of position changes.
         """
         with getattr(self, "mutex"):
             return self._on_dragging
@@ -174,10 +198,10 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def on_dragged(self):
-        """
-        Callback that is called whenever the item
-        changes position due to user interaction and
-        the user releases his interaction.
+        """Callback triggered when a drag operation completes.
+        
+        This callback is invoked once when the user releases the point after
+        dragging it, signaling the completion of a position change.
         """
         with getattr(self, "mutex"):
             return self._on_dragged
@@ -249,48 +273,90 @@ class DragPoint(dcg.DrawingList):
     # will use its mutex
     @property
     def active(self):
+        """Whether the point is in active state.
+        
+        Reflects whether the point is currently being interacted with.
+        """
         return self.invisible.active
 
     @property
     def activated(self):
+        """Whether the point was activated this frame.
+        
+        True if the point transitioned to active state in the current frame.
+        """
         return self.invisible.activated
 
     @property
     def clicked(self):
+        """Whether the point was clicked this frame.
+        
+        True if the point was clicked in the current frame.
+        """
         return self.invisible.clicked
 
     @property
     def double_clicked(self):
+        """Whether the point was double clicked this frame.
+        
+        True if the point was double clicked in the current frame.
+        """
         return self.invisible.double_clicked
 
     @property
     def deactivated(self):
+        """Whether the point was deactivated this frame.
+        
+        True if the point transitioned from active to inactive in this frame.
+        """
         return self.invisible.deactivated
 
     @property
     def pos_to_viewport(self):
+        """The point's position relative to viewport coordinates.
+        
+        Provides the position converted to the viewport's coordinate system.
+        """
         return self.invisible.pos_to_viewport
 
     @property
     def pos_to_window(self):
+        """The point's position relative to window coordinates.
+        
+        Provides the position converted to the window's coordinate system.
+        """
         return self.invisible.pos_to_window
 
     @property
     def pos_to_parent(self):
+        """The point's position relative to parent coordinates.
+        
+        Provides the position converted to the parent's coordinate system.
+        """
         return self.invisible.pos_to_parent
 
     @property
     def rect_size(self):
+        """The rectangular size of the point's interactive area.
+        
+        Gives the dimensions of the rectangular area that responds to
+        mouse interactions.
+        """
         return self.invisible.rect_size
 
     @property
     def resized(self):
+        """Whether the point's size changed this frame.
+        
+        True if the point was resized in the current frame.
+        """
         return self.invisible.resized
 
     @property
     def no_input(self):
-        """
-        Disable taking user inputs
+        """Whether user input is disabled for the point.
+        
+        When set to True, the point will not respond to mouse interaction.
         """
         return self.invisible.no_input
 
@@ -300,7 +366,11 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def capture_mouse(self):
-        """See DrawInvisibleButton for a detailed description"""
+        """Whether the point captures mouse events.
+        
+        Controls how the point interacts with mouse events that occur
+        within its bounds.
+        """
         return self.invisible.capture_mouse
 
     @capture_mouse.setter
@@ -309,6 +379,10 @@ class DragPoint(dcg.DrawingList):
 
     @property
     def handlers(self):
+        """The event handlers attached to this point.
+        
+        Collection of handlers that process events for this draggable point.
+        """
         return self.invisible.handlers
 
     @handlers.setter

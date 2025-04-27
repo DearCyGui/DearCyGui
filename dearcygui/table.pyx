@@ -42,8 +42,13 @@ from .types import TableFlag
 cdef class TableElement:
     """
     Configuration for a table element.
-
-    A table element can be hidden, stretched, resized, etc.
+    
+    A table element represents a cell in a table and contains all information
+    about its content, appearance, and behavior. Each element can hold either
+    a UI widget, text content, or nothing, and can optionally have a tooltip
+    and background color.
+    
+    Elements can be created directly or via the table's indexing operation.
     """
 
     def __init__(self, *args, **kwargs):
@@ -58,6 +63,12 @@ cdef class TableElement:
             setattr(self, key, value)
 
     def configure(self, **kwargs):
+        """
+        Configure multiple attributes at once.
+        
+        This method allows setting multiple attributes in a single call, which
+        can be more convenient and efficient than setting them individually.
+        """
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -78,7 +89,11 @@ cdef class TableElement:
     @property
     def content(self):
         """
-        Writable attribute: The item to display in the table cell.
+        The item to display in the table cell.
+        
+        This can be a UI widget (uiItem), a string, or any object that can be 
+        converted to a string. When setting non-widget content, the ordering_value 
+        is automatically set to the same value to ensure proper sorting behavior.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -107,7 +122,11 @@ cdef class TableElement:
     @property
     def tooltip(self):
         """
-        Writable attribute: The tooltip configuration for the item.
+        The tooltip displayed when hovering over the cell.
+        
+        This can be a UI widget (like a Tooltip), a string, or any object that can be 
+        converted to a string. The tooltip is displayed when the user hovers over 
+        the cell's content.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -134,10 +153,11 @@ cdef class TableElement:
     @property
     def ordering_value(self):
         """
-        Writable attribute: The value used for ordering the table.
-
-        Note ordering_value is automatically set to the value
-        set in content when set to a string or number.
+        The value used for ordering the table.
+        
+        This value is used when sorting the table. By default, it's automatically set 
+        to the content value when content is set to a string or number. For UI widgets, 
+        it defaults to the widget's UUID (creation order) if not explicitly specified.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -159,7 +179,9 @@ cdef class TableElement:
     @property
     def bg_color(self):
         """
-        Writable attribute: The background color for the cell.
+        The background color for the cell.
+        
+        This color overrides any default table cell background colors.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -188,13 +210,22 @@ cdef class TableElement:
 cdef class TablePlaceHolderParent(baseItem):
     """
     Placeholder parent to store items outside the rendering tree.
-    Can be only be parent to items that can be attached to tables
+    
+    This special container is used internally by row and column views to temporarily 
+    hold UI items created during a context manager block before they're assigned to 
+    table cells. This allows for a cleaner, more intuitive API for populating tables.
     """
     def __cinit__(self):
         self.can_have_widget_child = True
 
 cdef class TableRowView:
-    """View class for accessing and manipulating a single row of a Table."""
+    """
+    View class for accessing and manipulating a single row of a Table.
+    
+    This class provides a convenient interface for working with a specific row 
+    in a table. It supports both indexing operations to access individual cells 
+    and a context manager interface for adding multiple items to the row.
+    """
 
     def __init__(self):
         raise TypeError("TableRowView cannot be instantiated directly")
@@ -205,13 +236,25 @@ cdef class TableRowView:
         self._temp_parent = None
 
     def __enter__(self):
-        """Start a context for adding items to this row."""
+        """
+        Start a context for adding items to this row.
+        
+        When used as a context manager, TableRowView allows for intuitive 
+        creation of UI elements that will be added to the row in sequence.
+        Any Tooltip elements will be associated with the immediately preceding item.
+        """
         self._temp_parent = TablePlaceHolderParent(self.table.context)
         self.table.context.push_next_parent(self._temp_parent)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """Convert children added during context into row values."""
+        """
+        Convert children added during context into row values.
+        
+        When the context block ends, all items created within it are properly 
+        arranged into the table row. Tooltip elements are associated with their 
+        preceding items automatically.
+        """
         self.table.context.pop_next_parent()
         if exc_type is not None:
             return False
@@ -236,28 +279,53 @@ cdef class TableRowView:
         return False
 
     def __getitem__(self, int32_t col_idx):
-        """Get item at specified column."""
+        """
+        Get the element at the specified column in this row.
+        
+        This provides direct access to individual cells in the row by column index.
+        If no element exists at the specified position, None is returned.
+        """
         return self.table._get_single_item(self.row_idx, col_idx)
 
     def __setitem__(self, int32_t col_idx, value):  
-        """Set item at specified column."""
+        """
+        Set the element at the specified column in this row.
+        
+        This allows directly setting a cell's content. The value can be a TableElement, 
+        a UI widget, or any value that can be converted to a string.
+        """
         self.table._set_single_item(self.row_idx, col_idx, value)
 
     def __delitem__(self, int32_t col_idx):
-        """Delete item at specified column."""
+        """
+        Delete the element at the specified column in this row.
+        
+        This removes a cell's content completely, leaving an empty cell.
+        """
         cdef pair[int32_t, int32_t] key = pair[int32_t, int32_t](self.row_idx, col_idx)
         self.table._delete_item(key)
 
     @staticmethod
     cdef create(baseTable table, int32_t row_idx):
-        """Create a TableRowView for the specified row."""
+        """
+        Create a TableRowView for the specified row.
+        
+        This static factory method creates a view object for the specified row
+        in the given table. It's used internally by the Table class.
+        """
         cdef TableRowView view = TableRowView.__new__(TableRowView)
         view.row_idx = row_idx
         view.table = table
         return view
 
 cdef class TableColView:
-    """View class for accessing and manipulating a single column of a Table."""
+    """
+    View class for accessing and manipulating a single column of a Table.
+    
+    This class provides a convenient interface for working with a specific column 
+    in a table. It supports both indexing operations to access individual cells 
+    and a context manager interface for adding multiple items to the column.
+    """
 
     def __init__(self):
         raise TypeError("TableColView cannot be instantiated directly")
@@ -268,13 +336,25 @@ cdef class TableColView:
         self._temp_parent = None
 
     def __enter__(self):
-        """Start a context for adding items to this column."""
+        """
+        Start a context for adding items to this column.
+        
+        When used as a context manager, TableColView allows for intuitive 
+        creation of UI elements that will be added to the column in sequence.
+        Any Tooltip elements will be associated with the immediately preceding item.
+        """
         self._temp_parent = TablePlaceHolderParent(self.table.context)
         self.table.context.push_next_parent(self._temp_parent)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """Convert children added during context into column values."""
+        """
+        Convert children added during context into column values.
+        
+        When the context block ends, all items created within it are properly
+        arranged into the table column. Tooltip elements are associated with their
+        preceding items automatically.
+        """
         self.table.context.pop_next_parent()
         if exc_type is not None:
             return False
@@ -299,21 +379,40 @@ cdef class TableColView:
         return False
 
     def __getitem__(self, int32_t row_idx):
-        """Get item at specified row."""
+        """
+        Get the element at the specified row in this column.
+        
+        This provides direct access to individual cells in the column by row index.
+        If no element exists at the specified position, None is returned.
+        """
         return self.table._get_single_item(row_idx, self.col_idx)
 
     def __setitem__(self, int32_t row_idx, value):
-        """Set item at specified row."""  
+        """
+        Set the element at the specified row in this column.
+        
+        This allows directly setting a cell's content. The value can be a TableElement, 
+        a UI widget, or any value that can be converted to a string.
+        """  
         self.table._set_single_item(row_idx, self.col_idx, value)
 
     def __delitem__(self, int32_t row_idx):
-        """Delete item at specified row."""
+        """
+        Delete the element at the specified row in this column.
+        
+        This removes a cell's content completely, leaving an empty cell.
+        """
         cdef pair[int32_t, int32_t] key = pair[int32_t, int32_t](row_idx, self.col_idx)
         self.table._delete_item(key)
 
     @staticmethod
     cdef create(baseTable table, int32_t col_idx):
-        """Create a TableColView for the specified column."""
+        """
+        Create a TableColView for the specified column.
+        
+        This static factory method creates a view object for the specified column
+        in the given table. It's used internally by the Table class.
+        """
         cdef TableColView view = TableColView.__new__(TableColView)
         view.col_idx = col_idx
         view.table = table
@@ -478,8 +577,8 @@ cdef class baseTable(uiItem):
     @property
     def num_rows_frozen(self):
         """
-        Writable attribute: Number of rows
-        with scroll frozen.
+        Number of rows with scroll frozen.
+
         Default is 0.
         """
         cdef unique_lock[DCGMutex] m
@@ -499,8 +598,8 @@ cdef class baseTable(uiItem):
     @property
     def num_cols_frozen(self):
         """
-        Writable attribute: Number of columns
-        with scroll frozen.
+        Number of columns with scroll frozen.
+
         Default is 0.
         """
         cdef unique_lock[DCGMutex] m
@@ -570,7 +669,8 @@ cdef class baseTable(uiItem):
         self._dirty_num_rows_cols = False
 
     def clear(self) -> None:
-        """Release all items attached to the table.
+        """
+        Release all items attached to the table.
         
         Does now clear row and column configurations.
         These are cleared only when the Table is released.
@@ -1254,16 +1354,15 @@ cdef class baseTable(uiItem):
 cdef class TableColConfig(baseItem):
     """
     Configuration for a table column.
-
-    A table column can be hidden, stretched, resized, etc.
-
-    The states can be changed by the user, but also by the
-    application.
-    To listen for state changes use:
-    - ToggledOpenHandler/ToggledCloseHandler to listen if the user
-        requests the column to be shown/hidden.
-    - ContentResizeHandler to listen if the user resizes the column.
-    - HoveredHandler to listen if the user hovers the column.
+    
+    A table column can be hidden, stretched, resized, and more. This class provides
+    properties to control all visual and behavioral aspects of a table column.
+    
+    The states can be changed programmatically but can also be modified by user 
+    interaction. To listen for state changes, use handlers such as:
+    - ToggledOpenHandler/ToggledCloseHandler to detect when the user shows/hides the column
+    - ContentResizeHandler to detect when the user resizes the column
+    - HoveredHandler to detect when the user hovers over the column
     """
     def __cinit__(self):
         self.p_state = &self.state
@@ -1284,11 +1383,11 @@ cdef class TableColConfig(baseItem):
     @property
     def clicked(self):
         """
-        Readonly attribute: has the item just been clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the column header has just been clicked.
+        
+        Returns a tuple of length 5 containing the individual test for each mouse
+        button. The value is reset at the beginning of the next frame, so it's 
+        generally better to use handlers to react to clicks.
         """
         if not(self.state.cap.can_be_clicked):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -1299,11 +1398,11 @@ cdef class TableColConfig(baseItem):
     @property
     def double_clicked(self):
         """
-        Readonly attribute: has the item just been double-clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        Whether the column header has just been double-clicked.
+        
+        Returns a tuple of length 5 containing the individual test for each mouse
+        button. The value is reset at the beginning of the next frame, so it's 
+        generally better to use handlers to react to double-clicks.
         """
         if not(self.state.cap.can_be_clicked):
             raise AttributeError("Field undefined for type {}".format(type(self)))
@@ -1314,9 +1413,10 @@ cdef class TableColConfig(baseItem):
     @property
     def hovered(self):
         """
-        Readonly attribute: Is the mouse inside the region of the item.
-        Only one element is hovered at a time, thus
-        subitems/subwindows take priority over their parent.
+        Whether the mouse is currently over the column header.
+        
+        Only one element is hovered at a time, so subitems/subwindows 
+        take priority over their parent.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1325,7 +1425,9 @@ cdef class TableColConfig(baseItem):
     @property
     def visible(self):
         """
-        True if the column is not clipped and is enabled.
+        Whether the column is currently visible on screen.
+        
+        A column is visible when it's not clipped and is enabled.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1334,11 +1436,10 @@ cdef class TableColConfig(baseItem):
     @property
     def show(self):
         """
-        Writable attribute: Show the column.
-
-        show = False differs from enabled=False as
-        the latter can be changed by user interaction.
-        Defaults to True.
+        Whether the column should be shown.
+        
+        This differs from 'enabled' as it cannot be changed through user interaction.
+        Setting show=False will hide the column regardless of user preferences.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1355,9 +1456,10 @@ cdef class TableColConfig(baseItem):
     @property
     def enabled(self):
         """
-        Writable attribute (and can change with user interaction):
-        Whether the table is hidden (user can control this
-        in the context menu).
+        Whether the column is currently enabled.
+        
+        This can be changed both programmatically and through user interaction
+        via the table's context menu.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1372,10 +1474,12 @@ cdef class TableColConfig(baseItem):
     @property
     def stretch(self):
         """
-        Writable attribute to enable stretching for this column.
-        True: Stretch, using the stretch_weight factor
-        False: Fixed width, using the width value.
-        None: Default depending on Table policy.
+        The column's sizing behavior.
+        
+        Three values are possible:
+        - True: Column will stretch based on its stretch_weight
+        - False: Column has fixed width based on the width property
+        - None: Column follows the table's default sizing behavior
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1399,29 +1503,13 @@ cdef class TableColConfig(baseItem):
             self._stretch = False
             self._fixed = True
 
-    ''' -> Redundant with enabled
-    @property
-    def default_hide(self):
-        """
-        Writable attribute: Default hide state for the column.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return (self._flags & imgui.ImGuiTableColumnFlags_DefaultHide) != 0
-
-    @default_hide.setter
-    def default_hide(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._flags &= ~imgui.ImGuiTableColumnFlags_DefaultHide
-        if value:
-            self._flags |= imgui.ImGuiTableColumnFlags_DefaultHide
-    '''
-
     @property
     def default_sort(self):
         """
-        Writable attribute: Default as a sorting column.
+        Whether the column is set as the default sorting column.
+        
+        When True, this column will be used for initial sorting when the
+        table is first displayed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1437,7 +1525,11 @@ cdef class TableColConfig(baseItem):
 
     @property
     def no_resize(self):
-        """Disable manual resizing"""
+        """
+        Whether the column can be resized by the user.
+        
+        When True, the user will not be able to drag the column's edge to resize it.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoResize) != 0
@@ -1452,7 +1544,12 @@ cdef class TableColConfig(baseItem):
 
     @property
     def no_hide(self):
-        """Disable ability to hide this column"""
+        """
+        Whether the column can be hidden by the user.
+        
+        When True, the user will not be able to hide this column through
+        the context menu.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoHide) != 0 
@@ -1467,7 +1564,12 @@ cdef class TableColConfig(baseItem):
 
     @property 
     def no_clip(self):
-        """Disable clipping for this column"""
+        """
+        Whether content in this column should be clipped.
+        
+        When True, content that overflows the column width will not be clipped,
+        which may cause it to overlap with adjacent columns.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoClip) != 0
@@ -1482,7 +1584,12 @@ cdef class TableColConfig(baseItem):
 
     @property
     def no_sort(self):
-        """Disable sorting for this column"""
+        """
+        Whether the column can be used for sorting.
+        
+        When True, clicking on this column's header will not trigger 
+        sorting of the table.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoSort) != 0
@@ -1497,7 +1604,12 @@ cdef class TableColConfig(baseItem):
 
     @property
     def prefer_sort_ascending(self):
-        """Make the initial sort direction ascending when first sorting"""
+        """
+        Whether to use ascending order for initial sort.
+        
+        When True and this column is used for sorting, the initial sort
+        direction will be ascending.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_PreferSortAscending) != 0
@@ -1512,7 +1624,12 @@ cdef class TableColConfig(baseItem):
 
     @property
     def prefer_sort_descending(self):
-        """Make the initial sort direction descending when first sorting"""
+        """
+        Whether to use descending order for initial sort.
+        
+        When True and this column is used for sorting, the initial sort
+        direction will be descending.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_PreferSortDescending) != 0
@@ -1527,7 +1644,11 @@ cdef class TableColConfig(baseItem):
 
     @property
     def no_sort_ascending(self):
-        """Disable ability to sort in ascending order"""
+        """
+        Whether sorting in ascending order is allowed.
+        
+        When True, the user will not be able to sort this column in ascending order.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoSortAscending) != 0
@@ -1542,7 +1663,11 @@ cdef class TableColConfig(baseItem):
 
     @property
     def no_sort_descending(self):
-        """Disable ability to sort in descending order"""
+        """
+        Whether sorting in descending order is allowed.
+        
+        When True, the user will not be able to sort this column in descending order.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoSortDescending) != 0
@@ -1557,7 +1682,12 @@ cdef class TableColConfig(baseItem):
 
     @property
     def no_header_label(self):
-        """Don't display column header for this column"""
+        """
+        Whether to display the column header label.
+        
+        When True, the column header will not display the label text but
+        will still be interactive for sorting and other operations.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoHeaderLabel) != 0
@@ -1572,7 +1702,12 @@ cdef class TableColConfig(baseItem):
 
     @property
     def no_header_width(self):
-        """Don't display column width when hovered"""
+        """
+        Whether to show column width when the header is hovered.
+        
+        When True, the column width tooltip will not be shown when hovering
+        over the edge between columns.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoHeaderWidth) != 0
@@ -1587,12 +1722,14 @@ cdef class TableColConfig(baseItem):
 
     @property
     def width(self):
-        """Requested fixed width of the column in pixels.
-        Unused if in stretch mode.
-        Set to 0 for auto-width.
-
-        Note the width is used only when the column
-        is initialized, and is not updated with resizes."""
+        """
+        The fixed width of the column in pixels.
+        
+        This is used only when the column is in fixed width mode (stretch=False).
+        A value of 0 means automatic width based on content.
+        Note that this width is only used when the column is initialized and won't 
+        update automatically after user resizing.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._width
@@ -1606,12 +1743,11 @@ cdef class TableColConfig(baseItem):
     @property
     def no_scaling(self):
         """
-        boolean. Defaults to False.
-        By default, the requested width and
-        height are multiplied internally by the global
-        scale which is defined by the dpi and the
-        viewport/window scale.
-        If set, disables this automated scaling.
+        Whether to disable automatic DPI scaling for this column.
+        
+        By default, the requested width is multiplied by the global scale 
+        factor based on the viewport's DPI settings. When True, this automatic
+        scaling is disabled.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1625,7 +1761,13 @@ cdef class TableColConfig(baseItem):
 
     @property 
     def stretch_weight(self):
-        """Weight used when stretching this column. Must be >= 0."""
+        """
+        The weight used when stretching this column.
+        
+        When the column is in stretch mode (stretch=True), this weight determines
+        how much space this column gets relative to other stretched columns.
+        Higher values result in wider columns.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._stretch_weight
@@ -1640,7 +1782,12 @@ cdef class TableColConfig(baseItem):
 
     @property
     def no_reorder(self): 
-        """Disable manual reordering"""
+        """
+        Whether the column can be reordered by the user.
+        
+        When True, the user will not be able to drag this column header to
+        change its position in the table.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiTableColumnFlags_NoReorder) != 0
@@ -1656,7 +1803,10 @@ cdef class TableColConfig(baseItem):
     @property
     def label(self):
         """
-        Label in the header for the column
+        The text displayed in the column header.
+        
+        This label appears in the header row and is used for identifying the column.
+        It's also displayed in the context menu when right-clicking on the header.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1671,10 +1821,11 @@ cdef class TableColConfig(baseItem):
     @property
     def handlers(self):
         """
-        Writable attribute: bound handlers for the item.
-        If read returns a list of handlers. Accept
-        a handler or a list of handlers as input.
-        This enables to do item.handlers += [new_handler].
+        The event handlers bound to this column.
+        
+        Handlers can be used to react to various events like clicking, hovering,
+        or enabling/disabling the column. You can add multiple handlers to respond
+        to different events.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1785,8 +1936,13 @@ cdef class TableColConfigView:
 cdef class TableRowConfig(baseItem):
     """
     Configuration for a table row.
-
-    A table row can be hidden and its background color can be changed.
+    
+    A table row can be customized with various appearance and behavior settings.
+    This includes hiding/showing rows, setting background colors, and defining
+    minimum height requirements.
+    
+    Row configurations work alongside column configurations to provide complete
+    control over the table's appearance.
     """
 
     def __cinit__(self):
@@ -1799,7 +1955,12 @@ cdef class TableRowConfig(baseItem):
     @property
     def show(self):
         """
-        Writable attribute: Show the row.
+        Controls whether the row is visible.
+        
+        When set to False, the row will be completely hidden from view and
+        will not take up any space in the table. This is different from
+        setting a zero height, as a zero-height row would still create
+        a visible gap.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1813,12 +1974,11 @@ cdef class TableRowConfig(baseItem):
 
     @property
     def bg_color(self):
-        """Background color for the whole row.
-
-        Set to 0 (default) to disable.
-        This background color is applied on top
-        of any row background color defined by
-        the theme (blending)
+        """
+        Background color for the entire row.
+        
+        This color is applied to the entire row as a background. When set to a
+        non-zero value, it will blend with any theme-defined row background colors.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1834,6 +1994,13 @@ cdef class TableRowConfig(baseItem):
 
     @property
     def min_height(self):
+        """
+        Minimum height of the row in pixels.
+        
+        When set to a value greater than zero, this ensures the row will be at
+        least this tall, regardless of its content. This can be useful for creating
+        consistent row heights or ensuring sufficient space for content.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self.min_height
@@ -1847,10 +2014,11 @@ cdef class TableRowConfig(baseItem):
     @property
     def handlers(self):
         """
-        Writable attribute: bound handlers for the item.
-        If read returns a list of handlers. Accept
-        a handler or a list of handlers as input.
-        This enables to do item.handlers += [new_handler].
+        Event handlers bound to this row.
+        
+        Handlers can be used to respond to events related to this row.
+        You can add multiple handlers to respond to different events,
+        allowing for complex interactions with the row's state and appearance.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1885,8 +2053,13 @@ cdef class TableRowConfig(baseItem):
 
 cdef class TableRowConfigView:
     """
-    A View of a Table which you can index to get the
-    TableRowConfig for a specific row.
+    A view for accessing and manipulating row configurations in a table.
+    
+    This view provides a convenient interface for working with row configurations.
+    It supports indexing to access individual row configurations and setting
+    specific attributes on those configurations.
+    
+    The view is typically accessed through the `table.row_config` property.
     """
 
     def __init__(self):
@@ -1896,19 +2069,45 @@ cdef class TableRowConfigView:
         self.table = None
 
     def __getitem__(self, int32_t row_idx) -> TableRowConfig:
-        """Get the column configuration for the specified column."""
+        """
+        Get the row configuration for the specified row.
+        
+        This retrieves the configuration object for a specific row, allowing
+        you to inspect or modify its properties. If the row doesn't have an
+        existing configuration, a default one will be created.
+        """
         return self.table.get_row_config(row_idx)
 
     def __setitem__(self, int32_t row_idx, TableRowConfig config) -> None:
-        """Set the column configuration for the specified column."""
+        """
+        Set the row configuration for the specified row.
+        
+        This replaces the entire configuration for a specific row with a new
+        configuration object. This allows for complete customization of the
+        row's appearance and behavior.
+        """
         self.table.set_row_config(row_idx, config)
 
-    def __delitem__(self, int32_t col_idx) -> None:
-        """Delete the column configuration for the specified column."""
-        self.table.set_row_config(col_idx, TableRowConfig(self.table.context))
+    def __delitem__(self, int32_t row_idx) -> None:
+        """
+        Reset the row configuration to default for the specified row.
+        
+        This removes any custom configuration for the specified row and
+        replaces it with a new default configuration. This effectively
+        resets all row settings to their default values.
+        """
+        self.table.set_row_config(row_idx, TableRowConfig(self.table.context))
 
     def __call__(self, int32_t row_idx, str attribute, value) -> TableRowConfig:
-        """Set an attribute of the column configuration for the specified column."""
+        """
+        Set a specific attribute on a row's configuration.
+        
+        This is a convenient shorthand for getting a row configuration,
+        setting a single attribute, and then updating the configuration.
+        It returns the modified configuration object for further chaining.
+        
+        Example: table.row_config(0, 'bg_color', (1.0, 0.0, 0.0, 1.0))
+        """
         cdef TableRowConfig config = self.table.get_row_config(row_idx)
         setattr(config, attribute, value)
         self.table.set_row_config(row_idx, config)
@@ -1916,19 +2115,27 @@ cdef class TableRowConfigView:
 
     @staticmethod
     cdef TableRowConfigView create(Table table):
-        """Create a TableColConfigView for the specified table."""
+        """
+        Create a TableRowConfigView for the specified table.
+        
+        This factory method creates a view object for the row configurations
+        in the given table. It's used internally by the Table class to provide
+        access to row configurations through the row_config property.
+        """
         cdef TableRowConfigView view = TableRowConfigView.__new__(TableRowConfigView)
         view.table = table
         return view
 
 cdef class Table(baseTable):
-    """Table widget.
+    """Table widget with advanced display and interaction capabilities.
     
-    A table is a grid of cells, where each cell can contain
-    text, images, buttons, etc. The table can be used to
-    display data, but also to interact with the user.
-
-    This class implements the base imgui Table visual.
+    A table is a grid of cells that can contain text, images, buttons, or any other
+    UI elements. This implementation provides full ImGui table functionality including
+    sortable columns, scrolling, resizable columns, and customizable headers.
+    
+    Tables can be populated with data in multiple ways: directly setting cell contents,
+    using row or column views, or bulk operations like append_row/col. The appearance
+    and behavior can be customized through column and row configurations.
     """
     def __cinit__(self):
         self.state.cap.can_be_hovered = True
@@ -1956,9 +2163,12 @@ cdef class Table(baseTable):
             del self._row_configs
 
     cdef TableColConfig get_col_config(self, int32_t col_idx):
-        """
-        Retrieve the configuration of a column,
-        and create a default one if we didn't have any yet.
+        """Retrieve the configuration object for the specified column.
+        
+        This method gets the existing column configuration or creates a default
+        one if none exists. Column configurations control various aspects of
+        column appearance and behavior, including width, sorting capability,
+        and visibility.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1976,8 +2186,11 @@ cdef class Table(baseTable):
         return found_config
 
     cdef void set_col_config(self, int32_t col_idx, TableColConfig config):
-        """
-        Set the configuration of a column.
+        """Set the configuration for the specified column.
+        
+        This replaces any existing column configuration with the provided one.
+        This allows complete customization of column appearance and behavior,
+        including width, visibility, sorting options and more.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1991,9 +2204,11 @@ cdef class Table(baseTable):
         dereference(self._col_configs)[col_idx] = <PyObject*>config
 
     cdef TableRowConfig get_row_config(self, int32_t row_idx):
-        """
-        Retrieve the configuration of a row,
-        and create a default one if we didn't have any yet.
+        """Retrieve the configuration object for the specified row.
+        
+        This method gets the existing row configuration or creates a default one
+        if none exists. Row configurations control various aspects of row appearance
+        and behavior, including visibility, background color, and minimum height.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2011,8 +2226,11 @@ cdef class Table(baseTable):
         return found_config
 
     cdef void set_row_config(self, int32_t row_idx, TableRowConfig config):
-        """
-        Set the configuration of a row.
+        """Set the configuration for the specified row.
+        
+        This replaces any existing row configuration with the provided one.
+        This allows complete customization of row appearance and behavior,
+        including visibility, background color, and minimum height.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2027,22 +2245,44 @@ cdef class Table(baseTable):
 
     @property
     def col_config(self):
-        """
-        Get the column configuration view.
+        """Access interface for column configurations.
+        
+        This property provides a specialized view for accessing and manipulating the
+        configurations for individual columns in the table. Through this view, you can
+        get, set, or modify column properties like width, visibility, and sorting behavior.
+        
+        The view supports both indexing (col_config[0]) and attribute setting
+        (col_config(0, 'width', 100)).
         """
         return TableColConfigView.create(self)
 
     @property
     def row_config(self):
-        """
-        Get the row configuration view.
+        """Access interface for row configurations.
+        
+        This property provides a specialized view for accessing and manipulating the
+        configurations for individual rows in the table. Through this view, you can
+        get, set, or modify row properties like visibility, background color, and
+        minimum height.
+        
+        The view supports both indexing (row_config[0]) and attribute setting
+        (row_config(0, 'bg_color', (1,0,0,1))).
         """
         return TableRowConfigView.create(self)
 
     @property 
     def flags(self):
-        """
-        Get the table flags.
+        """Table behavior and appearance flags.
+        
+        These flags control many aspects of the table's behavior, including:
+        - Scrolling capabilities (horizontal, vertical)
+        - Resizing behavior (fixed/flexible columns)
+        - Border styles and visibility
+        - Row/column highlighting
+        - Sorting capabilities
+        - Context menu availability
+        
+        Multiple flags can be combined using bitwise OR operations.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2064,21 +2304,15 @@ cdef class Table(baseTable):
 
     @property
     def inner_width(self):
-        """
-        With ScrollX disabled:
-           - inner_width          ->  *ignored*
-        With ScrollX enabled:
-           - inner_width  < 0.  ->  *illegal* fit in known width
-                 (right align from outer_size.x) <-- weird
-           - inner_width  = 0.  ->  fit in outer_width:
-                Fixed size columns will take space they need (if avail,
-                otherwise shrink down), Stretch columns becomes Fixed columns.
-           - inner_width  > 0.  ->  override scrolling width,
-                generally to be larger than outer_size.x. Fixed column
-                take space they need (if avail, otherwise shrink down),
-                Stretch columns share remaining space!
-
-        Defaults to 0.
+        """Width of the table content when horizontal scrolling is enabled.
+        
+        This property controls the inner content width of the table, which affects
+        how horizontal scrolling behaves:
+        
+        - With ScrollX disabled: This property is ignored
+        - With ScrollX enabled and value = 0: Table fits within the outer width
+        - With ScrollX enabled and value > 0: Table has a fixed content width
+          that may be larger than the visible area, enabling horizontal scrolling
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2092,9 +2326,14 @@ cdef class Table(baseTable):
 
     @property
     def header(self):
-        """
-        boolean. Defaults to True.
-        Produce a table header based on the column labels.
+        """Whether to display a table header row.
+        
+        When enabled, the table shows a header row at the top with column labels
+        and interactive elements for sorting and resizing columns. This header
+        uses the labels defined in each column's configuration.
+        
+        Disabling this hides the header entirely, which can be useful for data
+        display tables where column manipulation is not needed.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2107,6 +2346,18 @@ cdef class Table(baseTable):
         self._header = value
 
     cdef bint draw_item(self) noexcept nogil:
+        """Draw the table with all its content and apply configurations.
+        
+        This method handles the complete rendering of the table, including:
+        - Setting up columns based on their configurations
+        - Rendering the optional header row
+        - Drawing all cell contents (text, widgets, etc.)
+        - Handling tooltips and background colors
+        - Applying sorting when requested
+        - Managing row and column visibility
+        
+        The drawing respects all configuration settings for both rows and columns.
+        """
         cdef Vec2 requested_size = self.get_requested_size()
         cdef imgui.ImGuiTableSortSpecs *sort_specs
 

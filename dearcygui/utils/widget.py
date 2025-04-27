@@ -3,13 +3,11 @@ from datetime import datetime
 
 class TemporaryTooltip(dcg.Tooltip):
     """
-    A tooltip that deletes itself when its
-    showing condition is not met anymore.
-
-    The handler passed as argument
-    should be a new handler instance that will
-    be checked for the condition. It should hold
-    True as long as the item should be shown.
+    A tooltip that removes itself when its showing condition is no longer met.
+    
+    This tooltip variant monitors its visibility condition and automatically
+    deletes itself from the widget hierarchy when the condition becomes false.
+    The tooltip uses a LostRenderHandler to detect when it should be removed.
     """
     def __init__(self,
                  context : dcg.Context,
@@ -20,6 +18,12 @@ class TemporaryTooltip(dcg.Tooltip):
                                   callback=self.destroy_tooltip)]
 
     def destroy_tooltip(self):
+        """
+        Remove this tooltip from the widget tree.
+        
+        This method is called automatically when the tooltip's condition is
+        no longer met. It safely deletes the tooltip item from the hierarchy.
+        """
         if self.context is None:
             return # Already deleted
         # self.parent = None would work too but would wait GC.
@@ -30,13 +34,11 @@ class TimePicker(dcg.Layout):
     A widget for picking time values, similar to ImPlot's time picker.
     
     The widget displays hour/minute/second spinners and AM/PM selection.
-    Uses seconds internally via SharedDouble but provides datetime interface.
-
-    Properties:
-        value (float): Current time value in seconds since midnight
-        value_as_datetime (datetime): Get/set time as datetime object
-        use_24hr (bool): Whether to use 24-hour time (default: False) 
-        show_seconds (bool): Whether to show seconds spinner (default: True)
+    It uses seconds internally via SharedDouble but provides a datetime 
+    interface for convenient time manipulation.
+    
+    The picker can be configured to use 12-hour or 24-hour time formats,
+    and seconds display can be optionally hidden for a simpler interface.
     """
     def __init__(self, context, *, value=None, use_24hr=False, show_seconds=True, **kwargs):
         super().__init__(context, **kwargs)
@@ -89,7 +91,12 @@ class TimePicker(dcg.Layout):
                                         callback=self._on_ampm_change)
 
     def _get_display_hour(self):
-        """Convert internal seconds to display hour format"""
+        """
+        Convert internal seconds to display hour format.
+        
+        Handles the conversion between 24-hour and 12-hour formats,
+        ensuring proper display in the selected time format.
+        """
         hour = int(self._value.value // 3600)
         if not self._use_24hr:
             hour = hour % 12
@@ -98,13 +105,22 @@ class TimePicker(dcg.Layout):
         return hour
 
     def _get_total_seconds(self, hour, minute, second=None):
-        """Helper to convert h:m:s to total seconds"""
+        """
+        Convert hours, minutes, and seconds to total seconds.
+        
+        If seconds are not provided, the current seconds value is used.
+        """
         if second is None:
             second = int(self._value.value % 60)
         return hour * 3600 + minute * 60 + second
         
     def _on_hour_change(self, sender, target, value):
-        """Handle hour input changes"""
+        """
+        Handle hour input changes.
+        
+        Converts 12-hour format to internal 24-hour representation
+        if necessary and updates the internal time value.
+        """
         hour = value
         if not self._use_24hr:
             is_pm = self._am_pm.value == "PM"
@@ -118,13 +134,21 @@ class TimePicker(dcg.Layout):
         self.run_callbacks()
 
     def _on_minute_change(self, sender, target, value): 
-        """Handle minute input changes"""
+        """
+        Handle minute input changes.
+        
+        Updates the internal time value while preserving hours and seconds.
+        """
         hour = int(self._value.value // 3600)
         self._value.value = self._get_total_seconds(hour, value)
         self.run_callbacks()
 
     def _on_second_change(self, sender, target, value):
-        """Handle second input changes"""
+        """
+        Handle second input changes.
+        
+        Updates the internal time value while preserving hours and minutes.
+        """
         if self._show_seconds:
             hour = int(self._value.value // 3600)
             minute = int((self._value.value % 3600) // 60)
@@ -132,7 +156,11 @@ class TimePicker(dcg.Layout):
             self.run_callbacks()
 
     def _on_ampm_change(self, sender, target, value):
-        """Handle AM/PM selection changes"""
+        """
+        Handle AM/PM selection changes.
+        
+        Adjusts the internal 24-hour representation based on AM/PM selection.
+        """
         if not self._use_24hr:
             hour = int(self._value.value // 3600)
             cur_is_pm = hour >= 12
@@ -145,12 +173,22 @@ class TimePicker(dcg.Layout):
                 self.run_callbacks()
 
     def run_callbacks(self):
+        """
+        Execute all registered callbacks with the current time value.
+        
+        Passes the current time as a datetime object to all callbacks.
+        """
         for callback in self.callbacks:
             callback(self, self, self.value_as_datetime)
 
     @property
     def value(self):
-        """Get current time in seconds"""
+        """
+        Current time value represented as seconds since midnight.
+        
+        This is the raw internal representation that can be used for 
+        calculations or for sharing the time value between components.
+        """
         return self._value.value
 
     @value.setter 
@@ -170,7 +208,12 @@ class TimePicker(dcg.Layout):
 
     @property
     def value_as_datetime(self):
-        """Get current time as datetime"""
+        """
+        Current time as a datetime object.
+        
+        Returns a datetime object representing the currently selected time,
+        using today's date with the selected time components.
+        """
         total_secs = int(self._value.value)
         hours = total_secs // 3600
         minutes = (total_secs % 3600) // 60
@@ -186,7 +229,12 @@ class TimePicker(dcg.Layout):
 
     @property
     def use_24hr(self):
-        """Get whether using 24 hour format"""
+        """
+        Whether the time picker uses 24-hour format.
+        
+        When true, hours range from 0-23 and no AM/PM indicator is shown.
+        When false, hours range from 1-12 and an AM/PM selector is displayed.
+        """
         return self._use_24hr
 
     @use_24hr.setter
@@ -203,7 +251,12 @@ class TimePicker(dcg.Layout):
 
     @property 
     def show_seconds(self):
-        """Get whether showing seconds"""
+        """
+        Whether seconds are shown in the time picker.
+        
+        When true, hours, minutes, and seconds are displayed.
+        When false, only hours and minutes are shown.
+        """
         return self._show_seconds
 
     @show_seconds.setter
@@ -218,14 +271,11 @@ class DatePicker(dcg.Layout):
     """
     A widget for picking dates, similar to ImPlot's date picker.
     
-    The widget displays a calendar interface with month/year navigation
-    and allows selecting dates within the valid range (1970-2999).
-    
-    Properties:
-        value (float): Current selected date as timestamp in seconds
-        value_as_datetime (datetime): Current selected date as datetime object
-        min_date (datetime): Minimum selectable date (default: 1970-01-01)
-        max_date (datetime): Maximum selectable date (default: 2999-12-31) 
+    The widget displays a calendar interface with month/year navigation and allows
+    selecting dates within the valid range. Users can navigate between day, month, 
+    and year views using the header button. The calendar supports date ranges 
+    from 1970 to 2999 by default, which can be customized with min_date and 
+    max_date parameters.
     """
     
     MONTH_NAMES = [
@@ -283,7 +333,12 @@ class DatePicker(dcg.Layout):
             self._update_grid()
             
     def _get_header_text(self):
-        """Get the header text based on current view level"""
+        """
+        Generate the header text based on current view level.
+        
+        Returns month and year in day view, year in month view, or year range
+        in year view.
+        """
         if self._view_level == 0:  # Day view
             return f"{self.MONTH_NAMES[self._current_month]} {self._current_year}"
         elif self._view_level == 1:  # Month view
@@ -292,7 +347,12 @@ class DatePicker(dcg.Layout):
             return f"{self._current_year_block}-{self._current_year_block+19}"
             
     def _update_grid(self):
-        """Update the calendar grid based on current view level"""
+        """
+        Update the calendar grid based on current view level.
+        
+        Clears existing grid and builds a new one according to the current
+        view level (days, months, or years).
+        """
         self._header_btn.label = self._get_header_text()
         
         # Clear existing grid
@@ -307,7 +367,13 @@ class DatePicker(dcg.Layout):
             self._build_year_grid()
             
     def _build_day_grid(self):
-        """Build the day view calendar grid"""
+        """
+        Build the day view calendar grid.
+        
+        Creates a calendar grid showing days of the current month with appropriate
+        padding for previous/next months. Highlights the currently selected day
+        and disables days outside the allowed range.
+        """
         # Add weekday headers
         with dcg.HorizontalLayout(self.context, parent=self._grid):
             for day in self.WEEKDAY_ABBREV:
@@ -355,7 +421,12 @@ class DatePicker(dcg.Layout):
                             day += 1
                             
     def _build_month_grid(self):
-        """Build the month selection grid"""
+        """
+        Build the month selection grid.
+        
+        Creates a 3x4 grid of month buttons, highlighting the current month
+        and disabling months outside the allowed range.
+        """
         with dcg.Layout(self.context, parent=self._grid):
             for row in range(3):
                 with dcg.HorizontalLayout(self.context):
@@ -378,7 +449,12 @@ class DatePicker(dcg.Layout):
                                                               Button=(0.6, 0.6, 1.0, 0.6))
                             
     def _build_year_grid(self):
-        """Build the year selection grid"""
+        """
+        Build the year selection grid.
+        
+        Creates a 5x4 grid of year buttons for a 20-year block, highlighting
+        the current year and disabling years outside the allowed range.
+        """
         with dcg.Layout(self.context, parent=self._grid):
             year = self._current_year_block
             for row in range(5):
@@ -396,7 +472,12 @@ class DatePicker(dcg.Layout):
                         year += 1
                             
     def _on_prev_click(self):
-        """Handle previous button click"""
+        """
+        Handle previous button click.
+        
+        Moves to the previous month in day view, previous year in month view,
+        or previous 20-year block in year view.
+        """
         if self._view_level == 0:  # Day view
             if self._current_month == 0:
                 self._current_month = 11
@@ -410,7 +491,12 @@ class DatePicker(dcg.Layout):
         self._update_grid()
         
     def _on_next_click(self):
-        """Handle next button click"""
+        """
+        Handle next button click.
+        
+        Moves to the next month in day view, next year in month view,
+        or next 20-year block in year view.
+        """
         if self._view_level == 0:  # Day view
             if self._current_month == 11:
                 self._current_month = 0
@@ -424,36 +510,61 @@ class DatePicker(dcg.Layout):
         self._update_grid()
         
     def _on_header_click(self):
-        """Handle header button click"""
+        """
+        Handle header button click.
+        
+        Cycles through the view levels: day view -> month view -> year view -> day view.
+        """
         self._view_level = (self._view_level + 1) % 3
         self._update_grid()
         
     def _on_day_select(self, sender):
-        """Handle day selection"""
+        """
+        Handle day selection.
+        
+        Sets the selected date to the chosen day and triggers callbacks.
+        """
         day = int(sender.label)
         new_date = datetime(self._current_year, self._current_month + 1, day)
         self._set_value_and_run_callbacks(new_date)
         
     def _on_month_select(self, sender):
-        """Handle month selection"""
+        """
+        Handle month selection.
+        
+        Sets the current month and switches to day view.
+        """
         month = self.MONTH_ABBREV.index(sender.label)
         self._current_month = month
         self._view_level = 0
         self._update_grid()
         
     def _on_year_select(self, sender):
-        """Handle year selection"""
+        """
+        Handle year selection.
+        
+        Sets the current year and switches to month view.
+        """
         self._current_year = int(sender.label)
         self._view_level = 1
         self._update_grid()
         
     def _set_value_and_run_callbacks(self, value):
-        """Set date value and trigger callbacks"""
+        """
+        Set date value and trigger callbacks.
+        
+        Updates the internal date value and notifies all registered callbacks.
+        """
         self._set_value(value)
         self.run_callbacks()
 
     def _set_value(self, value):
-        """Internal method to set value without triggering callbacks"""
+        """
+        Internal method to set value without triggering callbacks.
+        
+        Updates the internal date value and refreshes the calendar display
+        without notifying callbacks.
+        """
         if not isinstance(value, datetime):
             raise ValueError("Value must be a datetime object")
         if not (self._min_date <= value <= self._max_date):
@@ -467,33 +578,29 @@ class DatePicker(dcg.Layout):
 
     @property
     def value(self):
-        """Get current value in seconds since epoch"""
+        """
+        Current date value represented as seconds since epoch.
+        
+        This is the raw internal representation that can be used for calculations
+        or for sharing the date value between components.
+        """
         return self._value.value
-    
-    @value.setter
-    def value(self, value):
-        """Set current value in seconds since epoch"""
-        if isinstance(value, datetime):
-            self._set_value(value)
-        else:
-            try:
-                dt = datetime.fromtimestamp(float(value))
-                self._set_value(dt)
-            except (ValueError, TypeError, OSError):
-                raise ValueError("Value must be a datetime or valid timestamp in seconds")
 
     @property
     def value_as_datetime(self):
-        """Get current selected date as datetime"""
+        """
+        Current selected date as a datetime object.
+        
+        Provides a convenient datetime interface for date manipulation.
+        """
         return datetime.fromtimestamp(self._value.value)
-    
-    @value_as_datetime.setter 
-    def value_as_datetime(self, value):
-        """Set current selected date from datetime"""
-        self.value = value
 
     def run_callbacks(self):
-        """Run all registered callbacks"""
+        """
+        Execute all registered callbacks with the current date value.
+        
+        Passes the current date as a datetime object to all callbacks.
+        """
         for callback in self.callbacks:
             callback(self, self, self.value_as_datetime)
 
@@ -501,17 +608,14 @@ class DateTimePicker(dcg.Layout):
     """
     A widget combining DatePicker and TimePicker for selecting both date and time.
     
-    The widget displays both date and time selection controls and manages them together.
-    Uses seconds since epoch internally via SharedDouble and provides datetime interface.
-
-    Properties:
-        value (float): Current value as timestamp in seconds since epoch
-        value_as_datetime (datetime): Current value as datetime object
-        min_date (datetime): Minimum selectable date (default: 1970-01-01)
-        max_date (datetime): Maximum selectable date (default: 2999-12-31)
-        layout (str): Layout arrangement - "horizontal", "vertical", "compact" 
-        use_24hr (bool): Whether to use 24-hour time (default: False)
-        show_seconds (bool): Whether to show seconds spinner (default: True)
+    The widget displays date and time selection controls in a unified interface.
+    It maintains both components synchronized through a shared timestamp value, 
+    allowing complete datetime selection with a single control.
+    
+    Different layout modes (horizontal, vertical, compact) can be used to suit 
+    various UI needs. The widget inherits the capabilities of both date and time 
+    pickers, including support for date ranges, 12/24 hour formats, and optional
+    seconds display.
     """
 
     def __init__(self, context, *, 
@@ -568,65 +672,100 @@ class DateTimePicker(dcg.Layout):
             self.value = datetime.now()
 
     def _on_change(self, sender, target, value):
-        """Handle date/time changes from either picker"""
+        """
+        Handle date/time changes from either picker.
+        
+        This internal method is called when either the date or time picker component
+        changes its value. It synchronizes the overall combined value and propagates
+        the change by running registered callbacks.
+        """
         self.run_callbacks()
 
     @property
     def value(self):
-        """Get current value in seconds since epoch"""
+        """
+        Current value in seconds since epoch.
+        
+        This is the raw internal representation of the datetime, stored as seconds
+        since the Unix epoch (January 1, 1970). This format allows for easy sharing
+        between components and precise time calculations.
+        """
         return self._value.value
     
     @value.setter
     def value(self, value):
-        """Set current value in seconds since epoch"""
-        if isinstance(value, datetime):
-            self._value.value = value.timestamp()
-        else:
-            self._value.value = float(value)
+        self._value.value = value.timestamp() if isinstance(value, datetime) else float(value)
 
     @property
     def value_as_datetime(self):
-        """Get current value as datetime"""
+        """
+        Current value as a datetime object.
+        
+        This provides a convenient datetime interface for the selected date and time,
+        allowing for easy integration with Python's datetime functionality.
+        """
         return datetime.fromtimestamp(self._value.value)
     
     @value_as_datetime.setter
     def value_as_datetime(self, value):
-        """Set current value from datetime"""
         if not isinstance(value, datetime):
             raise ValueError("Value must be a datetime object")
         self.value = value
 
     def run_callbacks(self):
-        """Run all registered callbacks with datetime value"""
+        """
+        Execute all registered callbacks with the current datetime value.
+        
+        This method notifies all registered callbacks about changes to the selected
+        datetime. The callbacks receive the current datetime as a parameter.
+        """
         for callback in self.callbacks:
             callback(self, self, self.value_as_datetime)
 
     @property
     def use_24hr(self):
-        """Get whether using 24-hour time format"""
+        """
+        Whether the time picker uses 24-hour format.
+        
+        When true, hours range from 0-23 and no AM/PM indicator is shown.
+        When false, hours range from 1-12 and an AM/PM selector is displayed.
+        """
         return self._time_picker.use_24hr
 
     @use_24hr.setter 
     def use_24hr(self, value):
-        """Set whether to use 24-hour time format"""
         self._time_picker.use_24hr = value
 
     @property
     def show_seconds(self):
-        """Get whether showing seconds"""
+        """
+        Whether seconds are shown in the time picker.
+        
+        When true, hours, minutes, and seconds are displayed.
+        When false, only hours and minutes are shown.
+        """
         return self._time_picker.show_seconds
     
     @show_seconds.setter
     def show_seconds(self, value):
-        """Set whether to show seconds"""
         self._time_picker.show_seconds = value
 
     @property
     def date_picker(self):
-        """Get the internal DatePicker widget"""
+        """
+        The internal DatePicker widget.
+        
+        Provides direct access to the embedded DatePicker component, allowing
+        for customization of its specific properties and behaviors.
+        """
         return self._date_picker
 
     @property
     def time_picker(self):
-        """Get the internal TimePicker widget"""
+        """
+        The internal TimePicker widget.
+        
+        Provides direct access to the embedded TimePicker component, allowing
+        for customization of its specific properties and behaviors.
+        """
         return self._time_picker
