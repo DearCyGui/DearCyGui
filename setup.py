@@ -345,7 +345,6 @@ def setup_package():
                 'Intended Audience :: Education',
                 'Intended Audience :: Developers',
                 'Intended Audience :: Science/Research',
-                'License :: OSI Approved :: MIT License',
                 'Operating System :: MacOS',
                 'Operating System :: Microsoft :: Windows :: Windows 10',
                 'Operating System :: POSIX',
