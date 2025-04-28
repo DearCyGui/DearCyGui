@@ -1011,31 +1011,38 @@ cdef class Button(uiItem):
         self.state.cap.can_be_dragged = True
         self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
-        self._direction = imgui.ImGuiDir_Up
+        self._direction = imgui.ImGuiDir_None
         self._small = False
         self._arrow = False
         self._repeat = False
 
     @property
-    def direction(self):
+    def arrow(self):
         """
-        Direction of the arrow when arrow mode is enabled.
+        If not None, draw an arrow with the specified direction.
         
-        This property only affects the appearance when the arrow property is set 
-        to True. Possible values are defined in the ButtonDirection enum: Up, 
-        Down, Left, Right, None.
+        This property is ignored when small is set, and in addition the requested
+        size is ignored (but is affected by theme settings).
+
+        Possible values are defined in the ButtonDirection enum: Up, Down, Left, Right.
+        None means the feature is disabled and the button will be drawn normally.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return <ButtonDirection>self._direction
+        if self._direction == imgui.ImGuiDir_None:
+            return None
+        return ButtonDirection(self._direction)
 
-    @direction.setter
-    def direction(self, ButtonDirection value):
+    @arrow.setter
+    def arrow(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if <imgui.ImGuiDir>value < imgui.ImGuiDir_None or <imgui.ImGuiDir>value >= imgui.ImGuiDir_COUNT:
-            raise ValueError("Invalid direction {value}")
-        self._direction = <imgui.ImGuiDir>value
+        if value is None:
+            self._direction = imgui.ImGuiDir_None
+        elif not isinstance(value, ButtonDirection):
+            raise TypeError("Invalid type for arrow property. Expected ButtonDirection or None.")
+        else:
+            self._direction = <imgui.ImGuiDir>value
 
     @property
     def small(self):
@@ -1054,25 +1061,6 @@ cdef class Button(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._small = value
-
-    @property
-    def arrow(self):
-        """
-        Whether to display the button as a directional arrow.
-        
-        When enabled, the button will be rendered as an arrow pointing in the 
-        direction specified by the direction property. Not compatible with small 
-        buttons - the small property takes precedence.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._arrow
-
-    @arrow.setter
-    def arrow(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._arrow = value
 
     @property
     def repeat(self):
@@ -1099,7 +1087,7 @@ cdef class Button(uiItem):
         imgui.PushItemFlag(imgui.ImGuiItemFlags_ButtonRepeat, self._repeat)
         if self._small:
             activated = imgui.SmallButton(self._imgui_label.c_str())
-        elif self._arrow:
+        elif <imgui.ImGuiDir>self._direction != imgui.ImGuiDir_None:
             activated = imgui.ArrowButton(self._imgui_label.c_str(), <imgui.ImGuiDir>self._direction)
         else:
             activated = imgui.Button(self._imgui_label.c_str(),

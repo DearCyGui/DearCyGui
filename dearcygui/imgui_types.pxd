@@ -12,7 +12,6 @@ from .wrapper cimport imgui, implot
 # include this file in the .pxd files.
 
 cpdef enum class ButtonDirection:
-    NONE = imgui.ImGuiDir_None,
     LEFT = imgui.ImGuiDir_Left,
     RIGHT = imgui.ImGuiDir_Right,
     UP = imgui.ImGuiDir_Up,
