@@ -6,8 +6,7 @@ from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 
 from .c_types cimport DCGMutex, DCGVector, DCGString, ValueOrItem,\
     unique_lock, defer_lock_t
-from .types cimport Vec2, Positioning, ThemeEnablers, ThemeCategories,\
-    theme_action
+from .types cimport Vec2, Positioning
 
 """
 Thread safety:
@@ -286,8 +285,6 @@ cdef class Viewport(baseItem):
     cdef float thickness_multiplier # scale for the thickness of all lines (Draw*)
     cdef float size_multiplier # scale for the size of all Draw* elements.
     cdef bint[6] enabled_axes # <int>implot.ImAxis_COUNT. Enabled plot axes.
-    cdef int32_t start_pending_theme_actions # Used when applying theme actions
-    cdef DCGVector[theme_action] pending_theme_actions # Used when applying theme actions
     ### private variables ###
     cdef DCGMutex _mutex_backend
     cdef void *_platform # platformViewport
@@ -303,18 +300,11 @@ cdef class Viewport(baseItem):
     cdef bint _drop_is_file_type
     cdef DCGVector[DCGString] _drop_data
     cdef int32_t _cursor # imgui.ImGuiMouseCursor
-    cdef DCGVector[theme_action] _applied_theme_actions
-    cdef DCGVector[int32_t] _applied_theme_actions_count
-    cdef ThemeEnablers _current_theme_activation_condition_enabled
-    cdef ThemeCategories _current_theme_activation_condition_category
     cdef float _scale
     cdef double _target_refresh_time
     ### public methods ###
     cdef void coordinate_to_screen(self, float *dst_p, double[2] src_p) noexcept nogil
     cdef void screen_to_coordinate(self, double *dst_p, float[2] src_p) noexcept nogil
-    cdef void push_pending_theme_actions(self, ThemeEnablers, ThemeCategories) noexcept nogil
-    cdef void push_pending_theme_actions_on_subset(self, int32_t, int32_t) noexcept nogil
-    cdef void pop_applied_pending_theme_actions(self) noexcept nogil
     cdef void ask_refresh_after(self, double monotonic) noexcept nogil # might refresh before, in which case you should call again
     cdef void force_present(self) noexcept nogil
     cdef Vec2 get_size(self) noexcept nogil
@@ -571,8 +561,6 @@ cdef class uiItem(baseItem):
     cdef bint _enabled_update_requested # Filled by uiItem on enabled value change 
     cdef bint _dpi_scaling # Whether to apply the global scale on the requested size.
     cdef float _indent
-    cdef ThemeEnablers _theme_condition_enabled
-    cdef ThemeCategories _theme_condition_category
     cdef Callback _dragCallback
     cdef Callback _dropCallback
     cdef baseFont _font
@@ -694,14 +682,11 @@ last_push_size is used internally during rendering
 to know the size of what we pushed.
 Indeed the user might add/remove elements while
 we render.
-push_to_list: Used to prepare in advance a push.
-In that case the caller handles the pops
 """
 
 cdef class baseTheme(baseItem):
     cdef bint _enabled
     cdef DCGVector[int32_t] _last_push_size
     cdef void push(self) noexcept nogil
-    cdef void push_to_list(self, DCGVector[theme_action]&) noexcept nogil
     cdef void pop(self) noexcept nogil
 

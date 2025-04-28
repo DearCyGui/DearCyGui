@@ -33,7 +33,7 @@ from .c_types cimport unique_lock, DCGMutex, DCGString, DCGVector,\
     DCG_UINT8, Vec2, make_Vec2, swap_Vec2, string_from_bytes
 from .imgui_types cimport imgui_ColorConvertU32ToFloat4, LegendLocation,\
     Vec2ImVec2, ImVec2Vec2, parse_color, unparse_color, AxisScale
-from .types cimport MouseButton, ThemeEnablers, ThemeCategories
+from .types cimport MouseButton
 from .wrapper cimport imgui, implot
 
 from .types import KeyMod, MouseButton as MouseButton_obj
@@ -2167,11 +2167,6 @@ cdef class plotElementWithLegend(plotElement):
         if self._font is not None:
             self._font.push()
 
-        self.context.viewport.push_pending_theme_actions(
-            ThemeEnablers.ANY,
-            ThemeCategories.t_plot
-        )
-
         if self._theme is not None:
             self._theme.push()
 
@@ -2211,8 +2206,6 @@ cdef class plotElementWithLegend(plotElement):
         # pop theme, font
         if self._theme is not None:
             self._theme.pop()
-
-        self.context.viewport.pop_applied_pending_theme_actions()
 
         if self._font is not None:
             self._font.pop()
@@ -3160,10 +3153,6 @@ cdef class plotDraggable(plotElement):
             return
 
         # push theme, font
-        self.context.viewport.push_pending_theme_actions(
-            ThemeEnablers.ANY,
-            ThemeCategories.t_plot
-        )
 
         if self._theme is not None:
             self._theme.push()
@@ -3175,8 +3164,6 @@ cdef class plotDraggable(plotElement):
         # pop theme, font
         if self._theme is not None:
             self._theme.pop()
-
-        self.context.viewport.pop_applied_pending_theme_actions()
 
         self.run_handlers()
 
@@ -3242,11 +3229,6 @@ cdef class DrawInPlot(plotElementWithLegend):
         if self._font is not None:
             self._font.push()
 
-        self.context.viewport.push_pending_theme_actions(
-            ThemeEnablers.ANY,
-            ThemeCategories.t_plot
-        )
-
         if self._theme is not None:
             self._theme.push()
 
@@ -3302,8 +3284,6 @@ cdef class DrawInPlot(plotElementWithLegend):
         # pop theme, font
         if self._theme is not None:
             self._theme.pop()
-
-        self.context.viewport.pop_applied_pending_theme_actions()
 
         if self._font is not None:
             self._font.pop()

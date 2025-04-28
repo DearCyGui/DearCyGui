@@ -32,8 +32,7 @@ from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color
 from .sizing cimport resolve_size, set_size, RefWidth, RefHeight
 from .texture cimport Texture
 from .types cimport Vec2, MouseButton, child_type, check_Positioning,\
-    Coord, theme_value_types, theme_value_float2_mask, theme_backends,\
-    theme_types, MouseCursor, make_Positioning
+    Coord, MouseCursor, make_Positioning
 from .wrapper cimport imgui, implot, imnodes
 
 from concurrent.futures import Executor, ThreadPoolExecutor
@@ -3693,7 +3692,6 @@ cdef class Viewport(baseItem):
         self.shifts = [0., 0.]
         self.scales = [1., 1.]
         self.in_plot = False
-        self.start_pending_theme_actions = 0
         self.parent_pos = make_Vec2(0., 0.)
         self.parent_size = make_Vec2((<platformViewport*>self._platform).frameWidth,
                                      (<platformViewport*>self._platform).frameHeight)
@@ -3774,137 +3772,6 @@ cdef class Viewport(baseItem):
         else:
             dst_p[0] = <double>(src_p[0] - self.shifts[0]) / <double>self.scales[0]
             dst_p[1] = <double>(src_p[1] - self.shifts[1]) / <double>self.scales[1]
-
-    cdef void push_pending_theme_actions(self,
-                                         ThemeEnablers theme_activation_condition_enabled,
-                                         ThemeCategories theme_activation_condition_category) noexcept nogil:
-        """
-        Used during rendering to apply themes defined by items
-        parents and that should activate based on specific conditions
-        Returns the number of theme actions applied. This number
-        should be returned to pop_applied_pending_theme_actions
-        """
-        self._current_theme_activation_condition_enabled = theme_activation_condition_enabled
-        self._current_theme_activation_condition_category = theme_activation_condition_category
-        self.push_pending_theme_actions_on_subset(self.start_pending_theme_actions,
-                                                  <int32_t>self.pending_theme_actions.size())
-
-    cdef void push_pending_theme_actions_on_subset(self,
-                                                   int32_t start,
-                                                   int32_t end) noexcept nogil:
-        cdef int32_t i
-        cdef int32_t size_init = self._applied_theme_actions.size()
-        cdef theme_action action
-        cdef imgui.ImVec2 value_float2
-        cdef ThemeEnablers theme_activation_condition_enabled = self._current_theme_activation_condition_enabled
-        cdef ThemeCategories theme_activation_condition_category = self._current_theme_activation_condition_category
-
-        cdef bool apply
-        for i in range(start, end):
-            apply = True
-            if self.pending_theme_actions[i].activation_condition_enabled != ThemeEnablers.ANY and \
-               theme_activation_condition_enabled != ThemeEnablers.ANY and \
-               self.pending_theme_actions[i].activation_condition_enabled != theme_activation_condition_enabled:
-                apply = False
-            if self.pending_theme_actions[i].activation_condition_category != theme_activation_condition_category and \
-               self.pending_theme_actions[i].activation_condition_category != ThemeCategories.t_any:
-                apply = False
-            if apply:
-                action = self.pending_theme_actions[i]
-                self._applied_theme_actions.push_back(action)
-                if action.backend == theme_backends.t_imgui:
-                    if action.type == theme_types.t_color:
-                        # can only be theme_value_types.t_u32
-                        imgui.PushStyleColor(<imgui.ImGuiCol>action.theme_index,
-                                             action.value.value_u32)
-                    elif action.type == theme_types.t_style:
-                        if action.value_type == theme_value_types.t_float:
-                            imgui.PushStyleVar(<imgui.ImGuiStyleVar>action.theme_index,
-                                               action.value.value_float)
-                        elif action.value_type == theme_value_types.t_float2:
-                            if action.float2_mask == theme_value_float2_mask.t_left:
-                                imgui.PushStyleVarX(<imgui.ImGuiStyleVar>action.theme_index,
-                                                    action.value.value_float2[0])
-                            elif action.float2_mask == theme_value_float2_mask.t_right:
-                                imgui.PushStyleVarY(<imgui.ImGuiStyleVar>action.theme_index,
-                                                    action.value.value_float2[1])
-                            else:
-                                value_float2 = imgui.ImVec2(action.value.value_float2[0],
-                                                            action.value.value_float2[1])
-                                imgui.PushStyleVar(<imgui.ImGuiStyleVar>action.theme_index,
-                                                   value_float2)
-                elif action.backend == theme_backends.t_implot:
-                    if action.type == theme_types.t_color:
-                        # can only be theme_value_types.t_u32
-                        implot.PushStyleColor(<implot.ImPlotCol>action.theme_index,
-                                             action.value.value_u32)
-                    elif action.type == theme_types.t_style:
-                        if action.value_type == theme_value_types.t_float:
-                            implot.PushStyleVar(<implot.ImPlotStyleVar>action.theme_index,
-                                               action.value.value_float)
-                        elif action.value_type == theme_value_types.t_int:
-                            implot.PushStyleVar(<implot.ImPlotStyleVar>action.theme_index,
-                                               action.value.value_int)
-                        elif action.value_type == theme_value_types.t_float2:
-                            if action.float2_mask == theme_value_float2_mask.t_left:
-                                implot.PushStyleVarX(<implot.ImPlotStyleVar>action.theme_index,
-                                                     action.value.value_float2[0])
-                            elif action.float2_mask == theme_value_float2_mask.t_right:
-                                implot.PushStyleVarY(<implot.ImPlotStyleVar>action.theme_index,
-                                                     action.value.value_float2[1])
-                            else:
-                                value_float2 = imgui.ImVec2(action.value.value_float2[0],
-                                                            action.value.value_float2[1])
-                                implot.PushStyleVar(<implot.ImPlotStyleVar>action.theme_index,
-                                                    value_float2)
-                elif action.backend == theme_backends.t_imnodes:
-                    if action.type == theme_types.t_color:
-                        # can only be theme_value_types.t_u32
-                        imnodes.PushColorStyle(<imnodes.ImNodesCol>action.theme_index,
-                                             action.value.value_u32)
-                    elif action.type == theme_types.t_style:
-                        if action.value_type == theme_value_types.t_float:
-                            imnodes.PushStyleVar(<imnodes.ImNodesStyleVar>action.theme_index,
-                                               action.value.value_float)
-                        elif action.value_type == theme_value_types.t_float2:
-                            # TODO X/Y when needed
-                            value_float2 = imnodes.ImVec2(action.value.value_float2[0],
-                                                        action.value.value_float2[1])
-                            imnodes.PushStyleVar(<imnodes.ImNodesStyleVar>action.theme_index,
-                                               value_float2)
-        self._applied_theme_actions_count.push_back(self._applied_theme_actions.size() - size_init)
-
-    cdef void pop_applied_pending_theme_actions(self) noexcept nogil:
-        """
-        Used during rendering to pop what push_pending_theme_actions did
-        """
-        cdef int32_t count = self._applied_theme_actions_count.back()
-        self._applied_theme_actions_count.pop_back()
-        if count == 0:
-            return
-        cdef int32_t i
-        cdef int32_t size = self._applied_theme_actions.size()
-        cdef theme_action action
-        for i in range(count):
-            action = self._applied_theme_actions[size-i-1]
-            if action.backend == theme_backends.t_imgui:
-                if action.type == theme_types.t_color:
-                    imgui.PopStyleColor(1)
-                elif action.type == theme_types.t_style:
-                    imgui.PopStyleVar(1)
-            elif action.backend == theme_backends.t_implot:
-                if action.type == theme_types.t_color:
-                    implot.PopStyleColor(1)
-                elif action.type == theme_types.t_style:
-                    implot.PopStyleVar(1)
-            elif action.backend == theme_backends.t_imnodes:
-                if action.type == theme_types.t_color:
-                    imnodes.PopColorStyle()
-                elif action.type == theme_types.t_style:
-                    imnodes.PopStyleVar(1)
-        for i in range(count):
-            self._applied_theme_actions.pop_back()
-
 
     def render_frame(self, bint can_skip_presenting=False):
         """Render one frame of the application.
@@ -4062,9 +3929,6 @@ cdef class Viewport(baseItem):
         self.delta_rendering = 1e-9 * <float>(self.last_t_after_rendering - self.last_t_before_rendering)
         self.delta_event_handling = 1e-9 * <float>(self.last_t_before_rendering - self.last_t_before_event_handling)
         self.frame_count += 1
-        assert(self.pending_theme_actions.empty())
-        assert(self._applied_theme_actions.empty())
-        assert(self.start_pending_theme_actions == 0)
         return should_present
 
     def wake(self):
@@ -4885,8 +4749,6 @@ cdef class uiItem(baseItem):
         #self.alias = b""
         self._dpi_scaling = True
         self._indent = 0.
-        self._theme_condition_enabled = ThemeEnablers.ENABLED
-        self._theme_condition_category = ThemeCategories.t_any
         self.can_have_sibling = True
         self.element_child_category = child_type.cat_widget
         self.state.cap.has_position = True # ALL widgets have position
@@ -5240,7 +5102,6 @@ cdef class uiItem(baseItem):
         lock_gil_friendly(m, self.mutex)
         if not(self.can_be_disabled) and value != True:
             raise AttributeError(f"Objects of type {type(self)} cannot be disabled")
-        self._theme_condition_enabled = ThemeEnablers.ENABLED if value else ThemeEnablers.DISABLED
         self._enabled_update_requested = True
         self._enabled = value
 
@@ -5923,10 +5784,6 @@ cdef class uiItem(baseItem):
             self._font.push()
 
         # themes
-        self.context.viewport.push_pending_theme_actions(
-            self._theme_condition_enabled,
-            self._theme_condition_category
-        )
         if self._theme is not None:
             self._theme.push()
 
@@ -5945,7 +5802,6 @@ cdef class uiItem(baseItem):
 
         if self._theme is not None:
             self._theme.pop()
-        self.context.viewport.pop_applied_pending_theme_actions()
 
         if self._font is not None:
             self._font.pop()
@@ -6082,7 +5938,6 @@ cdef class Window(uiItem):
         self._on_close_callback = None
         self._min_size = make_Vec2(100., 100.)
         self._max_size = make_Vec2(30000., 30000.)
-        self._theme_condition_category = ThemeCategories.t_window
         # Default is the viewport for windows
         self.pos_policy[0] = Positioning.REL_VIEWPORT
         self.pos_policy[1] = Positioning.REL_VIEWPORT
@@ -6859,10 +6714,6 @@ cdef class Window(uiItem):
             self._font.push()
 
         # themes
-        self.context.viewport.push_pending_theme_actions(
-            ThemeEnablers.ANY,
-            ThemeCategories.t_window
-        )
         if self._theme is not None:
             self._theme.push()
 
@@ -6980,7 +6831,6 @@ cdef class Window(uiItem):
 
         if self._theme is not None:
             self._theme.pop()
-        self.context.viewport.pop_applied_pending_theme_actions()
 
         if self._font is not None:
             self._font.pop()
@@ -7136,12 +6986,6 @@ cdef class plotElement(baseItem):
             return
 
         # push theme
-
-        self.context.viewport.push_pending_theme_actions(
-            ThemeEnablers.ANY,
-            ThemeCategories.t_plot
-        )
-
         if self._theme is not None:
             self._theme.push()
 
@@ -7152,8 +6996,6 @@ cdef class plotElement(baseItem):
         # pop theme, font
         if self._theme is not None:
             self._theme.pop()
-
-        self.context.viewport.pop_applied_pending_theme_actions()
 
     cdef void draw_element(self) noexcept nogil:
         return
@@ -7322,7 +7164,5 @@ cdef class baseTheme(baseItem):
     cdef void push(self) noexcept nogil:
         return
     cdef void pop(self) noexcept nogil:
-        return
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
         return
 

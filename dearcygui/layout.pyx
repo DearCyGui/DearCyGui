@@ -23,7 +23,7 @@ from libcpp.cmath cimport floor
 from .core cimport uiItem, Callback, lock_gil_friendly
 from .c_types cimport Vec2, make_Vec2, swap_Vec2, DCGMutex, unique_lock
 from .imgui_types cimport ImVec2Vec2
-from .types cimport Positioning, ThemeCategories, child_type
+from .types cimport Positioning, child_type
 from .wrapper cimport imgui
 
 cdef class Layout(uiItem):
@@ -61,7 +61,6 @@ cdef class Layout(uiItem):
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_toggled = True
         self.state.cap.has_content_region = True
-        self._theme_condition_category = ThemeCategories.t_layout
         self._previous_last_child = NULL
 
     def update_layout(self):
@@ -779,7 +778,6 @@ cdef class WindowLayout(uiItem):
     """
     def __cinit__(self):
         self.can_have_window_child = True
-        self._theme_condition_category = ThemeCategories.t_layout
         self.element_child_category = child_type.cat_window
         self.can_be_disabled = False
         self._previous_last_child = NULL

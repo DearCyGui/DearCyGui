@@ -27,8 +27,8 @@ from .core cimport lock_gil_friendly, baseItem, baseTheme
 from .c_types cimport DCGMutex, unique_lock
 from .imgui_types cimport ImGuiColorIndex, ImPlotColorIndex,\
     ImGuiStyleIndex, ImPlotStyleIndex, parse_color
-from .types cimport theme_types, make_PlotMarker, PlotMarker
-from .wrapper cimport imgui, implot, imnodes
+from .types cimport make_PlotMarker, PlotMarker
+from .wrapper cimport imgui, implot
 
 
 cdef inline void imgui_PushStyleVar2(int i, float[2] val) noexcept nogil:
@@ -36,9 +36,6 @@ cdef inline void imgui_PushStyleVar2(int i, float[2] val) noexcept nogil:
 
 cdef inline void implot_PushStyleVar2(int i, float[2] val) noexcept nogil:
     implot.PushStyleVar(<implot.ImPlotStyleVar>i, imgui.ImVec2(val[0], val[1]))
-
-cdef inline void imnodes_PushStyleVar2(int i, float[2] val) noexcept nogil:
-    imnodes.PushStyleVar(<imnodes.ImNodesStyleVar>i, imgui.ImVec2(val[0], val[1]))
 
 cdef inline void push_theme_children(baseItem item) noexcept nogil:
     if item.last_theme_child is None:
@@ -48,16 +45,6 @@ cdef inline void push_theme_children(baseItem item) noexcept nogil:
         child = <PyObject *>(<baseItem>child).prev_sibling
     while (<baseItem>child) is not None:
         (<baseTheme>child).push()
-        child = <PyObject *>(<baseItem>child).next_sibling
-
-cdef inline void push_to_list_children(baseItem item, DCGVector[theme_action]& v) noexcept nogil:
-    if item.last_theme_child is None:
-        return
-    cdef PyObject *child = <PyObject*> item.last_theme_child
-    while (<baseItem>child).prev_sibling is not None:
-        child = <PyObject *>(<baseItem>child).prev_sibling
-    while (<baseItem>child) is not None:
-        (<baseTheme>child).push_to_list(v)
         child = <PyObject *>(<baseItem>child).next_sibling
 
 cdef inline void pop_theme_children(baseItem item) noexcept nogil:
@@ -76,7 +63,7 @@ cdef class baseThemeColor(baseTheme):
     Base class for theme colors that provides common color-related functionality.
     
     This class provides the core implementation for managing color themes in different 
-    contexts (ImGui/ImPlot/ImNodes). Color themes allow setting colors for various UI 
+    contexts (ImGui/ImPlot). Color themes allow setting colors for various UI 
     elements using different color formats:
     - unsigned int (encodes rgba little-endian)
     - (r, g, b, a) with values as integers [0-255]  
@@ -128,7 +115,7 @@ cdef class baseThemeColor(baseTheme):
             result.append((name, int(element_content.second)))
         return iter(result)
 
-    cdef object __common_getter(self, int32_t index):
+    cdef object _common_getter(self, int32_t index):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef unordered_map[int32_t, uint32_t].iterator element_content = self._index_to_value.find(index)
@@ -138,7 +125,7 @@ cdef class baseThemeColor(baseTheme):
         cdef uint32_t value = dereference(element_content).second
         return value
 
-    cdef void __common_setter(self, int32_t index, value):
+    cdef void _common_setter(self, int32_t index, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
@@ -283,561 +270,561 @@ cdef class ThemeColorImGui(baseThemeColor):
     def Text(self):
         """Color for text rendering. 
         Default: (1.00, 1.00, 1.00, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.Text)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.Text)
         
     @Text.setter
     def Text(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.Text, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.Text, value)
 
     @property
     def TextDisabled(self):
         """Color for the text of disabled items.
         Default: (0.50, 0.50, 0.50, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TextDisabled)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TextDisabled)
 
     @TextDisabled.setter
     def TextDisabled(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TextDisabled, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TextDisabled, value)
 
     @property
     def WindowBg(self):
         """Background of normal windows.
         Default: (0.06, 0.06, 0.06, 0.94)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.WindowBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.WindowBg)
         
     @WindowBg.setter
     def WindowBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.WindowBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.WindowBg, value)
 
     @property
     def ChildBg(self):
         """Background of child windows.
         Default: (0.00, 0.00, 0.00, 0.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ChildBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ChildBg)
 
     @ChildBg.setter
     def ChildBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ChildBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ChildBg, value)
 
     @property
     def PopupBg(self):
         """Background of popups, menus, tooltips windows.
         Default: (0.08, 0.08, 0.08, 0.94)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.PopupBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.PopupBg)
 
     @PopupBg.setter
     def PopupBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.PopupBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.PopupBg, value)
 
     @property
     def Border(self):
         """Color of borders.
         Default: (0.43, 0.43, 0.50, 0.50)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.Border)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.Border)
 
     @Border.setter
     def Border(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.Border, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.Border, value)
 
     @property
     def BorderShadow(self):
         """Color of border shadows.
         Default: (0.00, 0.00, 0.00, 0.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.BorderShadow)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.BorderShadow)
 
     @BorderShadow.setter
     def BorderShadow(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.BorderShadow, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.BorderShadow, value)
 
     @property 
     def FrameBg(self):
         """Background of checkbox, radio button, plot, slider, text input.
         Default: (0.16, 0.29, 0.48, 0.54)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.FrameBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.FrameBg)
 
     @FrameBg.setter
     def FrameBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.FrameBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.FrameBg, value)
 
     @property
     def FrameBgHovered(self):
         """Color of FrameBg when the item is hovered.
         Default: (0.26, 0.59, 0.98, 0.40)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.FrameBgHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.FrameBgHovered)
 
     @FrameBgHovered.setter 
     def FrameBgHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.FrameBgHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.FrameBgHovered, value)
 
     @property
     def FrameBgActive(self):  
         """Color of FrameBg when the item is active.
         Default: (0.26, 0.59, 0.98, 0.67)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.FrameBgActive)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.FrameBgActive)
 
     @FrameBgActive.setter
     def FrameBgActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.FrameBgActive, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.FrameBgActive, value)
 
     @property
     def TitleBg(self):
         """Title bar color.
         Default: (0.04, 0.04, 0.04, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TitleBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TitleBg)
 
     @TitleBg.setter
     def TitleBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TitleBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TitleBg, value)
 
     @property
     def TitleBgActive(self):
         """Title bar color when focused.
         Default: (0.16, 0.29, 0.48, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TitleBgActive)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TitleBgActive)
 
     @TitleBgActive.setter
     def TitleBgActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TitleBgActive, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TitleBgActive, value)
 
     @property
     def TitleBgCollapsed(self):
         """Title bar color when collapsed.
         Default: (0.00, 0.00, 0.00, 0.51)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TitleBgCollapsed)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TitleBgCollapsed)
 
     @TitleBgCollapsed.setter
     def TitleBgCollapsed(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TitleBgCollapsed, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TitleBgCollapsed, value)
 
     @property
     def MenuBarBg(self):
         """Menu bar background color.
         Default: (0.14, 0.14, 0.14, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.MenuBarBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.MenuBarBg)
 
     @MenuBarBg.setter
     def MenuBarBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.MenuBarBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.MenuBarBg, value)
 
     @property  
     def ScrollbarBg(self):
         """Scrollbar background color.
         Default: (0.02, 0.02, 0.02, 0.53)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ScrollbarBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ScrollbarBg)
 
     @ScrollbarBg.setter
     def ScrollbarBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ScrollbarBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ScrollbarBg, value)
 
     @property
     def ScrollbarGrab(self):
         """Scrollbar grab color.
         Default: (0.31, 0.31, 0.31, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ScrollbarGrab)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ScrollbarGrab)
 
     @ScrollbarGrab.setter  
     def ScrollbarGrab(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ScrollbarGrab, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ScrollbarGrab, value)
 
     @property
     def ScrollbarGrabHovered(self):
         """Scrollbar grab color when hovered. 
         Default: (0.41, 0.41, 0.41, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ScrollbarGrabHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ScrollbarGrabHovered)
 
     @ScrollbarGrabHovered.setter
     def ScrollbarGrabHovered(self, value): 
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ScrollbarGrabHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ScrollbarGrabHovered, value)
 
     @property
     def ScrollbarGrabActive(self):
         """Scrollbar grab color when active.
         Default: (0.51, 0.51, 0.51, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ScrollbarGrabActive)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ScrollbarGrabActive)
 
     @ScrollbarGrabActive.setter
     def ScrollbarGrabActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ScrollbarGrabActive, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ScrollbarGrabActive, value)
 
     @property
     def CheckMark(self):
         """Checkmark color.
         Default: (0.26, 0.59, 0.98, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.CheckMark)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.CheckMark)
 
     @CheckMark.setter
     def CheckMark(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.CheckMark, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.CheckMark, value)
 
     @property
     def SliderGrab(self):
         """Slider grab color.
         Default: (0.24, 0.52, 0.88, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.SliderGrab)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.SliderGrab)
 
     @SliderGrab.setter
     def SliderGrab(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.SliderGrab, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.SliderGrab, value)
 
     @property 
     def SliderGrabActive(self):
         """Slider grab color when active.
         Default: (0.26, 0.59, 0.98, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.SliderGrabActive)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.SliderGrabActive)
 
     @SliderGrabActive.setter
     def SliderGrabActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.SliderGrabActive, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.SliderGrabActive, value)
 
     @property
     def Button(self):
         """Button color.
         Default: (0.26, 0.59, 0.98, 0.40)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.Button)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.Button)
 
     @Button.setter
     def Button(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.Button, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.Button, value)
 
     @property
     def ButtonHovered(self):
         """Button color when hovered.
         Default: (0.26, 0.59, 0.98, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ButtonHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ButtonHovered)
 
     @ButtonHovered.setter
     def ButtonHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ButtonHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ButtonHovered, value)
 
     @property
     def ButtonActive(self):
         """Button color when active.
         Default: (0.06, 0.53, 0.98, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ButtonActive)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ButtonActive)
 
     @ButtonActive.setter
     def ButtonActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ButtonActive, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ButtonActive, value)
 
     @property
     def Header(self):
         """Colors used for CollapsingHeader, TreeNode, Selectable, MenuItem.
         Default: (0.26, 0.59, 0.98, 0.31)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.Header)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.Header)
 
     @Header.setter
     def Header(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.Header, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.Header, value)
 
     @property 
     def HeaderHovered(self):
         """Header colors when hovered.
         Default: (0.26, 0.59, 0.98, 0.80)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.HeaderHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.HeaderHovered)
 
     @HeaderHovered.setter
     def HeaderHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.HeaderHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.HeaderHovered, value)
 
     @property
     def HeaderActive(self):
         """Header colors when activated/clicked.
         Default: (0.26, 0.59, 0.98, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.HeaderActive) 
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.HeaderActive) 
 
     @HeaderActive.setter
     def HeaderActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.HeaderActive, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.HeaderActive, value)
 
     @property
     def Separator(self):
         """Color of separating lines.
         Default: Same as Border color (0.43, 0.43, 0.50, 0.50)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.Separator)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.Separator)
 
     @Separator.setter
     def Separator(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.Separator, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.Separator, value)
 
     @property
     def SeparatorHovered(self):
         """Separator color when hovered.
         Default: (0.10, 0.40, 0.75, 0.78)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.SeparatorHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.SeparatorHovered)
 
     @SeparatorHovered.setter
     def SeparatorHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.SeparatorHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.SeparatorHovered, value)
 
     @property
     def SeparatorActive(self):
         """Separator color when active.
         Default: (0.10, 0.40, 0.75, 1.00)""" 
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.SeparatorActive)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.SeparatorActive)
 
     @SeparatorActive.setter
     def SeparatorActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.SeparatorActive, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.SeparatorActive, value)
 
     @property
     def ResizeGrip(self):
         """Resize grip in lower-right and lower-left corners of windows.
         Default: (0.26, 0.59, 0.98, 0.20)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ResizeGrip)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ResizeGrip)
     
     @ResizeGrip.setter 
     def ResizeGrip(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ResizeGrip, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ResizeGrip, value)
     
     @property
     def ResizeGripHovered(self):
         """ResizeGrip color when hovered.
         Default: (0.26, 0.59, 0.98, 0.67)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ResizeGripHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ResizeGripHovered)
     
     @ResizeGripHovered.setter
     def ResizeGripHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ResizeGripHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ResizeGripHovered, value)
     
     @property
     def ResizeGripActive(self):
         """ResizeGrip color when clicked.
         Default: (0.26, 0.59, 0.98, 0.95)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ResizeGripActive)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ResizeGripActive)
     
     @ResizeGripActive.setter
     def ResizeGripActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ResizeGripActive, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ResizeGripActive, value)
     
     @property
     def TabHovered(self):
         """Tab background when hovered.
         Default: Same as HeaderHovered color"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TabHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TabHovered)
     
     @TabHovered.setter
     def TabHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TabHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TabHovered, value)
     
     @property
     def Tab(self):
         """Tab background when tab-bar is focused & tab is unselected.
         Default: Value interpolated between Header and TitleBgActive colors with factor 0.80"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.Tab)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.Tab)
     
     @Tab.setter
     def Tab(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.Tab, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.Tab, value)
     
     @property
     def TabSelected(self):
         """Tab background when tab-bar is focused & tab is selected.
         Default: Value interpolated between HeaderActive and TitleBgActive colors with factor 0.60"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TabSelected)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TabSelected)
     
     @TabSelected.setter
     def TabSelected(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TabSelected, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TabSelected, value)
     
     @property
     def TabSelectedOverline(self):
         """Tab horizontal overline when tab-bar is focused & tab is selected.
         Default: Same as HeaderActive color"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TabSelectedOverline)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TabSelectedOverline)
     
     @TabSelectedOverline.setter
     def TabSelectedOverline(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TabSelectedOverline, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TabSelectedOverline, value)
     
     @property
     def TabDimmed(self):
         """Tab background when tab-bar is unfocused & tab is unselected.
         Default: Value interpolated between Tab and TitleBg colors with factor 0.80"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TabDimmed)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TabDimmed)
     
     @TabDimmed.setter
     def TabDimmed(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TabDimmed, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TabDimmed, value)
     
     @property
     def TabDimmedSelected(self):
         """Tab background when tab-bar is unfocused & tab is selected.
         Default: Value interpolated between TabSelected and TitleBg colors with factor 0.40""" 
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TabDimmedSelected)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TabDimmedSelected)
     
     @TabDimmedSelected.setter
     def TabDimmedSelected(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TabDimmedSelected, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TabDimmedSelected, value)
     
     @property
     def TabDimmedSelectedOverline(self):
         """Tab horizontal overline when tab-bar is unfocused & tab is selected.
         Default: (0.50, 0.50, 0.50, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TabDimmedSelectedOverline)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TabDimmedSelectedOverline)
     
     @TabDimmedSelectedOverline.setter
     def TabDimmedSelectedOverline(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TabDimmedSelectedOverline, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TabDimmedSelectedOverline, value)
     
     @property
     def PlotLines(self):
         """Color of SimplePlot lines.
         Default: (0.61, 0.61, 0.61, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.PlotLines) 
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.PlotLines) 
     
     @PlotLines.setter
     def PlotLines(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.PlotLines, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.PlotLines, value)
     
     @property
     def PlotLinesHovered(self):
         """Color of SimplePlot lines when hovered.
         Default: (1.00, 0.43, 0.35, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.PlotLinesHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.PlotLinesHovered)
     
     @PlotLinesHovered.setter
     def PlotLinesHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.PlotLinesHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.PlotLinesHovered, value)
     
     @property
     def PlotHistogram(self):
         """Color of SimplePlot histogram.
         Default: (0.90, 0.70, 0.00, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.PlotHistogram)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.PlotHistogram)
     
     @PlotHistogram.setter
     def PlotHistogram(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.PlotHistogram, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.PlotHistogram, value)
     
     @property
     def PlotHistogramHovered(self):
         """Color of SimplePlot histogram when hovered.
         Default: (1.00, 0.60, 0.00, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.PlotHistogramHovered)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.PlotHistogramHovered)
     
     @PlotHistogramHovered.setter
     def PlotHistogramHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.PlotHistogramHovered, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.PlotHistogramHovered, value)
     
     @property
     def TableHeaderBg(self):
         """Table header background.
         Default: (0.19, 0.19, 0.20, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TableHeaderBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TableHeaderBg)
     
     @TableHeaderBg.setter
     def TableHeaderBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TableHeaderBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TableHeaderBg, value)
     
     @property
     def TableBorderStrong(self):
         """Table outer borders and headers (prefer using Alpha=1.0 here).
         Default: (0.31, 0.31, 0.35, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TableBorderStrong)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TableBorderStrong)
     
     @TableBorderStrong.setter
     def TableBorderStrong(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TableBorderStrong, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TableBorderStrong, value)
     
     @property
     def TableBorderLight(self):
         """Table inner borders (prefer using Alpha=1.0 here).
         Default: (0.23, 0.23, 0.25, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TableBorderLight)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TableBorderLight)
     
     @TableBorderLight.setter
     def TableBorderLight(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TableBorderLight, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TableBorderLight, value)
     
     @property
     def TableRowBg(self):
         """Table row background (even rows).
         Default: (0.00, 0.00, 0.00, 0.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TableRowBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TableRowBg)
     
     @TableRowBg.setter
     def TableRowBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TableRowBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TableRowBg, value)
     
     @property
     def TableRowBgAlt(self):
         """Table row background (odd rows).
         Default: (1.00, 1.00, 1.00, 0.06)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TableRowBgAlt)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TableRowBgAlt)
     
     @TableRowBgAlt.setter
     def TableRowBgAlt(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TableRowBgAlt, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TableRowBgAlt, value)
     
     @property
     def TextLink(self):
         """Hyperlink color.
         Default: Same as HeaderActive color"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TextLink)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TextLink)
     
     @TextLink.setter
     def TextLink(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TextLink, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TextLink, value)
 
     @property
     def TextSelectedBg(self):
         """Background color of selected text.
         Default: (0.26, 0.59, 0.98, 0.35)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.TextSelectedBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.TextSelectedBg)
 
     @TextSelectedBg.setter
     def TextSelectedBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.TextSelectedBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.TextSelectedBg, value)
 
     @property
     def DragDropTarget(self):
         """Rectangle highlighting a drop target.
         Default: (1.00, 1.00, 0.00, 0.90)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.DragDropTarget)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.DragDropTarget)
     
     @DragDropTarget.setter
     def DragDropTarget(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.DragDropTarget, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.DragDropTarget, value)
 
     @property
     def NavCursor(self):
         """Color of keyboard/gamepad navigation cursor/rectangle, when visible.
         Default: Same as HeaderHovered (0.26, 0.59, 0.98, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.NavCursor)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.NavCursor)
 
     @NavCursor.setter
     def NavCursor(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.NavCursor, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.NavCursor, value)
 
     @property
     def NavWindowingHighlight(self):
         """Highlight window when using CTRL+TAB.
         Default: (1.00, 1.00, 1.00, 0.70)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.NavWindowingHighlight)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.NavWindowingHighlight)
 
     @NavWindowingHighlight.setter
     def NavWindowingHighlight(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.NavWindowingHighlight, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.NavWindowingHighlight, value)
 
     @property 
     def NavWindowingDimBg(self):
         """Darken/colorize entire screen behind CTRL+TAB window list.
         Default: (0.80, 0.80, 0.80, 0.20)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.NavWindowingDimBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.NavWindowingDimBg)
 
     @NavWindowingDimBg.setter
     def NavWindowingDimBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.NavWindowingDimBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.NavWindowingDimBg, value)
 
     @property
     def ModalWindowDimBg(self):
         """Darken/colorize entire screen behind a modal window.
         Default: (0.80, 0.80, 0.80, 0.35)"""
-        return baseThemeColor.__common_getter(self, <int>ImGuiColorIndex.ModalWindowDimBg)
+        return baseThemeColor._common_getter(self, <int>ImGuiColorIndex.ModalWindowDimBg)
 
     @ModalWindowDimBg.setter
     def ModalWindowDimBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImGuiColorIndex.ModalWindowDimBg, value)
+        baseThemeColor._common_setter(self, <int>ImGuiColorIndex.ModalWindowDimBg, value)
 
     @classmethod
     def get_default(self, str color_name):
@@ -968,23 +955,6 @@ cdef class ThemeColorImGui(baseThemeColor):
             imgui.PushStyleColor(<imgui.ImGuiCol>element_content.first, <imgui.ImU32>element_content.second)
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef pair[int32_t, uint32_t] element_content
-        cdef theme_action action
-        if not(self._enabled):
-            return
-        for element_content in self._index_to_value:
-            action.activation_condition_enabled = ThemeEnablers.ANY
-            action.activation_condition_category = ThemeCategories.t_any
-            action.type = theme_types.t_color
-            action.backend = theme_backends.t_imgui
-            action.theme_index = element_content.first
-            action.value_type = theme_value_types.t_u32
-            action.value.value_u32 = element_content.second
-            action.float2_mask = theme_value_float2_mask.t_full # Not used
-            v.push_back(action)
-
     cdef void pop(self) noexcept nogil:
         cdef int32_t count = self._last_push_size.back()
         self._last_push_size.pop_back()
@@ -1057,211 +1027,211 @@ cdef class ThemeColorImPlot(baseThemeColor):
     def Line(self):
         """Plot line color.
         Default: Auto - derived from Text color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.Line)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.Line)
 
     @Line.setter
     def Line(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.Line, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.Line, value)
 
     @property
     def Fill(self):
         """Plot fill color.
         Default: Auto - derived from Line color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.Fill)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.Fill)
 
     @Fill.setter
     def Fill(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.Fill, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.Fill, value)
 
     @property
     def MarkerOutline(self):
         """Plot marker outline color.
         Default: Auto - derived from Line color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.MarkerOutline)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.MarkerOutline)
 
     @MarkerOutline.setter
     def MarkerOutline(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.MarkerOutline, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.MarkerOutline, value)
 
     @property
     def MarkerFill(self):
         """Plot marker fill color.
         Default: Auto - derived from Line color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.MarkerFill)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.MarkerFill)
 
     @MarkerFill.setter
     def MarkerFill(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.MarkerFill, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.MarkerFill, value)
 
     @property
     def ErrorBar(self):
         """Error bar color.
         Default: Auto - derived from Text color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.ErrorBar)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.ErrorBar)
 
     @ErrorBar.setter
     def ErrorBar(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.ErrorBar, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.ErrorBar, value)
 
     @property
     def FrameBg(self):
         """Plot frame background color.
         Default: Auto - derived from FrameBg color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.FrameBg)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.FrameBg)
 
     @FrameBg.setter
     def FrameBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.FrameBg, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.FrameBg, value)
 
     @property
     def PlotBg(self):
         """Plot area background color.
         Default: Auto - derived from WindowBg color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.PlotBg)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.PlotBg)
 
     @PlotBg.setter
     def PlotBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.PlotBg, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.PlotBg, value)
 
     @property
     def PlotBorder(self):
         """Plot area border color.
         Default: Auto - derived from Border color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.PlotBorder)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.PlotBorder)
 
     @PlotBorder.setter
     def PlotBorder(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.PlotBorder, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.PlotBorder, value)
 
     @property
     def LegendBg(self):
         """Legend background color.
         Default: Auto - derived from PopupBg color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.LegendBg)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.LegendBg)
 
     @LegendBg.setter
     def LegendBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.LegendBg, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.LegendBg, value)
 
     @property
     def LegendBorder(self):
         """Legend border color.
         Default: Auto - derived from Border color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.LegendBorder)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.LegendBorder)
 
     @LegendBorder.setter
     def LegendBorder(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.LegendBorder, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.LegendBorder, value)
 
     @property
     def LegendText(self):
         """Legend text color.
         Default: Auto - derived from Text color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.LegendText)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.LegendText)
 
     @LegendText.setter
     def LegendText(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.LegendText, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.LegendText, value)
 
     @property
     def TitleText(self):
         """Plot title text color.
         Default: Auto - derived from Text color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.TitleText)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.TitleText)
 
     @TitleText.setter
     def TitleText(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.TitleText, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.TitleText, value)
 
     @property
     def InlayText(self):
         """Color of text appearing inside of plots.
         Default: Auto - derived from Text color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.InlayText)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.InlayText)
 
     @InlayText.setter
     def InlayText(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.InlayText, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.InlayText, value)
 
     @property
     def AxisText(self):
         """Axis text labels color.
         Default: Auto - derived from Text color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.AxisText)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AxisText)
 
     @AxisText.setter
     def AxisText(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.AxisText, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.AxisText, value)
 
     @property
     def AxisGrid(self):
         """Axis grid color.
         Default: Auto - derived from Text color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.AxisGrid)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AxisGrid)
 
     @AxisGrid.setter
     def AxisGrid(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.AxisGrid, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.AxisGrid, value)
 
     @property
     def AxisTick(self):
         """Axis tick marks color.
         Default: Auto - derived from AxisGrid color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.AxisTick)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AxisTick)
 
     @AxisTick.setter
     def AxisTick(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.AxisTick, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.AxisTick, value)
 
     @property
     def AxisBg(self):
         """Background color of axis hover region.
         Default: transparent"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.AxisBg)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AxisBg)
 
     @AxisBg.setter
     def AxisBg(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.AxisBg, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.AxisBg, value)
 
     @property
     def AxisBgHovered(self):
         """Axis background color when hovered.
         Default: Auto - derived from ButtonHovered color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.AxisBgHovered)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AxisBgHovered)
 
     @AxisBgHovered.setter
     def AxisBgHovered(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.AxisBgHovered, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.AxisBgHovered, value)
 
     @property
     def AxisBgActive(self):
         """Axis background color when clicked.
         Default: Auto - derived from ButtonActive color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.AxisBgActive)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AxisBgActive)
 
     @AxisBgActive.setter
     def AxisBgActive(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.AxisBgActive, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.AxisBgActive, value)
 
     @property
     def Selection(self):
         """Box-selection color.
         Default: (1.00, 1.00, 0.00, 1.00)"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.Selection)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.Selection)
 
     @Selection.setter
     def Selection(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.Selection, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.Selection, value)
 
     @property
     def Crosshairs(self):
         """Crosshairs color.
         Default: Auto - derived from PlotBorder color"""
-        return baseThemeColor.__common_getter(self, <int>ImPlotColorIndex.Crosshairs)
+        return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.Crosshairs)
 
     @Crosshairs.setter
     def Crosshairs(self, value):
-        baseThemeColor.__common_setter(self, <int>ImPlotColorIndex.Crosshairs, value)
+        baseThemeColor._common_setter(self, <int>ImPlotColorIndex.Crosshairs, value)
 
     @classmethod
     def get_default(self, str color_name):
@@ -1323,23 +1293,6 @@ cdef class ThemeColorImPlot(baseThemeColor):
             implot.PushStyleColor(<implot.ImPlotCol>element_content.first, <imgui.ImU32>element_content.second)
         self._last_push_size.push_back(<int>self._index_to_value.size())
 
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef pair[int32_t, uint32_t] element_content
-        cdef theme_action action
-        if not(self._enabled):
-            return
-        for element_content in self._index_to_value:
-            action.activation_condition_enabled = ThemeEnablers.ANY
-            action.activation_condition_category = ThemeCategories.t_any
-            action.type = theme_types.t_color
-            action.backend = theme_backends.t_implot
-            action.theme_index = element_content.first
-            action.value_type = theme_value_types.t_u32
-            action.value.value_u32 = element_content.second
-            action.float2_mask = theme_value_float2_mask.t_full # Not used
-            v.push_back(action)
-
     cdef void pop(self) noexcept nogil:
         cdef int32_t count = self._last_push_size.back()
         self._last_push_size.pop_back()
@@ -1347,189 +1300,10 @@ cdef class ThemeColorImPlot(baseThemeColor):
             implot.PopStyleColor(count)
         self.mutex.unlock()
 
-'''
-@cython.no_gc_clear
-cdef class ThemeColorImNodes(baseThemeColor):
-    def __cinit__(self):
-        self._names = [
-            "NodeBackground",
-            "NodeBackgroundHovered",
-            "NodeBackgroundSelected",
-            "NodeOutline",
-            "TitleBar",
-            "TitleBarHovered",
-            "TitleBarSelected",
-            "Link",
-            "LinkHovered",
-            "LinkSelected",
-            "Pin",
-            "PinHovered",
-            "BoxSelector",
-            "BoxSelectorOutline",
-            "GridBackground",
-            "GridLine",
-            "GridLinePrimary",
-            "MiniMapBackground",
-            "MiniMapBackgroundHovered",
-            "MiniMapOutline",
-            "MiniMapOutlineHovered",
-            "MiniMapNodeBackground",
-            "MiniMapNodeBackgroundHovered",
-            "MiniMapNodeBackgroundSelected",
-            "MiniMapNodeOutline",
-            "MiniMapLink",
-            "MiniMapLinkSelected",
-            "MiniMapCanvas",
-            "MiniMapCanvasOutline"
-        ]
-        cdef int32_t i
-        cdef string name_str
-        for i, name in enumerate(self._names):
-            name_str = name
-            self.name_to_index[name_str] = i
-
-    def __dir__(self):
-        return self._names + dir(baseTheme)
-
-    def __getattr__(self, name):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef string name_str = bytes(name, 'utf-8')
-        cdef unordered_map[string, int32_t].iterator element = self.name_to_index.find(name_str)
-        if element == self.name_to_index.end():
-            raise AttributeError("Color %s not found" % name)
-        cdef int32_t color_index = dereference(element).second
-        cdef unordered_map[int32_t, imgui.ImU32].iterator element_content = self._index_to_value.find(color_index)
-        if element_content == self._index_to_value.end():
-            # None: default
-            return None
-        cdef imgui.ImU32 value = dereference(element_content).second
-        return value
-
-    def __getitem__(self, key):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[string, int32_t].iterator element
-        cdef int32_t color_index
-        cdef unordered_map[int32_t, imgui.ImU32].iterator element_content
-        cdef string name_str
-        if isinstance(key, str):
-            name_str = bytes(key, 'utf-8')
-            element = self.name_to_index.find(name_str)
-            if element == self.name_to_index.end():
-                raise KeyError("Color %s not found" % key)
-            color_index = dereference(element).second
-        elif isinstance(key, int):
-            color_index = key
-            if color_index < 0 or color_index >= imnodes.ImNodesCol_COUNT:
-                raise KeyError("No color of index %d" % key)
-        else:
-            raise TypeError("%s is an invalid index type" % str(type(key)))
-        element_content = self._index_to_value.find(color_index)
-        if element_content == self._index_to_value.end():
-            # None: default
-            return None
-        cdef imgui.ImU32 value = dereference(element_content).second
-        return value
-
-    def __setattr__(self, name, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef bint found
-        cdef string name_str
-        cdef unordered_map[string, int32_t].iterator element
-        try:
-            name_str = bytes(name, 'utf-8')
-            element = self.name_to_index.find(name_str)
-            found = element != self.name_to_index.end()
-        except Exception:
-            found = False
-        if not(found):
-            PyObject_GenericSetAttr(self, name, value)
-            return
-        cdef int32_t color_index = dereference(element).second
-        if value is None:
-            self._index_to_value.erase(color_index)
-            return
-        cdef imgui.ImU32 color = parse_color(value)
-        self._index_to_value[color_index] = color
-
-    def __setitem__(self, key, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[string, int32_t].iterator element
-        cdef int32_t color_index
-        cdef string name_str
-        if isinstance(key, str):
-            name_str = bytes(key, 'utf-8')
-            element = self.name_to_index.find(name_str)
-            if element == self.name_to_index.end():
-                raise KeyError("Color %s not found" % key)
-            color_index = dereference(element).second
-        elif isinstance(key, int):
-            color_index = key
-            if color_index < 0 or color_index >= imnodes.ImNodesCol_COUNT:
-                raise KeyError("No color of index %d" % key)
-        else:
-            raise TypeError("%s is an invalid index type" % str(type(key)))
-        if value is None:
-            self._index_to_value.erase(color_index)
-            return
-        cdef imgui.ImU32 color = parse_color(value)
-        self._index_to_value[color_index] = color
-
-    def __iter__(self):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef list result = []
-        cdef pair[int32_t, imgui.ImU32] element_content
-        for element_content in self._index_to_value:
-            result.append((self._names[element_content.first],
-                           int(element_content.second)))
-        return iter(result)
-
-    cdef void push(self) noexcept nogil:
-        self.mutex.lock()
-        if not(self._enabled):
-            self._last_push_size.push_back(0)
-            return
-        cdef pair[int32_t, imgui.ImU32] element_content
-        for element_content in self._index_to_value:
-            # Note: imgui seems to convert U32 for this. Maybe use float4
-            imnodes.PushColorStyle(<imnodes.ImNodesCol>element_content.first, <imgui.ImU32>element_content.second)
-        self._last_push_size.push_back(<int>self._index_to_value.size())
-
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef pair[int32_t, imgui.ImU32] element_content
-        cdef theme_action action
-        if not(self._enabled):
-            return
-        for element_content in self._index_to_value:
-            action.activation_condition_enabled = ThemeEnablers.ANY
-            action.activation_condition_category = ThemeCategories.t_any
-            action.type = theme_types.t_color
-            action.backend = theme_backends.t_imnodes
-            action.theme_index = element_content.first
-            action.value_type = theme_value_types.t_u32
-            action.value.value_u32 = element_content.second
-            action.float2_mask = theme_value_float2_mask.t_full # Not used
-            v.push_back(action)
-
-    cdef void pop(self) noexcept nogil:
-        cdef int32_t count = self._last_push_size.back()
-        cdef int32_t i
-        self._last_push_size.pop_back()
-        if count > 0:
-            for i in range(count):
-                imnodes.PopColorStyle()
-        self.mutex.unlock()
-'''
 
 cdef class baseThemeStyle(baseTheme):
     def __cinit__(self):
         self._dpi = -1.
-        self._backend = theme_backends.t_imgui
         self._dpi_scaling = True
 
     @property
@@ -1617,7 +1391,7 @@ cdef class baseThemeStyle(baseTheme):
                 result.append((name, element_content.second.value.value_u32))
         return iter(result)
 
-    cdef object __common_getter(self, int32_t index, theme_value_types type):
+    cdef object _common_getter(self, int32_t index, theme_value_types type):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef unordered_map[int32_t, theme_value_info].iterator element_content = self._index_to_value.find(index)
@@ -1640,7 +1414,7 @@ cdef class baseThemeStyle(baseTheme):
             return value.value.value_u32
         return None
 
-    cdef void __common_setter(self, int32_t index, theme_value_types type, bint should_scale, bint should_round, py_value):
+    cdef void _common_setter(self, int32_t index, theme_value_types type, bint should_scale, bint should_round, py_value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if py_value is None:
@@ -1681,7 +1455,7 @@ cdef class baseThemeStyle(baseTheme):
         self._index_to_value[index] = value
         self._dpi = -1 # regenerate the scaled dpi array
 
-    cdef void __compute_for_dpi(self) noexcept nogil:
+    cdef void _compute_for_dpi(self) noexcept nogil:
         cdef float dpi = self.context.viewport.global_scale
         cdef bint should_scale = self._dpi_scaling
         cdef bint should_round = self._round_after_scale
@@ -1706,81 +1480,6 @@ cdef class baseThemeStyle(baseTheme):
                     element_content.second.value.value_float2[0] = round(element_content.second.value.value_float2[0])
                     element_content.second.value.value_float2[1] = round(element_content.second.value.value_float2[1])
             self._index_to_value_for_dpi.insert(element_content)
-
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef pair[int32_t, theme_value_info] element_content
-        cdef theme_action action
-        if not(self._enabled):
-            return
-        if self.context.viewport.global_scale != self._dpi:
-            self.__compute_for_dpi()
-        for element_content in self._index_to_value_for_dpi:
-            action.activation_condition_enabled = ThemeEnablers.ANY
-            action.activation_condition_category = ThemeCategories.t_any
-            action.type = theme_types.t_style
-            action.backend = self._backend
-            action.theme_index = element_content.first
-            action.value_type = element_content.second.value_type
-            action.value = element_content.second.value
-            if element_content.second.value_type == theme_value_types.t_float2:
-                action.float2_mask = element_content.second.float2_mask
-            else:
-                action.float2_mask = theme_value_float2_mask.t_full # Not used
-            v.push_back(action)
-
-    cdef void push(self) noexcept nogil:
-        self.mutex.lock()
-        if not(self._enabled):
-            self._last_push_size.push_back(0)
-            return
-        if self.context.viewport.global_scale != self._dpi:
-            self.__compute_for_dpi()
-        cdef pair[int32_t, theme_value_info] element_content
-        if self._backend == theme_backends.t_imgui:
-            for element_content in self._index_to_value_for_dpi:
-                if element_content.second.value_type == theme_value_types.t_float:
-                    imgui.PushStyleVar(element_content.first, element_content.second.value.value_float)
-                else: # t_float2
-                    if element_content.second.float2_mask == theme_value_float2_mask.t_left:
-                        imgui.PushStyleVarX(element_content.first, element_content.second.value.value_float2[0])
-                    elif element_content.second.float2_mask == theme_value_float2_mask.t_right:
-                        imgui.PushStyleVarY(element_content.first, element_content.second.value.value_float2[1])
-                    else:
-                        imgui_PushStyleVar2(element_content.first, element_content.second.value.value_float2)
-        elif self._backend == theme_backends.t_implot:
-            for element_content in self._index_to_value_for_dpi:
-                if element_content.second.value_type == theme_value_types.t_float:
-                    implot.PushStyleVar(element_content.first, element_content.second.value.value_float)
-                elif element_content.second.value_type == theme_value_types.t_int:
-                    implot.PushStyleVar(element_content.first, element_content.second.value.value_int)
-                else: # t_float2
-                    if element_content.second.float2_mask == theme_value_float2_mask.t_left:
-                        implot.PushStyleVarX(element_content.first, element_content.second.value.value_float2[0])
-                    elif element_content.second.float2_mask == theme_value_float2_mask.t_right:
-                        implot.PushStyleVarY(element_content.first, element_content.second.value.value_float2[1])
-                    else:
-                        implot_PushStyleVar2(element_content.first, element_content.second.value.value_float2)
-        elif self._backend == theme_backends.t_imnodes:
-            for element_content in self._index_to_value_for_dpi:
-                if element_content.second.value_type == theme_value_types.t_float:
-                    imnodes.PushStyleVar(element_content.first, element_content.second.value.value_float)
-                else:
-                    # TODO: Add VarX/Y when needed
-                    imnodes_PushStyleVar2(element_content.first, element_content.second.value.value_float2)
-        self._last_push_size.push_back(<int>self._index_to_value_for_dpi.size())
-
-    cdef void pop(self) noexcept nogil:
-        cdef int32_t count = self._last_push_size.back()
-        self._last_push_size.pop_back()
-        if count > 0:
-            if self._backend == theme_backends.t_imgui:
-                imgui.PopStyleVar(count)
-            elif self._backend == theme_backends.t_implot:
-                implot.PopStyleVar(count)
-            elif self._backend == theme_backends.t_imnodes:
-                imnodes.PopStyleVar(count)
-        self.mutex.unlock()
 
 
 cdef class ThemeStyleImGui(baseThemeStyle):
@@ -1820,7 +1519,6 @@ cdef class ThemeStyleImGui(baseThemeStyle):
             "SeparatorTextAlign",       # ImVec2    SeparatorTextAlign
             "SeparatorTextPadding",     # ImVec2    SeparatorTextPadding
         ]
-        self._backend = theme_backends.t_imgui
 
     @property
     def Alpha(self):
@@ -1829,11 +1527,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is in the range [0, 1]. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.Alpha, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.Alpha, theme_value_types.t_float)
 
     @Alpha.setter
     def Alpha(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.Alpha, theme_value_types.t_float, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.Alpha, theme_value_types.t_float, False, False, value)
 
     @property
     def DisabledAlpha(self):
@@ -1842,11 +1540,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is in the range [0, 1]. Defaults to 0.6
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.DisabledAlpha, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.DisabledAlpha, theme_value_types.t_float)
 
     @DisabledAlpha.setter
     def DisabledAlpha(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.DisabledAlpha, theme_value_types.t_float, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.DisabledAlpha, theme_value_types.t_float, False, False, value)
 
     @property
     def WindowPadding(self):
@@ -1855,11 +1553,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a pair of float (dx, dy). Defaults to (8, 8)
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.WindowPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.WindowPadding, theme_value_types.t_float2)
 
     @WindowPadding.setter
     def WindowPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.WindowPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.WindowPadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def WindowRounding(self):
@@ -1868,11 +1566,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 0.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.WindowRounding, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.WindowRounding, theme_value_types.t_float)
 
     @WindowRounding.setter
     def WindowRounding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.WindowRounding, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.WindowRounding, theme_value_types.t_float, True, False, value)
 
     @property
     def WindowBorderSize(self):
@@ -1881,11 +1579,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.WindowBorderSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.WindowBorderSize, theme_value_types.t_float)
 
     @WindowBorderSize.setter
     def WindowBorderSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.WindowBorderSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.WindowBorderSize, theme_value_types.t_float, True, True, value)
 
     @property
     def WindowMinSize(self):
@@ -1894,11 +1592,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a pair of float (dx, dy). Defaults to (32, 32)
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.WindowMinSize, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.WindowMinSize, theme_value_types.t_float2)
 
     @WindowMinSize.setter
     def WindowMinSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.WindowMinSize, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.WindowMinSize, theme_value_types.t_float2, True, True, value)
 
     @property
     def WindowTitleAlign(self):
@@ -1907,11 +1605,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a pair of float (dx, dy). Defaults to (0., 0.5), which means left-aligned, vertical centering on the row
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.WindowTitleAlign, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.WindowTitleAlign, theme_value_types.t_float2)
 
     @WindowTitleAlign.setter
     def WindowTitleAlign(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.WindowTitleAlign, theme_value_types.t_float2, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.WindowTitleAlign, theme_value_types.t_float2, False, False, value)
 
     @property
     def ChildRounding(self):
@@ -1920,11 +1618,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 0.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.ChildRounding, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.ChildRounding, theme_value_types.t_float)
 
     @ChildRounding.setter
     def ChildRounding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.ChildRounding, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.ChildRounding, theme_value_types.t_float, True, False, value)
 
     @property
     def ChildBorderSize(self):
@@ -1933,11 +1631,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.ChildBorderSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.ChildBorderSize, theme_value_types.t_float)
 
     @ChildBorderSize.setter
     def ChildBorderSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.ChildBorderSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.ChildBorderSize, theme_value_types.t_float, True, True, value)
 
     @property
     def PopupRounding(self):
@@ -1946,11 +1644,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 0.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.PopupRounding, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.PopupRounding, theme_value_types.t_float)
 
     @PopupRounding.setter
     def PopupRounding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.PopupRounding, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.PopupRounding, theme_value_types.t_float, True, False, value)
 
     @property
     def PopupBorderSize(self):
@@ -1959,11 +1657,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.PopupBorderSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.PopupBorderSize, theme_value_types.t_float)
 
     @PopupBorderSize.setter
     def PopupBorderSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.PopupBorderSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.PopupBorderSize, theme_value_types.t_float, True, True, value)
 
     @property
     def FramePadding(self):
@@ -1972,11 +1670,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (4,3).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.FramePadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.FramePadding, theme_value_types.t_float2)
 
     @FramePadding.setter
     def FramePadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.FramePadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.FramePadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def FrameRounding(self):
@@ -1985,11 +1683,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 0.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.FrameRounding, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.FrameRounding, theme_value_types.t_float)
 
     @FrameRounding.setter
     def FrameRounding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.FrameRounding, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.FrameRounding, theme_value_types.t_float, True, False, value)
 
     @property
     def FrameBorderSize(self):
@@ -1998,11 +1696,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 0.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.FrameBorderSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.FrameBorderSize, theme_value_types.t_float)
 
     @FrameBorderSize.setter
     def FrameBorderSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.FrameBorderSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.FrameBorderSize, theme_value_types.t_float, True, True, value)
 
     @property
     def ItemSpacing(self):
@@ -2011,11 +1709,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (8, 4).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.ItemSpacing, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.ItemSpacing, theme_value_types.t_float2)
 
     @ItemSpacing.setter
     def ItemSpacing(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.ItemSpacing, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.ItemSpacing, theme_value_types.t_float2, True, True, value)
 
     @property
     def ItemInnerSpacing(self):
@@ -2024,11 +1722,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (4, 4).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.ItemInnerSpacing, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.ItemInnerSpacing, theme_value_types.t_float2)
 
     @ItemInnerSpacing.setter
     def ItemInnerSpacing(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.ItemInnerSpacing, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.ItemInnerSpacing, theme_value_types.t_float2, True, True, value)
 
     @property
     def IndentSpacing(self):
@@ -2038,11 +1736,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 21.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.IndentSpacing, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.IndentSpacing, theme_value_types.t_float)
 
     @IndentSpacing.setter
     def IndentSpacing(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.IndentSpacing, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.IndentSpacing, theme_value_types.t_float, True, True, value)
 
     @property
     def CellPadding(self):
@@ -2053,11 +1751,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (4, 2).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.CellPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.CellPadding, theme_value_types.t_float2)
 
     @CellPadding.setter
     def CellPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.CellPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.CellPadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def ScrollbarSize(self):
@@ -2066,11 +1764,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 14.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.ScrollbarSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.ScrollbarSize, theme_value_types.t_float)
 
     @ScrollbarSize.setter
     def ScrollbarSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.ScrollbarSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.ScrollbarSize, theme_value_types.t_float, True, True, value)
 
     @property
     def ScrollbarRounding(self):
@@ -2079,11 +1777,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 9.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.ScrollbarRounding, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.ScrollbarRounding, theme_value_types.t_float)
 
     @ScrollbarRounding.setter
     def ScrollbarRounding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.ScrollbarRounding, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.ScrollbarRounding, theme_value_types.t_float, True, True, value)
 
     @property
     def GrabMinSize(self):
@@ -2092,11 +1790,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 12.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.GrabMinSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.GrabMinSize, theme_value_types.t_float)
 
     @GrabMinSize.setter
     def GrabMinSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.GrabMinSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.GrabMinSize, theme_value_types.t_float, True, True, value)
 
     @property
     def GrabRounding(self):
@@ -2105,11 +1803,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 0.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.GrabRounding, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.GrabRounding, theme_value_types.t_float)
 
     @GrabRounding.setter
     def GrabRounding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.GrabRounding, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.GrabRounding, theme_value_types.t_float, True, False, value)
 
     @property
     def TabRounding(self):
@@ -2118,11 +1816,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 4.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.TabRounding, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.TabRounding, theme_value_types.t_float)
 
     @TabRounding.setter
     def TabRounding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.TabRounding, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.TabRounding, theme_value_types.t_float, True, False, value)
 
     @property
     def TabBorderSize(self):
@@ -2131,11 +1829,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 0.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.TabBorderSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.TabBorderSize, theme_value_types.t_float)
 
     @TabBorderSize.setter
     def TabBorderSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.TabBorderSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.TabBorderSize, theme_value_types.t_float, True, True, value)
 
     @property
     def TabBarBorderSize(self):
@@ -2144,11 +1842,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.TabBarBorderSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.TabBarBorderSize, theme_value_types.t_float)
 
     @TabBarBorderSize.setter
     def TabBarBorderSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.TabBarBorderSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.TabBarBorderSize, theme_value_types.t_float, True, True, value)
 
     @property
     def TabBarOverlineSize(self):
@@ -2157,11 +1855,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 2.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.TabBarOverlineSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.TabBarOverlineSize, theme_value_types.t_float)
 
     @TabBarOverlineSize.setter
     def TabBarOverlineSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.TabBarOverlineSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.TabBarOverlineSize, theme_value_types.t_float, True, True, value)
 
     @property
     def TableAngledHeadersAngle(self):
@@ -2170,11 +1868,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
 
         The value is a float. Defaults to 35.0f * (IM_PI / 180.0f).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.TableAngledHeadersAngle, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.TableAngledHeadersAngle, theme_value_types.t_float)
 
     @TableAngledHeadersAngle.setter
     def TableAngledHeadersAngle(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.TableAngledHeadersAngle, theme_value_types.t_float, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.TableAngledHeadersAngle, theme_value_types.t_float, False, False, value)
 
     @property
     def TableAngledHeadersTextAlign(self):
@@ -2183,11 +1881,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
     
         The value is a pair of floats. Defaults to (0.5, 0.), i.e. top-centered
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.TableAngledHeadersTextAlign, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.TableAngledHeadersTextAlign, theme_value_types.t_float2)
 
     @TableAngledHeadersTextAlign.setter
     def TableAngledHeadersTextAlign(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.TableAngledHeadersTextAlign, theme_value_types.t_float2, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.TableAngledHeadersTextAlign, theme_value_types.t_float2, False, False, value)
 
     @property
     def ButtonTextAlign(self):
@@ -2196,11 +1894,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
     
         The value is a pair of floats. Defaults to (0.5, 0.5), i.e. centered
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.ButtonTextAlign, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.ButtonTextAlign, theme_value_types.t_float2)
 
     @ButtonTextAlign.setter
     def ButtonTextAlign(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.ButtonTextAlign, theme_value_types.t_float2, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.ButtonTextAlign, theme_value_types.t_float2, False, False, value)
 
     @property
     def SelectableTextAlign(self):
@@ -2209,11 +1907,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
     
         The value is a pair of floats. Defaults to (0., 0.), i.e. top-left. It is advised to keep the default.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.SelectableTextAlign, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.SelectableTextAlign, theme_value_types.t_float2)
 
     @SelectableTextAlign.setter
     def SelectableTextAlign(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.SelectableTextAlign, theme_value_types.t_float2, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.SelectableTextAlign, theme_value_types.t_float2, False, False, value)
 
     @property
     def SeparatorTextBorderSize(self):
@@ -2222,11 +1920,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
     
         The value is a float. Defaults to 3.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.SeparatorTextBorderSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.SeparatorTextBorderSize, theme_value_types.t_float)
 
     @SeparatorTextBorderSize.setter
     def SeparatorTextBorderSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.SeparatorTextBorderSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.SeparatorTextBorderSize, theme_value_types.t_float, True, True, value)
 
     @property
     def SelectableTextAlign(self):
@@ -2235,11 +1933,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
     
         The value is a pair of floats. Defaults to (0., 0.5), i.e. left-centered
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.SelectableTextAlign, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.SelectableTextAlign, theme_value_types.t_float2)
 
     @SelectableTextAlign.setter
     def SelectableTextAlign(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.SelectableTextAlign, theme_value_types.t_float2, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.SelectableTextAlign, theme_value_types.t_float2, False, False, value)
 
     @property
     def SeparatorTextPadding(self):
@@ -2248,11 +1946,11 @@ cdef class ThemeStyleImGui(baseThemeStyle):
     
         The value is a pair of floats. Defaults to (20., 3.).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImGuiStyleIndex.SeparatorTextPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImGuiStyleIndex.SeparatorTextPadding, theme_value_types.t_float2)
 
     @SeparatorTextPadding.setter
     def SeparatorTextPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImGuiStyleIndex.SeparatorTextPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.SeparatorTextPadding, theme_value_types.t_float2, True, True, value)
 
     @classmethod
     def get_default(self, str style_name):
@@ -2326,6 +2024,33 @@ cdef class ThemeStyleImGui(baseThemeStyle):
         else:
             raise KeyError(f"Style {style_name} not found")
 
+    cdef void push(self) noexcept nogil:
+        self.mutex.lock()
+        if not(self._enabled):
+            self._last_push_size.push_back(0)
+            return
+        if self.context.viewport.global_scale != self._dpi:
+            baseThemeStyle._compute_for_dpi(self)
+        cdef pair[int32_t, theme_value_info] element_content
+        for element_content in self._index_to_value_for_dpi:
+            if element_content.second.value_type == theme_value_types.t_float:
+                imgui.PushStyleVar(element_content.first, element_content.second.value.value_float)
+            else: # t_float2
+                if element_content.second.float2_mask == theme_value_float2_mask.t_left:
+                    imgui.PushStyleVarX(element_content.first, element_content.second.value.value_float2[0])
+                elif element_content.second.float2_mask == theme_value_float2_mask.t_right:
+                    imgui.PushStyleVarY(element_content.first, element_content.second.value.value_float2[1])
+                else:
+                    imgui_PushStyleVar2(element_content.first, element_content.second.value.value_float2)
+        self._last_push_size.push_back(<int>self._index_to_value_for_dpi.size())
+
+    cdef void pop(self) noexcept nogil:
+        cdef int32_t count = self._last_push_size.back()
+        self._last_push_size.pop_back()
+        if count > 0:
+            imgui.PopStyleVar(count)
+        self.mutex.unlock()
+
 
 cdef class ThemeStyleImPlot(baseThemeStyle):
     def __cinit__(self):
@@ -2358,7 +2083,6 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
             "PlotDefaultSize",    # ImVec2, default size used when ImVec2(0,0) is passed to BeginPlot
             "PlotMinSize",        # ImVec2, minimum size plot frame can be when shrunk
         ]
-        self._backend = theme_backends.t_implot
 
     @property
     def LineWeight(self):
@@ -2367,11 +2091,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.LineWeight, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.LineWeight, theme_value_types.t_float)
 
     @LineWeight.setter
     def LineWeight(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.LineWeight, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.LineWeight, theme_value_types.t_float, True, False, value)
 
     @property
     def Marker(self):
@@ -2380,13 +2104,13 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a PlotMarker. Defaults to PlotMarker.NONE.
         """
-        value = baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int)
+        value = baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int)
         return None if value is None else make_PlotMarker(value)
 
     @Marker.setter
     def Marker(self, value):
         cdef int32_t value_int = int(make_PlotMarker(value))
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int, False, False, value_int)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.Marker, theme_value_types.t_int, False, False, value_int)
 
     @property
     def MarkerSize(self):
@@ -2395,11 +2119,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 4.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MarkerSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MarkerSize, theme_value_types.t_float)
 
     @MarkerSize.setter
     def MarkerSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MarkerSize, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MarkerSize, theme_value_types.t_float, True, False, value)
 
     @property
     def MarkerWeight(self):
@@ -2408,11 +2132,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MarkerWeight, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MarkerWeight, theme_value_types.t_float)
 
     @MarkerWeight.setter
     def MarkerWeight(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MarkerWeight, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MarkerWeight, theme_value_types.t_float, True, False, value)
 
     @property
     def FillAlpha(self):
@@ -2421,11 +2145,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.FillAlpha, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.FillAlpha, theme_value_types.t_float)
 
     @FillAlpha.setter
     def FillAlpha(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.FillAlpha, theme_value_types.t_float, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.FillAlpha, theme_value_types.t_float, False, False, value)
 
     @property
     def ErrorBarSize(self):
@@ -2434,11 +2158,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 5.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.ErrorBarSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.ErrorBarSize, theme_value_types.t_float)
 
     @ErrorBarSize.setter
     def ErrorBarSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.ErrorBarSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.ErrorBarSize, theme_value_types.t_float, True, True, value)
 
     @property
     def ErrorBarWeight(self):
@@ -2447,11 +2171,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 1.5.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.ErrorBarWeight, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.ErrorBarWeight, theme_value_types.t_float)
 
     @ErrorBarWeight.setter
     def ErrorBarWeight(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.ErrorBarWeight, theme_value_types.t_float, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.ErrorBarWeight, theme_value_types.t_float, True, False, value)
 
     @property
     def DigitalBitHeight(self):
@@ -2460,11 +2184,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 8.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.DigitalBitHeight, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.DigitalBitHeight, theme_value_types.t_float)
 
     @DigitalBitHeight.setter
     def DigitalBitHeight(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.DigitalBitHeight, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.DigitalBitHeight, theme_value_types.t_float, True, True, value)
 
     @property
     def DigitalBitGap(self):
@@ -2473,11 +2197,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 4.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.DigitalBitGap, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.DigitalBitGap, theme_value_types.t_float)
 
     @DigitalBitGap.setter
     def DigitalBitGap(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.DigitalBitGap, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.DigitalBitGap, theme_value_types.t_float, True, True, value)
 
     @property
     def PlotBorderSize(self):
@@ -2486,11 +2210,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 1.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.PlotBorderSize, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.PlotBorderSize, theme_value_types.t_float)
 
     @PlotBorderSize.setter
     def PlotBorderSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.PlotBorderSize, theme_value_types.t_float, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.PlotBorderSize, theme_value_types.t_float, True, True, value)
 
     @property
     def MinorAlpha(self):
@@ -2499,11 +2223,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a float. Defaults to 0.25.
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MinorAlpha, theme_value_types.t_float)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MinorAlpha, theme_value_types.t_float)
 
     @MinorAlpha.setter
     def MinorAlpha(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MinorAlpha, theme_value_types.t_float, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MinorAlpha, theme_value_types.t_float, False, False, value)
 
     @property
     def MajorTickLen(self):
@@ -2512,11 +2236,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (10, 10).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MajorTickLen, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MajorTickLen, theme_value_types.t_float2)
 
     @MajorTickLen.setter
     def MajorTickLen(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MajorTickLen, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MajorTickLen, theme_value_types.t_float2, True, True, value)
 
     @property
     def MinorTickLen(self):
@@ -2525,11 +2249,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (5, 5).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MinorTickLen, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MinorTickLen, theme_value_types.t_float2)
 
     @MinorTickLen.setter
     def MinorTickLen(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MinorTickLen, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MinorTickLen, theme_value_types.t_float2, True, True, value)
 
     @property
     def MajorTickSize(self):
@@ -2538,11 +2262,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (1, 1).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MajorTickSize, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MajorTickSize, theme_value_types.t_float2)
 
     @MajorTickSize.setter
     def MajorTickSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MajorTickSize, theme_value_types.t_float2, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MajorTickSize, theme_value_types.t_float2, True, False, value)
 
     @property
     def MinorTickSize(self):
@@ -2551,11 +2275,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (1, 1).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MinorTickSize, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MinorTickSize, theme_value_types.t_float2)
 
     @MinorTickSize.setter
     def MinorTickSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MinorTickSize, theme_value_types.t_float2, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MinorTickSize, theme_value_types.t_float2, True, False, value)
 
     @property
     def MajorGridSize(self):
@@ -2564,11 +2288,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (1, 1).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MajorGridSize, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MajorGridSize, theme_value_types.t_float2)
 
     @MajorGridSize.setter
     def MajorGridSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MajorGridSize, theme_value_types.t_float2, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MajorGridSize, theme_value_types.t_float2, True, False, value)
 
     @property
     def MinorGridSize(self):
@@ -2577,11 +2301,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (1, 1).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MinorGridSize, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MinorGridSize, theme_value_types.t_float2)
 
     @MinorGridSize.setter
     def MinorGridSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MinorGridSize, theme_value_types.t_float2, True, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MinorGridSize, theme_value_types.t_float2, True, False, value)
 
     @property
     def PlotPadding(self):
@@ -2590,11 +2314,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (10, 10).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.PlotPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.PlotPadding, theme_value_types.t_float2)
 
     @PlotPadding.setter
     def PlotPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.PlotPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.PlotPadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def LabelPadding(self):
@@ -2603,11 +2327,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (5, 5).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.LabelPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.LabelPadding, theme_value_types.t_float2)
 
     @LabelPadding.setter
     def LabelPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.LabelPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.LabelPadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def LegendPadding(self):
@@ -2616,11 +2340,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (10, 10).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.LegendPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.LegendPadding, theme_value_types.t_float2)
 
     @LegendPadding.setter
     def LegendPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.LegendPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.LegendPadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def LegendInnerPadding(self):
@@ -2629,11 +2353,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (5, 5).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.LegendInnerPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.LegendInnerPadding, theme_value_types.t_float2)
 
     @LegendInnerPadding.setter
     def LegendInnerPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.LegendInnerPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.LegendInnerPadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def LegendSpacing(self):
@@ -2642,11 +2366,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (5, 0).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.LegendSpacing, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.LegendSpacing, theme_value_types.t_float2)
 
     @LegendSpacing.setter
     def LegendSpacing(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.LegendSpacing, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.LegendSpacing, theme_value_types.t_float2, True, True, value)
 
     @property
     def MousePosPadding(self):
@@ -2655,11 +2379,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (10, 10).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.MousePosPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.MousePosPadding, theme_value_types.t_float2)
 
     @MousePosPadding.setter
     def MousePosPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.MousePosPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.MousePosPadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def AnnotationPadding(self):
@@ -2668,11 +2392,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (2, 2).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.AnnotationPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.AnnotationPadding, theme_value_types.t_float2)
 
     @AnnotationPadding.setter
     def AnnotationPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.AnnotationPadding, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.AnnotationPadding, theme_value_types.t_float2, True, True, value)
 
     @property
     def FitPadding(self):
@@ -2681,11 +2405,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (0, 0).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.FitPadding, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.FitPadding, theme_value_types.t_float2)
 
     @FitPadding.setter
     def FitPadding(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.FitPadding, theme_value_types.t_float2, False, False, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.FitPadding, theme_value_types.t_float2, False, False, value)
 
     @property
     def PlotDefaultSize(self):
@@ -2694,11 +2418,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (400, 300).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.PlotDefaultSize, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.PlotDefaultSize, theme_value_types.t_float2)
 
     @PlotDefaultSize.setter
     def PlotDefaultSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.PlotDefaultSize, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.PlotDefaultSize, theme_value_types.t_float2, True, True, value)
 
     @property
     def PlotMinSize(self):
@@ -2707,11 +2431,11 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
 
         The value is a pair of floats. Defaults to (200, 150).
         """
-        return baseThemeStyle.__common_getter(self, <int>ImPlotStyleIndex.PlotMinSize, theme_value_types.t_float2)
+        return baseThemeStyle._common_getter(self, <int>ImPlotStyleIndex.PlotMinSize, theme_value_types.t_float2)
 
     @PlotMinSize.setter
     def PlotMinSize(self, value):
-        baseThemeStyle.__common_setter(self, <int>ImPlotStyleIndex.PlotMinSize, theme_value_types.t_float2, True, True, value)
+        baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.PlotMinSize, theme_value_types.t_float2, True, True, value)
 
     @classmethod
     def get_default(self, str style_name):
@@ -2773,235 +2497,35 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
         else:
             raise KeyError(f"Style {style_name} not found")
 
-cdef class ThemeStyleImNodes(baseThemeStyle):
-    pass # TODO
-
-'''
-cdef extern from * nogil:
-    """
-    const int32_t styles_imnodes_sizes[15] = {
-    1,
-    1,
-    2,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    };
-    """
-    cdef int[15] styles_imnodes_sizes
-
-cdef class ThemeStyleImNodes(baseThemeStyle):
-    def __cinit__(self):
-        self._names = [
-            b"GridSpacing",
-            b"NodeCornerRounding",
-            b"NodePadding",
-            b"NodeBorderThickness",
-            b"LinkThickness",
-            b"LinkLineSegmentsPerLength",
-            b"LinkHoverDistance",
-            b"PinCircleRadius",
-            b"PinQuadSideLength",
-            b"PinTriangleSideLength",
-            b"PinLineThickness",
-            b"PinHoverRadius",
-            b"PinOffset",
-            b"MiniMapPadding",
-            b"MiniMapOffset"
-        ]
-        cdef int32_t i
-        cdef string name_str
-        for i, name in enumerate(self._names):
-            name_str = name
-            self.name_to_index[name_str] = i
-        self._backend = theme_backends.t_imnodes
-
-    def __dir__(self):
-        return self._names + dir(baseTheme)
-
-    def __getattr__(self, name):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef string name_str = bytes(name, 'utf-8')
-        cdef unordered_map[string, int32_t].iterator element = self.name_to_index.find(name_str)
-        if element == self.name_to_index.end():
-            raise AttributeError("Element %s not found" % name)
-        cdef int32_t style_index = dereference(element).second
-        cdef unordered_map[int32_t, imgui.ImVec2].iterator element_content = self._index_to_value.find(style_index)
-        if element_content == self._index_to_value.end():
-            # None: default
-            return None
-        cdef imgui.ImVec2 value = dereference(element_content).second
-        if styles_imnodes_sizes[style_index] == 2:
-            return (value.x, value.y)
-        return value.x
-
-    def __getitem__(self, key):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[string, int32_t].iterator element
-        cdef int32_t style_index
-        cdef unordered_map[int32_t, imgui.ImVec2].iterator element_content
-        cdef string name_str
-        if isinstance(key, str):
-            name_str = bytes(key, 'utf-8')
-            element = self.name_to_index.find(name_str)
-            if element == self.name_to_index.end():
-                raise KeyError("Element %s not found" % key)
-            style_index = dereference(element).second
-        elif isinstance(key, int):
-            style_index = key
-            if style_index < 0 or style_index >= imnodes.ImNodesStyleVar_COUNT:
-                raise KeyError("No element of index %d" % key)
-        else:
-            raise TypeError("%s is an invalid index type" % str(type(key)))
-        element_content = self._index_to_value.find(style_index)
-        if element_content == self._index_to_value.end():
-            # None: default
-            return None
-        cdef imgui.ImVec2 value = dereference(element_content).second
-        if styles_imnodes_sizes[style_index] == 2:
-            return (value.x, value.y)
-        return value.x
-
-    def __setattr__(self, name, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef bint found
-        cdef string name_str
-        cdef unordered_map[string, int32_t].iterator element
-        try:
-            name_str = bytes(name, 'utf-8')
-            element = self.name_to_index.find(name_str)
-            found = element != self.name_to_index.end()
-        except Exception:
-            found = False
-        if not(found):
-            PyObject_GenericSetAttr(self, name, value)
-            return
-        cdef int32_t style_index = dereference(element).second
-        if value is None:
-            self._index_to_value.erase(style_index)
-            return
-        cdef imgui.ImVec2 value_to_store
-        try:
-            if styles_imnodes_sizes[style_index] <= 1:
-                value_to_store.x = value
-                value_to_store.y = 0.
-            else:
-                value_to_store.x = value[0]
-                value_to_store.y = value[1]
-        except Exception as e:
-            if styles_imnodes_sizes[style_index] == 1:
-                raise ValueError("Expected type float for style " + name)
-            if styles_imnodes_sizes[style_index] == 0:
-                raise ValueError("Expected type int for style " + name)
-            raise ValueError("Expected type (float, float) for style " + name)
-
-        self._index_to_value[style_index] = value_to_store
-
-    def __setitem__(self, key, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef unordered_map[string, int32_t].iterator element
-        cdef int32_t style_index
-        cdef string name_str
-        if isinstance(key, str):
-            name_str = bytes(key, 'utf-8')
-            element = self.name_to_index.find(name_str)
-            if element == self.name_to_index.end():
-                raise KeyError("Element %s not found" % key)
-            style_index = dereference(element).second
-        elif isinstance(key, int):
-            style_index = key
-            if style_index < 0 or style_index >= imnodes.ImNodesStyleVar_COUNT:
-                raise KeyError("No element of index %d" % key)
-        else:
-            raise TypeError("%s is an invalid index type" % str(type(key)))
-        if value is None:
-            self._index_to_value.erase(style_index)
-            return
-
-        cdef imgui.ImVec2 value_to_store
-        try:
-            if styles_imnodes_sizes[style_index] <= 1:
-                value_to_store.x = value
-                value_to_store.y = 0.
-            else:
-                value_to_store.x = value[0]
-                value_to_store.y = value[1]
-        except Exception as e:
-            if styles_imnodes_sizes[style_index] == 1:
-                raise ValueError("Expected type float for style " + self._names[style_index])
-            raise ValueError("Expected type (float, float) for style " + self._names[style_index])
-
-        self._index_to_value[style_index] = value_to_store
-
-    def __iter__(self):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef list result = []
-        cdef pair[int32_t, imgui.ImVec2] element_content
-        for element_content in self._index_to_value:
-            name = self._names[element_content.first]
-            if styles_imnodes_sizes[element_content.first] == 1:
-                result.append((name, element_content.second.x))
-            else:
-                result.append((name,
-                               (element_content.second.x,
-                                element_content.second.y)))
-        return iter(result)
-
     cdef void push(self) noexcept nogil:
         self.mutex.lock()
         if not(self._enabled):
             self._last_push_size.push_back(0)
             return
-        cdef pair[int32_t, imgui.ImVec2] element_content
-        for element_content in self._index_to_value:
-            if styles_imnodes_sizes[element_content.first] == 1:
-                imnodes_PushStyleVar1(element_content.first, element_content.second.x)
-            else:
-                imnodes_PushStyleVar2(element_content.first, element_content.second)
-        self._last_push_size.push_back(<int>self._index_to_value.size())
-
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef pair[int32_t, imgui.ImVec2] element_content
-        cdef theme_action action
-        if not(self._enabled):
-            return
-        for element_content in self._index_to_value:
-            action.activation_condition_enabled = ThemeEnablers.ANY
-            action.activation_condition_category = ThemeCategories.t_any
-            action.type = theme_types.t_style
-            action.backend = theme_backends.t_imnodes
-            action.theme_index = element_content.first
-            if styles_imnodes_sizes[element_content.first] == 1:
-                action.value_type = theme_value_types.t_float
-                action.value.value_float = element_content.second.x
-            else:
-                action.value_type = theme_value_types.t_float2
-                action.value.value_float2[0] = element_content.second.x
-                action.value.value_float2[1] = element_content.second.y
-            v.push_back(action)
+        if self.context.viewport.global_scale != self._dpi:
+            baseThemeStyle._compute_for_dpi(self)
+        cdef pair[int32_t, theme_value_info] element_content
+        for element_content in self._index_to_value_for_dpi:
+            if element_content.second.value_type == theme_value_types.t_float:
+                implot.PushStyleVar(element_content.first, element_content.second.value.value_float)
+            elif element_content.second.value_type == theme_value_types.t_int:
+                implot.PushStyleVar(element_content.first, element_content.second.value.value_int)
+            else: # t_float2
+                if element_content.second.float2_mask == theme_value_float2_mask.t_left:
+                    implot.PushStyleVarX(element_content.first, element_content.second.value.value_float2[0])
+                elif element_content.second.float2_mask == theme_value_float2_mask.t_right:
+                    implot.PushStyleVarY(element_content.first, element_content.second.value.value_float2[1])
+                else:
+                    implot_PushStyleVar2(element_content.first, element_content.second.value.value_float2)
+        self._last_push_size.push_back(<int>self._index_to_value_for_dpi.size())
 
     cdef void pop(self) noexcept nogil:
         cdef int32_t count = self._last_push_size.back()
         self._last_push_size.pop_back()
         if count > 0:
-            imnodes.PopStyleVar(count)
+            implot.PopStyleVar(count)
         self.mutex.unlock()
-'''
+
 
 cdef class ThemeList(baseTheme):
     """
@@ -3032,175 +2556,7 @@ cdef class ThemeList(baseTheme):
         if self._enabled:
             pop_theme_children(self)
         self.mutex.unlock()
-    
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        if self._enabled:
-            push_to_list_children(self, v)
 
-
-cdef class ThemeListWithCondition(baseTheme):
-    """
-    A ThemeList but with delayed activation.
-    If during rendering of the children the condition
-    is met, then the theme gets applied.
-
-    Contains theme styles and colors.
-    Can contain a theme list.
-    Can be in a theme list
-    Can be bound to items.
-    Concatenates with previous theme lists with
-    conditions during rendering.
-    The condition gets checked on the bound item,
-    not just the children.
-
-    As the elements in this list get checked everytime
-    a item in the child tree is rendered, use this lightly.
-    """
-    def __cinit__(self):
-        self.can_have_theme_child = True
-        self._activation_condition_enabled = ThemeEnablers.ANY
-        self._activation_condition_category = ThemeCategories.t_any
-
-    @property
-    def condition_enabled(self):
-        """
-        Writable attribute: As long as it is active, the theme list
-        waits to be applied that the conditions are met.
-        enabled condition: 0: no condition. 1: enabled must be true. 2: enabled must be false
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._activation_condition_enabled
-
-    @condition_enabled.setter
-    def condition_enabled(self, ThemeEnablers value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        # TODO: check bounds
-        self._activation_condition_enabled = value
-
-    @property
-    def condition_category(self):
-        """
-        Writable attribute: As long as it is active, the theme list
-        waits to be applied that the conditions are met.
-        category condition: 0: no condition. other value: see list
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._activation_condition_category
-
-    @condition_category.setter
-    def condition_category(self, ThemeCategories value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        # TODO: check bounds
-        self._activation_condition_category = value
-
-    cdef void push(self) noexcept nogil:
-        self.mutex.lock()
-        if not(self._enabled):
-            self._last_push_size.push_back(0)
-            return
-        cdef int32_t prev_size, i, new_size, count, applied_count
-        cdef ThemeEnablers condition_enabled
-        cdef ThemeCategories condition_category
-        count = 0
-        applied_count = 0
-        if self.last_theme_child is not None:
-            prev_size = <int>self.context.viewport.pending_theme_actions.size()
-            push_to_list_children(self, self.context.viewport.pending_theme_actions)
-            new_size = <int>self.context.viewport.pending_theme_actions.size()
-            count = new_size - prev_size
-            # Set the conditions
-            for i in range(prev_size, new_size):
-                condition_enabled = self.context.viewport.pending_theme_actions[i].activation_condition_enabled
-                condition_category = self.context.viewport.pending_theme_actions[i].activation_condition_category
-                if self._activation_condition_enabled != ThemeEnablers.ANY:
-                    if condition_enabled != ThemeEnablers.ANY and \
-                       condition_enabled != self._activation_condition_enabled:
-                        # incompatible conditions. Disable
-                        condition_enabled = ThemeEnablers.DISCARDED
-                    else:
-                        condition_enabled = self._activation_condition_enabled
-                if self._activation_condition_category != ThemeCategories.t_any:
-                    if condition_category != ThemeCategories.t_any and \
-                       condition_category != self._activation_condition_category:
-                        # incompatible conditions. Disable
-                        condition_enabled = ThemeEnablers.DISCARDED
-                    else:
-                        condition_category = self._activation_condition_category
-                self.context.viewport.pending_theme_actions[i].activation_condition_enabled = condition_enabled
-                self.context.viewport.pending_theme_actions[i].activation_condition_category = condition_category
-            # Find if any of the conditions hold right now, and if so execute them
-            # It is important to execute them now rather than later because we need
-            # to insert before the next siblings
-            if count > 0:
-                self.context.viewport.push_pending_theme_actions_on_subset(prev_size, new_size)
-
-        self._last_push_size.push_back(count)
-
-    cdef void pop(self) noexcept nogil:
-        cdef int32_t count = self._last_push_size.back()
-        self._last_push_size.pop_back()
-        cdef int32_t i
-        for i in range(count):
-            self.context.viewport.pending_theme_actions.pop_back()
-        if count > 0:
-            self.context.viewport.pop_applied_pending_theme_actions()
-        self.mutex.unlock()
-    
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef int32_t prev_size, i, new_size
-        cdef ThemeEnablers condition_enabled
-        cdef ThemeCategories condition_category
-        if self.last_theme_child is not None:
-            prev_size = <int>v.size()
-            push_to_list_children(self, v)
-            new_size = <int>v.size()
-            # Set the conditions
-            for i in range(prev_size, new_size):
-                condition_enabled = v[i].activation_condition_enabled
-                condition_category = v[i].activation_condition_category
-                if self._activation_condition_enabled != ThemeEnablers.ANY:
-                    if condition_enabled != ThemeEnablers.ANY and \
-                       condition_enabled != self._activation_condition_enabled:
-                        # incompatible conditions. Disable
-                        condition_enabled = ThemeEnablers.DISCARDED
-                    else:
-                        condition_enabled = self._activation_condition_enabled
-                if self._activation_condition_category != ThemeCategories.t_any:
-                    if condition_category != ThemeCategories.t_any and \
-                       condition_category != self._activation_condition_category:
-                        # incompatible conditions. Disable
-                        condition_enabled = ThemeEnablers.DISCARDED
-                    else:
-                        condition_category = self._activation_condition_category
-                v[i].activation_condition_enabled = condition_enabled
-                v[i].activation_condition_category = condition_category
-
-
-cdef class ThemeStopCondition(baseTheme):
-    """
-    a Theme that blocks any previous theme
-    list with condition from propagating to children
-    of the item bound. Does not affect the bound item.
-
-    Does not work inside a ThemeListWithCondition
-    """
-    cdef void push(self) noexcept nogil:
-        self.mutex.lock()
-        self._start_pending_theme_actions_backup.push_back(self.context.viewport.start_pending_theme_actions)
-        if self._enabled:
-            self.context.viewport.start_pending_theme_actions = <int>self.context.viewport.pending_theme_actions.size()
-    cdef void pop(self) noexcept nogil:
-        self.context.viewport.start_pending_theme_actions = self._start_pending_theme_actions_backup.back()
-        self._start_pending_theme_actions_backup.pop_back()
-        self.mutex.unlock()
-    cdef void push_to_list(self, DCGVector[theme_action]& v) noexcept nogil:
-        return
 
 '''
 cdef object extract_theme_value(baseTheme theme, str name, type target_class):
@@ -3230,78 +2586,6 @@ cdef object extract_theme_value(baseTheme theme, str name, type target_class):
 
 
 # UNFINISHED
-cdef object apply_theme_conditions(string name, DCGVector[theme_action] &current_theme_conditions, baseItem item, type target_class):
-    """
-    Helper function that applies the theme conditions to the item and returns the value if conditions are met.
-    """
-    cdef theme_action action
-    cdef theme_backends backend
-    cdef theme_types type
-    if not(isinstance(item, uiItem)):
-        return None
-    if target_class is ThemeColorImGui or target_class is ThemeStyleImGui:
-        backend = theme_backends.t_imgui
-    elif target_class is ThemeColorImPlot or target_class is ThemeStyleImPlot:
-        backend = theme_backends.t_implot
-    else:
-        raise TypeError("target_class must be a valid subclass of baseTheme")
-    if target_class is ThemeColorImGui or target_class is ThemeColorImPlot:
-        type = theme_types.t_color
-    elif target_class is ThemeStyleImGui or target_class is ThemeStyleImPlot:
-        type = theme_types.t_style
-    item_enabled = getattr(item, "enabled", True)
-    cdef int32_t theme_index = target_class.get_internal_index(name)
-    for action in current_theme_conditions:
-        if action.backend != backend:
-            continue
-        if action.type != type:
-            continue
-        if action.activation_condition_category != ThemeCategories.t_any and \
-           action.activation_condition_category != item._theme_condition_category:
-            continue
-        if action.activation_condition_enabled != ThemeEnablers.ANY and \
-           action.activation_condition_enabled != item._theme_condition_enabled:
-            continue
-        if type == theme_types.t_color:
-            if action.theme_index == theme_index:
-                return action.value.value_u32
-        elif type == theme_types.t_style:
-            if action.theme_index == theme_index:
-                if action.value_type == theme_value_types.t_int:
-                    return action.value.value_int
-                elif action.value_type == theme_value_types.t_float:
-                    return action.value.value_float
-                elif action.value_type == theme_value_types.t_float2:
-                    if action.float2_mask == theme_value_float2_mask.t_left:
-                        return (action.value.value_float2[0], None)
-                    elif action.float2_mask == theme_value_float2_mask.t_right:
-                        return (None, action.value.value_float2[1])
-                    else:
-                        return action.value.value_float2
-                elif action.value_type == theme_value_types.t_u32:
-                    return action.value.value_u32
-    return None
-
-
-cdef void update_theme_conditions(baseTheme theme, DCGVector[theme_action] &current_theme_conditions):
-    """
-    Helper function that updates the list of theme conditions based on the current theme.
-    """
-    if theme is None:
-        return current_theme_conditions
-    if isinstance(theme, ThemeStopCondition):
-        current_theme_conditions.clear()
-    if isinstance(theme, ThemeListWithCondition):
-        theme.push_to_list(current_theme_conditions)
-    if theme.can_have_theme_child and theme.last_theme_child is not None:
-        cdef PyObject *child = <PyObject*> theme.last_theme_child
-        # Go back to the first child
-        while (<baseItem>child).prev_sibling is not None:
-            child = <PyObject *>(<baseItem>child).prev_sibling
-        while (<baseItem>child) is not None:
-            update_theme_conditions(<baseTheme>child, current_theme_conditions)
-            child = <PyObject *>(<baseItem>child).next_sibling
-    return current_theme_conditions
 
 
 More work needed to support theme conditions,
@@ -3332,7 +2616,6 @@ def resolve_theme(baseItem item, str name, type target_class) -> object:
     # the theme lists with conditions, (stop if a ThemeStopCondition
     # is found), and then apply the theme list without conditions
     # Deduce the final value for the target name
-    cdef DCGVector[theme_action] current_theme_conditions = DCGVector[theme_action]()
     current_target_value = None
     for item in parent_tree:
         theme = item.theme

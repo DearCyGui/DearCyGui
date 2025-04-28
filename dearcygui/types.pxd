@@ -121,81 +121,6 @@ cpdef enum class PlotMarker:
 # rather that using the cdef version of PlotMarker
 cdef object make_PlotMarker(int32_t marker)
 
-cdef enum theme_types:
-    t_color,
-    t_style
-
-cdef enum theme_backends:
-    t_imgui,
-    t_implot,
-    t_imnodes
-
-cpdef enum class ThemeEnablers:
-    ANY,
-    DISABLED,
-    ENABLED,
-    DISCARDED
-
-cpdef enum class ThemeCategories:
-    t_any,
-    t_simpleplot,
-    t_button,
-    t_combo,
-    t_checkbox,
-    t_slider,
-    t_listbox,
-    t_radiobutton,
-    t_inputtext,
-    t_inputvalue,
-    t_text,
-    t_selectable,
-    t_tab,
-    t_tabbar,
-    t_tabbutton,
-    t_menuitem,
-    t_progressbar,
-    t_image,
-    t_imagebutton,
-    t_menubar,
-    t_menu,
-    t_tooltip,
-    t_layout,
-    t_treenode,
-    t_collapsingheader,
-    t_child,
-    t_colorbutton,
-    t_coloredit,
-    t_colorpicker,
-    t_window,
-    t_plot
-
-cdef enum theme_value_float2_mask:
-    t_full,
-    t_left,
-    t_right
-
-cdef enum theme_value_types:
-    t_int,
-    t_float,
-    t_float2,
-    t_u32
-
-ctypedef union theme_value:
-    int32_t value_int
-    float value_float
-    float[2] value_float2
-    uint32_t value_u32
-
-ctypedef struct theme_action:
-    ThemeEnablers activation_condition_enabled
-    ThemeCategories activation_condition_category
-    theme_types type
-    theme_backends backend
-    int32_t theme_index
-    theme_value_types value_type
-    theme_value value
-    theme_value_float2_mask float2_mask
-
 ctypedef fused point_type:
     int32_t
     float
@@ -204,7 +129,6 @@ ctypedef fused point_type:
 ctypedef fused src_source:
     tuple
     list
-
 
 cdef class Coord:
     cdef double _x
