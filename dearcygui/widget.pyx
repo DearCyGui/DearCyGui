@@ -4069,6 +4069,9 @@ cdef class Image(uiItem):
         return False
 
 
+# TODO merge Image and ImageButton ? The only major difference (besides
+# the button area) is border color vs background color.
+
 cdef class ImageButton(uiItem):
     """
     A clickable button that displays an image texture.
