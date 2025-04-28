@@ -5296,28 +5296,6 @@ cdef class TreeNode(uiItem):
         self._selectable = value
 
     @property
-    def default_open(self):
-        """
-        Whether the tree node is open by default when first displayed.
-        
-        When enabled, the tree node will start in the expanded state when it's first
-        rendered. This is useful for nodes that should be visible immediately without
-        requiring user interaction, such as important categories or frequently
-        accessed sections.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return (self._flags & imgui.ImGuiTreeNodeFlags_DefaultOpen) != 0
-
-    @default_open.setter
-    def default_open(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._flags &= ~imgui.ImGuiTreeNodeFlags_DefaultOpen
-        if value:
-            self._flags |= imgui.ImGuiTreeNodeFlags_DefaultOpen
-
-    @property
     def open_on_double_click(self):
         """
         Whether a double-click is required to open the node.
