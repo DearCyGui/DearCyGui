@@ -824,7 +824,7 @@ cdef class PlotAxisConfig(baseItem):
         self._label = string_from_str(value)
 
     @property
-    def format(self):
+    def tick_format(self):
         """
         Format string for displaying tick labels.
         
@@ -836,8 +836,8 @@ cdef class PlotAxisConfig(baseItem):
         lock_gil_friendly(m, self.mutex)
         return string_to_str(self._format)
 
-    @format.setter
-    def format(self, value):
+    @tick_format.setter
+    def tick_format(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._format = string_from_str(value)
