@@ -2438,18 +2438,17 @@ class Button(uiItem):
     is stored in a SharedBool value that tracks whether it's active.
 
     """
-    def __init__(self, context : Context, arrow : bool = False, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Parameters
         ----------
-        - arrow: Whether to display the button as a directional arrow.
+        - arrow: If not None, draw an arrow with the specified direction.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
-        - direction: Direction of the arrow when arrow mode is enabled.
         - enabled: Whether the item is interactive and fully styled.
         - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
@@ -2496,18 +2495,17 @@ class Button(uiItem):
         ...
 
 
-    def configure(self, arrow : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], direction : ButtonDirection = 2, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, arrow : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
         Parameters
         ----------
-        - arrow: Whether to display the button as a directional arrow.
+        - arrow: If not None, draw an arrow with the specified direction.
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
-        - direction: Direction of the arrow when arrow mode is enabled.
         - enabled: Whether the item is interactive and fully styled.
         - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
@@ -2677,20 +2675,22 @@ class Button(uiItem):
 
 
     @property
-    def arrow(self) -> bool:
+    def arrow(self):
         """
-        Whether to display the button as a directional arrow.
+        If not None, draw an arrow with the specified direction.
 
-        When enabled, the button will be rendered as an arrow pointing in the
-        direction specified by the direction property. Not compatible with small
-        buttons - the small property takes precedence.
+        This property is ignored when small is set, and in addition the requested
+        size is ignored (but is affected by theme settings).
+
+        Possible values are defined in the ButtonDirection enum: Up, Down, Left, Right.
+        None means the feature is disabled and the button will be drawn normally.
 
         """
         ...
 
 
     @arrow.setter
-    def arrow(self, value : bool):
+    def arrow(self, value):
         ...
 
 
@@ -2790,24 +2790,6 @@ class Button(uiItem):
         as they provide more robust state tracking.
 
         """
-        ...
-
-
-    @property
-    def direction(self) -> ButtonDirection:
-        """
-        Direction of the arrow when arrow mode is enabled.
-
-        This property only affects the appearance when the arrow property is set
-        to True. Possible values are defined in the ButtonDirection enum: Up,
-        Down, Left, Right, None.
-
-        """
-        ...
-
-
-    @direction.setter
-    def direction(self, value : ButtonDirection):
         ...
 
 
@@ -39251,7 +39233,7 @@ class InputText(uiItem):
     area instead of a single-line field.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         Parameters
         ----------
@@ -39261,6 +39243,7 @@ class InputText(uiItem):
         - before: Attach the item just before the target item. Default is None (disabled)
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
+        - callback_on_enter: Triggers callback when Enter key is pressed, regardless of edit state.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - ctrl_enter_for_new_line: Reverses Enter and Ctrl+Enter behavior in multiline mode.
@@ -39283,7 +39266,6 @@ class InputText(uiItem):
         - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_spaces: Prevents spaces and tabs from being entered into the field.
         - no_undo_redo: Disables the undo/redo functionality for this input field.
-        - on_enter: Triggers callback when Enter key is pressed, regardless of edit state.
         - parent: Parent of the item in the rendering tree.
         - password: Hides the input text by displaying asterisks and disables text copying.
         - pos_policy: Positioning strategy for placing the item in the layout.
@@ -39323,7 +39305,7 @@ class InputText(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
         """
         Configure the InputText widget with provided keyword arguments.
 
@@ -39336,6 +39318,7 @@ class InputText(uiItem):
         - auto_select_all: Automatically selects the entire text when the field is first clicked.
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
+        - callback_on_enter: Triggers callback when Enter key is pressed, regardless of edit state.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - ctrl_enter_for_new_line: Reverses Enter and Ctrl+Enter behavior in multiline mode.
@@ -39358,7 +39341,6 @@ class InputText(uiItem):
         - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_spaces: Prevents spaces and tabs from being entered into the field.
         - no_undo_redo: Disables the undo/redo functionality for this input field.
-        - on_enter: Triggers callback when Enter key is pressed, regardless of edit state.
         - parent: Parent of the item in the rendering tree.
         - password: Hides the input text by displaying asterisks and disables text copying.
         - pos_policy: Positioning strategy for placing the item in the layout.
@@ -39573,6 +39555,25 @@ class InputText(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callback_on_enter(self) -> bool:
+        """
+        Triggers callback when Enter key is pressed, regardless of edit state.
+
+        When enabled, the item's callback will be triggered whenever the Enter key
+        is pressed while the input is focused, not just when the value changes.
+        This is useful for creating form-like interfaces where Enter submits the
+        current input.
+
+        """
+        ...
+
+
+    @callback_on_enter.setter
+    def callback_on_enter(self, value : bool):
         ...
 
 
@@ -40139,25 +40140,6 @@ class InputText(uiItem):
 
 
     @property
-    def on_enter(self) -> bool:
-        """
-        Triggers callback when Enter key is pressed, regardless of edit state.
-
-        When enabled, the item's callback will be triggered whenever the Enter key
-        is pressed while the input is focused, not just when the value changes.
-        This is useful for creating form-like interfaces where Enter submits the
-        current input.
-
-        """
-        ...
-
-
-    @on_enter.setter
-    def on_enter(self, value : bool):
-        ...
-
-
-    @property
     def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
         Parent of the item in the rendering tree.
@@ -40683,7 +40665,7 @@ class InputValue(uiItem):
     to multi-dimensional vector editing.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         Parameters
         ----------
@@ -40693,6 +40675,7 @@ class InputValue(uiItem):
         - before: Attach the item just before the target item. Default is None (disabled)
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
+        - callback_on_enter: Triggers callback when Enter key is pressed.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - decimal: Restricts input to decimal numeric characters.
@@ -40715,7 +40698,6 @@ class InputValue(uiItem):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_undo_redo: Disables the undo/redo functionality for this input field.
-        - on_enter: Triggers callback when Enter key is pressed.
         - parent: Parent of the item in the rendering tree.
         - password: Hides the input by displaying asterisks and disables copying.
         - pos_policy: Positioning strategy for placing the item in the layout.
@@ -40757,7 +40739,7 @@ class InputValue(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, on_enter : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
         """
         Configure the InputValue widget with provided keyword arguments.
 
@@ -40771,6 +40753,7 @@ class InputValue(uiItem):
         - auto_select_all: Automatically selects all content when the field is first focused.
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
+        - callback_on_enter: Triggers callback when Enter key is pressed.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - decimal: Restricts input to decimal numeric characters.
@@ -40793,7 +40776,6 @@ class InputValue(uiItem):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_undo_redo: Disables the undo/redo functionality for this input field.
-        - on_enter: Triggers callback when Enter key is pressed.
         - parent: Parent of the item in the rendering tree.
         - password: Hides the input by displaying asterisks and disables copying.
         - pos_policy: Positioning strategy for placing the item in the layout.
@@ -41008,6 +40990,24 @@ class InputValue(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callback_on_enter(self) -> bool:
+        """
+        Triggers callback when Enter key is pressed.
+
+        When enabled, the widget's callback will be triggered whenever the user
+        presses Enter, regardless of whether the value has changed. This is
+        useful for form-like interfaces where Enter submits the current input.
+
+        """
+        ...
+
+
+    @callback_on_enter.setter
+    def callback_on_enter(self, value : bool):
         ...
 
 
@@ -41553,24 +41553,6 @@ class InputValue(uiItem):
 
     @no_undo_redo.setter
     def no_undo_redo(self, value : bool):
-        ...
-
-
-    @property
-    def on_enter(self) -> bool:
-        """
-        Triggers callback when Enter key is pressed.
-
-        When enabled, the widget's callback will be triggered whenever the user
-        presses Enter, regardless of whether the value has changed. This is
-        useful for form-like interfaces where Enter submits the current input.
-
-        """
-        ...
-
-
-    @on_enter.setter
-    def on_enter(self, value : bool):
         ...
 
 
@@ -59219,7 +59201,7 @@ class PlotAxisConfig(baseItem):
     along the axis.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, format : str = "", handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
         Parameters
         ----------
@@ -59231,7 +59213,6 @@ class PlotAxisConfig(baseItem):
         - constraint_min: Minimum allowed value for the axis minimum.
         - enabled: Whether elements using this axis should be drawn.
         - foreground_grid: Whether to draw grid lines in the foreground.
-        - format: Format string for displaying tick labels.
         - handlers: Event handlers attached to this axis.
         - invert: Whether the axis direction is inverted.
         - keep_default_ticks: Whether to keep default ticks when using custom labels.
@@ -59257,6 +59238,7 @@ class PlotAxisConfig(baseItem):
         - previous_sibling: Child of the parent rendered just before this item.
         - restrict_fit_to_range: Whether to restrict fitting to data within the opposing axis range.
         - scale: Current axis scale type.
+        - tick_format: Format string for displaying tick labels.
         - user_data: User data of any type.
         - zoom_max: Maximum allowed width of the axis range.
         - zoom_min: Minimum allowed width of the axis range.
@@ -59280,7 +59262,7 @@ class PlotAxisConfig(baseItem):
         ...
 
 
-    def configure(self, auto_fit : bool = False, children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, format : str = "", handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def configure(self, auto_fit : bool = False, children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -59292,7 +59274,6 @@ class PlotAxisConfig(baseItem):
         - constraint_min: Minimum allowed value for the axis minimum.
         - enabled: Whether elements using this axis should be drawn.
         - foreground_grid: Whether to draw grid lines in the foreground.
-        - format: Format string for displaying tick labels.
         - handlers: Event handlers attached to this axis.
         - invert: Whether the axis direction is inverted.
         - keep_default_ticks: Whether to keep default ticks when using custom labels.
@@ -59318,6 +59299,7 @@ class PlotAxisConfig(baseItem):
         - previous_sibling: Child of the parent rendered just before this item.
         - restrict_fit_to_range: Whether to restrict fitting to data within the opposing axis range.
         - scale: Current axis scale type.
+        - tick_format: Format string for displaying tick labels.
         - user_data: User data of any type.
         - zoom_max: Maximum allowed width of the axis range.
         - zoom_min: Minimum allowed width of the axis range.
@@ -59586,24 +59568,6 @@ class PlotAxisConfig(baseItem):
 
     @foreground_grid.setter
     def foreground_grid(self, value : bool):
-        ...
-
-
-    @property
-    def format(self) -> str:
-        """
-        Format string for displaying tick labels.
-
-        Controls how numeric values are formatted on the axis. Uses printf-style
-        format specifiers like "%.2f" for 2 decimal places or "%d" for integers.
-        Leave empty to use the default format.
-
-        """
-        ...
-
-
-    @format.setter
-    def format(self, value : str):
         ...
 
 
@@ -60167,6 +60131,24 @@ class PlotAxisConfig(baseItem):
 
     @scale.setter
     def scale(self, value : AxisScale):
+        ...
+
+
+    @property
+    def tick_format(self) -> str:
+        """
+        Format string for displaying tick labels.
+
+        Controls how numeric values are formatted on the axis. Uses printf-style
+        format specifiers like "%.2f" for 2 decimal places or "%d" for integers.
+        Leave empty to use the default format.
+
+        """
+        ...
+
+
+    @tick_format.setter
+    def tick_format(self, value : str):
         ...
 
 
@@ -73697,7 +73679,7 @@ class Selectable(uiItem):
     property.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Parameters
         ----------
@@ -73705,6 +73687,7 @@ class Selectable(uiItem):
         - before: Attach the item just before the target item. Default is None (disabled)
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
+        - callback_on_double_click: Controls whether the selectable responds to double-clicks.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - disable_popup_close: Controls whether clicking the selectable will close parent popup windows.
@@ -73719,7 +73702,6 @@ class Selectable(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_scaling: Whether DPI scaling should be disabled for this item.
-        - on_double_click: Controls whether the selectable responds to double-clicks.
         - parent: Parent of the item in the rendering tree.
         - pos_policy: Positioning strategy for placing the item in the layout.
         - pos_to_default: Offset from the item's default layout position.
@@ -73755,7 +73737,7 @@ class Selectable(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -73763,6 +73745,7 @@ class Selectable(uiItem):
         ----------
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
+        - callback_on_double_click: Controls whether the selectable responds to double-clicks.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - disable_popup_close: Controls whether clicking the selectable will close parent popup windows.
@@ -73777,7 +73760,6 @@ class Selectable(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_scaling: Whether DPI scaling should be disabled for this item.
-        - on_double_click: Controls whether the selectable responds to double-clicks.
         - parent: Parent of the item in the rendering tree.
         - pos_policy: Positioning strategy for placing the item in the layout.
         - pos_to_default: Offset from the item's default layout position.
@@ -73950,6 +73932,25 @@ class Selectable(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
+        ...
+
+
+    @property
+    def callback_on_double_click(self) -> bool:
+        """
+        Controls whether the selectable responds to double-clicks.
+
+        When enabled, the selectable will also generate callbacks when double-clicked,
+        not just on single clicks. This is useful for items where double-clicking
+        might trigger a secondary action, such as opening a detailed view or
+        entering an edit mode.
+
+        """
+        ...
+
+
+    @callback_on_double_click.setter
+    def callback_on_double_click(self, value : bool):
         ...
 
 
@@ -74367,25 +74368,6 @@ class Selectable(uiItem):
 
     @no_scaling.setter
     def no_scaling(self, value : bool):
-        ...
-
-
-    @property
-    def on_double_click(self) -> bool:
-        """
-        Controls whether the selectable responds to double-clicks.
-
-        When enabled, the selectable will also generate callbacks when double-clicked,
-        not just on single clicks. This is useful for items where double-clicking
-        might trigger a secondary action, such as opening a detailed view or
-        entering an edit mode.
-
-        """
-        ...
-
-
-    @on_double_click.setter
-    def on_double_click(self, value : bool):
         ...
 
 
@@ -79929,7 +79911,7 @@ class Subplots(uiItem):
     order by default, but can be changed to column-major ordering as needed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Parameters
         ----------
@@ -79965,11 +79947,7 @@ class Subplots(uiItem):
         - row_ratios: Size ratios for subplot rows.
         - rows: Number of subplot rows in the grid.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
-        - share_cols: Whether to link X1/Y1-axis limits within each column.
         - share_legends: Whether to share legend items across all subplots.
-        - share_rows: Whether to link X1/Y1-axis limits within each row.
-        - share_x_all: Whether to link X1-axis limits across all plots.
-        - share_y_all: Whether to link Y1-axis limits across all plots.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
         - theme: Visual styling applied to this item and its children.
@@ -79996,7 +79974,7 @@ class Subplots(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_cols : bool = False, share_legends : bool = False, share_rows : bool = False, share_x_all : bool = False, share_y_all : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -80032,11 +80010,7 @@ class Subplots(uiItem):
         - row_ratios: Size ratios for subplot rows.
         - rows: Number of subplot rows in the grid.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
-        - share_cols: Whether to link X1/Y1-axis limits within each column.
         - share_legends: Whether to share legend items across all subplots.
-        - share_rows: Whether to link X1/Y1-axis limits within each row.
-        - share_x_all: Whether to link X1-axis limits across all plots.
-        - share_y_all: Whether to link Y1-axis limits across all plots.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
         - theme: Visual styling applied to this item and its children.
@@ -80943,25 +80917,6 @@ class Subplots(uiItem):
 
 
     @property
-    def share_cols(self) -> bool:
-        """
-        Whether to link X1/Y1-axis limits within each column.
-
-        When True, plots in the same column share the same Y1-axis limits, and
-        plots in the same row share the same X1-axis limits. This is useful for
-        comparing distributions or trends across different groups while
-        maintaining aligned scales.
-
-        """
-        ...
-
-
-    @share_cols.setter
-    def share_cols(self, value : bool):
-        ...
-
-
-    @property
     def share_legends(self) -> bool:
         """
         Whether to share legend items across all subplots.
@@ -80977,63 +80932,6 @@ class Subplots(uiItem):
 
     @share_legends.setter
     def share_legends(self, value : bool):
-        ...
-
-
-    @property
-    def share_rows(self) -> bool:
-        """
-        Whether to link X1/Y1-axis limits within each row.
-
-        When True, plots in the same row share the same X1-axis limits, and
-        plots in the same column share the same Y1-axis limits. This creates
-        alignment for comparing data across related plots while preserving
-        independence between different rows and columns.
-
-        """
-        ...
-
-
-    @share_rows.setter
-    def share_rows(self, value : bool):
-        ...
-
-
-    @property
-    def share_x_all(self) -> bool:
-        """
-        Whether to link X1-axis limits across all plots.
-
-        When True, all plots share the same X1-axis limits, meaning that
-        zooming or panning on the X-axis of any plot affects all other plots.
-        This is useful for comparing multiple series across the same domain,
-        such as time series over the same period.
-
-        """
-        ...
-
-
-    @share_x_all.setter
-    def share_x_all(self, value : bool):
-        ...
-
-
-    @property
-    def share_y_all(self) -> bool:
-        """
-        Whether to link Y1-axis limits across all plots.
-
-        When True, all plots share the same Y1-axis limits, meaning that
-        zooming or panning on the Y-axis of any plot affects all other plots.
-        This ensures consistent scale across all visualizations, making direct
-        value comparisons easier between plots.
-
-        """
-        ...
-
-
-    @share_y_all.setter
-    def share_y_all(self, value : bool):
         ...
 
 
@@ -93339,864 +93237,6 @@ class ThemeList(baseTheme):
         ...
 
 
-class ThemeListWithCondition(baseTheme):
-    """
-    A ThemeList but with delayed activation.
-    If during rendering of the children the condition
-    is met, then the theme gets applied.
-
-    Contains theme styles and colors.
-    Can contain a theme list.
-    Can be in a theme list
-    Can be bound to items.
-    Concatenates with previous theme lists with
-    conditions during rendering.
-    The condition gets checked on the bound item,
-    not just the children.
-
-    As the elements in this list get checked everytime
-    a item in the child tree is rendered, use this lightly.
-
-    """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseThemeSubCls] = [], condition_category : ThemeCategories = 0, condition_enabled : ThemeEnablers = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
-        """
-        Parameters
-        ----------
-        - attach: Whether to attach the item to a parent. Default is None (auto)
-        - before: Attach the item just before the target item. Default is None (disabled)
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - condition_category: Writable attribute: As long as it is active, the theme list
-        - condition_enabled: Writable attribute: As long as it is active, the theme list
-        - enabled: Controls whether the theme is currently active.
-        - next_sibling: Child of the parent rendered just after this item.
-        - parent: Parent of the item in the rendering tree.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - user_data: User data of any type.
-        """
-        ...
-
-
-    def attach_before(self, target):
-        """
-        Same as item.next_sibling = target, but target must not be None
-
-        """
-        ...
-
-
-    def attach_to_parent(self, target):
-        """
-        Same as item.parent = target, but target must not be None
-
-        """
-        ...
-
-
-    def configure(self, children : Sequence[baseThemeSubCls] = [], condition_category : ThemeCategories = 0, condition_enabled : ThemeEnablers = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
-        """
-        Parameters
-        ----------
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - condition_category: Writable attribute: As long as it is active, the theme list
-        - condition_enabled: Writable attribute: As long as it is active, the theme list
-        - enabled: Controls whether the theme is currently active.
-        - next_sibling: Child of the parent rendered just after this item.
-        - parent: Parent of the item in the rendering tree.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - user_data: User data of any type.
-        """
-        ...
-
-
-    def copy(self, target_context=None):
-        """
-        Shallow copy of the item to the target context.
-
-        Performs a deep copy of the child tree.
-
-        Parameters:
-        target_context : Context, optional
-            Target context for the copy. Defaults to None.
-            (None = source's context)
-
-        Returns:
-        baseItem
-            Copy of the item in the target context.
-
-        """
-        ...
-
-
-    def delete_item(self):
-        """
-        Deletes the item and all its children.
-
-        When an item is not referenced anywhere, it might
-        not get deleted immediately, due to circular references.
-        The Python garbage collector will eventually catch
-        the circular references, but to speedup the process,
-        delete_item will recursively detach the item
-        and all elements in its subtree, as well as bound
-        items. As a result, items with no more references
-        will be freed immediately.
-
-        """
-        ...
-
-
-    def detach_item(self):
-        """
-        Same as item.parent = None
-
-        The item states (if any) are updated
-        to indicate it is not rendered anymore,
-        and the information propagated to the
-        children.
-
-        """
-        ...
-
-
-    def lock_mutex(self, wait=False):
-        """
-        Lock the internal item mutex.
-
-        **Know what you are doing**
-
-        Locking the mutex will prevent:
-            - Other threads from reading/writing
-            attributes or calling methods with this item,
-            editing the children/parent of the item
-            - Any rendering of this item and its children.
-            If the viewport attemps to render this item,
-            it will be blocked until the mutex is released.
-            (if the rendering thread is holding the mutex,
-            no blocking occurs)
-
-        This is useful if you want to edit several attributes
-        in several commands of an item or its subtree,
-        and prevent rendering or other threads from accessing
-        the item until you have finished.
-
-        If you plan on moving the item position in the rendering
-        tree, to avoid deadlock you must hold the mutex of a
-        parent of all the items involved in the motion (a common
-        parent of the source and target parent). This mutex has to
-        be locked before you lock any mutex of your child item
-        if this item is already in the rendering tree (to avoid
-        deadlock with the rendering thread).
-        If you are unsure and plans to move an item already
-        in the rendering tree, it is thus best to lock the viewport
-        mutex first.
-
-        Input argument:
-            - wait (default = False): if locking the mutex fails (mutex
-            held by another thread), wait it is released
-
-        Returns: True if the mutex is held, False else.
-
-        The mutex is a recursive mutex, thus you can lock it several
-        times in the same thread. Each lock has to be matched to an unlock.
-
-        """
-        ...
-
-
-    def unlock_mutex(self):
-        """
-        Unlock a previously held mutex on this object by this thread.
-
-        Returns True on success, False if no lock was held by this thread.
-
-        """
-        ...
-
-
-    def __enter__(self) -> ThemeListWithCondition:
-        ...
-
-
-    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
-        ...
-
-
-    @property
-    def children(self) -> Sequence[baseThemeSubCls]:
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : Sequence[baseThemeSubCls]):
-        ...
-
-
-    @property
-    def children_types(self) -> ChildType:
-        """
-        (Read-only) Returns which types of children can be attached to this item
-
-        """
-        ...
-
-
-    @property
-    def condition_category(self) -> ThemeCategories:
-        """
-        Writable attribute: As long as it is active, the theme list
-        waits to be applied that the conditions are met.
-        category condition: 0: no condition. other value: see list
-
-        """
-        ...
-
-
-    @condition_category.setter
-    def condition_category(self, value : ThemeCategories):
-        ...
-
-
-    @property
-    def condition_enabled(self) -> ThemeEnablers:
-        """
-        Writable attribute: As long as it is active, the theme list
-        waits to be applied that the conditions are met.
-        enabled condition: 0: no condition. 1: enabled must be true. 2: enabled must be false
-
-        """
-        ...
-
-
-    @condition_enabled.setter
-    def condition_enabled(self, value : ThemeEnablers):
-        ...
-
-
-    @property
-    def context(self) -> Context:
-        """
-        (Read-only) Context in which the item resides
-
-        """
-        ...
-
-
-    @property
-    def enabled(self) -> bool:
-        """
-        Controls whether the theme is currently active.
-
-        When set to False, the theme will not be applied when its push() method is
-        called, effectively disabling its visual effects without removing it from
-        the item hierarchy.
-
-        """
-        ...
-
-
-    @enabled.setter
-    def enabled(self, value : bool):
-        ...
-
-
-    @property
-    def item_type(self) -> ChildType:
-        """
-        (Read-only) Returns which type of child this item is
-
-        """
-        ...
-
-
-    @property
-    def mutex(self) -> wrap_mutex:
-        """
-        (Read-only) Context manager instance for the item mutex
-
-        Locking the mutex will prevent:
-            - Other threads from reading/writing
-            attributes or calling methods with this item,
-            editing the children/parent of the item
-            - Any rendering of this item and its children.
-            If the viewport attemps to render this item,
-            it will be blocked until the mutex is released.
-            (if the rendering thread is holding the mutex,
-            no blocking occurs)
-
-        In general, you don't need to use any mutex in your code,
-        unless you are writing a library and cannot make assumptions
-        on what the users will do, or if you know your code manipulates
-        the same objects with multiple threads.
-
-        All attribute accesses are mutex protected.
-
-        If you want to subclass and add attributes, you
-        can use this mutex to protect your new attributes.
-        Be careful not to hold the mutex if your thread
-        intends to access the attributes of a parent item.
-        In case of doubt use parents_mutex instead.
-
-        """
-        ...
-
-
-    @property
-    def next_sibling(self) -> baseItemSubCls | None:
-        """
-        Child of the parent rendered just after this item.
-
-        It is not possible to have siblings if you have no parent,
-        thus if you intend to attach together items outside the
-        rendering tree, there must be a toplevel parent item.
-
-        If you write to this attribute, the item will be moved
-        to be inserted just before the target item.
-        In case of failure, the item remains in a detached state.
-
-        """
-        ...
-
-
-    @next_sibling.setter
-    def next_sibling(self, value : baseItemSubCls | None):
-        ...
-
-
-    @property
-    def parent(self) -> baseHandlerSubCls | None:
-        """
-        Parent of the item in the rendering tree.
-
-        Rendering starts from the viewport. Then recursively each child
-        is rendered from the first to the last, and each child renders
-        their subtree.
-
-        Only an item inserted in the rendering tree is rendered.
-        An item that is not in the rendering tree can have children.
-        Thus it is possible to build and configure various items, and
-        attach them to the tree in a second phase.
-
-        The children hold a reference to their parent, and the parent
-        holds a reference to its children. Thus to be release memory
-        held by an item, two options are possible:
-            - Remove the item from the tree, remove all your references.
-            If the item has children or siblings, the item will not be
-            released until Python's garbage collection detects a
-            circular reference.
-            - Use delete_item to remove the item from the tree, and remove
-            all the internal references inside the item structure and
-            the item's children, thus allowing them to be removed from
-            memory as soon as the user doesn't hold a reference on them.
-
-        Note the viewport is referenced by the context.
-
-        If you set this attribute, the item will be inserted at the last
-        position of the children of the parent (regardless whether this
-        item is already a child of the parent).
-        If you set None, the item will be removed from its parent's children
-        list.
-
-        """
-        ...
-
-
-    @parent.setter
-    def parent(self, value : baseHandlerSubCls | None):
-        ...
-
-
-    @property
-    def parents_mutex(self) -> wrap_this_and_parents_mutex:
-        """
-        (Read-only) Context manager instance for the item mutex and all its parents
-
-        Similar to mutex but locks not only this item, but also all
-        its current parents.
-        If you want to access parent fields, or if you are unsure,
-        lock this mutex rather than self.mutex.
-        This mutex will lock the item and all its parent in a safe
-        way that does not deadlock.
-
-        """
-        ...
-
-
-    @property
-    def previous_sibling(self) -> baseItemSubCls | None:
-        """
-        Child of the parent rendered just before this item.
-
-        It is not possible to have siblings if you have no parent,
-        thus if you intend to attach together items outside the
-        rendering tree, there must be a toplevel parent item.
-
-        If you write to this attribute, the item will be moved
-        to be inserted just after the target item.
-        In case of failure, the item remains in a detached state.
-
-        Note that a parent can have several child queues, and thus
-        child elements are not guaranteed to be siblings of each other.
-
-        """
-        ...
-
-
-    @previous_sibling.setter
-    def previous_sibling(self, value : baseItemSubCls | None):
-        ...
-
-
-    @property
-    def user_data(self):
-        """
-        User data of any type.
-
-        To prevent programmer mistakes and improved performance,
-        base DearCyGui items do only accept predefined attributes.
-
-        This attribute is meant to be used by the user to attach
-        any custom data to the item.
-
-        An alternative for more complex needs is to subclass
-        the item and add your own attributes. Subclassed items
-        (unless using slots explicitly) do accept any attribute.
-
-        """
-        ...
-
-
-    @user_data.setter
-    def user_data(self, value):
-        ...
-
-
-    @property
-    def uuid(self) -> int:
-        """
-        (Read-only) Unique identifier created by the context for the item.
-
-        uuid serves as an internal identifier for the item.
-        It is not meant to be used as a key for the item, use the
-        item directly for that purpose.
-
-        """
-        ...
-
-
-class ThemeStopCondition(baseTheme):
-    """
-    a Theme that blocks any previous theme
-    list with condition from propagating to children
-    of the item bound. Does not affect the bound item.
-
-    Does not work inside a ThemeListWithCondition
-
-    """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
-        """
-        Parameters
-        ----------
-        - attach: Whether to attach the item to a parent. Default is None (auto)
-        - before: Attach the item just before the target item. Default is None (disabled)
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - enabled: Controls whether the theme is currently active.
-        - next_sibling: Child of the parent rendered just after this item.
-        - parent: Parent of the item in the rendering tree.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - user_data: User data of any type.
-        """
-        ...
-
-
-    def attach_before(self, target):
-        """
-        Same as item.next_sibling = target, but target must not be None
-
-        """
-        ...
-
-
-    def attach_to_parent(self, target):
-        """
-        Same as item.parent = target, but target must not be None
-
-        """
-        ...
-
-
-    def configure(self, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
-        """
-        Parameters
-        ----------
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - enabled: Controls whether the theme is currently active.
-        - next_sibling: Child of the parent rendered just after this item.
-        - parent: Parent of the item in the rendering tree.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - user_data: User data of any type.
-        """
-        ...
-
-
-    def copy(self, target_context=None):
-        """
-        Shallow copy of the item to the target context.
-
-        Performs a deep copy of the child tree.
-
-        Parameters:
-        target_context : Context, optional
-            Target context for the copy. Defaults to None.
-            (None = source's context)
-
-        Returns:
-        baseItem
-            Copy of the item in the target context.
-
-        """
-        ...
-
-
-    def delete_item(self):
-        """
-        Deletes the item and all its children.
-
-        When an item is not referenced anywhere, it might
-        not get deleted immediately, due to circular references.
-        The Python garbage collector will eventually catch
-        the circular references, but to speedup the process,
-        delete_item will recursively detach the item
-        and all elements in its subtree, as well as bound
-        items. As a result, items with no more references
-        will be freed immediately.
-
-        """
-        ...
-
-
-    def detach_item(self):
-        """
-        Same as item.parent = None
-
-        The item states (if any) are updated
-        to indicate it is not rendered anymore,
-        and the information propagated to the
-        children.
-
-        """
-        ...
-
-
-    def lock_mutex(self, wait=False):
-        """
-        Lock the internal item mutex.
-
-        **Know what you are doing**
-
-        Locking the mutex will prevent:
-            - Other threads from reading/writing
-            attributes or calling methods with this item,
-            editing the children/parent of the item
-            - Any rendering of this item and its children.
-            If the viewport attemps to render this item,
-            it will be blocked until the mutex is released.
-            (if the rendering thread is holding the mutex,
-            no blocking occurs)
-
-        This is useful if you want to edit several attributes
-        in several commands of an item or its subtree,
-        and prevent rendering or other threads from accessing
-        the item until you have finished.
-
-        If you plan on moving the item position in the rendering
-        tree, to avoid deadlock you must hold the mutex of a
-        parent of all the items involved in the motion (a common
-        parent of the source and target parent). This mutex has to
-        be locked before you lock any mutex of your child item
-        if this item is already in the rendering tree (to avoid
-        deadlock with the rendering thread).
-        If you are unsure and plans to move an item already
-        in the rendering tree, it is thus best to lock the viewport
-        mutex first.
-
-        Input argument:
-            - wait (default = False): if locking the mutex fails (mutex
-            held by another thread), wait it is released
-
-        Returns: True if the mutex is held, False else.
-
-        The mutex is a recursive mutex, thus you can lock it several
-        times in the same thread. Each lock has to be matched to an unlock.
-
-        """
-        ...
-
-
-    def unlock_mutex(self):
-        """
-        Unlock a previously held mutex on this object by this thread.
-
-        Returns True on success, False if no lock was held by this thread.
-
-        """
-        ...
-
-
-    def __enter__(self) -> ThemeStopCondition:
-        ...
-
-
-    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
-        ...
-
-
-    @property
-    def children(self) -> None :
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : None ):
-        ...
-
-
-    @property
-    def children_types(self) -> ChildType:
-        """
-        (Read-only) Returns which types of children can be attached to this item
-
-        """
-        ...
-
-
-    @property
-    def context(self) -> Context:
-        """
-        (Read-only) Context in which the item resides
-
-        """
-        ...
-
-
-    @property
-    def enabled(self) -> bool:
-        """
-        Controls whether the theme is currently active.
-
-        When set to False, the theme will not be applied when its push() method is
-        called, effectively disabling its visual effects without removing it from
-        the item hierarchy.
-
-        """
-        ...
-
-
-    @enabled.setter
-    def enabled(self, value : bool):
-        ...
-
-
-    @property
-    def item_type(self) -> ChildType:
-        """
-        (Read-only) Returns which type of child this item is
-
-        """
-        ...
-
-
-    @property
-    def mutex(self) -> wrap_mutex:
-        """
-        (Read-only) Context manager instance for the item mutex
-
-        Locking the mutex will prevent:
-            - Other threads from reading/writing
-            attributes or calling methods with this item,
-            editing the children/parent of the item
-            - Any rendering of this item and its children.
-            If the viewport attemps to render this item,
-            it will be blocked until the mutex is released.
-            (if the rendering thread is holding the mutex,
-            no blocking occurs)
-
-        In general, you don't need to use any mutex in your code,
-        unless you are writing a library and cannot make assumptions
-        on what the users will do, or if you know your code manipulates
-        the same objects with multiple threads.
-
-        All attribute accesses are mutex protected.
-
-        If you want to subclass and add attributes, you
-        can use this mutex to protect your new attributes.
-        Be careful not to hold the mutex if your thread
-        intends to access the attributes of a parent item.
-        In case of doubt use parents_mutex instead.
-
-        """
-        ...
-
-
-    @property
-    def next_sibling(self) -> baseItemSubCls | None:
-        """
-        Child of the parent rendered just after this item.
-
-        It is not possible to have siblings if you have no parent,
-        thus if you intend to attach together items outside the
-        rendering tree, there must be a toplevel parent item.
-
-        If you write to this attribute, the item will be moved
-        to be inserted just before the target item.
-        In case of failure, the item remains in a detached state.
-
-        """
-        ...
-
-
-    @next_sibling.setter
-    def next_sibling(self, value : baseItemSubCls | None):
-        ...
-
-
-    @property
-    def parent(self) -> baseHandlerSubCls | None:
-        """
-        Parent of the item in the rendering tree.
-
-        Rendering starts from the viewport. Then recursively each child
-        is rendered from the first to the last, and each child renders
-        their subtree.
-
-        Only an item inserted in the rendering tree is rendered.
-        An item that is not in the rendering tree can have children.
-        Thus it is possible to build and configure various items, and
-        attach them to the tree in a second phase.
-
-        The children hold a reference to their parent, and the parent
-        holds a reference to its children. Thus to be release memory
-        held by an item, two options are possible:
-            - Remove the item from the tree, remove all your references.
-            If the item has children or siblings, the item will not be
-            released until Python's garbage collection detects a
-            circular reference.
-            - Use delete_item to remove the item from the tree, and remove
-            all the internal references inside the item structure and
-            the item's children, thus allowing them to be removed from
-            memory as soon as the user doesn't hold a reference on them.
-
-        Note the viewport is referenced by the context.
-
-        If you set this attribute, the item will be inserted at the last
-        position of the children of the parent (regardless whether this
-        item is already a child of the parent).
-        If you set None, the item will be removed from its parent's children
-        list.
-
-        """
-        ...
-
-
-    @parent.setter
-    def parent(self, value : baseHandlerSubCls | None):
-        ...
-
-
-    @property
-    def parents_mutex(self) -> wrap_this_and_parents_mutex:
-        """
-        (Read-only) Context manager instance for the item mutex and all its parents
-
-        Similar to mutex but locks not only this item, but also all
-        its current parents.
-        If you want to access parent fields, or if you are unsure,
-        lock this mutex rather than self.mutex.
-        This mutex will lock the item and all its parent in a safe
-        way that does not deadlock.
-
-        """
-        ...
-
-
-    @property
-    def previous_sibling(self) -> baseItemSubCls | None:
-        """
-        Child of the parent rendered just before this item.
-
-        It is not possible to have siblings if you have no parent,
-        thus if you intend to attach together items outside the
-        rendering tree, there must be a toplevel parent item.
-
-        If you write to this attribute, the item will be moved
-        to be inserted just after the target item.
-        In case of failure, the item remains in a detached state.
-
-        Note that a parent can have several child queues, and thus
-        child elements are not guaranteed to be siblings of each other.
-
-        """
-        ...
-
-
-    @previous_sibling.setter
-    def previous_sibling(self, value : baseItemSubCls | None):
-        ...
-
-
-    @property
-    def user_data(self):
-        """
-        User data of any type.
-
-        To prevent programmer mistakes and improved performance,
-        base DearCyGui items do only accept predefined attributes.
-
-        This attribute is meant to be used by the user to attach
-        any custom data to the item.
-
-        An alternative for more complex needs is to subclass
-        the item and add your own attributes. Subclassed items
-        (unless using slots explicitly) do accept any attribute.
-
-        """
-        ...
-
-
-    @user_data.setter
-    def user_data(self, value):
-        ...
-
-
-    @property
-    def uuid(self) -> int:
-        """
-        (Read-only) Unique identifier created by the context for the item.
-
-        uuid serves as an internal identifier for the item.
-        It is not meant to be used as a key for the item, use the
-        item directly for that purpose.
-
-        """
-        ...
-
-
 class ThemeStyleImGui(baseThemeStyle):
     def __init__(self, context : Context, Alpha : float | None = None, ButtonTextAlign : tuple[float, float] | None = None, CellPadding : tuple[float, float] | None = None, ChildBorderSize : float | None = None, ChildRounding : float | None = None, DisabledAlpha : float | None = None, FrameBorderSize : float | None = None, FramePadding : tuple[float, float] | None = None, FrameRounding : float | None = None, GrabMinSize : float | None = None, GrabRounding : float | None = None, IndentSpacing : float | None = None, ItemInnerSpacing : tuple[float, float] | None = None, ItemSpacing : tuple[float, float] | None = None, PopupBorderSize : float | None = None, PopupRounding : float | None = None, ScrollbarRounding : float | None = None, ScrollbarSize : float | None = None, SelectableTextAlign : tuple[float, float] | None = None, SeparatorTextBorderSize : float | None = None, SeparatorTextPadding : tuple[float, float] | None = None, TabBarBorderSize : float | None = None, TabBarOverlineSize : float | None = None, TabBorderSize : float | None = None, TabRounding : float | None = None, TableAngledHeadersAngle : float | None = None, TableAngledHeadersTextAlign : tuple[float, float] | None = None, WindowBorderSize : float | None = None, WindowMinSize : tuple[float, float] | None = None, WindowPadding : tuple[float, float] | None = None, WindowRounding : float | None = None, WindowTitleAlign : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
@@ -94936,442 +93976,6 @@ class ThemeStyleImGui(baseThemeStyle):
 
     @WindowTitleAlign.setter
     def WindowTitleAlign(self, value : tuple[float, float] | None):
-        ...
-
-
-    @property
-    def children(self) -> None :
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : None ):
-        ...
-
-
-    @property
-    def children_types(self) -> ChildType:
-        """
-        (Read-only) Returns which types of children can be attached to this item
-
-        """
-        ...
-
-
-    @property
-    def context(self) -> Context:
-        """
-        (Read-only) Context in which the item resides
-
-        """
-        ...
-
-
-    @property
-    def enabled(self) -> bool:
-        """
-        Controls whether the theme is currently active.
-
-        When set to False, the theme will not be applied when its push() method is
-        called, effectively disabling its visual effects without removing it from
-        the item hierarchy.
-
-        """
-        ...
-
-
-    @enabled.setter
-    def enabled(self, value : bool):
-        ...
-
-
-    @property
-    def item_type(self) -> ChildType:
-        """
-        (Read-only) Returns which type of child this item is
-
-        """
-        ...
-
-
-    @property
-    def mutex(self) -> wrap_mutex:
-        """
-        (Read-only) Context manager instance for the item mutex
-
-        Locking the mutex will prevent:
-            - Other threads from reading/writing
-            attributes or calling methods with this item,
-            editing the children/parent of the item
-            - Any rendering of this item and its children.
-            If the viewport attemps to render this item,
-            it will be blocked until the mutex is released.
-            (if the rendering thread is holding the mutex,
-            no blocking occurs)
-
-        In general, you don't need to use any mutex in your code,
-        unless you are writing a library and cannot make assumptions
-        on what the users will do, or if you know your code manipulates
-        the same objects with multiple threads.
-
-        All attribute accesses are mutex protected.
-
-        If you want to subclass and add attributes, you
-        can use this mutex to protect your new attributes.
-        Be careful not to hold the mutex if your thread
-        intends to access the attributes of a parent item.
-        In case of doubt use parents_mutex instead.
-
-        """
-        ...
-
-
-    @property
-    def next_sibling(self) -> baseItemSubCls | None:
-        """
-        Child of the parent rendered just after this item.
-
-        It is not possible to have siblings if you have no parent,
-        thus if you intend to attach together items outside the
-        rendering tree, there must be a toplevel parent item.
-
-        If you write to this attribute, the item will be moved
-        to be inserted just before the target item.
-        In case of failure, the item remains in a detached state.
-
-        """
-        ...
-
-
-    @next_sibling.setter
-    def next_sibling(self, value : baseItemSubCls | None):
-        ...
-
-
-    @property
-    def no_rounding(self) -> bool:
-        """
-        boolean. Defaults to False.
-        If set, disables rounding (after scaling) to the
-        closest integer the parameters. The rounding is only
-        applied to parameters which impact item positioning
-        in a way that would prevent a pixel perfect result.
-
-        """
-        ...
-
-
-    @no_rounding.setter
-    def no_rounding(self, value : bool):
-        ...
-
-
-    @property
-    def no_scaling(self) -> bool:
-        """
-        boolean. Defaults to False.
-        If set, disables the automated scaling to the dpi
-        scale value for this theme
-
-        """
-        ...
-
-
-    @no_scaling.setter
-    def no_scaling(self, value : bool):
-        ...
-
-
-    @property
-    def parent(self) -> baseHandlerSubCls | None:
-        """
-        Parent of the item in the rendering tree.
-
-        Rendering starts from the viewport. Then recursively each child
-        is rendered from the first to the last, and each child renders
-        their subtree.
-
-        Only an item inserted in the rendering tree is rendered.
-        An item that is not in the rendering tree can have children.
-        Thus it is possible to build and configure various items, and
-        attach them to the tree in a second phase.
-
-        The children hold a reference to their parent, and the parent
-        holds a reference to its children. Thus to be release memory
-        held by an item, two options are possible:
-            - Remove the item from the tree, remove all your references.
-            If the item has children or siblings, the item will not be
-            released until Python's garbage collection detects a
-            circular reference.
-            - Use delete_item to remove the item from the tree, and remove
-            all the internal references inside the item structure and
-            the item's children, thus allowing them to be removed from
-            memory as soon as the user doesn't hold a reference on them.
-
-        Note the viewport is referenced by the context.
-
-        If you set this attribute, the item will be inserted at the last
-        position of the children of the parent (regardless whether this
-        item is already a child of the parent).
-        If you set None, the item will be removed from its parent's children
-        list.
-
-        """
-        ...
-
-
-    @parent.setter
-    def parent(self, value : baseHandlerSubCls | None):
-        ...
-
-
-    @property
-    def parents_mutex(self) -> wrap_this_and_parents_mutex:
-        """
-        (Read-only) Context manager instance for the item mutex and all its parents
-
-        Similar to mutex but locks not only this item, but also all
-        its current parents.
-        If you want to access parent fields, or if you are unsure,
-        lock this mutex rather than self.mutex.
-        This mutex will lock the item and all its parent in a safe
-        way that does not deadlock.
-
-        """
-        ...
-
-
-    @property
-    def previous_sibling(self) -> baseItemSubCls | None:
-        """
-        Child of the parent rendered just before this item.
-
-        It is not possible to have siblings if you have no parent,
-        thus if you intend to attach together items outside the
-        rendering tree, there must be a toplevel parent item.
-
-        If you write to this attribute, the item will be moved
-        to be inserted just after the target item.
-        In case of failure, the item remains in a detached state.
-
-        Note that a parent can have several child queues, and thus
-        child elements are not guaranteed to be siblings of each other.
-
-        """
-        ...
-
-
-    @previous_sibling.setter
-    def previous_sibling(self, value : baseItemSubCls | None):
-        ...
-
-
-    @property
-    def user_data(self) -> tuple[float, float] | None:
-        """
-        User data of any type.
-
-        To prevent programmer mistakes and improved performance,
-        base DearCyGui items do only accept predefined attributes.
-
-        This attribute is meant to be used by the user to attach
-        any custom data to the item.
-
-        An alternative for more complex needs is to subclass
-        the item and add your own attributes. Subclassed items
-        (unless using slots explicitly) do accept any attribute.
-
-        """
-        ...
-
-
-    @user_data.setter
-    def user_data(self, value : tuple[float, float] | None):
-        ...
-
-
-    @property
-    def uuid(self) -> int:
-        """
-        (Read-only) Unique identifier created by the context for the item.
-
-        uuid serves as an internal identifier for the item.
-        It is not meant to be used as a key for the item, use the
-        item directly for that purpose.
-
-        """
-        ...
-
-
-class ThemeStyleImNodes(baseThemeStyle):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
-        """
-        Parameters
-        ----------
-        - attach: Whether to attach the item to a parent. Default is None (auto)
-        - before: Attach the item just before the target item. Default is None (disabled)
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - enabled: Controls whether the theme is currently active.
-        - next_sibling: Child of the parent rendered just after this item.
-        - no_rounding: boolean. Defaults to False.
-        - no_scaling: boolean. Defaults to False.
-        - parent: Parent of the item in the rendering tree.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - user_data: User data of any type.
-        """
-        ...
-
-
-    def attach_before(self, target):
-        """
-        Same as item.next_sibling = target, but target must not be None
-
-        """
-        ...
-
-
-    def attach_to_parent(self, target):
-        """
-        Same as item.parent = target, but target must not be None
-
-        """
-        ...
-
-
-    def configure(self, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
-        """
-        Parameters
-        ----------
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - enabled: Controls whether the theme is currently active.
-        - next_sibling: Child of the parent rendered just after this item.
-        - no_rounding: boolean. Defaults to False.
-        - no_scaling: boolean. Defaults to False.
-        - parent: Parent of the item in the rendering tree.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - user_data: User data of any type.
-        """
-        ...
-
-
-    def copy(self, target_context=None):
-        """
-        Shallow copy of the item to the target context.
-
-        Performs a deep copy of the child tree.
-
-        Parameters:
-        target_context : Context, optional
-            Target context for the copy. Defaults to None.
-            (None = source's context)
-
-        Returns:
-        baseItem
-            Copy of the item in the target context.
-
-        """
-        ...
-
-
-    def delete_item(self):
-        """
-        Deletes the item and all its children.
-
-        When an item is not referenced anywhere, it might
-        not get deleted immediately, due to circular references.
-        The Python garbage collector will eventually catch
-        the circular references, but to speedup the process,
-        delete_item will recursively detach the item
-        and all elements in its subtree, as well as bound
-        items. As a result, items with no more references
-        will be freed immediately.
-
-        """
-        ...
-
-
-    def detach_item(self):
-        """
-        Same as item.parent = None
-
-        The item states (if any) are updated
-        to indicate it is not rendered anymore,
-        and the information propagated to the
-        children.
-
-        """
-        ...
-
-
-    def lock_mutex(self, wait=False):
-        """
-        Lock the internal item mutex.
-
-        **Know what you are doing**
-
-        Locking the mutex will prevent:
-            - Other threads from reading/writing
-            attributes or calling methods with this item,
-            editing the children/parent of the item
-            - Any rendering of this item and its children.
-            If the viewport attemps to render this item,
-            it will be blocked until the mutex is released.
-            (if the rendering thread is holding the mutex,
-            no blocking occurs)
-
-        This is useful if you want to edit several attributes
-        in several commands of an item or its subtree,
-        and prevent rendering or other threads from accessing
-        the item until you have finished.
-
-        If you plan on moving the item position in the rendering
-        tree, to avoid deadlock you must hold the mutex of a
-        parent of all the items involved in the motion (a common
-        parent of the source and target parent). This mutex has to
-        be locked before you lock any mutex of your child item
-        if this item is already in the rendering tree (to avoid
-        deadlock with the rendering thread).
-        If you are unsure and plans to move an item already
-        in the rendering tree, it is thus best to lock the viewport
-        mutex first.
-
-        Input argument:
-            - wait (default = False): if locking the mutex fails (mutex
-            held by another thread), wait it is released
-
-        Returns: True if the mutex is held, False else.
-
-        The mutex is a recursive mutex, thus you can lock it several
-        times in the same thread. Each lock has to be matched to an unlock.
-
-        """
-        ...
-
-
-    def unlock_mutex(self):
-        """
-        Unlock a previously held mutex on this object by this thread.
-
-        Returns True on success, False if no lock was held by this thread.
-
-        """
-        ...
-
-
-    def __enter__(self) -> ThemeStyleImNodes:
-        ...
-
-
-    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
         ...
 
 
@@ -99451,7 +98055,7 @@ class TreeNode(uiItem):
     to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Parameters
         ----------
@@ -99462,7 +98066,6 @@ class TreeNode(uiItem):
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
-        - default_open: Whether the tree node is open by default when first displayed.
         - enabled: Whether the item is interactive and fully styled.
         - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
@@ -99513,7 +98116,7 @@ class TreeNode(uiItem):
         ...
 
 
-    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], default_open : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -99524,7 +98127,6 @@ class TreeNode(uiItem):
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
-        - default_open: Whether the tree node is open by default when first displayed.
         - enabled: Whether the item is interactive and fully styled.
         - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
@@ -99814,25 +98416,6 @@ class TreeNode(uiItem):
         as they provide more robust state tracking.
 
         """
-        ...
-
-
-    @property
-    def default_open(self) -> bool:
-        """
-        Whether the tree node is open by default when first displayed.
-
-        When enabled, the tree node will start in the expanded state when it's first
-        rendered. This is useful for nodes that should be visible immediately without
-        requiring user interaction, such as important categories or frequently
-        accessed sections.
-
-        """
-        ...
-
-
-    @default_open.setter
-    def default_open(self, value : bool):
         ...
 
 
@@ -110915,7 +109498,7 @@ class baseThemeColor(baseTheme):
     Base class for theme colors that provides common color-related functionality.
 
     This class provides the core implementation for managing color themes in different
-    contexts (ImGui/ImPlot/ImNodes). Color themes allow setting colors for various UI
+    contexts (ImGui/ImPlot). Color themes allow setting colors for various UI
     elements using different color formats:
     - unsigned int (encodes rgba little-endian)
     - (r, g, b, a) with values as integers [0-255]
