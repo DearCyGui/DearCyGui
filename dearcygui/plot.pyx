@@ -3560,6 +3560,7 @@ cdef class Subplots(uiItem):
         if value:
             self._flags |= implot.ImPlotSubplotFlags_ShareItems
 
+    ''' -> does not work, use config item sharing instead
     @property
     def share_x_all(self):
         """
@@ -3647,6 +3648,7 @@ cdef class Subplots(uiItem):
         self._flags &= ~implot.ImPlotSubplotFlags_LinkAllY
         if value:
             self._flags |= implot.ImPlotSubplotFlags_LinkAllY
+    '''
 
     cdef bint draw_item(self) noexcept nogil:
         cdef float* row_sizes = NULL
