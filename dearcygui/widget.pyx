@@ -1164,7 +1164,7 @@ cdef class Combo(uiItem):
         lock_gil_friendly(value_m, self._value.mutex)
         if self._value._num_attached == 1 and \
            self._value._last_frame_update == -1 and \
-           self._items.size() > 0:
+           self._items.size() > 0: # TODO: this doesn't seem reliable enough
             # initialize the value with the first element
             SharedStr.set(<SharedStr>self._value, self._items[0])
 
@@ -1185,7 +1185,7 @@ cdef class Combo(uiItem):
             return "largest"
         elif (self._flags & imgui.ImGuiComboFlags_HeightLarge) != 0:
             return "large"
-        return "regular"
+        return "regular" # TODO: add type for that ?
 
     @height_mode.setter
     def height_mode(self, str value):
@@ -1471,7 +1471,7 @@ cdef class Slider(uiItem):
             return "float"
         elif self._format == 0:
             return "int"
-        return "double"
+        return "double" # TODO: merge double and float ?
 
     @format.setter
     def format(self, str value):
@@ -2412,7 +2412,7 @@ cdef class InputText(uiItem):
             self._flags |= imgui.ImGuiInputTextFlags_AllowTabInput
 
     @property
-    def on_enter(self):
+    def callback_on_enter(self):
         """
         Triggers callback when Enter key is pressed, regardless of edit state.
         
@@ -2425,8 +2425,8 @@ cdef class InputText(uiItem):
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_EnterReturnsTrue) != 0
 
-    @on_enter.setter
-    def on_enter(self, bint value):
+    @callback_on_enter.setter
+    def callback_on_enter(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_EnterReturnsTrue
@@ -3003,7 +3003,7 @@ cdef class InputValue(uiItem):
             self._flags |= imgui.ImGuiInputTextFlags_CharsScientific
 
     @property
-    def on_enter(self):
+    def callback_on_enter(self):
         """
         Triggers callback when Enter key is pressed.
         
@@ -3015,8 +3015,8 @@ cdef class InputValue(uiItem):
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiInputTextFlags_EnterReturnsTrue) != 0
 
-    @on_enter.setter
-    def on_enter(self, bint value):
+    @callback_on_enter.setter
+    def callback_on_enter(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiInputTextFlags_EnterReturnsTrue
