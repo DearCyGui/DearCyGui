@@ -3743,7 +3743,7 @@ cdef class Selectable(uiItem):
             self._flags |= imgui.ImGuiSelectableFlags_SpanAllColumns
 
     @property
-    def on_double_click(self):
+    def callback_on_double_click(self):
         """
         Controls whether the selectable responds to double-clicks.
         
@@ -3756,8 +3756,8 @@ cdef class Selectable(uiItem):
         lock_gil_friendly(m, self.mutex)
         return (self._flags & imgui.ImGuiSelectableFlags_AllowDoubleClick) != 0
 
-    @on_double_click.setter
-    def on_double_click(self, bint value):
+    @callback_on_double_click.setter
+    def callback_on_double_click(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._flags &= ~imgui.ImGuiSelectableFlags_AllowDoubleClick
