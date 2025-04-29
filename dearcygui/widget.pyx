@@ -35,10 +35,12 @@ from .c_types cimport unique_lock, DCGMutex, Vec2, Vec4, \
     DCGString, string_to_str, string_from_str, string_from_bytes,\
     swap_Vec2
 from .imgui_types cimport unparse_color, parse_color, Vec2ImVec2, \
-    Vec4ImVec4, ImVec2Vec2, ImVec4Vec4, ButtonDirection
+    Vec4ImVec4, ImVec2Vec2, ImVec4Vec4
 from .types cimport read_point, make_MouseButtonMask, MouseButtonMask,\
     read_vec4, Coord, child_type
 from .wrapper cimport imgui
+
+from .imgui_types import ButtonDirection as ButtonDirection_obj
 
 cdef class DrawInvisibleButton(drawingItem):
     """
@@ -1029,7 +1031,7 @@ cdef class Button(uiItem):
         lock_gil_friendly(m, self.mutex)
         if self._direction == imgui.ImGuiDir_None:
             return None
-        return ButtonDirection(self._direction)
+        return ButtonDirection_obj(self._direction)
 
     @arrow.setter
     def arrow(self, value):
@@ -1037,7 +1039,7 @@ cdef class Button(uiItem):
         lock_gil_friendly(m, self.mutex)
         if value is None:
             self._direction = imgui.ImGuiDir_None
-        elif not isinstance(value, ButtonDirection):
+        elif not isinstance(value, ButtonDirection_obj):
             raise TypeError("Invalid type for arrow property. Expected ButtonDirection or None.")
         else:
             self._direction = <imgui.ImGuiDir>value
