@@ -134,17 +134,10 @@ cdef class Image(uiItem):
     cdef float[4] _uv
     cdef uint32_t _color_multiplier # imgui.ImU32
     cdef uint32_t _background_color # imgui.ImU32
+    cdef bint _button
     cdef Texture _texture
     cdef bint draw_item(self) noexcept nogil
 
-
-cdef class ImageButton(uiItem):
-    cdef float[4] _uv
-    cdef uint32_t _color_multiplier # imgui.ImU32
-    cdef uint32_t _background_color # imgui.ImU32
-    cdef Texture _texture
-    cdef int32_t _frame_padding
-    cdef bint draw_item(self) noexcept nogil
 
 cdef class Separator(uiItem):
     cdef bint draw_item(self) noexcept nogil

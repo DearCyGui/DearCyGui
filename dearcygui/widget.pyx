@@ -3918,7 +3918,7 @@ cdef class ProgressBar(uiItem):
         self.update_current_state()
         return False
 
-cdef class Image(uiItem): # TODO ImageBorderSize
+cdef class Image(uiItem):
     """
     A widget that displays a texture image in the UI.
     
@@ -3931,8 +3931,13 @@ cdef class Image(uiItem): # TODO ImageBorderSize
     derived automatically from the texture dimensions with optional DPI scaling.
     
     The widget supports hover detection and can be used with callbacks to create
-    interactive image elements without button behavior. For clickable images,
-    use ImageButton instead.
+    interactive image elements without button behavior. When setting the
+    button attribute, the widget integrates full button functionality and visual.
+    In which case value is a SharedBool that indicates whether the button is pressed.
+
+    Image borders: this widget is affected by the theme elements related to border:
+    FrameBorderSize (style), Border (color). In addition when a button, is also
+    affected by FramePadding (style) and FrameRounding (style).
     """
     def __cinit__(self):
         self.state.cap.can_be_clicked = True
@@ -3942,6 +3947,7 @@ cdef class Image(uiItem): # TODO ImageBorderSize
         self._uv = [0., 0., 1., 1.]
         self._background_color = 0
         self._color_multiplier = 4294967295
+        self._button = False
 
     @property
     def texture(self):
@@ -4019,6 +4025,9 @@ cdef class Image(uiItem): # TODO ImageBorderSize
         this to a transparent color (alpha=0) effectively hides the background.
         
         Default is transparent black [0, 0, 0, 0], which displays no background.
+
+        Setting this attribute will have no effect if the image is opaque.
+        The background color is not affected by the theme.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4032,200 +4041,67 @@ cdef class Image(uiItem): # TODO ImageBorderSize
         lock_gil_friendly(m, self.mutex)
         self._background_color = parse_color(value)
 
+    @property
+    def button(self):
+        """
+        Whether the image behaves as a button.
+        
+        When enabled, the image acts like a button and can be clicked to trigger
+        actions. The value property is used to indicate whether the button is
+        currently pressed or not. If set to False, the image behaves as a static
+        image without button functionality.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._button
+
+    @button.setter
+    def button(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._button = value
+
     cdef bint draw_item(self) noexcept nogil:
+        cdef Vec2 size = self.get_requested_size()
         if self._texture is None:
+            if size.x > 0 and size.y > 0:
+                imgui.Dummy(Vec2ImVec2(size))
             return False
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self._texture.mutex)
         if self._texture.allocated_texture == NULL:
+            if size.x > 0 and size.y > 0:
+                imgui.Dummy(Vec2ImVec2(size))
             return False
-        cdef Vec2 size = self.get_requested_size()
+
         if size.x == 0.:
             size.x = self._texture.width * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
         if size.y == 0.:
             size.y = self._texture.height * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
 
-        imgui.PushID(self.uuid)
-        imgui.ImageWithBg(<imgui.ImTextureID>self._texture.allocated_texture,
-                    Vec2ImVec2(size),
-                    imgui.ImVec2(self._uv[0], self._uv[1]),
-                    imgui.ImVec2(self._uv[2], self._uv[3]),
-                    imgui.ColorConvertU32ToFloat4(self._color_multiplier),
-                    imgui.ColorConvertU32ToFloat4(self._background_color))
-        imgui.PopID()
-        self.update_current_state()
-        return False
-
-
-# TODO merge Image and ImageButton ? The only major difference (besides
-# the button area) is border color vs background color.
-
-cdef class ImageButton(uiItem):
-    """
-    A clickable button that displays an image texture.
-    
-    ImageButton combines the functionality of a Button with the visual display of 
-    an Image. When clicked, it triggers a callback and updates its value. The 
-    button can be styled with custom colors, padding, and UV coordinates.
-    
-    Unlike regular buttons, ImageButtons use a texture image instead of text as 
-    their primary visual element. They can be used to create icon buttons, custom 
-    themed controls, or any UI element where visual representation is preferred 
-    over text labels.
-    
-    The button's appearance can be further customized through frame padding, 
-    background color, and color tinting options.
-    """
-    def __cinit__(self):
-        self._value = <SharedValue>(SharedBool.__new__(SharedBool, self.context))
-        self.state.cap.can_be_clicked = True
-        self.state.cap.can_be_dragged = True
-        self.state.cap.can_be_focused = True
-        self.state.cap.can_be_hovered = True
-        self._background_color = 0
-        self._color_multiplier = 4294967295
-        self._frame_padding = -1
-        self._uv = [0., 0., 1., 1.]
-
-    @property
-    def texture(self):
-        """
-        The texture to display in the button.
-        
-        This must be a Texture object that has been loaded or created. The button 
-        will update automatically if the texture content changes. If no texture is 
-        set or the texture is invalid, the button will not be rendered.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._texture
-
-    @texture.setter
-    def texture(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if not(isinstance(value, Texture)):
-            raise TypeError("texture must be a Texture")
-        self._texture = value
-
-    @property
-    def frame_padding(self):
-        """
-        Padding around the image within the button frame.
-        
-        Controls the space between the image and the button edge. A value of -1 
-        (default) uses the standard padding from the current style. Setting to 0 
-        removes padding, creating a borderless image button, while positive values 
-        increase the padding.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._frame_padding
-
-    @frame_padding.setter
-    def frame_padding(self, int32_t value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._frame_padding = value
-
-    @property
-    def uv(self):
-        """
-        UV coordinates defining the region of the texture to display.
-        
-        A list of 4 values [u1, v1, u2, v2] that specify the texture coordinates 
-        to use for mapping the texture onto the button rectangle. This allows 
-        displaying only a portion of the texture.
-        
-        Default is [0.0, 0.0, 1.0, 1.0], which displays the entire texture.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return list(self._uv)
-
-    @uv.setter
-    def uv(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        read_vec4[float](self._uv, value)
-
-    @property
-    def color_multiplier(self):
-        """
-        Color tint applied to the image texture.
-        
-        A color value used to multiply with the texture's colors, allowing tinting, 
-        fading, or other color adjustments. The color can be specified as an RGBA 
-        list with values from 0.0 to 1.0, or as a packed integer.
-        
-        Default is white [1., 1., 1., 1.], which displays the texture with its 
-        original colors.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef float[4] color_multiplier
-        unparse_color(color_multiplier, self._color_multiplier)
-        return list(color_multiplier)
-
-    @color_multiplier.setter
-    def color_multiplier(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._color_multiplier = parse_color(value)
-
-    @property
-    def background_color(self):
-        """
-        Color of the button background behind the image.
-        
-        A color value for the area surrounding the image within the button bounds. 
-        The color can be specified as an RGBA list with values from 0.0 to 1.0, or 
-        as a packed integer. Setting this to a transparent color effectively shows 
-        only the image with no background.
-        
-        Default is transparent black [0, 0, 0, 0].
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef float[4] background_color
-        unparse_color(background_color, self._background_color)
-        return list(background_color)
-
-    @background_color.setter
-    def background_color(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._background_color = parse_color(value)
-
-    cdef bint draw_item(self) noexcept nogil:
-        if self._texture is None:
-            return False
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self._texture.mutex)
-        if self._texture.allocated_texture == NULL:
-            return False
-        cdef Vec2 size = self.get_requested_size()
-        if size.x == 0.:
-            size.x = self._texture.width * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
-        if size.y == 0.:
-            size.y = self._texture.height * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
-
-        imgui.PushID(self.uuid)
-        if self._frame_padding >= 0:
-            imgui.PushStyleVar(imgui.ImGuiStyleVar_FramePadding,
-                               imgui.ImVec2(<float>self._frame_padding,
-                                            <float>self._frame_padding))
         cdef bint activated
-        activated = imgui.ImageButton(self._imgui_label.c_str(),
-                                      <imgui.ImTextureID>self._texture.allocated_texture,
-                                      Vec2ImVec2(size),
-                                      imgui.ImVec2(self._uv[0], self._uv[1]),
-                                      imgui.ImVec2(self._uv[2], self._uv[3]),
-                                      imgui.ColorConvertU32ToFloat4(self._background_color),
-                                      imgui.ColorConvertU32ToFloat4(self._color_multiplier))
-        if self._frame_padding >= 0:
+        imgui.PushID(self.uuid)
+        if self._button:
+            activated = imgui.ImageButton(self._imgui_label.c_str(),
+                                          <imgui.ImTextureID>self._texture.allocated_texture,
+                                          Vec2ImVec2(size),
+                                          imgui.ImVec2(self._uv[0], self._uv[1]),
+                                          imgui.ImVec2(self._uv[2], self._uv[3]),
+                                          imgui.ColorConvertU32ToFloat4(self._background_color),
+                                          imgui.ColorConvertU32ToFloat4(self._color_multiplier))
+        else:
+            imgui.PushStyleVar(imgui.ImGuiStyleVar_ImageBorderSize, imgui.GetStyle().FrameBorderSize)
+            imgui.ImageWithBg(<imgui.ImTextureID>self._texture.allocated_texture,
+                        Vec2ImVec2(size),
+                        imgui.ImVec2(self._uv[0], self._uv[1]),
+                        imgui.ImVec2(self._uv[2], self._uv[3]),
+                        imgui.ColorConvertU32ToFloat4(self._background_color),
+                        imgui.ColorConvertU32ToFloat4(self._color_multiplier))
             imgui.PopStyleVar(1)
+            activated = False
         imgui.PopID()
         self.update_current_state()
         return activated
+
 
 cdef class Separator(uiItem):
     """

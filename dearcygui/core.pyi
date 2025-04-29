@@ -7981,7 +7981,7 @@ class ColorButton(uiItem):
     integrate color selection into interfaces with limited space.
 
     """
-    def __init__(self, context : Context, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Parameters
         ----------
@@ -8041,7 +8041,7 @@ class ColorButton(uiItem):
         ...
 
 
-    def configure(self, alpha_preview : str = "none", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_preview : str = "full", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8229,8 +8229,8 @@ class ColorButton(uiItem):
         How transparency is displayed in the color button.
 
         Controls how the alpha component of colors is displayed:
-        - "none": No special alpha visualization (default)
-        - "full": Shows the entire button with alpha applied
+        - "none": No special alpha visualization
+        - "full": Shows the entire button with alpha applied (default)
         - "half": Shows half the button with alpha applied
 
         The "half" mode is particularly useful as it allows seeing both the
@@ -9149,12 +9149,12 @@ class ColorEdit(uiItem):
     drag-and-drop functionality for transferring colors between compatible widgets.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Parameters
         ----------
         - alpha_bar: Whether to show a vertical alpha bar/gradient.
-        - alpha_preview: How transparency is displayed in color previews.
+        - alpha_preview: How transparency is displayed in the color button.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - callback: List of callbacks to invoke when the item's value changes.
@@ -9217,14 +9217,14 @@ class ColorEdit(uiItem):
         ...
 
 
-    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
         Parameters
         ----------
         - alpha_bar: Whether to show a vertical alpha bar/gradient.
-        - alpha_preview: How transparency is displayed in color previews.
+        - alpha_preview: How transparency is displayed in the color button.
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
@@ -9429,12 +9429,12 @@ class ColorEdit(uiItem):
     @property
     def alpha_preview(self) -> str:
         """
-        How transparency is displayed in color previews.
+        How transparency is displayed in the color button.
 
-        Controls how the alpha component of colors is displayed in previews:
-        - "none": No special alpha visualization (default)
-        - "full": Shows the entire preview with alpha applied
-        - "half": Shows half the preview with alpha applied
+        Controls how the alpha component of colors is displayed:
+        - "none": No special alpha visualization
+        - "full": Shows the entire button with alpha applied (default)
+        - "half": Shows half the button with alpha applied
 
         The "half" mode is particularly useful as it allows seeing both the
         color with alpha applied and without in a single preview.
@@ -10492,12 +10492,12 @@ class ColorPicker(uiItem):
     value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "none", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Parameters
         ----------
         - alpha_bar: Whether to show a vertical alpha bar/gradient.
-        - alpha_preview: How transparency is displayed in color previews.
+        - alpha_preview: How transparency is displayed in the color button.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - callback: List of callbacks to invoke when the item's value changes.
@@ -10558,14 +10558,14 @@ class ColorPicker(uiItem):
         ...
 
 
-    def configure(self, alpha_bar : bool = False, alpha_preview : str = "none", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
         Parameters
         ----------
         - alpha_bar: Whether to show a vertical alpha bar/gradient.
-        - alpha_preview: How transparency is displayed in color previews.
+        - alpha_preview: How transparency is displayed in the color button.
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
@@ -10768,12 +10768,12 @@ class ColorPicker(uiItem):
     @property
     def alpha_preview(self) -> str:
         """
-        How transparency is displayed in color previews.
+        How transparency is displayed in the color button.
 
-        Controls how the alpha component of colors is displayed in previews:
-        - "none": No special alpha visualization (default)
-        - "full": Shows the entire preview with alpha applied
-        - "half": Shows half the preview with alpha applied
+        Controls how the alpha component of colors is displayed:
+        - "none": No special alpha visualization
+        - "full": Shows the entire button with alpha applied (default)
+        - "half": Shows half the button with alpha applied
 
         The "half" mode is particularly useful as it allows seeing both the
         color with alpha applied and without in a single preview.
@@ -37037,17 +37037,23 @@ class Image(uiItem):
     derived automatically from the texture dimensions with optional DPI scaling.
 
     The widget supports hover detection and can be used with callbacks to create
-    interactive image elements without button behavior. For clickable images,
-    use ImageButton instead.
+    interactive image elements without button behavior. When setting the
+    button attribute, the widget integrates full button functionality and visual.
+    In which case value is a SharedBool that indicates whether the button is pressed.
+
+    Image borders: this widget is affected by the theme elements related to border:
+    FrameBorderSize (style), Border (color). In addition when a button, is also
+    affected by FramePadding (style) and FrameRounding (style).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
+        - background_color: Color of the background drawn behind the image.
         - before: Attach the item just before the target item. Default is None (disabled)
-        - border_color: Color of the border drawn around the image.
+        - button: Whether the image behaves as a button.
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
@@ -37099,13 +37105,14 @@ class Image(uiItem):
         ...
 
 
-    def configure(self, border_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
+    def configure(self, background_color : list = [0.0, 0.0, 0.0, 0.0], button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
         Parameters
         ----------
-        - border_color: Color of the border drawn around the image.
+        - background_color: Color of the background drawn behind the image.
+        - button: Whether the image behaves as a button.
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
@@ -37254,22 +37261,44 @@ class Image(uiItem):
 
 
     @property
-    def border_color(self) -> list:
+    def background_color(self) -> list:
         """
-        Color of the border drawn around the image.
+        Color of the background drawn behind the image.
 
-        A color value for the image's border. The color can be specified as an
+        A color value for the image's background. The color can be specified as an
         RGBA list with values from 0.0 to 1.0, or as a packed integer. Setting
-        this to a transparent color (alpha=0) effectively hides the border.
+        this to a transparent color (alpha=0) effectively hides the background.
 
-        Default is transparent black [0, 0, 0, 0], which displays no border.
+        Default is transparent black [0, 0, 0, 0], which displays no background.
+
+        Setting this attribute will have no effect if the image is opaque.
+        The background color is not affected by the theme.
 
         """
         ...
 
 
-    @border_color.setter
-    def border_color(self, value : list):
+    @background_color.setter
+    def background_color(self, value : list):
+        ...
+
+
+    @property
+    def button(self) -> bool:
+        """
+        Whether the image behaves as a button.
+
+        When enabled, the image acts like a button and can be clicked to trigger
+        actions. The value property is used to indicate whether the button is
+        currently pressed or not. If set to False, the image behaves as a static
+        image without button functionality.
+
+        """
+        ...
+
+
+    @button.setter
+    def button(self, value : bool):
         ...
 
 
@@ -38064,1113 +38093,6 @@ class Image(uiItem):
 
     @value.setter
     def value(self, value):
-        ...
-
-
-    @property
-    def visible(self) -> bool:
-        """
-        (Read-only) Whether the item was rendered in the current frame.
-
-        An item is visible when it and all its ancestors have show=True and are
-        within the visible region of their containers. Invisible items skip
-        rendering and event handling entirely.
-
-        """
-        ...
-
-
-    @property
-    def width(self) -> float:
-        """
-        Requested width for the item.
-
-        This property specifies the desired width for the item, though the
-        actual width may differ depending on item type and constraints.
-
-        Special values:
-            - 0: Use default width. May trigger content-fitting for windows or
-                containers, or style-based sizing for other items.
-            - Positive values: Request a specific width in scaled pixels.
-            - Negative values: Request a width that fills the remaining parent space
-                minus the absolute value (e.g., -1 means "fill minus 1 scaled pixel").
-            - string: A string specification to automatically size the item. See the
-                documentation for details on how to use this feature.
-
-        Some items may ignore this property or interpret it differently. The
-        actual final width in real pixels is available via the rect_size property.
-
-        """
-        ...
-
-
-    @width.setter
-    def width(self, value : float):
-        ...
-
-
-class ImageButton(uiItem):
-    """
-    A clickable button that displays an image texture.
-
-    ImageButton combines the functionality of a Button with the visual display of
-    an Image. When clicked, it triggers a callback and updates its value. The
-    button can be styled with custom colors, padding, and UV coordinates.
-
-    Unlike regular buttons, ImageButtons use a texture image instead of text as
-    their primary visual element. They can be used to create icon buttons, custom
-    themed controls, or any UI element where visual representation is preferred
-    over text labels.
-
-    The button's appearance can be further customized through frame padding,
-    background color, and color tinting options.
-
-    """
-    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
-        """
-        Parameters
-        ----------
-        - attach: Whether to attach the item to a parent. Default is None (auto)
-        - background_color: Color of the button background behind the image.
-        - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callbacks: List of callbacks to invoke when the item's value changes.
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - color_multiplier: Color tint applied to the image texture.
-        - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
-        - font: Font used for rendering text in this item and its children.
-        - frame_padding: Padding around the image within the button frame.
-        - handlers: List of event handlers attached to this item.
-        - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
-        - label: Text label displayed with or within the item.
-        - next_sibling: Child of the parent rendered just after this item.
-        - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
-        - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - scaling_factor: Additional scaling multiplier applied to this item and its children.
-        - shareable_value: Reference to the underlying value that can be shared between items.
-        - show: Whether the item should be rendered and process events.
-        - texture: The texture to display in the button.
-        - theme: Visual styling applied to this item and its children.
-        - user_data: User data of any type.
-        - uv: UV coordinates defining the region of the texture to display.
-        - value: Main value associated with this item.
-        - width: Requested width for the item.
-        """
-        ...
-
-
-    def attach_before(self, target):
-        """
-        Same as item.next_sibling = target, but target must not be None
-
-        """
-        ...
-
-
-    def attach_to_parent(self, target):
-        """
-        Same as item.parent = target, but target must not be None
-
-        """
-        ...
-
-
-    def configure(self, background_color : list = [0.0, 0.0, 0.0, 0.0], callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, frame_padding : int = -1, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : bool = False, width : float = 0.0):
-        """
-        Shortcut to set multiple attributes at once.
-
-        Parameters
-        ----------
-        - background_color: Color of the button background behind the image.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callbacks: List of callbacks to invoke when the item's value changes.
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - color_multiplier: Color tint applied to the image texture.
-        - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
-        - font: Font used for rendering text in this item and its children.
-        - frame_padding: Padding around the image within the button frame.
-        - handlers: List of event handlers attached to this item.
-        - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
-        - label: Text label displayed with or within the item.
-        - next_sibling: Child of the parent rendered just after this item.
-        - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
-        - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - scaling_factor: Additional scaling multiplier applied to this item and its children.
-        - shareable_value: Reference to the underlying value that can be shared between items.
-        - show: Whether the item should be rendered and process events.
-        - texture: The texture to display in the button.
-        - theme: Visual styling applied to this item and its children.
-        - user_data: User data of any type.
-        - uv: UV coordinates defining the region of the texture to display.
-        - value: Main value associated with this item.
-        - width: Requested width for the item.
-        """
-        ...
-
-
-    def copy(self, target_context=None):
-        """
-        Shallow copy of the item to the target context.
-
-        Performs a deep copy of the child tree.
-
-        Parameters:
-        target_context : Context, optional
-            Target context for the copy. Defaults to None.
-            (None = source's context)
-
-        Returns:
-        baseItem
-            Copy of the item in the target context.
-
-        """
-        ...
-
-
-    def delete_item(self):
-        """
-        Deletes the item and all its children.
-
-        When an item is not referenced anywhere, it might
-        not get deleted immediately, due to circular references.
-        The Python garbage collector will eventually catch
-        the circular references, but to speedup the process,
-        delete_item will recursively detach the item
-        and all elements in its subtree, as well as bound
-        items. As a result, items with no more references
-        will be freed immediately.
-
-        """
-        ...
-
-
-    def detach_item(self):
-        """
-        Same as item.parent = None
-
-        The item states (if any) are updated
-        to indicate it is not rendered anymore,
-        and the information propagated to the
-        children.
-
-        """
-        ...
-
-
-    def lock_mutex(self, wait=False):
-        """
-        Lock the internal item mutex.
-
-        **Know what you are doing**
-
-        Locking the mutex will prevent:
-            - Other threads from reading/writing
-            attributes or calling methods with this item,
-            editing the children/parent of the item
-            - Any rendering of this item and its children.
-            If the viewport attemps to render this item,
-            it will be blocked until the mutex is released.
-            (if the rendering thread is holding the mutex,
-            no blocking occurs)
-
-        This is useful if you want to edit several attributes
-        in several commands of an item or its subtree,
-        and prevent rendering or other threads from accessing
-        the item until you have finished.
-
-        If you plan on moving the item position in the rendering
-        tree, to avoid deadlock you must hold the mutex of a
-        parent of all the items involved in the motion (a common
-        parent of the source and target parent). This mutex has to
-        be locked before you lock any mutex of your child item
-        if this item is already in the rendering tree (to avoid
-        deadlock with the rendering thread).
-        If you are unsure and plans to move an item already
-        in the rendering tree, it is thus best to lock the viewport
-        mutex first.
-
-        Input argument:
-            - wait (default = False): if locking the mutex fails (mutex
-            held by another thread), wait it is released
-
-        Returns: True if the mutex is held, False else.
-
-        The mutex is a recursive mutex, thus you can lock it several
-        times in the same thread. Each lock has to be matched to an unlock.
-
-        """
-        ...
-
-
-    def unlock_mutex(self):
-        """
-        Unlock a previously held mutex on this object by this thread.
-
-        Returns True on success, False if no lock was held by this thread.
-
-        """
-        ...
-
-
-    def __enter__(self) -> ImageButton:
-        ...
-
-
-    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
-        ...
-
-
-    @property
-    def background_color(self) -> list:
-        """
-        Color of the button background behind the image.
-
-        A color value for the area surrounding the image within the button bounds.
-        The color can be specified as an RGBA list with values from 0.0 to 1.0, or
-        as a packed integer. Setting this to a transparent color effectively shows
-        only the image with no background.
-
-        Default is transparent black [0, 0, 0, 0].
-
-        """
-        ...
-
-
-    @background_color.setter
-    def background_color(self, value : list):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def callbacks(self) -> Sequence[DCGCallable]:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callbacks.setter
-    def callbacks(self, value : Sequence[DCGCallable]):
-        ...
-
-
-    @property
-    def children(self) -> None :
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : None ):
-        ...
-
-
-    @property
-    def children_types(self) -> ChildType:
-        """
-        (Read-only) Returns which types of children can be attached to this item
-
-        """
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def color_multiplier(self) -> list:
-        """
-        Color tint applied to the image texture.
-
-        A color value used to multiply with the texture's colors, allowing tinting,
-        fading, or other color adjustments. The color can be specified as an RGBA
-        list with values from 0.0 to 1.0, or as a packed integer.
-
-        Default is white [1., 1., 1., 1.], which displays the texture with its
-        original colors.
-
-        """
-        ...
-
-
-    @color_multiplier.setter
-    def color_multiplier(self, value : list):
-        ...
-
-
-    @property
-    def context(self) -> Context:
-        """
-        (Read-only) Context in which the item resides
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def enabled(self) -> bool:
-        """
-        Whether the item is interactive and fully styled.
-
-        When disabled, items appear grayed out and do not respond to user
-        interaction like hovering, clicking, or keyboard input. Unlike hidden
-        items (show=False), disabled items still appear in the interface but
-        with visual cues indicating their non-interactive state.
-
-        """
-        ...
-
-
-    @enabled.setter
-    def enabled(self, value : bool):
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def font(self) -> Font:
-        """
-        Font used for rendering text in this item and its children.
-
-        Specifies a font to use when rendering text within this item's hierarchy.
-        When set, this overrides any font specified by parent items. Setting to
-        None uses the parent's font or the default font if no parent specifies one.
-
-        """
-        ...
-
-
-    @font.setter
-    def font(self, value : Font):
-        ...
-
-
-    @property
-    def frame_padding(self) -> int:
-        """
-        Padding around the image within the button frame.
-
-        Controls the space between the image and the button edge. A value of -1
-        (default) uses the standard padding from the current style. Setting to 0
-        removes padding, creating a borderless image button, while positive values
-        increase the padding.
-
-        """
-        ...
-
-
-    @frame_padding.setter
-    def frame_padding(self, value : int):
-        ...
-
-
-    @property
-    def handlers(self) -> list:
-        """
-        List of event handlers attached to this item.
-
-        Handlers are objects that monitor the item's state and trigger callbacks
-        when specific conditions are met, like when an item is clicked, hovered,
-        or has its value changed. Multiple handlers can be attached to respond to
-        different events or the same event in different ways.
-
-        """
-        ...
-
-
-    @handlers.setter
-    def handlers(self, value : list):
-        ...
-
-
-    @property
-    def height(self) -> float:
-        """
-        Requested height for the item.
-
-        This property specifies the desired height for the item, though the
-        actual height may differ depending on item type and constraints.
-
-        Special values:
-            - 0: Use default height. May trigger content-fitting for windows or
-                containers, or style-based sizing for other items.
-            - Positive values: Request a specific height in scaled pixels.
-            - Negative values: Request a height that fills the remaining parent space
-                minus the absolute value (e.g., -1 means "fill minus 1 scaled pixel").
-            - string: A string specification to automatically size the item. See the
-                documentation for details on how to use this feature.
-
-        Some items may ignore this property or interpret it differently. The
-        actual final height in real pixels is available via the rect_size property.
-
-        """
-        ...
-
-
-    @height.setter
-    def height(self, value : float):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
-        ...
-
-
-    @property
-    def indent(self) -> float:
-        """
-        Horizontal indentation applied to the item.
-
-        This property shifts the default horizontal position of the item by the
-        specified number of scaled pixels, creating an indented appearance.
-
-        A negative value indicates an indentation of the default size based on
-        the current style settings, typically equivalent to the standard tab
-        size. A value of 0 means no indentation is applied.
-
-        """
-        ...
-
-
-    @indent.setter
-    def indent(self, value : float):
-        ...
-
-
-    @property
-    def item_type(self) -> ChildType:
-        """
-        (Read-only) Returns which type of child this item is
-
-        """
-        ...
-
-
-    @property
-    def label(self) -> str:
-        """
-        Text label displayed with or within the item.
-
-        The label is displayed differently depending on the item type. For buttons
-        and selectable items it appears inside them, for windows it becomes the
-        title, and for sliders and input fields it appears next to them.
-
-        """
-        ...
-
-
-    @label.setter
-    def label(self, value : str):
-        ...
-
-
-    @property
-    def mutex(self) -> wrap_mutex:
-        """
-        (Read-only) Context manager instance for the item mutex
-
-        Locking the mutex will prevent:
-            - Other threads from reading/writing
-            attributes or calling methods with this item,
-            editing the children/parent of the item
-            - Any rendering of this item and its children.
-            If the viewport attemps to render this item,
-            it will be blocked until the mutex is released.
-            (if the rendering thread is holding the mutex,
-            no blocking occurs)
-
-        In general, you don't need to use any mutex in your code,
-        unless you are writing a library and cannot make assumptions
-        on what the users will do, or if you know your code manipulates
-        the same objects with multiple threads.
-
-        All attribute accesses are mutex protected.
-
-        If you want to subclass and add attributes, you
-        can use this mutex to protect your new attributes.
-        Be careful not to hold the mutex if your thread
-        intends to access the attributes of a parent item.
-        In case of doubt use parents_mutex instead.
-
-        """
-        ...
-
-
-    @property
-    def next_sibling(self) -> baseItemSubCls | None:
-        """
-        Child of the parent rendered just after this item.
-
-        It is not possible to have siblings if you have no parent,
-        thus if you intend to attach together items outside the
-        rendering tree, there must be a toplevel parent item.
-
-        If you write to this attribute, the item will be moved
-        to be inserted just before the target item.
-        In case of failure, the item remains in a detached state.
-
-        """
-        ...
-
-
-    @next_sibling.setter
-    def next_sibling(self, value : baseItemSubCls | None):
-        ...
-
-
-    @property
-    def no_newline(self) -> bool:
-        """
-        Controls whether to advance to the next line after rendering.
-
-        When True, the cursor position (DEFAULT positioning) does not advance
-        to the next line after this item is drawn, allowing the next item to
-        appear on the same line. When False, the cursor advances as normal,
-        placing the next item on a new line.
-
-        This property is commonly used to create horizontal layouts or to place
-        multiple items side-by-side.
-
-        """
-        ...
-
-
-    @no_newline.setter
-    def no_newline(self, value : bool):
-        ...
-
-
-    @property
-    def no_scaling(self) -> bool:
-        """
-        Whether DPI scaling should be disabled for this item.
-
-        When True, the item ignores the global scaling factor that normally
-        adjusts UI elements based on screen DPI and viewport settings. This can
-        be useful for elements that should maintain specific pixel dimensions
-        regardless of display resolution or scaling settings.
-
-        """
-        ...
-
-
-    @no_scaling.setter
-    def no_scaling(self, value : bool):
-        ...
-
-
-    @property
-    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
-        """
-        Parent of the item in the rendering tree.
-
-        Rendering starts from the viewport. Then recursively each child
-        is rendered from the first to the last, and each child renders
-        their subtree.
-
-        Only an item inserted in the rendering tree is rendered.
-        An item that is not in the rendering tree can have children.
-        Thus it is possible to build and configure various items, and
-        attach them to the tree in a second phase.
-
-        The children hold a reference to their parent, and the parent
-        holds a reference to its children. Thus to be release memory
-        held by an item, two options are possible:
-            - Remove the item from the tree, remove all your references.
-            If the item has children or siblings, the item will not be
-            released until Python's garbage collection detects a
-            circular reference.
-            - Use delete_item to remove the item from the tree, and remove
-            all the internal references inside the item structure and
-            the item's children, thus allowing them to be removed from
-            memory as soon as the user doesn't hold a reference on them.
-
-        Note the viewport is referenced by the context.
-
-        If you set this attribute, the item will be inserted at the last
-        position of the children of the parent (regardless whether this
-        item is already a child of the parent).
-        If you set None, the item will be removed from its parent's children
-        list.
-
-        """
-        ...
-
-
-    @parent.setter
-    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
-        ...
-
-
-    @property
-    def parents_mutex(self) -> wrap_this_and_parents_mutex:
-        """
-        (Read-only) Context manager instance for the item mutex and all its parents
-
-        Similar to mutex but locks not only this item, but also all
-        its current parents.
-        If you want to access parent fields, or if you are unsure,
-        lock this mutex rather than self.mutex.
-        This mutex will lock the item and all its parent in a safe
-        way that does not deadlock.
-
-        """
-        ...
-
-
-    @property
-    def pos_policy(self) -> tuple[Positioning, Positioning]:
-        """
-        Positioning strategy for placing the item in the layout.
-
-        This property controls how the item's position is determined:
-            - DEFAULT: Placed at ImGui's cursor position, which advances vertically
-            after each item is rendered.
-            - REL_DEFAULT: Placed at the default position plus an offset specified
-            by pos_to_default.
-            - REL_PARENT: Positioned at coordinates specified by pos_to_parent
-            relative to the parent's content area.
-            - REL_WINDOW: Positioned at coordinates specified by pos_to_window
-            relative to the containing window's content area.
-            - REL_VIEWPORT: Positioned at absolute viewport coordinates specified
-            by pos_to_viewport.
-
-        Items using DEFAULT or REL_DEFAULT advance the layout cursor, while other
-        policies do not. Each axis (horizontal and vertical) has its own policy.
-
-        All position fields are updated when the item is rendered, but only the
-        position corresponding to the active policy is guaranteed to remain stable.
-
-        """
-        ...
-
-
-    @pos_policy.setter
-    def pos_policy(self, value : tuple[Positioning, Positioning]):
-        ...
-
-
-    @property
-    def pos_to_default(self) -> Coord:
-        """
-        Offset from the item's default layout position.
-
-        This coordinate represents an offset from the position where the item
-        would naturally appear in the layout flow. Setting this property
-        automatically switches the positioning mode to REL_DEFAULT for the
-        affected axis.
-
-        This provides a way to fine-tune positioning while still mostly
-        respecting the normal layout flow.
-
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
-
-        """
-        ...
-
-
-    @pos_to_default.setter
-    def pos_to_default(self, value : Sequence[float] | tuple[float, float] | Coord):
-        ...
-
-
-    @property
-    def pos_to_parent(self) -> Coord:
-        """
-        Position relative to the parent item's content area.
-
-        This coordinate represents the position of the item's top-left corner
-        relative to its parent's content area. Setting this property automatically
-        switches the positioning mode to REL_PARENT for the affected axis.
-
-        The position can place the item outside the parent's content region,
-        which would make the item invisible.
-
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
-
-        """
-        ...
-
-
-    @pos_to_parent.setter
-    def pos_to_parent(self, value : Sequence[float] | tuple[float, float] | Coord):
-        ...
-
-
-    @property
-    def pos_to_viewport(self) -> Coord:
-        """
-        Position relative to the viewport's top-left corner.
-
-        This coordinate represents the position of the item's top-left corner
-        relative to the entire viewport. Setting this property automatically
-        switches the positioning mode to REL_VIEWPORT for the affected axis.
-
-        The item remains subject to the parent's clipping region, so positioning
-        an item outside its parent's boundaries may make it invisible despite
-        having valid coordinates.
-
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
-
-        """
-        ...
-
-
-    @pos_to_viewport.setter
-    def pos_to_viewport(self, value : Sequence[float] | tuple[float, float] | Coord):
-        ...
-
-
-    @property
-    def pos_to_window(self) -> Coord:
-        """
-        Position relative to the containing window's content area.
-
-        This coordinate represents the position of the item's top-left corner
-        relative to the inner content area of the containing window. Setting
-        this property automatically switches the positioning mode to REL_WINDOW
-        for the affected axis.
-
-        The position can place the item outside the parent's content region,
-        which would make the item invisible.
-
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
-
-        """
-        ...
-
-
-    @pos_to_window.setter
-    def pos_to_window(self, value : Sequence[float] | tuple[float, float] | Coord):
-        ...
-
-
-    @property
-    def previous_sibling(self) -> baseItemSubCls | None:
-        """
-        Child of the parent rendered just before this item.
-
-        It is not possible to have siblings if you have no parent,
-        thus if you intend to attach together items outside the
-        rendering tree, there must be a toplevel parent item.
-
-        If you write to this attribute, the item will be moved
-        to be inserted just after the target item.
-        In case of failure, the item remains in a detached state.
-
-        Note that a parent can have several child queues, and thus
-        child elements are not guaranteed to be siblings of each other.
-
-        """
-        ...
-
-
-    @previous_sibling.setter
-    def previous_sibling(self, value : baseItemSubCls | None):
-        ...
-
-
-    @property
-    def rect_size(self) -> Coord:
-        """
-        (Read-only) Actual pixel size of the element including margins.
-
-        This property represents the width and height of the rectangle occupied
-        by the item in the layout. The rectangle's top-left corner is at the
-        position given by the relevant position property.
-
-        Note that this size refers only to the item within its parent window and
-        does not include any popup or child windows that might be spawned by
-        this item.
-
-        """
-        ...
-
-
-    @property
-    def resized(self) -> bool:
-        """
-        (Read-only) Whether the item's size changed this frame.
-
-        This property is true only for the frame when the size change occurs.
-        It can detect both user-initiated resizing (like dragging a window edge)
-        and programmatic size changes.
-
-        """
-        ...
-
-
-    @property
-    def scaling_factor(self) -> float:
-        """
-        Additional scaling multiplier applied to this item and its children.
-
-        This factor multiplies the global scaling to adjust the size of this
-        item hierarchy. It affects sizes, themes, and fonts that are applied
-        directly to this item or its children, but not those inherited from
-        parent items. Default is 1.0 (no additional scaling).
-
-        """
-        ...
-
-
-    @scaling_factor.setter
-    def scaling_factor(self, value : float):
-        ...
-
-
-    @property
-    def shareable_value(self) -> SharedBool:
-        """
-        Reference to the underlying value that can be shared between items.
-
-        Unlike the value property which returns a copy, this returns a reference
-        to the underlying SharedValue object. This object can be assigned to other
-        items' shareable_value properties, creating a link where all items share
-        and update the same underlying value.
-
-        """
-        ...
-
-
-    @shareable_value.setter
-    def shareable_value(self, value : SharedBool):
-        ...
-
-
-    @property
-    def show(self) -> bool:
-        """
-        Whether the item should be rendered and process events.
-
-        When set to False, the item and all its children are skipped during
-        rendering, effectively hiding them and disabling all their functionality
-        including callbacks and event handling. This is different from the enabled
-        property which renders items but in a non-interactive state.
-
-        """
-        ...
-
-
-    @show.setter
-    def show(self, value : bool):
-        ...
-
-
-    @property
-    def texture(self) -> Texture | None:
-        """
-        The texture to display in the button.
-
-        This must be a Texture object that has been loaded or created. The button
-        will update automatically if the texture content changes. If no texture is
-        set or the texture is invalid, the button will not be rendered.
-
-        """
-        ...
-
-
-    @texture.setter
-    def texture(self, value : Texture | None):
-        ...
-
-
-    @property
-    def theme(self):
-        """
-        Visual styling applied to this item and its children.
-
-        Themes control the appearance of items including colors, spacing, and
-        other visual attributes. When set, this theme overrides any theme specified
-        by parent items. Setting to None uses the parent's theme or the default
-        theme if no parent specifies one.
-
-        """
-        ...
-
-
-    @theme.setter
-    def theme(self, value):
-        ...
-
-
-    @property
-    def user_data(self):
-        """
-        User data of any type.
-
-        To prevent programmer mistakes and improved performance,
-        base DearCyGui items do only accept predefined attributes.
-
-        This attribute is meant to be used by the user to attach
-        any custom data to the item.
-
-        An alternative for more complex needs is to subclass
-        the item and add your own attributes. Subclassed items
-        (unless using slots explicitly) do accept any attribute.
-
-        """
-        ...
-
-
-    @user_data.setter
-    def user_data(self, value):
-        ...
-
-
-    @property
-    def uuid(self) -> int:
-        """
-        (Read-only) Unique identifier created by the context for the item.
-
-        uuid serves as an internal identifier for the item.
-        It is not meant to be used as a key for the item, use the
-        item directly for that purpose.
-
-        """
-        ...
-
-
-    @property
-    def uv(self) -> list:
-        """
-        UV coordinates defining the region of the texture to display.
-
-        A list of 4 values [u1, v1, u2, v2] that specify the texture coordinates
-        to use for mapping the texture onto the button rectangle. This allows
-        displaying only a portion of the texture.
-
-        Default is [0.0, 0.0, 1.0, 1.0], which displays the entire texture.
-
-        """
-        ...
-
-
-    @uv.setter
-    def uv(self, value : list):
-        ...
-
-
-    @property
-    def value(self) -> bool:
-        """
-        Main value associated with this item.
-
-        The meaning of this value depends on the item type: for buttons it's
-        whether pressed, for text inputs it's the text content, for selectable
-        items it's whether selected, and so on. This property provides a
-        unified interface for accessing an item's core data.
-
-        """
-        ...
-
-
-    @value.setter
-    def value(self, value : bool):
         ...
 
 
