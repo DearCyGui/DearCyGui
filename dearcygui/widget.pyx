@@ -3940,7 +3940,7 @@ cdef class Image(uiItem): # TODO ImageBorderSize
         self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
         self._uv = [0., 0., 1., 1.]
-        self._border_color = 0
+        self._background_color = 0
         self._color_multiplier = 4294967295
 
     @property
