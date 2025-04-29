@@ -3916,7 +3916,7 @@ cdef class ProgressBar(uiItem):
         self.update_current_state()
         return False
 
-cdef class Image(uiItem):
+cdef class Image(uiItem): # TODO ImageBorderSize
     """
     A widget that displays a texture image in the UI.
     
@@ -4008,27 +4008,27 @@ cdef class Image(uiItem):
         self._color_multiplier = parse_color(value)
 
     @property
-    def border_color(self):
+    def background_color(self):
         """
-        Color of the border drawn around the image.
+        Color of the background drawn behind the image.
         
-        A color value for the image's border. The color can be specified as an
+        A color value for the image's background. The color can be specified as an
         RGBA list with values from 0.0 to 1.0, or as a packed integer. Setting
-        this to a transparent color (alpha=0) effectively hides the border.
+        this to a transparent color (alpha=0) effectively hides the background.
         
-        Default is transparent black [0, 0, 0, 0], which displays no border.
+        Default is transparent black [0, 0, 0, 0], which displays no background.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef float[4] border_color
-        unparse_color(border_color, self._border_color)
-        return list(border_color)
+        cdef float[4] background_color
+        unparse_color(background_color, self._background_color)
+        return list(background_color)
 
-    @border_color.setter
-    def border_color(self, value):
+    @background_color.setter
+    def background_color(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._border_color = parse_color(value)
+        self._background_color = parse_color(value)
 
     cdef bint draw_item(self) noexcept nogil:
         if self._texture is None:
@@ -4043,12 +4043,12 @@ cdef class Image(uiItem):
             size.y = self._texture.height * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
 
         imgui.PushID(self.uuid)
-        imgui.Image(<imgui.ImTextureID>self._texture.allocated_texture,
+        imgui.ImageWithBg(<imgui.ImTextureID>self._texture.allocated_texture,
                     Vec2ImVec2(size),
                     imgui.ImVec2(self._uv[0], self._uv[1]),
                     imgui.ImVec2(self._uv[2], self._uv[3]),
                     imgui.ColorConvertU32ToFloat4(self._color_multiplier),
-                    imgui.ColorConvertU32ToFloat4(self._border_color))
+                    imgui.ColorConvertU32ToFloat4(self._background_color))
         imgui.PopID()
         self.update_current_state()
         return False
@@ -5364,15 +5364,15 @@ cdef class TreeNode(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return (self._flags & imgui.ImGuiTreeNodeFlags_SpanTextWidth) != 0
+        return (self._flags & imgui.ImGuiTreeNodeFlags_SpanLabelWidth) != 0
 
     @span_text_width.setter
     def span_text_width(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._flags &= ~imgui.ImGuiTreeNodeFlags_SpanTextWidth
+        self._flags &= ~imgui.ImGuiTreeNodeFlags_SpanLabelWidth
         if value:
-            self._flags |= imgui.ImGuiTreeNodeFlags_SpanTextWidth
+            self._flags |= imgui.ImGuiTreeNodeFlags_SpanLabelWidth
 
     @property
     def span_full_width(self):
@@ -6147,8 +6147,8 @@ cdef class ColorButton(uiItem):
         How transparency is displayed in the color button.
         
         Controls how the alpha component of colors is displayed:
-        - "none": No special alpha visualization (default)
-        - "full": Shows the entire button with alpha applied
+        - "none": No special alpha visualization 
+        - "full": Shows the entire button with alpha applied (default)
         - "half": Shows half the button with alpha applied
         
         The "half" mode is particularly useful as it allows seeing both the
@@ -6158,20 +6158,20 @@ cdef class ColorButton(uiItem):
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
             return "half" 
-        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaPreview) != 0:
-            return "full"
-        return "none"
+        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaOpaque) != 0:
+            return "none"
+        return "full" # TODO: ImGuiColorEditFlags_AlphaNoBg
 
     @alpha_preview.setter
     def alpha_preview(self, str value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaOpaque | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
         if value == "half":
             self._flags |= imgui.ImGuiColorEditFlags_AlphaPreviewHalf
-        elif value == "full":
-            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreview
-        elif value != "none":
+        elif value == "none":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaOpaque
+        elif value != "full":
             raise ValueError("alpha_preview must be 'none', 'full' or 'half'")
 
     @property
@@ -6443,12 +6443,12 @@ cdef class ColorEdit(uiItem):
     @property
     def alpha_preview(self):
         """
-        How transparency is displayed in color previews.
+        How transparency is displayed in the color button.
         
-        Controls how the alpha component of colors is displayed in previews:
-        - "none": No special alpha visualization (default)
-        - "full": Shows the entire preview with alpha applied  
-        - "half": Shows half the preview with alpha applied
+        Controls how the alpha component of colors is displayed:
+        - "none": No special alpha visualization 
+        - "full": Shows the entire button with alpha applied (default)
+        - "half": Shows half the button with alpha applied
         
         The "half" mode is particularly useful as it allows seeing both the
         color with alpha applied and without in a single preview.
@@ -6457,20 +6457,20 @@ cdef class ColorEdit(uiItem):
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
             return "half" 
-        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaPreview) != 0:
-            return "full"
-        return "none"
+        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaOpaque) != 0:
+            return "none"
+        return "full" # TODO: ImGuiColorEditFlags_AlphaNoBg
 
     @alpha_preview.setter
     def alpha_preview(self, str value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaOpaque | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
         if value == "half":
             self._flags |= imgui.ImGuiColorEditFlags_AlphaPreviewHalf
-        elif value == "full":
-            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreview
-        elif value != "none":
+        elif value == "none":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaOpaque
+        elif value != "full":
             raise ValueError("alpha_preview must be 'none', 'full' or 'half'")
 
     @property
@@ -6815,12 +6815,12 @@ cdef class ColorPicker(uiItem):
     @property
     def alpha_preview(self):
         """
-        How transparency is displayed in color previews.
+        How transparency is displayed in the color button.
         
-        Controls how the alpha component of colors is displayed in previews:
-        - "none": No special alpha visualization (default)
-        - "full": Shows the entire preview with alpha applied  
-        - "half": Shows half the preview with alpha applied
+        Controls how the alpha component of colors is displayed:
+        - "none": No special alpha visualization 
+        - "full": Shows the entire button with alpha applied (default)
+        - "half": Shows half the button with alpha applied
         
         The "half" mode is particularly useful as it allows seeing both the
         color with alpha applied and without in a single preview.
@@ -6829,20 +6829,20 @@ cdef class ColorPicker(uiItem):
         lock_gil_friendly(m, self.mutex)
         if (self._flags & imgui.ImGuiColorEditFlags_AlphaPreviewHalf) != 0:
             return "half" 
-        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaPreview) != 0:
-            return "full"
-        return "none"
+        elif (self._flags & imgui.ImGuiColorEditFlags_AlphaOpaque) != 0:
+            return "none"
+        return "full" # TODO: ImGuiColorEditFlags_AlphaNoBg
 
     @alpha_preview.setter
     def alpha_preview(self, str value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaPreview | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
+        self._flags &= ~(imgui.ImGuiColorEditFlags_AlphaOpaque | imgui.ImGuiColorEditFlags_AlphaPreviewHalf)
         if value == "half":
             self._flags |= imgui.ImGuiColorEditFlags_AlphaPreviewHalf
-        elif value == "full":
-            self._flags |= imgui.ImGuiColorEditFlags_AlphaPreview
-        elif value != "none":
+        elif value == "none":
+            self._flags |= imgui.ImGuiColorEditFlags_AlphaOpaque
+        elif value != "full":
             raise ValueError("alpha_preview must be 'none', 'full' or 'half'")
 
     @property

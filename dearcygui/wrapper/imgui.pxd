@@ -9,7 +9,7 @@ cdef extern from "imgui.h" nogil:
     struct ImDrawListSharedData:
         pass
     int IMGUI_VERSION
-    long IMGUI_VERSION_NUM = 19160
+    long IMGUI_VERSION_NUM = 19191
     int IMGUI_HAS_TABLE
     int IMGUI_API
     int IMGUI_IMPL_API
@@ -86,8 +86,6 @@ cdef extern from "imgui.h" nogil:
     ctypedef int ImGuiTreeNodeFlags
     ctypedef int ImGuiViewportFlags
     ctypedef int ImGuiWindowFlags
-    ctypedef ImU64 ImTextureID
-    ctypedef unsigned short ImDrawIdx
     ctypedef unsigned int ImWchar32
     ctypedef unsigned short ImWchar16
     ctypedef ImWchar32 ImWchar
@@ -110,6 +108,7 @@ cdef extern from "imgui.h" nogil:
         float w
         ImVec4()
         ImVec4(float, float, float, float)
+    ctypedef ImU64 ImTextureID
     enum ImGuiWindowFlags_:
         ImGuiWindowFlags_None = 0
         ImGuiWindowFlags_NoTitleBar = 1
@@ -139,8 +138,8 @@ cdef extern from "imgui.h" nogil:
         ImGuiWindowFlags_Popup = 67108864
         ImGuiWindowFlags_Modal = 134217728
         ImGuiWindowFlags_ChildMenu = 268435456
+        ImGuiWindowFlags_NavFlattened = 536870912
         ImGuiWindowFlags_AlwaysUseWindowPadding = 1073741824
-        ImGuiWindowFlags_NavFlattened = -2147483648
     enum ImGuiChildFlags_:
         ImGuiChildFlags_None = 0
         ImGuiChildFlags_Borders = 1
@@ -202,11 +201,13 @@ cdef extern from "imgui.h" nogil:
         ImGuiTreeNodeFlags_FramePadding = 1024
         ImGuiTreeNodeFlags_SpanAvailWidth = 2048
         ImGuiTreeNodeFlags_SpanFullWidth = 4096
-        ImGuiTreeNodeFlags_SpanTextWidth = 8192
+        ImGuiTreeNodeFlags_SpanLabelWidth = 8192
         ImGuiTreeNodeFlags_SpanAllColumns = 16384
-        ImGuiTreeNodeFlags_NavLeftJumpsBackHere = 32768
+        ImGuiTreeNodeFlags_LabelSpanAllColumns = 32768
+        ImGuiTreeNodeFlags_NavLeftJumpsBackHere = 131072
         ImGuiTreeNodeFlags_CollapsingHeader = 26
         ImGuiTreeNodeFlags_AllowItemOverlap = 4
+        ImGuiTreeNodeFlags_SpanTextWidth = 8192
     enum ImGuiPopupFlags_:
         ImGuiPopupFlags_None = 0
         ImGuiPopupFlags_MouseButtonLeft = 0
@@ -320,7 +321,8 @@ cdef extern from "imgui.h" nogil:
         ImGuiDataType_Float = 8
         ImGuiDataType_Double = 9
         ImGuiDataType_Bool = 10
-        ImGuiDataType_COUNT = 11
+        ImGuiDataType_String = 11
+        ImGuiDataType_COUNT = 12
     enum ImGuiDir:
         ImGuiDir_None = -1
         ImGuiDir_Left = 0
@@ -454,50 +456,51 @@ cdef extern from "imgui.h" nogil:
         ImGuiKey_KeypadEqual = 628
         ImGuiKey_AppBack = 629
         ImGuiKey_AppForward = 630
-        ImGuiKey_GamepadStart = 631
-        ImGuiKey_GamepadBack = 632
-        ImGuiKey_GamepadFaceLeft = 633
-        ImGuiKey_GamepadFaceRight = 634
-        ImGuiKey_GamepadFaceUp = 635
-        ImGuiKey_GamepadFaceDown = 636
-        ImGuiKey_GamepadDpadLeft = 637
-        ImGuiKey_GamepadDpadRight = 638
-        ImGuiKey_GamepadDpadUp = 639
-        ImGuiKey_GamepadDpadDown = 640
-        ImGuiKey_GamepadL1 = 641
-        ImGuiKey_GamepadR1 = 642
-        ImGuiKey_GamepadL2 = 643
-        ImGuiKey_GamepadR2 = 644
-        ImGuiKey_GamepadL3 = 645
-        ImGuiKey_GamepadR3 = 646
-        ImGuiKey_GamepadLStickLeft = 647
-        ImGuiKey_GamepadLStickRight = 648
-        ImGuiKey_GamepadLStickUp = 649
-        ImGuiKey_GamepadLStickDown = 650
-        ImGuiKey_GamepadRStickLeft = 651
-        ImGuiKey_GamepadRStickRight = 652
-        ImGuiKey_GamepadRStickUp = 653
-        ImGuiKey_GamepadRStickDown = 654
-        ImGuiKey_MouseLeft = 655
-        ImGuiKey_MouseRight = 656
-        ImGuiKey_MouseMiddle = 657
-        ImGuiKey_MouseX1 = 658
-        ImGuiKey_MouseX2 = 659
-        ImGuiKey_MouseWheelX = 660
-        ImGuiKey_MouseWheelY = 661
-        ImGuiKey_ReservedForModCtrl = 662
-        ImGuiKey_ReservedForModShift = 663
-        ImGuiKey_ReservedForModAlt = 664
-        ImGuiKey_ReservedForModSuper = 665
-        ImGuiKey_NamedKey_END = 666
+        ImGuiKey_Oem102 = 631
+        ImGuiKey_GamepadStart = 632
+        ImGuiKey_GamepadBack = 633
+        ImGuiKey_GamepadFaceLeft = 634
+        ImGuiKey_GamepadFaceRight = 635
+        ImGuiKey_GamepadFaceUp = 636
+        ImGuiKey_GamepadFaceDown = 637
+        ImGuiKey_GamepadDpadLeft = 638
+        ImGuiKey_GamepadDpadRight = 639
+        ImGuiKey_GamepadDpadUp = 640
+        ImGuiKey_GamepadDpadDown = 641
+        ImGuiKey_GamepadL1 = 642
+        ImGuiKey_GamepadR1 = 643
+        ImGuiKey_GamepadL2 = 644
+        ImGuiKey_GamepadR2 = 645
+        ImGuiKey_GamepadL3 = 646
+        ImGuiKey_GamepadR3 = 647
+        ImGuiKey_GamepadLStickLeft = 648
+        ImGuiKey_GamepadLStickRight = 649
+        ImGuiKey_GamepadLStickUp = 650
+        ImGuiKey_GamepadLStickDown = 651
+        ImGuiKey_GamepadRStickLeft = 652
+        ImGuiKey_GamepadRStickRight = 653
+        ImGuiKey_GamepadRStickUp = 654
+        ImGuiKey_GamepadRStickDown = 655
+        ImGuiKey_MouseLeft = 656
+        ImGuiKey_MouseRight = 657
+        ImGuiKey_MouseMiddle = 658
+        ImGuiKey_MouseX1 = 659
+        ImGuiKey_MouseX2 = 660
+        ImGuiKey_MouseWheelX = 661
+        ImGuiKey_MouseWheelY = 662
+        ImGuiKey_ReservedForModCtrl = 663
+        ImGuiKey_ReservedForModShift = 664
+        ImGuiKey_ReservedForModAlt = 665
+        ImGuiKey_ReservedForModSuper = 666
+        ImGuiKey_NamedKey_END = 667
         ImGuiMod_None = 0
         ImGuiMod_Ctrl = 4096
         ImGuiMod_Shift = 8192
         ImGuiMod_Alt = 16384
         ImGuiMod_Super = 32768
         ImGuiMod_Mask_ = 61440
-        ImGuiKey_NamedKey_COUNT = 154
-        ImGuiKey_COUNT = 666
+        ImGuiKey_NamedKey_COUNT = 155
+        ImGuiKey_COUNT = 667
         ImGuiMod_Shortcut = 4096
         ImGuiKey_ModCtrl = 4096
         ImGuiKey_ModShift = 8192
@@ -617,18 +620,19 @@ cdef extern from "imgui.h" nogil:
         ImGuiStyleVar_ScrollbarRounding = 19
         ImGuiStyleVar_GrabMinSize = 20
         ImGuiStyleVar_GrabRounding = 21
-        ImGuiStyleVar_TabRounding = 22
-        ImGuiStyleVar_TabBorderSize = 23
-        ImGuiStyleVar_TabBarBorderSize = 24
-        ImGuiStyleVar_TabBarOverlineSize = 25
-        ImGuiStyleVar_TableAngledHeadersAngle = 26
-        ImGuiStyleVar_TableAngledHeadersTextAlign = 27
-        ImGuiStyleVar_ButtonTextAlign = 28
-        ImGuiStyleVar_SelectableTextAlign = 29
-        ImGuiStyleVar_SeparatorTextBorderSize = 30
-        ImGuiStyleVar_SeparatorTextAlign = 31
-        ImGuiStyleVar_SeparatorTextPadding = 32
-        ImGuiStyleVar_COUNT = 33
+        ImGuiStyleVar_ImageBorderSize = 22
+        ImGuiStyleVar_TabRounding = 23
+        ImGuiStyleVar_TabBorderSize = 24
+        ImGuiStyleVar_TabBarBorderSize = 25
+        ImGuiStyleVar_TabBarOverlineSize = 26
+        ImGuiStyleVar_TableAngledHeadersAngle = 27
+        ImGuiStyleVar_TableAngledHeadersTextAlign = 28
+        ImGuiStyleVar_ButtonTextAlign = 29
+        ImGuiStyleVar_SelectableTextAlign = 30
+        ImGuiStyleVar_SeparatorTextBorderSize = 31
+        ImGuiStyleVar_SeparatorTextAlign = 32
+        ImGuiStyleVar_SeparatorTextPadding = 33
+        ImGuiStyleVar_COUNT = 34
     enum ImGuiButtonFlags_:
         ImGuiButtonFlags_None = 0
         ImGuiButtonFlags_MouseButtonLeft = 1
@@ -648,9 +652,10 @@ cdef extern from "imgui.h" nogil:
         ImGuiColorEditFlags_NoSidePreview = 256
         ImGuiColorEditFlags_NoDragDrop = 512
         ImGuiColorEditFlags_NoBorder = 1024
+        ImGuiColorEditFlags_AlphaOpaque = 2048
+        ImGuiColorEditFlags_AlphaNoBg = 4096
+        ImGuiColorEditFlags_AlphaPreviewHalf = 8192
         ImGuiColorEditFlags_AlphaBar = 65536
-        ImGuiColorEditFlags_AlphaPreview = 131072
-        ImGuiColorEditFlags_AlphaPreviewHalf = 262144
         ImGuiColorEditFlags_HDR = 524288
         ImGuiColorEditFlags_DisplayRGB = 1048576
         ImGuiColorEditFlags_DisplayHSV = 2097152
@@ -662,10 +667,12 @@ cdef extern from "imgui.h" nogil:
         ImGuiColorEditFlags_InputRGB = 134217728
         ImGuiColorEditFlags_InputHSV = 268435456
         ImGuiColorEditFlags_DefaultOptions_ = 177209344
+        ImGuiColorEditFlags_AlphaMask_ = 14338
         ImGuiColorEditFlags_DisplayMask_ = 7340032
         ImGuiColorEditFlags_DataTypeMask_ = 25165824
         ImGuiColorEditFlags_PickerMask_ = 100663296
         ImGuiColorEditFlags_InputMask_ = 402653184
+        ImGuiColorEditFlags_AlphaPreview = 0
     enum ImGuiSliderFlags_:
         ImGuiSliderFlags_None = 0
         ImGuiSliderFlags_Logarithmic = 32
@@ -674,6 +681,7 @@ cdef extern from "imgui.h" nogil:
         ImGuiSliderFlags_WrapAround = 256
         ImGuiSliderFlags_ClampOnInput = 512
         ImGuiSliderFlags_ClampZeroRange = 1024
+        ImGuiSliderFlags_NoSpeedTweaks = 2048
         ImGuiSliderFlags_AlwaysClamp = 1536
         ImGuiSliderFlags_InvalidMask_ = 1879048207
     enum ImGuiMouseButton_:
@@ -691,8 +699,10 @@ cdef extern from "imgui.h" nogil:
         ImGuiMouseCursor_ResizeNESW = 5
         ImGuiMouseCursor_ResizeNWSE = 6
         ImGuiMouseCursor_Hand = 7
-        ImGuiMouseCursor_NotAllowed = 8
-        ImGuiMouseCursor_COUNT = 9
+        ImGuiMouseCursor_Wait = 8
+        ImGuiMouseCursor_Progress = 9
+        ImGuiMouseCursor_NotAllowed = 10
+        ImGuiMouseCursor_COUNT = 11
     enum ImGuiMouseSource:
         ImGuiMouseSource_Mouse = 0
         ImGuiMouseSource_TouchScreen = 1
@@ -850,6 +860,7 @@ cdef extern from "imgui.h" nogil:
         ImVec2 WindowPadding
         float WindowRounding
         float WindowBorderSize
+        float WindowBorderHoverPadding
         ImVec2 WindowMinSize
         ImVec2 WindowTitleAlign
         ImGuiDir WindowMenuButtonPosition
@@ -871,9 +882,11 @@ cdef extern from "imgui.h" nogil:
         float GrabMinSize
         float GrabRounding
         float LogSliderDeadzone
+        float ImageBorderSize
         float TabRounding
         float TabBorderSize
-        float TabMinWidthForCloseButton
+        float TabCloseButtonMinWidthSelected
+        float TabCloseButtonMinWidthUnselected
         float TabBarBorderSize
         float TabBarOverlineSize
         float TableAngledHeadersAngle
@@ -950,6 +963,7 @@ cdef extern from "imgui.h" nogil:
         bint ConfigErrorRecoveryEnableTooltip
         bint ConfigDebugIsDebuggerPresent
         bint ConfigDebugHighlightIdConflicts
+        bint ConfigDebugHighlightIdConflictsShowItemPicker
         bint ConfigDebugBeginReturnValueOnce
         bint ConfigDebugBeginReturnValueLoop
         bint ConfigDebugIgnoreFocusLoss
@@ -999,7 +1013,7 @@ cdef extern from "imgui.h" nogil:
         bint KeyAlt
         bint KeySuper
         ImGuiKeyChord KeyMods
-        ImGuiKeyData KeysData[154]
+        ImGuiKeyData KeysData[155]
         bint WantCaptureMouseUnlessPopupClose
         ImVec2 MousePosPrev
         ImVec2 MouseClickedPos[5]
@@ -1009,6 +1023,7 @@ cdef extern from "imgui.h" nogil:
         ImU16 MouseClickedCount[5]
         ImU16 MouseClickedLastCount[5]
         bint MouseReleased[5]
+        double MouseReleasedTime[5]
         bint MouseDownOwned[5]
         bint MouseDownOwnedUnlessPopupClose[5]
         bint MouseWheelRequestAxisSwap
@@ -1100,6 +1115,7 @@ cdef extern from "imgui.h" nogil:
         int size()
         bint empty()
         void clear()
+        void resize(int)
         void reserve(int)
         const char* c_str()
         void append(const char*)
@@ -1218,6 +1234,7 @@ cdef extern from "imgui.h" nogil:
         void (*AdapterSetItemSelected)(ImGuiSelectionExternalStorage*, int, bint)
         ImGuiSelectionExternalStorage()
         void ApplyRequests(ImGuiMultiSelectIO*)
+    ctypedef unsigned short ImDrawIdx
     ctypedef void (*ImDrawCallback)(ImDrawList*, ImDrawCmd*)
     cppclass ImDrawCmd:
         ImVec4 ClipRect
@@ -1392,17 +1409,17 @@ cdef extern from "imgui.h" nogil:
         void* FontData
         int FontDataSize
         bint FontDataOwnedByAtlas
+        bint MergeMode
+        bint PixelSnapH
         int FontNo
-        float SizePixels
         int OversampleH
         int OversampleV
-        bint PixelSnapH
-        ImVec2 GlyphExtraSpacing
+        float SizePixels
         ImVec2 GlyphOffset
         ImWchar* GlyphRanges
         float GlyphMinAdvanceX
         float GlyphMaxAdvanceX
-        bint MergeMode
+        float GlyphExtraAdvanceX
         unsigned int FontBuilderFlags
         float RasterizerMultiply
         float RasterizerDensity
@@ -1471,8 +1488,8 @@ cdef extern from "imgui.h" nogil:
         ImFont* AddFontFromMemoryCompressedBase85TTF(const char*, float, ImFontConfig*)
         ImFont* AddFontFromMemoryCompressedBase85TTF(const char*, float, ImFontConfig*, ImWchar*)
         void ClearInputData()
-        void ClearTexData()
         void ClearFonts()
+        void ClearTexData()
         void Clear()
         bint Build()
         void GetTexDataAsAlpha8(unsigned char**, int*, int*)
@@ -1495,13 +1512,12 @@ cdef extern from "imgui.h" nogil:
         int AddCustomRectFontGlyph(ImFont*, ImWchar, int, int, float, ImVec2&)
         ImFontAtlasCustomRect* GetCustomRectByIndex(int)
         void CalcCustomRectUV(ImFontAtlasCustomRect*, ImVec2*, ImVec2*)
-        bint GetMouseCursorTexData(ImGuiMouseCursor, ImVec2*, ImVec2*, ImVec2[2], ImVec2[2])
         ImFontAtlasFlags Flags
         ImTextureID TexID
         int TexDesiredWidth
         int TexGlyphPadding
-        bint Locked
         void* UserData
+        bint Locked
         bint TexReady
         bint TexPixelsUseColors
         unsigned char* TexPixelsAlpha8
@@ -1512,8 +1528,8 @@ cdef extern from "imgui.h" nogil:
         ImVec2 TexUvWhitePixel
         ImVector[ImFont] Fonts
         ImVector[ImFontAtlasCustomRect] CustomRects
-        ImVector[ImFontConfig] ConfigData
-        ImVec4 TexUvLines[64]
+        ImVector[ImFontConfig] Sources
+        ImVec4 TexUvLines[33]
         ImFontBuilderIO* FontBuilderIO
         unsigned int FontBuilderFlags
         int PackIdMouseCursors
@@ -1522,23 +1538,23 @@ cdef extern from "imgui.h" nogil:
         ImVector[float] IndexAdvanceX
         float FallbackAdvanceX
         float FontSize
-        ImVector[ImWchar] IndexLookup
+        ImVector[ImU16] IndexLookup
         ImVector[ImFontGlyph] Glyphs
         ImFontGlyph* FallbackGlyph
         ImFontAtlas* ContainerAtlas
-        ImFontConfig* ConfigData
-        short ConfigDataCount
+        ImFontConfig* Sources
+        short SourcesCount
         short EllipsisCharCount
         ImWchar EllipsisChar
         ImWchar FallbackChar
         float EllipsisWidth
         float EllipsisCharStep
-        bint DirtyLookupTables
         float Scale
         float Ascent
         float Descent
         int MetricsTotalSurface
-        ImU8 Used4kPagesMap[2]
+        bint DirtyLookupTables
+        ImU8 Used8kPagesMap[1]
         ImFont()
         ImFontGlyph* FindGlyph(ImWchar)
         ImFontGlyph* FindGlyphNoFallback(ImWchar)
@@ -1556,7 +1572,6 @@ cdef extern from "imgui.h" nogil:
         void GrowIndex(int)
         void AddGlyph(ImFontConfig*, ImWchar, float, float, float, float, float, float, float, float, float)
         void AddRemapChar(ImWchar, ImWchar, bint)
-        void SetGlyphVisible(ImWchar, bint)
         bint IsGlyphRangeUnused(unsigned int, unsigned int)
     enum ImGuiViewportFlags_:
         ImGuiViewportFlags_None = 0
@@ -1778,8 +1793,11 @@ cdef extern from "imgui.h" namespace "ImGui" nogil:
     void Image(ImTextureID, ImVec2&)
     void Image(ImTextureID, ImVec2&, ImVec2&)
     void Image(ImTextureID, ImVec2&, ImVec2&, ImVec2&)
-    void Image(ImTextureID, ImVec2&, ImVec2&, ImVec2&, ImVec4&)
-    void Image(ImTextureID, ImVec2&, ImVec2&, ImVec2&, ImVec4&, ImVec4&)
+    void ImageWithBg(ImTextureID, ImVec2&)
+    void ImageWithBg(ImTextureID, ImVec2&, ImVec2&)
+    void ImageWithBg(ImTextureID, ImVec2&, ImVec2&, ImVec2&)
+    void ImageWithBg(ImTextureID, ImVec2&, ImVec2&, ImVec2&, ImVec4&)
+    void ImageWithBg(ImTextureID, ImVec2&, ImVec2&, ImVec2&, ImVec4&, ImVec4&)
     bint ImageButton(const char*, ImTextureID, ImVec2&)
     bint ImageButton(const char*, ImTextureID, ImVec2&, ImVec2&)
     bint ImageButton(const char*, ImTextureID, ImVec2&, ImVec2&, ImVec2&)
@@ -2132,6 +2150,7 @@ cdef extern from "imgui.h" namespace "ImGui" nogil:
     bint IsMouseClicked(ImGuiMouseButton, bint)
     bint IsMouseReleased(ImGuiMouseButton)
     bint IsMouseDoubleClicked(ImGuiMouseButton)
+    bint IsMouseReleasedWithDelay(ImGuiMouseButton, float)
     int GetMouseClickedCount(ImGuiMouseButton)
     bint IsMouseHoveringRect(ImVec2&, ImVec2&, bint)
     bint IsMousePosValid()
@@ -2163,6 +2182,7 @@ cdef extern from "imgui.h" namespace "ImGui" nogil:
     void GetAllocatorFunctions(ImGuiMemAllocFunc*, ImGuiMemFreeFunc*, void**)
     void* MemAlloc(int)
     void MemFree(void*)
+    void Image(ImTextureID, ImVec2&, ImVec2&, ImVec2&, ImVec4&, ImVec4&)
     void PushButtonRepeat(bint)
     void PopButtonRepeat()
     void PushTabStop(bint)

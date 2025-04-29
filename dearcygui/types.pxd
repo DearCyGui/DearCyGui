@@ -62,6 +62,8 @@ cpdef enum class MouseCursor:
     ResizeNESW,        # When hovering over the bottom-left corner of a window
     ResizeNWSE,        # When hovering over the bottom-right corner of a window
     Hand,              # (Unused by Dear ImGui functions. Use for e.g. hyperlinks)
+    Wait,
+    Progress
     NotAllowed
 
 #Class to describe the positioning policy of an item

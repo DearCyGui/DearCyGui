@@ -133,7 +133,7 @@ cdef class ProgressBar(uiItem):
 cdef class Image(uiItem):
     cdef float[4] _uv
     cdef uint32_t _color_multiplier # imgui.ImU32
-    cdef uint32_t _border_color # imgui.ImU32
+    cdef uint32_t _background_color # imgui.ImU32
     cdef Texture _texture
     cdef bint draw_item(self) noexcept nogil
 
