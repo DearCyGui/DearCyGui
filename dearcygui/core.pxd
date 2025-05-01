@@ -285,6 +285,12 @@ cdef class Viewport(baseItem):
     cdef float thickness_multiplier # scale for the thickness of all lines (Draw*)
     cdef float size_multiplier # scale for the size of all Draw* elements.
     cdef bint[6] enabled_axes # <int>implot.ImAxis_COUNT. Enabled plot axes.
+    # Temporary scratch space to be accessed during rendering
+    # Shouldn't be accessed outside draw()
+    cdef DCGVector[float] temp_point_coords # Temporary storage for point coordinates
+    cdef DCGVector[float] temp_normals # Temporary storage for normals data
+    cdef DCGVector[uint32_t] temp_colors # Temporary storage for color data
+    cdef DCGVector[uint32_t] temp_indices # Temporary storage for indices data
     ### private variables ###
     cdef DCGMutex _mutex_backend
     cdef void *_platform # platformViewport

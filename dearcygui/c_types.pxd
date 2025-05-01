@@ -418,6 +418,8 @@ cdef extern from * nogil:
         size_t capacity()
         void clear()
         void reserve(size_t) except +
+        void resize(size_t) except +
+        void resize(size_t, const T&) except +
         T* data()
         T& back()
         T& front()

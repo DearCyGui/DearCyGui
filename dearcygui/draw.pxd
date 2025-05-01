@@ -187,7 +187,7 @@ cdef class DrawStar(drawingItem):
     cdef float _thickness
     cdef int32_t _num_points
     cdef DCGVector[float2] _points
-    cdef DCGVector[float2] _inner_points
+    cdef DCGVector[uint32_t] _indices
     cdef bint _dirty
     cdef void draw(self, void*) noexcept nogil
 

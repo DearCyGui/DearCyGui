@@ -1234,7 +1234,7 @@ cdef extern from "imgui.h" nogil:
         void (*AdapterSetItemSelected)(ImGuiSelectionExternalStorage*, int, bint)
         ImGuiSelectionExternalStorage()
         void ApplyRequests(ImGuiMultiSelectIO*)
-    ctypedef unsigned short ImDrawIdx
+    ctypedef unsigned int ImDrawIdx
     ctypedef void (*ImDrawCallback)(ImDrawList*, ImDrawCmd*)
     cppclass ImDrawCmd:
         ImVec4 ClipRect
