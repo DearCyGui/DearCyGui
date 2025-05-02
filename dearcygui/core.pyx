@@ -3727,7 +3727,7 @@ cdef class Viewport(baseItem):
             self.skipped_last_frame = False
         return
 
-    cdef void coordinate_to_screen(self, float *dst_p, double[2] src_p) noexcept nogil:
+    cdef void coordinate_to_screen(self, float *dst_p, const double[2] src_p) noexcept nogil:
         """
         Used during rendering as helper to convert drawing coordinates to pixel coordinates
         """
@@ -3753,7 +3753,7 @@ cdef class Viewport(baseItem):
             dst_p[0] = <float>p[0]
             dst_p[1] = <float>p[1]
 
-    cdef void screen_to_coordinate(self, double *dst_p, float[2] src_p) noexcept nogil:
+    cdef void screen_to_coordinate(self, double *dst_p, const float[2] src_p) noexcept nogil:
         """
         Used during rendering as helper to convert pixel coordinates to drawing coordinates
         """

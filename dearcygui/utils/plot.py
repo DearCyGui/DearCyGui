@@ -73,7 +73,7 @@ class PlotCandleStick(dcg.DrawInPlot):
                 low_pos = (self._dates[i], self._lows[i])
                 high_pos = (self._dates[i], self._highs[i])
                 color = self._bear_color if self._opens[i] > self._closes[i] else self._bull_color
-                dcg.DrawLine(self.context, p1=low_pos, p2=high_pos, color=color)
+                dcg.DrawLine(self.context, p1=low_pos, p2=high_pos, color=color, thickness=0.2*half_width)
                 dcg.DrawRect(self.context, pmin=open_pos, pmax=close_pos, color=0, fill=color)
                 buttons.append(
                     dcg.DrawInvisibleButton(self.context, button=0,
