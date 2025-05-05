@@ -1768,8 +1768,8 @@ cdef class DrawImage(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_point[float](self._uv1, value)
-        self._uv2[1] = self._uv1[0]
-        self._uv4[0] = self._uv1[1]
+        self._uv4[0] = self._uv1[0]
+        self._uv2[1] = self._uv1[1]
 
     @property
     def uv_max(self):
