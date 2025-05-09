@@ -196,7 +196,8 @@ def setup_package():
                     "thirdparty/delaunator-cpp/include",
                     "thirdparty/Constrainautor/",
                     "thirdparty/freetype/include",
-                    "thirdparty/SDL/include"]
+                    "thirdparty/SDL/include",
+                    "thirdparty/xsimd/include"]
 
     cpp_sources = [
         "dearcygui/backends/sdl3_gl3_backend.cpp",
@@ -223,7 +224,7 @@ def setup_package():
     linking_args = ['-O3']
 
     if get_platform() == "Linux":
-        compile_args += ["-DNDEBUG", "-fwrapv", "-O3", "-DUNIX", "-DLINUX", "-g1", "-std=c++14"]
+        compile_args += ["-DNDEBUG", "-fwrapv", "-O3", "-DUNIX", "-DLINUX", "-g1", "-std=c++14", "-march=native"]
         compile_args += get_gcc_clang_compat_flags()
         libraries = ["crypt", "pthread", "dl", "util", "m", "GL"]
     elif get_platform() == "OS X":
@@ -269,6 +270,7 @@ def setup_package():
     cython_sources = [
         "dearcygui/core.pyx",
         "dearcygui/draw.pyx",
+        "dearcygui/draw_helpers.pyx",
         "dearcygui/font.pyx",
         "dearcygui/handler.pyx",
         "dearcygui/imgui.pyx",

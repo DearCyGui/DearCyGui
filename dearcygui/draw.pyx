@@ -32,7 +32,9 @@ from libcpp cimport bool
 from libcpp.vector cimport vector
 
 from .wrapper.delaunator cimport delaunator_get_triangles, DelaunationResult
-from .imgui cimport t_draw_polygon, t_draw_polyline, draw_regular_polygon,\
+from .imgui cimport t_draw_polygon, t_draw_polyline,\
+    t_draw_elliptical_arc, t_draw_elliptical_pie_slice, t_draw_elliptical_ring_segment,\
+    t_draw_elliptical_ring, t_draw_ellipse, draw_regular_polygon,\
     t_draw_line, draw_star, draw_triangle, draw_quad,\
     get_scaled_thickness, get_scaled_radius, draw_circle, t_item_fully_clipped
 
@@ -485,6 +487,7 @@ cdef class DrawArc(drawingItem):
     def __cinit__(self):
         self._center = [0., 0.]
         self._radius = [0., 0.]
+        self._inner_radius = [0., 0.]
         self._start_angle = 0.
         self._end_angle = 0.
         self._rotation = 0.
@@ -527,6 +530,31 @@ cdef class DrawArc(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._radius, value)
+
+    @property
+    def inner_radius(self):
+        """
+        X and Y radii of the inner arc.
+        
+        Defines the shape of the ellipse from which the arc is drawn:
+        - Equal values create a circular arc
+        - Different values create an elliptical arc
+        - Negative values are interpreted as screen space units rather than coordinate space
+
+        If radius and inner_radius are equal, the shape 
+        corresponds to a simple curved line, and the filling will
+        join the extremities.
+
+        An inner_radius of (0, 0) is equivalent to a filled arc (from the center)
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return Coord.build(self._inner_radius)
+    @inner_radius.setter
+    def inner_radius(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        read_coord(self._inner_radius, value)
 
     @property
     def fill(self):
@@ -640,22 +668,13 @@ cdef class DrawArc(drawingItem):
         if not(self._show):
             return
 
-        cdef float thickness = self._thickness
-        thickness *= self.context.viewport.thickness_multiplier
-        if thickness > 0:
-            thickness *= self.context.viewport.size_multiplier
-        thickness = abs(thickness)
+        cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
         cdef float scale = self.context.viewport.size_multiplier
-        cdef imgui.ImVec2 radius = imgui.ImVec2(self._radius[0], self._radius[1])
-        if radius.x < 0:
-            radius.x = -radius.x
-        else:
-            radius.x = radius.x * scale
-        if radius.y < 0:
-            radius.y = -radius.y
-        else:
-            radius.y = radius.y * scale
+        cdef float radius_x = get_scaled_radius(self.context, self._radius[0])
+        cdef float radius_y = get_scaled_radius(self.context, self._radius[1])
+        cdef float inner_radius_x = get_scaled_radius(self.context, self._inner_radius[0])
+        cdef float inner_radius_y = get_scaled_radius(self.context, self._inner_radius[1])
 
         cdef float start_angle = self._start_angle
         cdef float end_angle = self._end_angle
@@ -669,7 +688,7 @@ cdef class DrawArc(drawingItem):
         cdef double[2] p2
         cdef float[2] p1_converted
         cdef float[2] p2_converted
-        cdef float min_radius = min(radius.x, radius.y)
+        cdef float min_radius = min(radius_x, radius_y)
         # We use min_radius because coordinate_to_screen can cause
         # a fit of the tested coordinates.
         p1[0] = self._center[0] + min_radius
@@ -682,31 +701,89 @@ cdef class DrawArc(drawingItem):
             start_angle = -start_angle
             end_angle = -end_angle
 
-        # For convert filling, angles must be increasing
-        if start_angle > end_angle:
-            swap(start_angle, end_angle)
-        
-        # Draw filled arc if fill color has alpha
-        if self._fill & imgui.IM_COL32_A_MASK != 0:
-            (<imgui.ImDrawList*>drawlist).PathEllipticalArcTo(
-                imgui.ImVec2(center[0], center[1]),
-                radius,
-                self._rotation,
-                start_angle,
-                end_angle,
-                0)
-            (<imgui.ImDrawList*>drawlist).PathFillConvex(self._fill)
+        cdef bint full_ellipse = abs(start_angle-end_angle) >= 1.999 * M_PI
+        inner_radius_x = min(inner_radius_x, radius_x)
+        inner_radius_y = min(inner_radius_y, radius_y)
 
-        # Draw outline
-        if self._color & imgui.IM_COL32_A_MASK != 0:
-            (<imgui.ImDrawList*>drawlist).PathEllipticalArcTo(
-                imgui.ImVec2(center[0], center[1]),
-                radius,
-                self._rotation,
-                start_angle,
-                end_angle,
-                0)
-            (<imgui.ImDrawList*>drawlist).PathStroke(self._color, False, thickness)
+        if full_ellipse:
+            # Ellipse with full filling
+            if (inner_radius_x <= 0.1 or inner_radius_y <= 0.1) or \
+               (radius_x == inner_radius_x and radius_y == inner_radius_y):
+                t_draw_ellipse(self.context,
+                               drawlist,
+                               center[0],
+                               center[1],
+                               radius_x,
+                               radius_y,
+                               self._rotation,
+                               0,
+                               self._color,
+                               self._fill,
+                               thickness)
+            # Ellipse with hole
+            else:
+                t_draw_elliptical_ring(self.context,
+                                       drawlist,
+                                       center[0],
+                                       center[1],
+                                       radius_x,
+                                       radius_y,
+                                       inner_radius_x,
+                                       inner_radius_y,
+                                       self._rotation,
+                                       0,
+                                       self._color,
+                                       self._fill,
+                                       thickness)
+        elif radius_x == inner_radius_x and radius_y == inner_radius_y:
+            # Arc + joined filling
+            t_draw_elliptical_arc(self.context,
+                                  drawlist,
+                                  center[0],
+                                  center[1],
+                                  radius_x,
+                                  radius_y,
+                                  start_angle,
+                                  end_angle,
+                                  self._rotation,
+                                  0,
+                                  self._color,
+                                  self._fill,
+                                  thickness)
+        elif inner_radius_x <= 0.1 or inner_radius_y <= 0.1:
+            # Pie slice
+            t_draw_elliptical_pie_slice(self.context,
+                                        drawlist,
+                                        center[0],
+                                        center[1],
+                                        radius_x,
+                                        radius_y,
+                                        start_angle,
+                                        end_angle,
+                                        self._rotation,
+                                        0,
+                                        self._color,
+                                        self._fill,
+                                        thickness)
+        else:
+            # Elliptical ring segment
+            t_draw_elliptical_ring_segment(self.context,
+                                           drawlist,
+                                           center[0],
+                                           center[1],
+                                           radius_x,
+                                           radius_y,
+                                           inner_radius_x,
+                                           inner_radius_y,
+                                           start_angle,
+                                           end_angle,
+                                           self._rotation,
+                                           0,
+                                           self._color,
+                                           self._fill,
+                                           thickness)
+
+
 
 cdef class DrawArrow(drawingItem):
     """
@@ -849,11 +926,7 @@ cdef class DrawArrow(drawingItem):
         if not(self._show):
             return
 
-        cdef float thickness = self._thickness
-        thickness *= self.context.viewport.thickness_multiplier
-        if thickness > 0:
-            thickness *= self.context.viewport.size_multiplier
-        thickness = abs(thickness)
+        cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
         cdef float[2] tstart
         cdef float[2] tend
@@ -1014,11 +1087,7 @@ cdef class DrawBezierCubic(drawingItem):
         if not(self._show):
             return
 
-        cdef float thickness = self._thickness
-        thickness *= self.context.viewport.thickness_multiplier
-        if thickness > 0:
-            thickness *= self.context.viewport.size_multiplier
-        thickness = abs(thickness)
+        cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
         cdef float[2] p1
         cdef float[2] p2
@@ -1159,11 +1228,7 @@ cdef class DrawBezierQuadratic(drawingItem):
         if not(self._show):
             return
 
-        cdef float thickness = self._thickness
-        thickness *= self.context.viewport.thickness_multiplier
-        if thickness > 0:
-            thickness *= self.context.viewport.size_multiplier
-        thickness = abs(thickness)
+        cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
         cdef float[2] p1
         cdef float[2] p2
@@ -1479,11 +1544,7 @@ cdef class DrawEllipse(drawingItem):
         if not(self._show) or self._points.size() < 3:
             return
 
-        cdef float thickness = self._thickness
-        thickness *= self.context.viewport.thickness_multiplier
-        if thickness > 0:
-            thickness *= self.context.viewport.size_multiplier
-        thickness = abs(thickness)
+        cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
         cdef int num_points = self._points.size()
         cdef int32_t i
@@ -1513,8 +1574,8 @@ cdef class DrawEllipse(drawingItem):
             0,
             indices.data(),
             <int>indices.size(),
-            self._fill,
             self._color,
+            self._fill,
             thickness
         )
 
@@ -2533,11 +2594,7 @@ cdef class DrawPolygon(drawingItem):
         if not(self._show) or self._points.size() < 2:
             return
 
-        cdef float thickness = self._thickness
-        thickness *= self.context.viewport.thickness_multiplier
-        if thickness > 0:
-            thickness *= self.context.viewport.size_multiplier
-        thickness = abs(thickness)
+        cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
         cdef float[2] p
         cdef imgui.ImVec2 ip
@@ -2610,8 +2667,8 @@ cdef class DrawPolygon(drawingItem):
             0,
             triangulation_ptr.data(), 
             <int>triangulation_ptr.size(), 
-            self._fill, 
             self._color, 
+            self._fill, 
             thickness
         )
 
@@ -3006,12 +3063,8 @@ cdef class DrawRect(drawingItem):
         if not(self._show):
             return
 
+        cdef float thickness = get_scaled_thickness(self.context, self._thickness)
         cdef float rounding = self._rounding
-        cdef float thickness = self._thickness
-        thickness *= self.context.viewport.thickness_multiplier
-        if thickness > 0:
-            thickness *= self.context.viewport.size_multiplier
-        thickness = abs(thickness)
 
         cdef float[2] pmin
         cdef float[2] pmax
@@ -3234,7 +3287,7 @@ cdef class DrawRegularPolygon(drawingItem):
             self._direction,
             self._num_points, 
             self._color, 
-            self._fill, 
+            self._fill,
             get_scaled_thickness(self.context, self._thickness)
         )
 

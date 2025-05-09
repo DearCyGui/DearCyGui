@@ -4,6 +4,7 @@ from libcpp.cmath cimport sin, cos, sqrt, atan2, pow, fmod
 
 from .core cimport Context
 from .c_types cimport DCGVector
+from .draw_helpers cimport generate_elliptical_arc_points
 from .wrapper cimport imgui
 
 
@@ -55,10 +56,10 @@ cdef bint _is_polygon_counter_clockwise(const float* points, int points_count) n
     return area > 0.0
 
 
-cdef void _draw_compute_normals(float* normals,
-                                const float* points,
-                                int points_count,
-                                bint closed) noexcept nogil:
+cdef void t_draw_compute_normals(float* normals,
+                                 const float* points,
+                                 int points_count,
+                                 bint closed) noexcept nogil:
     """
     Computes the normals at each point of an outline
     Inputs:
@@ -84,6 +85,8 @@ cdef void _draw_compute_normals(float* normals,
 
     # Calculate normals towards the outside of the polygon
     for i0 in range(points_count):
+        normals[2*i0] = 0
+        normals[2*i0+1] = 0
         i1 = (i0 + 1) % points_count
 
         # Calculate edge vector
@@ -134,31 +137,799 @@ cdef void _draw_compute_normals(float* normals,
         normals[0] = (normals[0] + last_normal[0]) * 0.5
         normals[1] = (normals[1] + last_normal[1]) * 0.5
 
+    cdef float dx_n, dy_n, d_len2
     # Inverse normals length
     for i in range(points_count):
-        dx = normals[2*i]
-        dy = normals[2*i+1]
-        d_len = dx*dx + dy*dy
-        if d_len > 1e-3:
-            normals[2*i] = dx / d_len
-            normals[2*i+1] = dy / d_len
-        elif d_len < 1e-8:
-            normals[2*i] = 0.0 # This will result in no AA fringe, but it's better than an artifact
-            normals[2*i+1] = 0.0
+        dx_n = normals[2*i]
+        dy_n = normals[2*i+1]
+        d_len2 = dx_n*dx_n + dy_n*dy_n
+        if d_len2 > 1e-3:
+            normals[2*i] = dx_n / d_len2
+            normals[2*i+1] = dy_n / d_len2
+        elif d_len2 < 1e-8:
+            # Either the points were too close and we lost accuracy,
+            # or the edge does a 180 degree turn.
+            # if we have a 180 degrees turn, the normal is parallel
+            # to the edge, and we clamp its length to 100.
+            i1 = (i0 + 1) % points_count
+            # Calculate edge vector
+            dx = points[2*i1] - points[2*i0]
+            dy = points[2*i1+1] - points[2*i0+1]
+            d_len = dx*dx + dy*dy
+            if d_len < 1e-8:
+                # Points are too close, we cannot compute a normal
+                # Setting to zero will result in no AA fringe,
+                # but it's better than an artifact
+                normals[2*i] = 0.0
+                normals[2*i+1] = 0.0
+            else:
+                d_len = 1. / sqrt(d_len)
+                normals[2*i] = -dx * 100. * d_len
+                normals[2*i+1] = -dy * 100. * d_len
         else:
             # Use trigonometry for precision in near-degenerate cases
-            edge_angle = atan2(dy, dx)
-            normals[2*i] = sin(edge_angle) * 100. # clampling 1/d_len to 1./min_valid_len2
+            edge_angle = atan2(dy_n, dx_n)
+            normals[2*i] = sin(edge_angle) * 100. # clampling 1/d_len2 to 1./min_valid_len2
             normals[2*i+1] = -cos(edge_angle) * 100.
 
 
-cdef void _draw_polygon_outline(void* drawlist_ptr,
-                                const float* points,
-                                int points_count,
-                                const float* normals,
-                                uint32_t color,
-                                float thickness,
-                                bint closed) noexcept nogil:
+cdef void t_draw_compute_normal_at(float* normal_out,
+                                  const float* points,
+                                  int points_count,
+                                  int point_idx,
+                                  bint closed) noexcept nogil:
+    """
+    Computes the normal vector at a specific point index of an outline.
+    
+    Args:
+        normal_out: Output array [dx, dy] where the normal will be written
+        points: Array of points [x0, y0, ..., xn-1, yn-1]
+        points_count: Number of points n
+        point_idx: Index of the point to compute the normal for (0 to points_count-1)
+        closed: Whether the last point connects to the first point
+    
+    The normal is computed as the average of the normals of the two 
+    adjacent edges, scaled by the inverse of the squared length.
+    """
+    if points_count < 2 or point_idx < 0 or point_idx >= points_count:
+        normal_out[0] = 0.0
+        normal_out[1] = 0.0
+        return
+        
+    cdef float dx0, dy0, d_len0
+    cdef float dx1, dy1, d_len1
+    cdef float edge_angle
+    cdef float normal_x = 0.0
+    cdef float normal_y = 0.0
+    cdef int prev_idx, next_idx
+    
+    # Handle special cases for first and last points
+    if point_idx == 0:
+        prev_idx = (points_count - 1) if closed else  0
+    else:
+        prev_idx = point_idx - 1
+        
+    if point_idx == points_count - 1:
+        next_idx = 0 if closed else (points_count - 1)
+    else:
+        next_idx = point_idx + 1
+    
+    # Calculate normal for the "incoming" edge (prev -> current)
+    if prev_idx != point_idx:
+        dx0 = points[2*point_idx] - points[2*prev_idx]
+        dy0 = points[2*point_idx+1] - points[2*prev_idx+1]
+        d_len0 = dx0*dx0 + dy0*dy0
+        
+        if d_len0 > 1e-3:
+            d_len0 = 1.0 / sqrt(d_len0)
+            normal_x += dy0 * d_len0
+            normal_y += -dx0 * d_len0
+        elif d_len0 >= 1e-8:
+            edge_angle = atan2(dy0, dx0)
+            normal_x += sin(edge_angle)
+            normal_y += -cos(edge_angle)
+    
+    # Calculate normal for the "outgoing" edge (current → next)
+    if next_idx != point_idx:
+        dx1 = points[2*next_idx] - points[2*point_idx]
+        dy1 = points[2*next_idx+1] - points[2*point_idx+1]
+        d_len1 = dx1*dx1 + dy1*dy1
+        
+        if d_len1 > 1e-3:
+            d_len1 = 1.0 / sqrt(d_len1)
+            normal_x += dy1 * d_len1
+            normal_y += -dx1 * d_len1
+        elif d_len1 >= 1e-8:
+            edge_angle = atan2(dy1, dx1)
+            normal_x += sin(edge_angle)
+            normal_y += -cos(edge_angle)
+    
+    # Average the normals
+    if (prev_idx != point_idx) and (next_idx != point_idx):
+        normal_x *= 0.5
+        normal_y *= 0.5 # TODO: when there are equal points, look further away to compute the normal
+    
+    # Scale by inverse squared length (like in the original function)
+    d_len0 = normal_x*normal_x + normal_y*normal_y
+    
+    if d_len0 > 1e-3:
+        normal_out[0] = normal_x / d_len0
+        normal_out[1] = normal_y / d_len0
+    elif d_len0 < 1e-8:
+        dx1 = points[2*next_idx] - points[2*point_idx]
+        dy1 = points[2*next_idx+1] - points[2*point_idx+1]
+        d_len1 = dx1*dx1 + dy1*dy1
+        if d_len1 > 1e-8:
+            d_len1 = 1.0 / sqrt(d_len1)
+            normal_out[0] = -dx1 * 100.0 * d_len1
+            normal_out[1] = -dy1 * 100.0 * d_len1
+        else:
+            # Degenerate case, no valid normal
+            normal_out[0] = 0.0
+            normal_out[1] = 0.0
+    else:
+        # Handle near-degenerate case with trigonometry
+        edge_angle = atan2(normal_y, normal_x)
+        normal_out[0] = sin(edge_angle) * 100.0
+        normal_out[1] = -cos(edge_angle) * 100.0
+
+"""
+    ## AA strategy for polylines
+
+    The original imgui code adapted for this function used Miter joints.
+
+    The issue is that when the angle between two edges get very sharp, the
+    joints become very large and look quite bad. However for joints with
+    a small angle, the miter joints are very small and look good.
+
+    The advantage of miter joints is that they produce fewer vertices
+    and are cheap to compute.
+
+    A second point is that since we would like to support mapping a texture
+    on the outline, we need symmetry of the triangulation of the joints.
+
+    A third point is that we would like that the rendering an end of line
+    gives the same visual result as the rendering of a 180 joint angle.
+
+    A fourth point is that we would like the rendering to give no sharp
+    changes when slowly changing the position of the points.
+
+    For the opaque part of the outline, when summing all these
+    constraints, a proposed strategy is to hold the following guarantee:
+    ** The distance to the border of the opaque outline of the vertices
+       is always less or equal to sqrt(2)/2 times the half width of the opaque edge **
+
+    This results that for an angle below or equal to 90 degrees, miter joints
+    can be used.
+
+    For angles above 90 degrees, we use a clipped miter joint, with a clipping bound
+    such that the maximum distance is kept (the clipping distance is lower than the
+    distance!)
+
+    The strategy converges when the angles gets to 180 degrees to a squared cap.
+
+    On top of that, for the AA part, a bevel joint is used to ensure a constant 1
+    pixel wide on the while edge, except for the corners, where the AA can be slightly
+    less.
+
+"""
+
+cdef void _t_draw_polygon_outline_thin(void* drawlist_ptr,
+                                       const float* points,
+                                       int points_count,
+                                       const float* normals,
+                                       uint32_t color,
+                                       float thickness,
+                                       bint closed) noexcept nogil:
+    """
+    t_draw_polygon_outline for thickness <= AA_SIZE
+    """
+    cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
+    cdef imgui.ImVec2 uv = imgui.GetFontTexUvWhitePixel()
+    cdef imgui.ImU32 color_trans = color & ~imgui.IM_COL32_A_MASK
+    cdef float AA_SIZE = draw_list._FringeScale
+
+    # Apply alpha scaling for thickness < AA_SIZE
+    cdef uint32_t alpha
+    cdef float alpha_scale
+
+    if thickness < AA_SIZE:
+        # Extract current alpha value
+        alpha = (color >> 24) & 0xFF
+            
+        # Apply power function with exponent 0.7 (smoother transition than linear)
+        # This keeps thin lines more visible while still fading appropriately
+        alpha_scale = pow(max(thickness/AA_SIZE, 0.), 0.7)
+            
+        # Modify alpha channel while preserving RGB
+        alpha = <uint32_t>(alpha * alpha_scale)
+        if alpha == 0:
+            # Nothing to draw
+            return
+        color = (color & 0x00FFFFFF) | (alpha << 24)
+    
+    # Compute normals for each edge with improved precision handling
+    cdef int i0, i1
+    # Reserve space for vertices and indices
+    cdef int vtx_count, idx_count
+    
+    vtx_count = points_count * 3  # 3 vertices per point (center + 2 AA edges)
+    idx_count = (points_count - 1) * 12  # 4 triangles (12 indices) per line segment
+    if closed and points_count > 2:
+        idx_count += 12  # Add space for the closing segment
+    
+    draw_list.PrimReserve(idx_count, vtx_count)
+    
+    cdef unsigned int vtx_base_idx = draw_list._VtxCurrentIdx
+    cdef unsigned int idx0, idx1
+    cdef float dm_x, dm_y, fringe_x, fringe_y
+   
+    # Thin anti-aliased lines implementation
+    for i0 in range(points_count):
+        dm_x = normals[2*i0]
+        dm_y = normals[2*i0+1]
+            
+        # Center vertex
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0], points[2*i0+1]),
+            uv, 
+            <imgui.ImU32>color  # Center, full color
+        )
+        
+        # Edge vertices with AA fringe
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] + dm_x * AA_SIZE,
+                         points[2*i0+1] + dm_y * AA_SIZE),
+            uv, <imgui.ImU32>color_trans  # Edge, transparent
+        )
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] - dm_x * AA_SIZE,
+                         points[2*i0+1] - dm_y * AA_SIZE),
+            uv, <imgui.ImU32>color_trans  # Edge, transparent
+        )
+        
+        # Add indices for thin line segment
+        if i0 < points_count - 1 or (closed and points_count > 2):
+            idx0 = vtx_base_idx + i0 * 3
+            idx1 = vtx_base_idx + ((i0 + 1) % points_count) * 3
+            
+            # Right side triangles
+            draw_list.PrimWriteIdx(idx0 + 0)
+            draw_list.PrimWriteIdx(idx1 + 0)
+            draw_list.PrimWriteIdx(idx0 + 1)
+            
+            draw_list.PrimWriteIdx(idx0 + 1)
+            draw_list.PrimWriteIdx(idx1 + 0)
+            draw_list.PrimWriteIdx(idx1 + 1)
+            
+            # Left side triangles
+            draw_list.PrimWriteIdx(idx0 + 2)
+            draw_list.PrimWriteIdx(idx1 + 2)
+            draw_list.PrimWriteIdx(idx0 + 0)
+            
+            draw_list.PrimWriteIdx(idx0 + 0)
+            draw_list.PrimWriteIdx(idx1 + 2)
+            draw_list.PrimWriteIdx(idx1 + 0)
+
+cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
+                                        const float* points,
+                                        int points_count,
+                                        const float* normals,
+                                        uint32_t color,
+                                        float thickness,
+                                        bint closed) noexcept nogil:
+    """
+    t_draw_polygon_outline for thickness > AA_SIZE.
+    """
+    cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
+    cdef imgui.ImVec2 uv = imgui.GetFontTexUvWhitePixel()
+    cdef imgui.ImU32 color_trans = color & ~imgui.IM_COL32_A_MASK
+    cdef float AA_SIZE = draw_list._FringeScale
+
+    # Reserve space for vertices and indices
+    cdef int max_vtx_count = points_count * 6
+    cdef int max_idx_count = points_count * 27 + 24  # Worst case for all segments
+
+    if points_count < 2:
+        return
+    
+    draw_list.PrimReserve(max_idx_count, max_vtx_count)
+    
+    cdef unsigned int vtx_base_idx = draw_list._VtxCurrentIdx
+    cdef float half_inner_thickness = (thickness - AA_SIZE) * 0.5
+
+    cdef int i0, i1
+    cdef float dm_x, dm_y
+    cdef float dx, dy, dn_x, dn_y
+    cdef bint normal_direction_inverted
+    
+    cdef float miter_distance, clipped_miter_distance, perpendicular_distance
+    cdef float sin_theta_half, cos_theta_half
+    cdef float inner_distance
+
+    cdef int vtx_count = 0
+    cdef int idx_count = 0
+    cdef int idx_exterior_aa, idx_interior_aa
+    cdef int idx_exterior, idx_interior
+
+    # key vertices for the next vertex to connect to
+    cdef int next_idx_exterior_aa, next_idx_interior_aa
+    cdef int next_idx_exterior, next_idx_interior
+
+    # key vertices of the previous vertex to connect to
+    cdef int prev_idx_exterior_aa = -1
+    cdef int prev_idx_exterior = -1
+    cdef int prev_idx_interior = -1
+    cdef int prev_idx_interior_aa = -1
+
+    # key vertices for the first vertex when not closed
+    cdef int zero_idx_exterior_aa = -1
+    cdef int zero_idx_exterior = -1
+    cdef int zero_idx_interior = -1
+    cdef int zero_idx_interior_aa = -1
+
+    # exterior: where the normal points to
+    # interior: the other direction
+    # inner: the thick part of the outline
+    # outer: the AA part of the outline
+
+    # CAP
+    if not closed:
+        # We use a rectangular cap for open lines
+        # The cap is such that it gives the same visual
+        # result as a 180 degree joint angle.
+        # The cap is a rectangle of size thickness x thickness,
+        # with the center at the end of the line.
+        # The rectangle is aligned with the line.
+
+        dm_x = normals[0] # NOTE: for extremities the normals are normalized.
+        dm_y = normals[1]
+
+        # Retrieve the normalized direction
+        dn_x = -dm_y
+        dn_y = dm_x
+
+        # orient dn away from the next point
+        dx = points[2*1] - points[0]
+        dy = points[2*1+1] - points[0+1]
+        # scalar product sign check
+        if dx * dn_x + dy * dn_y > 0:
+            dn_x = -dn_x
+            dn_y = -dn_y
+
+        # Inner vertices (closer to center line)
+        i0 = 0
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] - dm_x * half_inner_thickness + dn_x * half_inner_thickness, 
+                         points[2*i0+1] - dm_y * half_inner_thickness + dn_y * half_inner_thickness),
+            uv, <imgui.ImU32>color  # Inner edge, full color
+        )
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] + dm_x * half_inner_thickness + dn_x * half_inner_thickness, 
+                         points[2*i0+1] + dm_y * half_inner_thickness + dn_y * half_inner_thickness),
+            uv, <imgui.ImU32>color  # Inner edge, full color
+        )
+
+        # Outer vertices (with AA fringe)
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] - dm_x * (half_inner_thickness + AA_SIZE) + dn_x * (half_inner_thickness + AA_SIZE),
+                         points[2*i0+1] - dm_y * (half_inner_thickness + AA_SIZE) + dn_y * (half_inner_thickness + AA_SIZE)),
+            uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+        )
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] + dm_x * (half_inner_thickness + AA_SIZE) + dn_x * (half_inner_thickness + AA_SIZE),
+                         points[2*i0+1] + dm_y * (half_inner_thickness + AA_SIZE) + dn_y * (half_inner_thickness + AA_SIZE)),
+            uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+        )
+
+        idx_exterior_aa = 3
+        idx_exterior = 1
+        idx_interior = 0
+        idx_interior_aa = 2
+
+        # two triangles at the end of the cap
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior)
+
+        vtx_count += 4
+        idx_count += 6
+
+        prev_idx_exterior_aa = idx_exterior_aa
+        prev_idx_exterior = idx_exterior
+        prev_idx_interior = idx_interior
+        prev_idx_interior_aa = idx_interior_aa
+
+
+    for i0 in range(0 if closed else 1, points_count if closed else (points_count-1)):
+        dm_x = normals[2*i0]
+        dm_y = normals[2*i0+1]
+
+        if dm_x * dm_x + dm_y * dm_y <= 2.01: # sqrt(2) distance with rounding margin
+            # Use miter joints for angles <= 90 degrees
+
+            # Calculate vertex positions for thick line with AA fringe
+            # Inner vertices (closer to center line)
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] - dm_x * half_inner_thickness, 
+                             points[2*i0+1] - dm_y * half_inner_thickness),
+                uv, <imgui.ImU32>color  # Inner edge, full color
+            )
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] + dm_x * half_inner_thickness, 
+                             points[2*i0+1] + dm_y * half_inner_thickness),
+                uv, <imgui.ImU32>color  # Inner edge, full color
+            )
+            
+            # Outer vertices (with AA fringe)
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] - dm_x * (half_inner_thickness + AA_SIZE),
+                             points[2*i0+1] - dm_y * (half_inner_thickness + AA_SIZE)),
+                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            )
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] + dm_x * (half_inner_thickness + AA_SIZE),
+                             points[2*i0+1] + dm_y * (half_inner_thickness + AA_SIZE)),
+                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            )
+
+            idx_exterior_aa = vtx_count + 3
+            idx_exterior = vtx_count + 1
+            idx_interior = vtx_count
+            idx_interior_aa = vtx_count + 2
+            next_idx_exterior_aa = idx_exterior_aa
+            next_idx_exterior = idx_exterior
+            next_idx_interior = idx_interior
+            next_idx_interior_aa = idx_interior_aa
+
+            vtx_count += 4
+        else:
+            miter_distance = sqrt(dm_x*dm_x + dm_y*dm_y)
+            # normalize normal - note miter_distance passed the previous threshold
+            # and is thus non-negligleable
+            dm_x *= 1./miter_distance
+            dm_y *= 1./miter_distance
+
+            # normal vector to the normal
+            dn_x = -dm_y
+            dn_y = dm_x
+
+            # Clipped miter joints for angles > 90 degrees
+            i1 = i0 + 1
+            if i1 >= points_count:
+                i1 = 0
+
+            # orient dn towards the next point
+            dx = points[2*i1] - points[2*i0]
+            dy = points[2*i1+1] - points[2*i0+1]
+            if abs(dx * dn_x + dy * dn_y) < 1e-8:
+                # The next point is too close, we could orient dn
+                # incorrectly. Thus used the previous point.
+                if i0 == 0:
+                    # We are at the first point, use the last point
+                    i1 = points_count - 1
+                else:
+                    i1 = i0 - 1
+                dx = points[2*i0] - points[2*i1]
+                dy = points[2*i0+1] - points[2*i1+1]
+            # scalar product sign check
+            if dx * dn_x + dy * dn_y < 0:
+                dn_x = -dn_x
+                dn_y = -dn_y
+
+            # orient dm towards the angular part of the intersection
+            # scalar product sign check
+            if dx * dm_x + dy * dm_y > 0:
+                dm_x = -dm_x
+                dm_y = -dm_y
+                normal_direction_inverted = True
+            else:
+                normal_direction_inverted = False
+
+            # Angular part
+
+            # We must find perpendicular distance and clipped miter distance
+            # given the equations:
+            # max_distance**2 = perpendicular_distance**2 + clipped_miter_distance**2
+            # tan(theta/2) = perpendicular_distance / (miter_distance - clipped_miter_distance)
+            # sin(theta/2) = (thickness / 2) / miter_distance
+            # And using that max_distance = sqrt(2) * (thickness / 2)
+            # We find that, with T2 = (thickness / 2):
+            # clipped_miter_distance = T2 * (sqrt(1-(T2/miter_distance)**2) + T2/miter_distance)))
+            # perpendicular_distance = T2 * (sqrt(1-(T2/miter_distance)**2) - T2/miter_distance)))
+
+            sin_theta_half = 1. / miter_distance # miter_distance is already normalized by T2, and >= sqrt(2)
+            if miter_distance > 99.9: # 180 degrees angle
+                sin_theta_half = 0.
+            cos_theta_half = sqrt(1. - sin_theta_half * sin_theta_half)
+            clipped_miter_distance = half_inner_thickness * (cos_theta_half + sin_theta_half)
+            perpendicular_distance = half_inner_thickness * (cos_theta_half - sin_theta_half)
+
+            # Inner vertices (closer to center line)
+
+            # Interior part of the intersection
+            # Use a single vertex for the inner part of the intersection
+            inner_distance = (<float>(1.414213562373095)) * half_inner_thickness # sqrt(2) * half_inner_thickness
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] - dm_x * inner_distance, 
+                             points[2*i0+1] - dm_y * inner_distance),
+                uv, <imgui.ImU32>color  # Inner edge, full color
+            )
+
+            # Exterior part of the intersection
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] + dm_x * clipped_miter_distance - dn_x * perpendicular_distance, 
+                             points[2*i0+1] + dm_y * clipped_miter_distance - dn_y * perpendicular_distance),
+                uv, <imgui.ImU32>color  # Inner edge, full color
+            )
+
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] + dm_x * clipped_miter_distance + dn_x * perpendicular_distance, 
+                             points[2*i0+1] + dm_y * clipped_miter_distance + dn_y * perpendicular_distance),
+                uv, <imgui.ImU32>color  # Inner edge, full color
+            )
+
+            # Outer vertices (with AA fringe):
+            # Interior part of the intersection
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] - dm_x * inner_distance - dm_x * AA_SIZE, 
+                             points[2*i0+1] - dm_y * inner_distance - dm_y * AA_SIZE),
+                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            )
+
+            # Angular part: the points are aligned.
+            # ((half_inner_thickness+1.)/half_inner_thickness) times previous ones
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] + \
+                             (half_inner_thickness+AA_SIZE) * (dm_x * (cos_theta_half + sin_theta_half) - dn_x * (cos_theta_half - sin_theta_half)),
+                             points[2*i0+1] + \
+                             (half_inner_thickness+AA_SIZE) * (dm_y * (cos_theta_half + sin_theta_half) - dn_y * (cos_theta_half - sin_theta_half))),
+                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            )
+
+            draw_list.PrimWriteVtx(
+                imgui.ImVec2(points[2*i0] + \
+                             (half_inner_thickness+AA_SIZE) * (dm_x * (cos_theta_half + sin_theta_half) + dn_x * (cos_theta_half - sin_theta_half)), 
+                             points[2*i0+1] + \
+                             (half_inner_thickness+AA_SIZE) * (dm_y * (cos_theta_half + sin_theta_half) + dn_y * (cos_theta_half - sin_theta_half))),
+                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            )
+
+            # Add the joint triangles
+            # Interior triangle
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count)
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count + 1)
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count + 2)
+
+            # Exterior triangles
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count + 1)
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count + 4)
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count + 5)
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count + 1)
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count + 5)
+            draw_list.PrimWriteIdx(vtx_base_idx + vtx_count + 2)
+
+            if normal_direction_inverted:
+                # We inverted the direction of the normal,
+                # which we need to take into account
+                # for the "exterior" and "interior" vertices.
+                # connection with the previous segment
+                idx_exterior_aa = vtx_count + 3
+                idx_exterior = vtx_count
+                idx_interior = vtx_count + 1
+                idx_interior_aa = vtx_count + 4
+                # connection with the next segment
+                next_idx_exterior_aa = vtx_count + 3
+                next_idx_exterior = vtx_count
+                next_idx_interior = vtx_count + 2
+                next_idx_interior_aa = vtx_count + 5
+            else:
+                # connection with the previous segment
+                idx_exterior_aa = vtx_count + 4
+                idx_exterior = vtx_count + 1
+                idx_interior = vtx_count
+                idx_interior_aa = vtx_count + 3
+                # connection with the next segment
+                next_idx_exterior_aa = vtx_count + 5
+                next_idx_exterior = vtx_count + 2
+                next_idx_interior = vtx_count
+                next_idx_interior_aa = vtx_count + 3
+
+            # Update vertex count and index count
+            vtx_count += 6
+            idx_count += 9
+
+
+        # Connect with the previous index
+        if prev_idx_exterior_aa >= 0:
+            # Inner rectangle
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_interior)
+
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_interior)
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+
+            # Upper AA fringe
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior_aa)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior_aa)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+            
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior_aa)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+
+            # Lower AA fringe
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_interior)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_interior_aa)
+
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+            draw_list.PrimWriteIdx(vtx_base_idx + idx_interior_aa)
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior_aa)
+
+            # Update index count
+            idx_count += 18
+        else:
+            # Closed polygon. Remember what to connect to
+            zero_idx_exterior_aa = idx_exterior_aa
+            zero_idx_exterior = idx_exterior
+            zero_idx_interior = idx_interior
+            zero_idx_interior_aa = idx_interior_aa
+
+        # Prepare next segment
+        prev_idx_exterior_aa = next_idx_exterior_aa
+        prev_idx_exterior = next_idx_exterior
+        prev_idx_interior = next_idx_interior
+        prev_idx_interior_aa = next_idx_interior_aa
+
+    # CAP
+    if not closed:
+        # We use a rectangular cap for open lines
+        # The cap is such that it gives the same visual
+        # result as a 180 degree joint angle.
+        # The cap is a rectangle of size thickness x thickness,
+        # with the center at the end of the line.
+        # The rectangle is aligned with the line.
+
+        dm_x = normals[(points_count-1)*2] # NOTE: for extremities the normals are normalized.
+        dm_y = normals[(points_count-1)*2+1]
+
+        # Retrieve the normalized direction
+        dn_x = -dm_y
+        dn_y = dm_x
+
+        # orient dn away from the previous point
+        dx = points[2*(points_count-1)] - points[2*(points_count-2)]
+        dy = points[2*(points_count-1)+1] - points[2*(points_count-2)+1]
+        # scalar product sign check
+        if dx * dn_x + dy * dn_y < 0:
+            dn_x = -dn_x
+            dn_y = -dn_y
+
+        # Inner vertices (closer to center line)
+        i0 = points_count-1
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] - dm_x * half_inner_thickness + dn_x * half_inner_thickness, 
+                         points[2*i0+1] - dm_y * half_inner_thickness + dn_y * half_inner_thickness),
+            uv, <imgui.ImU32>color  # Inner edge, full color
+        )
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] + dm_x * half_inner_thickness + dn_x * half_inner_thickness, 
+                         points[2*i0+1] + dm_y * half_inner_thickness + dn_y * half_inner_thickness),
+            uv, <imgui.ImU32>color  # Inner edge, full color
+        )
+
+        # Outer vertices (with AA fringe)
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] - dm_x * (half_inner_thickness + AA_SIZE) + dn_x * (half_inner_thickness + AA_SIZE),
+                         points[2*i0+1] - dm_y * (half_inner_thickness + AA_SIZE) + dn_y * (half_inner_thickness + AA_SIZE)),
+            uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+        )
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0] + dm_x * (half_inner_thickness + AA_SIZE) + dn_x * (half_inner_thickness + AA_SIZE),
+                         points[2*i0+1] + dm_y * (half_inner_thickness + AA_SIZE) + dn_y * (half_inner_thickness + AA_SIZE)),
+            uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+        )
+
+        idx_exterior_aa = vtx_count + 3
+        idx_exterior = vtx_count + 1
+        idx_interior = vtx_count
+        idx_interior_aa = vtx_count + 2
+
+        # Connect with the previous index
+        assert prev_idx_exterior_aa >= 0
+        # Inner rectangle
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior)
+
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior)
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+
+        # Upper AA fringe
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+        
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+
+        # Lower AA fringe
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior_aa)
+
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior_aa)
+
+        # Add the cap
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior_aa)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_exterior)
+        draw_list.PrimWriteIdx(vtx_base_idx + idx_interior)
+
+        # Update vertex and index count
+        vtx_count += 4
+        idx_count += 24
+
+    else:
+        # Closed polygon. Connect the last segment to the first
+        if points_count > 2:
+            # Inner rectangle
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_exterior)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_interior)
+
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_interior)
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+
+            # Upper AA fringe
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior_aa)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_exterior_aa)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_exterior)
+
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior_aa)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_exterior)
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_exterior)
+
+            # Lower AA fringe
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_interior)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_interior_aa)
+
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior)
+            draw_list.PrimWriteIdx(vtx_base_idx + zero_idx_interior_aa)
+            draw_list.PrimWriteIdx(vtx_base_idx + prev_idx_interior_aa)
+            # Update index count
+            idx_count += 18
+
+    # Finalize the draw list
+    assert vtx_count <= max_vtx_count
+    assert idx_count <= max_idx_count
+
+    draw_list.PrimUnreserve(max_idx_count - idx_count, max_vtx_count - vtx_count)
+
+
+cdef void t_draw_polygon_outline(void* drawlist_ptr,
+                                 const float* points,
+                                 int points_count,
+                                 const float* normals,
+                                 uint32_t color,
+                                 float thickness,
+                                 bint closed) noexcept nogil:
     """
     Draws an antialiased outline centered on the edges defined
     by the set of points.
@@ -174,181 +945,29 @@ cdef void _draw_polygon_outline(void* drawlist_ptr,
             connected to the first point
     """
     cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
-    cdef imgui.ImVec2 uv = imgui.GetFontTexUvWhitePixel()
-    cdef imgui.ImU32 color_trans = color & ~imgui.IM_COL32_A_MASK
-    cdef float AA_SIZE = draw_list._FringeScale
-    
 
-    cdef bint thick_line = thickness > 1.0
-
-    # Apply alpha scaling for thickness < 1.0
-    cdef uint32_t alpha
-    cdef float alpha_scale
-    if thickness < 1.0:
-        # Extract current alpha value
-        alpha = (color >> 24) & 0xFF
-        
-        # Apply power function with exponent 0.7 (smoother transition than linear)
-        # This keeps thin lines more visible while still fading appropriately
-        alpha_scale = pow(max(thickness, 0.), 0.7)
-        
-        # Modify alpha channel while preserving RGB
-        alpha = <uint32_t>(alpha * alpha_scale)
-        if alpha == 0:
-            # Nothing to draw
-            return
-        color = (color & 0x00FFFFFF) | (alpha << 24)
-    
-    # Compute normals for each edge with improved precision handling
-    cdef int i0, i1
-    # Reserve space for vertices and indices
-    cdef int vtx_count, idx_count
-    
-    if thick_line:
-        vtx_count = points_count * 4  # 4 vertices per point for thick AA lines 
-        idx_count = (points_count - 1) * 18  # 6 triangles (18 indices) per line segment
-        if closed and points_count > 2:
-            idx_count += 18  # Add space for the closing segment
+    if thickness <= draw_list._FringeScale:
+        _t_draw_polygon_outline_thin(
+            drawlist_ptr, points, points_count,
+            normals, color, thickness, closed
+        )
     else:
-        vtx_count = points_count * 3  # 3 vertices per point (center + 2 AA edges)
-        idx_count = (points_count - 1) * 12  # 4 triangles (12 indices) per line segment
-        if closed and points_count > 2:
-            idx_count += 12  # Add space for the closing segment
-    
-    draw_list.PrimReserve(idx_count, vtx_count)
-    
-    cdef unsigned int vtx_base_idx = draw_list._VtxCurrentIdx
-    cdef unsigned int idx0, idx1
-    cdef float half_inner_thickness
-    cdef float dm_x, dm_y, fringe_x, fringe_y
-    
-    if thick_line:
-        # Thick anti-aliased lines implementation
-        half_inner_thickness = (thickness - AA_SIZE) * 0.5
-        
-        for i0 in range(points_count):
-            dm_x = normals[2*i0]
-            dm_y = normals[2*i0+1]
-            
-            # Calculate vertex positions for thick line with AA fringe
-            # Inner vertices (closer to center line)
-            draw_list.PrimWriteVtx(
-                imgui.ImVec2(points[2*i0] + dm_x * half_inner_thickness, 
-                             points[2*i0+1] + dm_y * half_inner_thickness),
-                uv, <imgui.ImU32>color  # Inner edge, full color
-            )
-            draw_list.PrimWriteVtx(
-                imgui.ImVec2(points[2*i0] - dm_x * half_inner_thickness, 
-                             points[2*i0+1] - dm_y * half_inner_thickness),
-                uv, <imgui.ImU32>color  # Inner edge, full color
-            )
-            
-            # Outer vertices (with AA fringe)
-            draw_list.PrimWriteVtx(
-                imgui.ImVec2(points[2*i0] + dm_x * (half_inner_thickness + AA_SIZE),
-                             points[2*i0+1] + dm_y * (half_inner_thickness + AA_SIZE)),
-                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
-            )
-            draw_list.PrimWriteVtx(
-                imgui.ImVec2(points[2*i0] - dm_x * (half_inner_thickness + AA_SIZE),
-                             points[2*i0+1] - dm_y * (half_inner_thickness + AA_SIZE)),
-                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
-            )
-
-        for i0 in range(points_count):
-            i1 = i0 + 1
-            if i1 == points_count:  # Wrap to start for closed line
-                i1 = 0
-
-            # Add indices for thick line segment (only between valid points)
-            if i0 < points_count - 1 or (closed and points_count > 2):
-                idx0 = vtx_base_idx + i0 * 4
-                idx1 = vtx_base_idx + i1 * 4
-                
-                # Inner rectangle
-                draw_list.PrimWriteIdx(idx0 + 1)
-                draw_list.PrimWriteIdx(idx1 + 1)
-                draw_list.PrimWriteIdx(idx1 + 0)
-                
-                draw_list.PrimWriteIdx(idx0 + 1)
-                draw_list.PrimWriteIdx(idx1 + 0)
-                draw_list.PrimWriteIdx(idx0 + 0)
-                
-                # Upper AA fringe
-                draw_list.PrimWriteIdx(idx0 + 0)
-                draw_list.PrimWriteIdx(idx1 + 0)
-                draw_list.PrimWriteIdx(idx1 + 2)
-                
-                draw_list.PrimWriteIdx(idx0 + 0)
-                draw_list.PrimWriteIdx(idx1 + 2)
-                draw_list.PrimWriteIdx(idx0 + 2)
-                
-                # Lower AA fringe
-                draw_list.PrimWriteIdx(idx0 + 1)
-                draw_list.PrimWriteIdx(idx1 + 3)
-                draw_list.PrimWriteIdx(idx1 + 1)
-                
-                draw_list.PrimWriteIdx(idx0 + 1)
-                draw_list.PrimWriteIdx(idx0 + 3)
-                draw_list.PrimWriteIdx(idx1 + 3)
-    else:
-        # Thin anti-aliased lines implementation
-        for i0 in range(points_count):
-            dm_x = normals[2*i0]
-            dm_y = normals[2*i0+1]
-                
-            # Center vertex
-            draw_list.PrimWriteVtx(
-                imgui.ImVec2(points[2*i0], points[2*i0+1]),
-                uv, 
-                <imgui.ImU32>color  # Center, full color
-            )
-            
-            # Edge vertices with AA fringe
-            draw_list.PrimWriteVtx(
-                imgui.ImVec2(points[2*i0] + dm_x * AA_SIZE,
-                            points[2*i0+1] + dm_y * AA_SIZE),
-                uv, <imgui.ImU32>color_trans  # Edge, transparent
-            )
-            draw_list.PrimWriteVtx(
-                imgui.ImVec2(points[2*i0] - dm_x * AA_SIZE,
-                            points[2*i0+1] - dm_y * AA_SIZE),
-                uv, <imgui.ImU32>color_trans  # Edge, transparent
-            )
-            
-            # Add indices for thin line segment
-            if i0 < points_count - 1 or (closed and points_count > 2):
-                idx0 = vtx_base_idx + i0 * 3
-                idx1 = vtx_base_idx + ((i0 + 1) % points_count) * 3
-                
-                # Right side triangles
-                draw_list.PrimWriteIdx(idx0 + 0)
-                draw_list.PrimWriteIdx(idx1 + 0)
-                draw_list.PrimWriteIdx(idx0 + 1)
-                
-                draw_list.PrimWriteIdx(idx0 + 1)
-                draw_list.PrimWriteIdx(idx1 + 0)
-                draw_list.PrimWriteIdx(idx1 + 1)
-                
-                # Left side triangles
-                draw_list.PrimWriteIdx(idx0 + 2)
-                draw_list.PrimWriteIdx(idx1 + 2)
-                draw_list.PrimWriteIdx(idx0 + 0)
-                
-                draw_list.PrimWriteIdx(idx0 + 0)
-                draw_list.PrimWriteIdx(idx1 + 2)
-                draw_list.PrimWriteIdx(idx1 + 0)
+        _t_draw_polygon_outline_thick(
+            drawlist_ptr, points, points_count,
+            normals, color, thickness, closed
+        )
 
 
-cdef void _draw_polygon_filling(void* drawlist_ptr,
-                                const float* points,
-                                int points_count,
-                                const float* normals,
-                                const float* inner_points,
-                                int inner_points_count,
-                                const uint32_t* indices,
-                                int indices_count,
-                                uint32_t fill_color) noexcept nogil:
+
+cdef void t_draw_polygon_filling(void* drawlist_ptr,
+                                 const float* points,
+                                 int points_count,
+                                 const float* normals,
+                                 const float* inner_points,
+                                 int inner_points_count,
+                                 const uint32_t* indices,
+                                 int indices_count,
+                                 uint32_t fill_color) noexcept nogil:
     """
     Draws a filled polygon using the provided points, indices and normals.
     
@@ -403,6 +1022,7 @@ cdef void _draw_polygon_filling(void* drawlist_ptr,
 
     # Generate AA fringe for the outline
     vtx_outer_idx = vtx_inner_idx + 1
+    cdef float length
         
     # Add vertices and fringe triangles
     for i0 in range(points_count):
@@ -414,7 +1034,36 @@ cdef void _draw_polygon_filling(void* drawlist_ptr,
         if flip_normals:
             dm_x = -dm_x
             dm_y = -dm_y
-        
+
+        """
+        AA fringe: ideally it would be 1 pixel wide, but this
+        would mean that pointy corners would get a large blurred band.
+        We cannot easily split the polygon point into several
+        points (round corner, etc), because it affects the triangulation.
+
+        Instead the compromise here is to force the blurred band
+        to be maximum 1 pixel-wide everywhere, even if it means some
+        borders have less than 1 pixel-wide AA (and possibly different
+        AA from a point to another).
+
+        This compromise also ensures that any joints handling is ok
+        for the outline rendering, and that we don't get a different
+        visual when the outline moves from alpha=254 (AA filling) to
+        alpha=255 (no AA filling).
+
+        An alternative would be to split the exterior point only,
+        for instance with a bevel, or with a round corner.
+        """
+        length = sqrt(dm_x*dm_x + dm_y*dm_y)
+        if length > 1e-6:
+            # Normalize the normal vector
+            dm_x /= length
+            dm_y /= length
+        else:
+            # Degenerate case, no AA fringe
+            dm_x = 0.0
+            dm_y = 0.0
+
         # Scale for AA fringe
         fringe_x = dm_x * AA_SIZE * 0.5
         fringe_y = dm_y * AA_SIZE * 0.5
@@ -450,6 +1099,124 @@ cdef void _draw_polygon_filling(void* drawlist_ptr,
             <imgui.ImU32>fill_color
         )
 
+cdef void t_draw_polygon_filling_no_aa(void* drawlist_ptr,
+                                      const float* points,
+                                      int points_count,
+                                      const float* inner_points,
+                                      int inner_points_count,
+                                      const uint32_t* indices,
+                                      int indices_count,
+                                      uint32_t fill_color) noexcept nogil:
+    """
+    Draws a filled polygon without anti-aliasing for improved performance.
+    
+    Args:
+        drawlist_ptr: ImGui draw list to render to
+        points: array of points [x0, y0, ..., xn-1, yn-1] defining the polygon in order
+        points_count: number of points n
+        inner_points: optional array of points inside the polygon for triangulation
+        inner_points_count: number of inner points
+        indices: Triangulation indices for the polygon (groups of 3 indices per triangle)
+        indices_count: Number of indices (should be a multiple of 3)
+        fill_color: Color to fill the polygon with (ImU32)
+    """
+    cdef bint has_fill = (fill_color & imgui.IM_COL32_A_MASK) != 0
+    
+    # Exit early if nothing to draw or not enough points
+    if not(has_fill) or (points_count + inner_points_count) < 3 or indices_count < 3 or indices_count % 3 != 0:
+        return
+
+    cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
+    cdef imgui.ImVec2 uv = imgui.GetFontTexUvWhitePixel()
+    cdef int i0, i
+    
+    # FILL RENDERING - SIMPLIFIED WITHOUT AA
+    cdef int vtx_count_fill = points_count + inner_points_count  # One vertex per point
+    cdef int idx_count_fill = indices_count  # Only triangulation indices
+    cdef unsigned int vtx_base_idx
+    
+    # Reserve space for vertices and indices
+    draw_list.PrimReserve(idx_count_fill, vtx_count_fill)
+    vtx_base_idx = draw_list._VtxCurrentIdx
+    
+    # Add perimeter points
+    for i0 in range(points_count):
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(points[2*i0], points[2*i0+1]),
+            uv, 
+            <imgui.ImU32>fill_color
+        )
+    
+    # Add inner points if provided
+    for i0 in range(inner_points_count):
+        draw_list.PrimWriteVtx(
+            imgui.ImVec2(inner_points[2*i0], inner_points[2*i0+1]),
+            uv, 
+            <imgui.ImU32>fill_color
+        )
+    
+    # Add triangulation indices - directly reference the vertices
+    for i in range(indices_count):
+        if indices[i] < <uint32_t>points_count:
+            draw_list.PrimWriteIdx(vtx_base_idx + indices[i])
+        else:
+            # Inner points are stored after perimeter points
+            draw_list.PrimWriteIdx(vtx_base_idx + (indices[i] - points_count) + points_count)
+
+cdef void t_draw_polygon_filling_adaptive(void* drawlist_ptr,
+                                          const float* points,
+                                          int points_count,
+                                          const float* normals,
+                                          const float* inner_points,
+                                          int inner_points_count,
+                                          const uint32_t* indices,
+                                          int indices_count,
+                                          uint32_t outline_color,
+                                          uint32_t fill_color,
+                                          float thickness) noexcept nogil:
+    """
+    Draws a filled polygon using the provided points, indices and normals.
+    Adaptively switches to AA or no AA depending on the outline properties
+    
+    Args:
+        drawlist_ptr: ImGui draw list to render to
+        points: array of points [x0, y0, ..., xn-1, yn-1] defining the polygon in order.
+        points_count: number of points n
+        normals: array of normals [dx0, dy0, ..., dxn-1, dyn-1] for each point
+        inner_points: optional array of points [x0, y0, ..., xm-1, ym-1]
+            defining points inside the polygon that are referenced for the triangulation,
+            but are not on the outline. for instance an index of n+1 will refer to the
+            second point in the inner_points array.
+        inner_points_count: number of inner points m
+        indices: Triangulation indices for the polygon (groups of 3 indices per triangle)
+        indices_count: Number of indices (should be a multiple of 3)
+        outline_color: Color for the polygon outline (ImU32)
+        fill_color: Color to fill the polygon with (ImU32)
+        thickness: Thickness of the outline
+    """
+    # If the outline is opaque we don't need AA borders for the filling
+    if thickness >= 1. and (outline_color & imgui.IM_COL32_A_MASK) == imgui.IM_COL32_A_MASK:
+        # Draw the filling without AA
+        t_draw_polygon_filling_no_aa(drawlist_ptr,
+                                     points,
+                                     points_count,
+                                     inner_points,
+                                     inner_points_count,
+                                     indices,
+                                     indices_count,
+                                     fill_color)
+    else:
+        # Draw the filling with AA
+        t_draw_polygon_filling(drawlist_ptr,
+                               points,
+                               points_count,
+                               normals,
+                               inner_points,
+                               inner_points_count,
+                               indices,
+                               indices_count,
+                               fill_color)
+
 cdef void t_draw_polygon(Context context,
                          void* drawlist_ptr,
                          const float* points,
@@ -458,8 +1225,8 @@ cdef void t_draw_polygon(Context context,
                          int inner_points_count,
                          const uint32_t* indices,
                          int indices_count, 
-                         uint32_t fill_color,
                          uint32_t outline_color,
+                         uint32_t fill_color,
                          float thickness) noexcept nogil:
     """
     Draw a polygon with both fill and outline in a single call.
@@ -494,28 +1261,31 @@ cdef void t_draw_polygon(Context context,
         context.viewport.temp_normals.resize(points_count * 2)
 
     # Compute normals for the polygon
-    _draw_compute_normals(context.viewport.temp_normals.data(),
-                          points, points_count, True)
+    t_draw_compute_normals(context.viewport.temp_normals.data(),
+                           points, points_count, True)
 
     # Render the filling
-    _draw_polygon_filling(drawlist_ptr,
-                          points,
-                          points_count,
-                          context.viewport.temp_normals.data(),
-                          inner_points,
-                          inner_points_count,
-                          indices,
-                          indices_count,
-                          fill_color)
+
+    t_draw_polygon_filling_adaptive(drawlist_ptr,
+                                    points,
+                                    points_count,
+                                    context.viewport.temp_normals.data(),
+                                    inner_points,
+                                    inner_points_count,
+                                    indices,
+                                    indices_count,
+                                    outline_color,
+                                    fill_color,
+                                    thickness)
 
     # Render the outline
-    _draw_polygon_outline(drawlist_ptr,
-                          points,
-                          points_count,
-                          context.viewport.temp_normals.data(),
-                          outline_color,
-                          thickness,
-                          True)
+    t_draw_polygon_outline(drawlist_ptr,
+                           points,
+                           points_count,
+                           context.viewport.temp_normals.data(),
+                           outline_color,
+                           thickness,
+                           True)
 
 
 cdef void draw_polygon(Context context,
@@ -526,8 +1296,8 @@ cdef void draw_polygon(Context context,
                        int inner_points_count,
                        const uint32_t* indices,
                        int indices_count, 
-                       uint32_t fill_color,
                        uint32_t outline_color,
+                       uint32_t fill_color,
                        float thickness) noexcept nogil:
     cdef int i
     cdef DCGVector[float] *ipoints = &context.viewport.temp_point_coords
@@ -558,8 +1328,8 @@ cdef void draw_polygon(Context context,
         inner_points_count,
         indices,
         indices_count,
-        fill_color,
         outline_color,
+        fill_color,
         thickness
     )
 
@@ -592,16 +1362,16 @@ cdef void t_draw_polyline(Context context,
     if (2 * points_count) > <int>context.viewport.temp_normals.size():
         context.viewport.temp_normals.resize(points_count * 2)
 
-    _draw_compute_normals(context.viewport.temp_normals.data(),
-                          points, points_count, closed)
+    t_draw_compute_normals(context.viewport.temp_normals.data(),
+                           points, points_count, closed)
 
-    _draw_polygon_outline(drawlist_ptr,
-                          points,
-                          points_count,
-                          context.viewport.temp_normals.data(),
-                          color,
-                          thickness,
-                          closed)
+    t_draw_polygon_outline(drawlist_ptr,
+                           points,
+                           points_count,
+                           context.viewport.temp_normals.data(),
+                           color,
+                           thickness,
+                           closed)
 
 cdef void draw_polyline(Context context,
                         void* drawlist,
@@ -616,7 +1386,7 @@ cdef void draw_polyline(Context context,
     if points_count < 2:
         return
 
-    if 2 * points_count < ipoints.size():
+    if 2 * points_count < <int>ipoints.size():
         ipoints.resize(2*points_count)
 
     cdef float *ipoints_p = ipoints.data()
@@ -695,8 +1465,8 @@ cdef void t_draw_triangle(Context context, void* drawlist,
                    0,
                    indices,
                    3,
-                   fill_color,
                    color,
+                   fill_color,
                    thickness)
 
 cdef void draw_triangle(Context context, void* drawlist,
@@ -799,8 +1569,8 @@ cdef void t_draw_quad(Context context, void* drawlist,
                    0,
                    indices,
                    6,
-                   fill_color,
                    color,
+                   fill_color,
                    thickness)
 
 
@@ -866,6 +1636,595 @@ cdef void draw_circle(Context context, void* drawlist,
     (context.viewport).coordinate_to_screen(center, pos)
 
     t_draw_circle(context, drawlist, center[0], center[1], radius, color, fill_color, thickness, num_segments)
+
+
+cdef void t_draw_elliptical_arc(Context context, void* drawlist,
+                                float center_x, float center_y,
+                                float radius_x, float radius_y,
+                                float start_angle, float end_angle,
+                                float rotation,  
+                                int32_t num_points,
+                                uint32_t outline_color,
+                                uint32_t fill_color,
+                                float thickness) noexcept nogil:
+    """
+    Draws a partial ellipse arc with anti-aliasing.
+
+    This version doesn't connect to the center of the ellipse.
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        start_angle: Starting angle of the arc in radians
+        end_angle: Ending angle of the arc in radians
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+    """
+    # For correct filling, angles must be increasing
+    if end_angle < start_angle:
+        swap(start_angle, end_angle)  
+
+    # Clear previous points
+    context.viewport.temp_point_coords.clear()
+    context.viewport.temp_normals.clear()
+
+    generate_elliptical_arc_points(
+        context.viewport.temp_point_coords,
+        context.viewport.temp_normals,
+        center_x,
+        center_y,
+        radius_x,
+        radius_y,
+        rotation,
+        start_angle,
+        end_angle,
+        num_points,
+        True
+    )
+    cdef int num_points_upper_arc = context.viewport.temp_point_coords.size() >> 1
+    if num_points_upper_arc < 2:
+        return
+
+    # Arc + joined filling
+    cdef int i
+    if fill_color != 0:
+        # Generate indices for the arc filling
+        context.viewport.temp_indices.clear()
+        for i in range(num_points_upper_arc - 1):
+            context.viewport.temp_indices.push_back(i)
+            context.viewport.temp_indices.push_back(i + 1)
+            context.viewport.temp_indices.push_back(num_points_upper_arc - 1)
+        context.viewport.temp_indices.push_back(num_points_upper_arc - 1)
+        context.viewport.temp_indices.push_back(0)
+        context.viewport.temp_indices.push_back(num_points_upper_arc - 2)
+
+        # Fill the arc
+        t_draw_polygon_filling_adaptive(
+            drawlist,
+            context.viewport.temp_point_coords.data(),
+            context.viewport.temp_point_coords.size() >> 1,
+            context.viewport.temp_normals.data(),
+            NULL,
+            0,
+            context.viewport.temp_indices.data(),
+            context.viewport.temp_indices.size(),
+            outline_color,
+            fill_color,
+            thickness
+        )
+
+    # Draw the arc
+    t_draw_polygon_outline(
+        drawlist,
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        context.viewport.temp_normals.data(),
+        outline_color,
+        thickness,
+        False
+    )
+
+cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
+                                      float center_x, float center_y,
+                                      float radius_x, float radius_y,
+                                      float start_angle, float end_angle,
+                                      float rotation,  
+                                      int32_t num_points,
+                                      uint32_t outline_color,
+                                      uint32_t fill_color,
+                                      float thickness) noexcept nogil:
+    """
+    Draws an elliptical arc segment connected to the center.
+
+    This version does connect to the center of the ellipse.
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        start_angle: Starting angle of the arc in radians
+        end_angle: Ending angle of the arc in radians
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+    """
+    # For correct filling, angles must be increasing
+    if end_angle < start_angle:
+        swap(start_angle, end_angle)  
+
+    # Clear previous points
+    context.viewport.temp_point_coords.clear()
+    context.viewport.temp_normals.clear()
+
+    generate_elliptical_arc_points(
+        context.viewport.temp_point_coords,
+        context.viewport.temp_normals,
+        center_x,
+        center_y,
+        radius_x,
+        radius_y,
+        rotation,
+        start_angle,
+        end_angle,
+        num_points,
+        True
+    )
+    cdef int num_points_upper_arc = context.viewport.temp_point_coords.size() >> 1
+    if num_points_upper_arc < 2:
+        return
+
+    context.viewport.temp_point_coords.push_back(center_x)
+    context.viewport.temp_point_coords.push_back(center_y)
+
+    # Center normal
+    cdef float[2] normal
+    t_draw_compute_normal_at(
+        normal,
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        num_points_upper_arc,
+        True
+    )
+
+    # push the normal
+    context.viewport.temp_normals.push_back(normal[0])
+    context.viewport.temp_normals.push_back(normal[1])
+
+    # Replaces normals for arc extremums
+    t_draw_compute_normal_at(
+        context.viewport.temp_normals.data(),
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        0,
+        True
+    )
+    t_draw_compute_normal_at(
+        context.viewport.temp_normals.data() + 
+            (num_points_upper_arc - 1) * 2,
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        num_points_upper_arc - 1,
+        True
+    )
+
+    cdef int i
+    if fill_color != 0:
+        context.viewport.temp_indices.clear()
+        # Connect each point to the center
+        for i in range(num_points_upper_arc-1):
+            context.viewport.temp_indices.push_back(i)
+            context.viewport.temp_indices.push_back(num_points_upper_arc)
+            context.viewport.temp_indices.push_back(i + 1)
+
+        # Fill the arc
+        t_draw_polygon_filling_adaptive(
+            drawlist,
+            context.viewport.temp_point_coords.data(),
+            context.viewport.temp_point_coords.size() >> 1,
+            context.viewport.temp_normals.data(),
+            NULL,
+            0,
+            context.viewport.temp_indices.data(),
+            context.viewport.temp_indices.size(),
+            outline_color,
+            fill_color,
+            thickness
+        )
+    # Draw the outline
+    t_draw_polygon_outline(
+        drawlist,
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        context.viewport.temp_normals.data(),
+        outline_color,
+        thickness,
+        True
+    )
+
+cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
+                                         float center_x, float center_y,
+                                         float radius_x, float radius_y,
+                                         float inner_radius_x, float inner_radius_y,
+                                         float start_angle, float end_angle,
+                                         float rotation,  
+                                         int32_t num_points,
+                                         uint32_t outline_color,
+                                         uint32_t fill_color,
+                                         float thickness) noexcept nogil:
+    """
+    Draws a partial ellipse arc with anti-aliasing.
+
+    This version does use an inner arc for the outline and filling
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        inner_radius_x, inner_radius_y: Inner radii of the inner ellipse
+        start_angle: Starting angle of the arc in radians
+        end_angle: Ending angle of the arc in radians
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the external arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+
+    The parameters must verify:
+        0 < inner_radius_x < radius_x
+        0 < inner_radius_y < radius_y
+    """
+    # For correct filling, angles must be increasing
+    if end_angle < start_angle:
+        swap(start_angle, end_angle)  
+
+    # Clear previous points
+    context.viewport.temp_point_coords.clear()
+    context.viewport.temp_normals.clear()
+
+    generate_elliptical_arc_points(
+        context.viewport.temp_point_coords,
+        context.viewport.temp_normals,
+        center_x,
+        center_y,
+        radius_x,
+        radius_y,
+        rotation,
+        start_angle,
+        end_angle,
+        num_points,
+        True
+    )
+    cdef int num_points_upper_arc = context.viewport.temp_point_coords.size() >> 1
+    if num_points_upper_arc < 2:
+        return
+
+    # Generate the inner arc in the reverse order
+
+    # TODO: this is probably just a scaled version of the upper one when the ratio
+    # of radiuses match
+
+    generate_elliptical_arc_points(
+        context.viewport.temp_point_coords,
+        context.viewport.temp_normals,
+        center_x,
+        center_y,
+        inner_radius_x,
+        inner_radius_y,
+        rotation,
+        end_angle,
+        start_angle,
+        num_points_upper_arc-1, # To simplify filling we request same number of points
+        False
+    )
+
+    # Fix the normals at extremums of both arcs
+    t_draw_compute_normal_at(
+        context.viewport.temp_normals.data(),
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        0,
+        True
+    )
+    t_draw_compute_normal_at(
+        context.viewport.temp_normals.data() + 
+            (num_points_upper_arc - 1) * 2,
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        num_points_upper_arc - 1,
+        True
+    )
+    t_draw_compute_normal_at(
+        context.viewport.temp_normals.data() + 
+            num_points_upper_arc * 2,
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        num_points_upper_arc,
+        True
+    )
+    cdef int num_points_tot = context.viewport.temp_point_coords.size() >> 1
+    t_draw_compute_normal_at(
+        context.viewport.temp_normals.data() + 
+            (num_points_tot - 1) * 2,
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        num_points_tot - 1,
+        True
+    )
+
+    cdef int num_points_inner_arc = num_points_tot - num_points_upper_arc
+    assert num_points_inner_arc == num_points_upper_arc
+    cdef int i, outer_current, outer_next, inner_current, inner_next
+
+    if fill_color != 0:
+        # Generate indices for the arc filling
+        context.viewport.temp_indices.clear()
+        # Calculate the number of inner arc points
+
+        # Connect outer arc points to corresponding inner arc points with triangles
+        for i in range(num_points_upper_arc - 1):
+            # Outer arc indices
+            outer_current = i
+            outer_next = i + 1
+            
+            # Corresponding inner arc indices (inner arc is reversed)
+            inner_current = num_points_inner_arc - 1 - i
+            inner_next = inner_current - 1  # Next point in inner arc
+            
+            # Triangle 1: outer_current, outer_next, inner_current
+            context.viewport.temp_indices.push_back(outer_current)
+            context.viewport.temp_indices.push_back(outer_next)
+            context.viewport.temp_indices.push_back(num_points_upper_arc + inner_current)
+            
+            # Triangle 2: outer_next, inner_next, inner_current
+            context.viewport.temp_indices.push_back(outer_next)
+            context.viewport.temp_indices.push_back(num_points_upper_arc + inner_next)
+            context.viewport.temp_indices.push_back(num_points_upper_arc + inner_current)
+
+
+        # Draw the arc filling
+        t_draw_polygon_filling_adaptive(
+            drawlist,
+            context.viewport.temp_point_coords.data(),
+            context.viewport.temp_point_coords.size() >> 1,
+            context.viewport.temp_normals.data(),
+            NULL,
+            0,
+            context.viewport.temp_indices.data(),
+            context.viewport.temp_indices.size(),
+            outline_color,
+            fill_color,
+            thickness
+        )
+    t_draw_polygon_outline(
+        drawlist,
+        context.viewport.temp_point_coords.data(),
+        context.viewport.temp_point_coords.size() >> 1,
+        context.viewport.temp_normals.data(),
+        outline_color,
+        thickness,
+        True
+    )
+
+
+cdef void t_draw_ellipse(Context context, void* drawlist,
+                         float center_x, float center_y,
+                         float radius_x, float radius_y,
+                         float rotation,  
+                         int32_t num_points,
+                         uint32_t outline_color,
+                         uint32_t fill_color,
+                         float thickness) noexcept nogil:
+    """
+    Draws a complete ellipse with anti-aliasing.
+
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the external arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+    """
+    # Clear previous points
+    context.viewport.temp_point_coords.clear()
+    context.viewport.temp_normals.clear()
+
+    generate_elliptical_arc_points(
+        context.viewport.temp_point_coords,
+        context.viewport.temp_normals,
+        center_x,
+        center_y,
+        radius_x,
+        radius_y,
+        rotation,
+        0,
+        2 * M_PI,
+        num_points,
+        True
+    )
+    cdef int num_points_upper_arc = context.viewport.temp_point_coords.size() >> 1
+    if num_points_upper_arc < 2:
+        return
+    cdef int i
+
+    # triangulation of the inside
+    if fill_color != 0:
+        # Add center point as inner point for the triangulation
+        context.viewport.temp_point_coords.push_back(center_x)
+        context.viewport.temp_point_coords.push_back(center_y)
+
+        context.viewport.temp_indices.clear()
+        for i in range(num_points_upper_arc - 1):
+            context.viewport.temp_indices.push_back(i)
+            context.viewport.temp_indices.push_back(i + 1)
+            context.viewport.temp_indices.push_back(num_points_upper_arc) # center point
+        context.viewport.temp_indices.push_back(num_points_upper_arc - 1)
+        context.viewport.temp_indices.push_back(0)
+        context.viewport.temp_indices.push_back(num_points_upper_arc) # center point
+    
+        # Fill the arc
+        t_draw_polygon_filling_adaptive(
+            drawlist,
+            context.viewport.temp_point_coords.data(),
+            num_points_upper_arc,
+            context.viewport.temp_normals.data(),
+            context.viewport.temp_point_coords.data() + 2 * num_points_upper_arc,
+            1,
+            context.viewport.temp_indices.data(),
+            context.viewport.temp_indices.size(),
+            outline_color,
+            fill_color,
+            thickness
+        )
+
+    # Draw the outline
+    t_draw_polygon_outline(
+        drawlist,
+        context.viewport.temp_point_coords.data(),
+        num_points_upper_arc,
+        context.viewport.temp_normals.data(),
+        outline_color,
+        thickness,
+        True
+    )
+
+
+cdef void t_draw_elliptical_ring(Context context, void* drawlist,
+                                 float center_x, float center_y,
+                                 float radius_x, float radius_y,
+                                 float inner_radius_x, float inner_radius_y,
+                                 float rotation,  
+                                 int32_t num_points,
+                                 uint32_t outline_color,
+                                 uint32_t fill_color,
+                                 float thickness) noexcept nogil:
+    """
+    Draws a full ellipse with a hole
+
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        inner_radius_x, inner_radius_y: Inner radii of the inner ellipse
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the external arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+
+    The parameters must verify:
+        0 < inner_radius_x < radius_x
+        0 < inner_radius_y < radius_y
+    """
+    # Clear previous points
+    context.viewport.temp_point_coords.clear()
+    context.viewport.temp_normals.clear()
+
+    generate_elliptical_arc_points(
+        context.viewport.temp_point_coords,
+        context.viewport.temp_normals,
+        center_x,
+        center_y,
+        radius_x,
+        radius_y,
+        rotation,
+        0,
+        2 * M_PI,
+        num_points,
+        True
+    )
+    cdef int num_points_upper_arc = context.viewport.temp_point_coords.size() >> 1
+    if num_points_upper_arc < 2:
+        return
+
+    cdef int i, outer_current, outer_next, inner_current, inner_next
+    cdef int num_points_inner_arc = num_points_upper_arc
+
+    # Ring ellipse
+    generate_elliptical_arc_points(
+        context.viewport.temp_point_coords,
+        context.viewport.temp_normals,
+        center_x,
+        center_y,
+        inner_radius_x,
+        inner_radius_y,
+        rotation,
+        2 * M_PI,
+        0,
+        num_points_inner_arc-1, # To simplify filling we request same number of points
+        False
+    )
+    # Generate indices for the arc filling
+    context.viewport.temp_indices.clear()
+
+    # Connect outer arc points to corresponding inner arc points with triangles
+    for i in range(num_points_upper_arc - 1):
+        # Outer arc indices
+        outer_current = i
+        outer_next = i + 1
+        
+        # Corresponding inner arc indices (inner arc is reversed)
+        inner_current = num_points_inner_arc - 1 - i
+        inner_next = inner_current - 1  # Next point in inner arc
+        
+        # Triangle 1: outer_current, outer_next, inner_current
+        context.viewport.temp_indices.push_back(outer_current)
+        context.viewport.temp_indices.push_back(outer_next)
+        context.viewport.temp_indices.push_back(num_points_inner_arc + inner_current)
+        
+        # Triangle 2: outer_next, inner_next, inner_current
+        context.viewport.temp_indices.push_back(outer_next)
+        context.viewport.temp_indices.push_back(num_points_inner_arc + inner_next)
+        context.viewport.temp_indices.push_back(num_points_inner_arc + inner_current)
+            
+    # To draw the inside, as polygon_filling requires a closed shape,
+    # we use no AA for the inside TODO: can be improved
+
+    # Inside
+    t_draw_polygon_filling_adaptive(
+        drawlist,
+        context.viewport.temp_point_coords.data(),
+        num_points_upper_arc,
+        context.viewport.temp_normals.data(),
+        context.viewport.temp_point_coords.data() + num_points_upper_arc * 2,
+        num_points_inner_arc,
+        context.viewport.temp_indices.data(),
+        context.viewport.temp_indices.size(),
+        outline_color,
+        fill_color,
+        thickness
+    )
+
+    # Draw the external outline
+    t_draw_polygon_outline(
+        drawlist,
+        context.viewport.temp_point_coords.data(),
+        num_points_upper_arc,
+        context.viewport.temp_normals.data(),
+        outline_color,
+        thickness,
+        True
+    )
+    # Draw the internal outline
+    t_draw_polygon_outline(
+        drawlist,
+        context.viewport.temp_point_coords.data() + num_points_upper_arc * 2,
+        num_points_upper_arc,
+        context.viewport.temp_normals.data() + num_points_upper_arc * 2,
+        outline_color,
+        thickness,
+        True
+    )
 
 
 cdef void t_draw_regular_polygon(Context context, void* drawlist,
@@ -936,18 +2295,18 @@ cdef void t_draw_regular_polygon(Context context, void* drawlist,
         1,                              # One inner point (center)
         indices.data(),
         indices.size(),
-        fill_color,
         color,
+        fill_color,
         thickness
     )
 
 
 cdef void draw_regular_polygon(Context context, void* drawlist,
-                             double centerx, double centery,
-                             double radius, double direction,  
-                             int32_t num_points,
-                             uint32_t color, uint32_t fill_color,
-                             float thickness) noexcept nogil:
+                               double centerx, double centery,
+                               double radius, double direction,  
+                               int32_t num_points,
+                               uint32_t color, uint32_t fill_color,
+                               float thickness) noexcept nogil:
     cdef float[2] center
     cdef double[2] pos
     pos[0] = centerx 
@@ -1008,51 +2367,51 @@ cdef void t_draw_star(Context context, void* drawlist,
                 py = centery + radius * sin(angle)
                 t_draw_line(context, drawlist, px, py, centerx, centery, color, thickness)
         return
-    
+
     # Prepare angles for star pattern
     cdef float start_angle = -direction
     cdef float start_angle_inner = -direction + M_PI / num_points
     cdef float angle_step = (M_PI * 2.0) / num_points
-    
+
     # Generate points for the star
     cdef DCGVector[float] *points = &context.viewport.temp_point_coords
     points.clear()
     points.reserve(num_points * 4 + 2)
-    
+
     # Add alternating outer and inner points
     for i in range(num_points):
         # Outer point
         angle = start_angle + (i / float(num_points)) * (M_PI * 2.0)
         points.push_back(centerx + radius * cos(angle))
         points.push_back(centery + radius * sin(angle))
-        
+
         # Inner point
         angle = start_angle_inner + (i / float(num_points)) * (M_PI * 2.0)
         points.push_back(centerx + inner_radius * cos(angle))
         points.push_back(centery + inner_radius * sin(angle))
-    
+
     # Add center point
     points.push_back(centerx)
     points.push_back(centery)
-    
+
     # Create triangulation indices
     cdef DCGVector[uint32_t] *indices = &context.viewport.temp_indices
     indices.clear()
     indices.reserve(num_points * 6)
     cdef uint32_t center_idx = num_points * 2
     cdef int32_t next_i
-    
+
     # Inner polygon triangulation
     for i in range(num_points - 1):
         indices.push_back(center_idx)      # Center point
         indices.push_back(i * 2 + 1)       # Current inner point
         indices.push_back((i + 1) * 2 + 1) # Next inner point
-    
+
     # Close inner polygon
     indices.push_back(center_idx)          # Center point
     indices.push_back((num_points - 1) * 2 + 1) # Last inner point
     indices.push_back(1)                   # First inner point
-    
+
     # Outer to inner connections
     for i in range(num_points):
         next_i = (i + 1) % num_points
@@ -1060,7 +2419,7 @@ cdef void t_draw_star(Context context, void* drawlist,
         indices.push_back(i * 2 + 1)           # Current inner point
         indices.push_back(next_i * 2)          # Next outer point
         indices.push_back(next_i * 2 + 1)      # Next inner point
-    
+
     # Draw using t_draw_polygon
     t_draw_polygon(
         context,
@@ -1071,8 +2430,8 @@ cdef void t_draw_star(Context context, void* drawlist,
         1,                         # One inner point (center)
         indices.data(),
         indices.size(),
-        fill_color,
         color,
+        fill_color,
         thickness
     )
 

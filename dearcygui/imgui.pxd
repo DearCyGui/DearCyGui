@@ -72,7 +72,8 @@ If you call draw_polygon or draw_polyline directly, you can use
 all the above vectors except temp_normals and points_coord.
 
 points_coord can be used if you call the t_draw_* functions,
-except for t_draw_regular_polygon and t_draw_star.
+except for t_draw_regular_polygon and t_draw_star,
+and the t_draw_elli* functions
 """
 
 from libc.stdint cimport uint32_t, int32_t
@@ -96,8 +97,8 @@ cdef void draw_polygon(Context context,
                        int inner_points_count,
                        const uint32_t* indices,
                        int indices_count, 
-                       uint32_t fill_color,
                        uint32_t outline_color,
+                       uint32_t fill_color,
                        float thickness) noexcept nogil
 """
     Draw a polygon with both fill and outline in a single call.
@@ -114,8 +115,8 @@ cdef void draw_polygon(Context context,
         inner_points_count: number of inner points m
         indices: Triangulation indices for the polygon (groups of 3 indices per triangle)
         indices_count: Number of indices (should be a multiple of 3)
-        fill_color: Color to fill the polygon with (ImU32)
         outline_color: Color for the polygon outline (ImU32)
+        fill_color: Color to fill the polygon with (ImU32)
         thickness: Thickness of the outline in pixels
 
     The points can be either in counter-clockwise or clockwise order.
@@ -492,8 +493,8 @@ cdef void t_draw_polygon(Context context,
                          int inner_points_count,
                          const uint32_t* indices,
                          int indices_count, 
-                         uint32_t fill_color,
                          uint32_t outline_color,
+                         uint32_t fill_color,
                          float thickness) noexcept nogil
 
 cdef void t_draw_polyline(Context context,
@@ -528,6 +529,146 @@ cdef void t_draw_circle(Context context, void* drawlist,
                       float x, float y, float radius,
                       uint32_t color, uint32_t fill_color,
                       float thickness, int32_t num_segments) noexcept nogil
+
+# Helpers that map to Polygon/Polyline, but perform intermediate computations
+cdef void t_draw_elliptical_arc(Context context, void* drawlist,
+                                float center_x, float center_y,
+                                float radius_x, float radius_y,
+                                float start_angle, float end_angle,
+                                float rotation,  
+                                int32_t num_points,
+                                uint32_t outline_color,
+                                uint32_t fill_color,
+                                float thickness) noexcept nogil
+"""
+    Draws a partial ellipse arc with anti-aliasing.
+
+    This version doesn't connect to the center of the ellipse.
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        start_angle: Starting angle of the arc in radians
+        end_angle: Ending angle of the arc in radians
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+"""
+
+cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
+                                      float center_x, float center_y,
+                                      float radius_x, float radius_y,
+                                      float start_angle, float end_angle,
+                                      float rotation,  
+                                      int32_t num_points,
+                                      uint32_t outline_color,
+                                      uint32_t fill_color,
+                                      float thickness) noexcept nogil
+"""
+    Draws an elliptical arc segment connected to the center.
+
+    This version does connect to the center of the ellipse.
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        start_angle: Starting angle of the arc in radians
+        end_angle: Ending angle of the arc in radians
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+"""
+
+cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
+                                         float center_x, float center_y,
+                                         float radius_x, float radius_y,
+                                         float inner_radius_x, float inner_radius_y,
+                                         float start_angle, float end_angle,
+                                         float rotation,  
+                                         int32_t num_points,
+                                         uint32_t outline_color,
+                                         uint32_t fill_color,
+                                         float thickness) noexcept nogil
+"""
+    Draws a partial ellipse arc with anti-aliasing.
+
+    This version does use an inner arc for the outline and filling
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        inner_radius_x, inner_radius_y: Inner radii of the inner ellipse
+        start_angle: Starting angle of the arc in radians
+        end_angle: Ending angle of the arc in radians
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the external arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+
+    The parameters must verify:
+        0 < inner_radius_x < radius_x
+        0 < inner_radius_y < radius_y
+"""
+
+cdef void t_draw_ellipse(Context context, void* drawlist,
+                         float center_x, float center_y,
+                         float radius_x, float radius_y,
+                         float rotation,  
+                         int32_t num_points,
+                         uint32_t outline_color,
+                         uint32_t fill_color,
+                         float thickness) noexcept nogil
+"""
+    Draws a complete ellipse with anti-aliasing.
+
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the external arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+"""
+
+cdef void t_draw_elliptical_ring(Context context, void* drawlist,
+                                 float center_x, float center_y,
+                                 float radius_x, float radius_y,
+                                 float inner_radius_x, float inner_radius_y,
+                                 float rotation,  
+                                 int32_t num_points,
+                                 uint32_t outline_color,
+                                 uint32_t fill_color,
+                                 float thickness) noexcept nogil
+"""
+    Draws a full ellipse with a hole
+
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: ImGui draw list to render to
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        inner_radius_x, inner_radius_y: Inner radii of the inner ellipse
+        rotation: Rotation angle of the ellipse in radians
+        num_points: Number of points to use for the external arc (0 means auto)
+        outline_color: Color for the outline (ImU32)
+        fill_color: Color for the filling (ImU32)
+        thickness: Thickness of the outline
+
+    The parameters must verify:
+        0 < inner_radius_x < radius_x
+        0 < inner_radius_y < radius_y
+"""
 
 cdef void t_draw_regular_polygon(Context context, void* drawlist,
                                  float centerx, float centery,
@@ -568,6 +709,120 @@ cdef void t_draw_text(Context, void*, float, float,
 cdef void t_draw_text_quad(Context, void*, float, float, float, float,
                            float, float, float, float,
                            const char*, uint32_t, void*, bint) noexcept nogil
+
+# Advanced polygon functions
+cdef void t_draw_compute_normals(float* normals,
+                                 const float* points,
+                                 int points_count,
+                                 bint closed) noexcept nogil
+"""
+    Computes the normals at each point of an outline
+    Inputs:
+        points: array of points [x0, y0, ..., xn-1, yn-1]
+        points_count: number of points n
+        closed: Whether the last point of the outline is
+            connected to the first point
+    Outputs:
+        normals: array of normals [dx0, dy0, ..., dxn-1, dyn-1]
+            The array must be preallocated.
+
+    The normals are the average of the normals of the two neighboring edges.
+    They are scaled to the inverse of the length of this average, this results that
+    adding a width of w to the two edges will intersect in a point located to w times
+    the normal of the point.
+"""
+
+cdef void t_draw_compute_normal_at(float* normal_out,
+                                   const float* points,
+                                   int points_count,
+                                   int point_idx,
+                                   bint closed) noexcept nogil
+"""
+    Computes the normal vector at a specific point index of an outline.
+    Useful if you have computed the normals for most points with a formula
+    and needs to fix it at specific points.
+    
+    Args:
+        normal_out: Output array [dx, dy] where the normal will be written
+        points: Array of points [x0, y0, ..., xn-1, yn-1]
+        points_count: Number of points n
+        point_idx: Index of the point to compute the normal for (0 to points_count-1)
+        closed: Whether the last point connects to the first point
+
+    The normal is computed as the average of the normals of the two 
+    adjacent edges, scaled by the inverse of the squared length.
+"""
+
+cdef void t_draw_polygon_outline(void* drawlist_ptr,
+                                 const float* points,
+                                 int points_count,
+                                 const float* normals,
+                                 uint32_t color,
+                                 float thickness,
+                                 bint closed) noexcept nogil
+"""
+    Draws an antialiased outline centered on the edges defined
+    by the set of points.
+
+    Inputs:
+        drawlist_ptr: ImGui draw list to render to
+        points: array of points [x0, y0, ..., xn-1, yn-1]
+        points_count: number of points n
+        normals: array of normals [dx0, dy0, ..., dxn-1, dyn-1] for each point
+        color: color of the outline
+        thickness: thickness of the outline
+        closed: Whether the last point of the outline is
+            connected to the first point
+"""
+
+cdef void t_draw_polygon_filling(void* drawlist_ptr,
+                                 const float* points,
+                                 int points_count,
+                                 const float* normals,
+                                 const float* inner_points,
+                                 int inner_points_count,
+                                 const uint32_t* indices,
+                                 int indices_count,
+                                 uint32_t fill_color) noexcept nogil
+"""
+    Draws a filled polygon using the provided points, indices and normals.
+    
+    Args:
+        drawlist_ptr: ImGui draw list to render to
+        points: array of points [x0, y0, ..., xn-1, yn-1] defining the polygon in order.
+        points_count: number of points n
+        normals: array of normals [dx0, dy0, ..., dxn-1, dyn-1] for each point
+        inner_points: optional array of points [x0, y0, ..., xm-1, ym-1]
+            defining points inside the polygon that are referenced for the triangulation,
+            but are not on the outline. for instance an index of n+1 will refer to the
+            second point in the inner_points array.
+        inner_points_count: number of inner points m
+        indices: Triangulation indices for the polygon (groups of 3 indices per triangle)
+        indices_count: Number of indices (should be a multiple of 3)
+        fill_color: Color to fill the polygon with (ImU32)
+"""
+
+cdef void t_draw_polygon_filling_no_aa(void* drawlist_ptr,
+                                      const float* points,
+                                      int points_count,
+                                      const float* inner_points,
+                                      int inner_points_count,
+                                      const uint32_t* indices,
+                                      int indices_count,
+                                      uint32_t fill_color) noexcept nogil
+"""
+    Draws a filled polygon without anti-aliasing for improved performance.
+    
+    Args:
+        drawlist_ptr: ImGui draw list to render to
+        points: array of points [x0, y0, ..., xn-1, yn-1] defining the polygon in order
+        points_count: number of points n
+        inner_points: optional array of points inside the polygon for triangulation
+        inner_points_count: number of inner points
+        indices: Triangulation indices for the polygon (groups of 3 indices per triangle)
+        indices_count: Number of indices (should be a multiple of 3)
+        fill_color: Color to fill the polygon with (ImU32)
+"""
 
 
 # When subclassing drawingItem and Draw* items, the drawlist

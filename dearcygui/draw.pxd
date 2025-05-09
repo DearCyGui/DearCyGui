@@ -32,6 +32,7 @@ cdef class DrawSplitBatch(drawingItem):
 cdef class DrawArc(drawingItem):
     cdef double[2] _center
     cdef double[2] _radius
+    cdef double[2] _inner_radius
     cdef float _start_angle
     cdef float _end_angle
     cdef float _rotation

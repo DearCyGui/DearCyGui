@@ -18,3 +18,6 @@
 [submodule "thirdparty/Constrainautor"]
 	path = thirdparty/Constrainautor
 	url = https://github.com/axeldavy/Constrainautor
+[submodule "thirdparty/xsimd"]
+	path = thirdparty/xsimd
+	url = https://github.com/xtensor-stack/xsimd
