@@ -1,6 +1,6 @@
 from libc.math cimport M_PI
 from libcpp.algorithm cimport swap
-from libcpp.cmath cimport sin, cos, sqrt, atan2, pow, fmod
+from libcpp.cmath cimport sin, cos, sqrt, atan2, pow, fmod, fabs, fmin, fmax
 
 from .core cimport Context
 from .c_types cimport DCGVector
@@ -339,7 +339,7 @@ cdef void _t_draw_polygon_outline_thin(void* drawlist_ptr,
             
         # Apply power function with exponent 0.7 (smoother transition than linear)
         # This keeps thin lines more visible while still fading appropriately
-        alpha_scale = pow(max(thickness/AA_SIZE, 0.), 0.7)
+        alpha_scale = pow(fmax(thickness/AA_SIZE, 0.), 0.7)
             
         # Modify alpha channel while preserving RGB
         alpha = <uint32_t>(alpha * alpha_scale)
@@ -606,7 +606,7 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
             # orient dn towards the next point
             dx = points[2*i1] - points[2*i0]
             dy = points[2*i1+1] - points[2*i0+1]
-            if abs(dx * dn_x + dy * dn_y) < 1e-8:
+            if fabs(dx * dn_x + dy * dn_y) < 1e-8:
                 # The next point is too close, we could orient dn
                 # incorrectly. Thus used the previous point.
                 if i0 == 0:
@@ -1413,10 +1413,10 @@ cdef void t_draw_line(Context context, void* drawlist,
 
     if t_item_fully_clipped(context,
                             drawlist,
-                            min(x1, x2) - thickness,
-                            max(x1, x2) + thickness,
-                            min(y1, y2) - thickness,
-                            max(y1, y2) + thickness):
+                            fmin(x1, x2) - thickness,
+                            fmax(x1, x2) + thickness,
+                            fmin(y1, y2) - thickness,
+                            fmax(y1, y2) + thickness):
         return
 
     t_draw_polyline(context,
@@ -1496,10 +1496,10 @@ cdef void t_draw_rect(Context context, void* drawlist,
                       float thickness, float rounding) noexcept nogil:
     if t_item_fully_clipped(context,
                             drawlist,
-                            min(x1, x2) - thickness,
-                            max(x1, x2) + thickness,
-                            min(y1, y2) - thickness,
-                            max(y1, y2) + thickness):
+                            fmin(x1, x2) - thickness,
+                            fmax(x1, x2) + thickness,
+                            fmin(y1, y2) - thickness,
+                            fmax(y1, y2) + thickness):
         return
 
     # Create imgui.ImVec2 points
@@ -1604,7 +1604,7 @@ cdef void t_draw_circle(Context context, void* drawlist,
                       float x, float y, float radius,
                       uint32_t color, uint32_t fill_color,
                       float thickness, int32_t num_segments) noexcept nogil:
-    radius = abs(radius)
+    radius = fabs(radius)
     # Early clipping test
     cdef float expanded_radius = radius + thickness
     cdef float item_x_min = x - expanded_radius
@@ -1659,7 +1659,7 @@ cdef inline bint t_ellipse_fully_clipped(Context context,
     """
     # For a rotated ellipse, the most conservative bounding box is a circle
     # with radius equal to the maximum radius plus thickness
-    cdef float max_radius = max(radius_x, radius_y) + thickness
+    cdef float max_radius = fmax(radius_x, radius_y) + thickness
     
     # Early clipping test
     cdef float item_x_min = center_x - max_radius
@@ -2280,7 +2280,7 @@ cdef void t_draw_regular_polygon(Context context, void* drawlist,
                                  int32_t num_points,
                                  uint32_t color, uint32_t fill_color,
                                  float thickness) noexcept nogil:
-    radius = abs(radius)
+    radius = fabs(radius)
     direction = fmod(direction, M_PI * 2.) # Doing so increases precision
 
     if num_points <= 1:
@@ -2378,8 +2378,8 @@ cdef void t_draw_star(Context context, void* drawlist,
                       color, fill_color, thickness, 0)
         return
     
-    radius = abs(radius)
-    inner_radius = min(radius, abs(inner_radius))
+    radius = fabs(radius)
+    inner_radius = fmin(radius, fabs(inner_radius))
     direction = fmod(direction, M_PI * 2.)
 
     # Early clipping test
@@ -2507,10 +2507,10 @@ cdef void t_draw_rect_multicolor(Context context, void* drawlist,
 
     if t_item_fully_clipped(context,
                             drawlist,
-                            min(x1, x2),
-                            max(x1, x2),
-                            min(y1, y2),
-                            max(y1, y2)):
+                            fmin(x1, x2),
+                            fmax(x1, x2),
+                            fmin(y1, y2),
+                            fmax(y1, y2)):
         return
 
     cdef imgui.ImVec2 ipmin = imgui.ImVec2(x1, y1)
@@ -2685,7 +2685,7 @@ cdef void t_draw_text(Context context, void* drawlist,
     if size == 0:
         (<imgui.ImDrawList*>drawlist).AddText(ipos, color, text, NULL)
     else:
-        (<imgui.ImDrawList*>drawlist).AddText(NULL, abs(size), ipos, color, text, NULL)
+        (<imgui.ImDrawList*>drawlist).AddText(NULL, fabs(size), ipos, color, text, NULL)
 
     # Pop font if it was pushed
     if font != NULL:
@@ -2754,7 +2754,7 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
     # Calculate scale 
     cdef float scale_x = quad_w / total_w
     cdef float scale_y = quad_h / total_h
-    cdef float scale = min(scale_x, scale_y) if preserve_ratio else 1.0
+    cdef float scale = fmin(scale_x, scale_y) if preserve_ratio else 1.0
     
     # Calculate starting position to center text in quad
     cdef float start_x = x1
@@ -2923,7 +2923,7 @@ cdef Vec2 calc_text_size(const char* text, void* font, float size, float wrap_wi
     else:
         # Get current font and scale it
         cur_font = imgui.GetFont()
-        scale = abs(size) / cur_font.FontSize
+        scale = fabs(size) / cur_font.FontSize
         text_size = imgui.CalcTextSize(text, NULL, False, wrap_width)
         text_size.x *= scale
         text_size.y *= scale

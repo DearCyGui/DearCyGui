@@ -25,8 +25,8 @@ from .c_types cimport DCGMutex, DCGString, unique_lock, make_Vec2,\
 from .types cimport child_type, Coord, read_point, read_coord
 
 from libcpp.algorithm cimport swap
-from libcpp.cmath cimport atan, atan2, sin, cos, sqrt
-from libc.math cimport M_PI, fmod
+from libcpp.cmath cimport atan, atan2, sin, cos, sqrt, fabs, fmod
+from libc.math cimport M_PI
 from libc.stdint cimport int32_t
 from libcpp cimport bool
 from libcpp.vector cimport vector
@@ -719,7 +719,7 @@ cdef class DrawArc(drawingItem):
             start_angle = -start_angle
             end_angle = -end_angle
 
-        cdef bint full_ellipse = abs(start_angle-end_angle) >= 1.999 * M_PI
+        cdef bint full_ellipse = fabs(start_angle-end_angle) >= 1.999 * M_PI
         inner_radius_x = min(inner_radius_x, radius_x)
         inner_radius_y = min(inner_radius_y, radius_y)
 
@@ -1545,8 +1545,8 @@ cdef class DrawEllipse(drawingItem):
 
         cdef float center_x = (p1[0] + p2[0]) / 2.
         cdef float center_y = (p1[1] + p2[1]) / 2.
-        cdef float radius_x = abs(p2[0] - p1[0]) / 2.
-        cdef float radius_y = abs(p2[1] - p1[1]) / 2.
+        cdef float radius_x = fabs(p2[0] - p1[0]) / 2.
+        cdef float radius_y = fabs(p2[1] - p1[1]) / 2.
 
         t_draw_ellipse(self.context,
                        drawlist,
@@ -2142,7 +2142,7 @@ cdef class DrawLine(drawingItem):
         self.update_center()
 
     cdef void update_extremities(self) noexcept nogil:
-        cdef double length = abs(self._length)
+        cdef double length = fabs(self._length)
         cdef double direction = fmod(self._direction, M_PI * 2.)
         cdef double dx = cos(direction)
         cdef double dy = sin(direction)
@@ -3915,7 +3915,7 @@ cdef class DrawValue(drawingItem):
             size *= self.context.viewport.size_multiplier
         else:
             size *= self.context.viewport.global_scale
-        size = abs(size)
+        size = fabs(size)
         if self._font is not None:
             self._font.push()
 
