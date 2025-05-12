@@ -257,7 +257,11 @@ cdef class FontMultiScales(baseFont):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return [s for s in self._stored_scales]
+        cdef list result = []
+        cdef int32_t i
+        for i in range(<int>self._stored_scales.size()):
+            result.append(self._stored_scales[i])
+        return result
 
     @property
     def callbacks(self):
@@ -318,17 +322,27 @@ cdef class FontMultiScales(baseFont):
         self._applied_fonts.push_back(best_font)
 
         # Keep seen scales
-
+        cdef bint scale_found = False
         cdef float past_scale
-        for past_scale in self._stored_scales:
+        for i in range(<int>self._stored_scales.size()):
+            past_scale = self._stored_scales[i]
             # scale already in list
             if abs(past_scale - global_scale) < 1e-6:
-                return
+                scale_found = True
+                break
 
-        # add to list
-        self._stored_scales.push_front(global_scale)
-        while self._stored_scales.size() > 10:
-            self._stored_scales.pop_back()
+        if scale_found:
+            return
+
+        # add to list - emulating a deque
+        if self._stored_scales.size() < 10:
+            self._stored_scales.resize(self._stored_scales.size() + 1)
+
+        for i in range(self._stored_scales.size()-1):
+            if i == 0:
+                self._stored_scales[i] = global_scale
+            else:
+                self._stored_scales[i] = self._stored_scales[i-1]
 
         # Notify callbacks of new scale
         if not(self._callbacks.empty()):
@@ -438,17 +452,22 @@ cdef class AutoFont(FontMultiScales):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         # Get recent scales we want to optimize for
-        cdef vector[float] target_scales = vector[float]()
-        for scale in self._stored_scales:
-            target_scales.push_back(scale)
+        cdef DCGVector[float] target_scales = self._stored_scales
+        cdef float target_scale
 
         # Calculate scores for all fonts including new one
         cdef dict best_fonts = {}
         cdef float score, current_score
         cdef Font font
+        cdef int32_t i
         
         for font in list(self.fonts) + [new_font]:
-            for target_scale in target_scales:
+            for i in range(<int>target_scales.size()):
+                target_scale = target_scales[i]
+                # Calculate score based on the difference between
+                # the font scale and the target scale
+                # We want to minimize the absolute difference
+                # between log(font_scale) and log(target_scale)
                 score = abs(logf(font._scale) + logf(target_scale))
                 current_score = best_fonts.get(target_scale, (1e10, None))[0]
                 if score < current_score:
