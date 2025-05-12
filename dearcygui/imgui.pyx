@@ -1638,6 +1638,38 @@ cdef void draw_circle(Context context, void* drawlist,
     t_draw_circle(context, drawlist, center[0], center[1], radius, color, fill_color, thickness, num_segments)
 
 
+cdef inline bint t_ellipse_fully_clipped(Context context,
+                                         void* drawlist,
+                                         float center_x, float center_y,
+                                         float radius_x, float radius_y,
+                                         float rotation, float thickness) noexcept nogil:
+    """
+    Check if an ellipse is fully clipped and doesn't need to be rendered.
+    
+    Args:
+        context: The DearCyGui context
+        drawlist: ImDrawList to render into
+        center_x, center_y: Center of the ellipse
+        radius_x, radius_y: Radii of the ellipse
+        rotation: Rotation angle in radians
+        thickness: Outline thickness to account for in bounds
+        
+    Returns:
+        True if the ellipse is completely outside the clip rect
+    """
+    # For a rotated ellipse, the most conservative bounding box is a circle
+    # with radius equal to the maximum radius plus thickness
+    cdef float max_radius = max(radius_x, radius_y) + thickness
+    
+    # Early clipping test
+    cdef float item_x_min = center_x - max_radius
+    cdef float item_x_max = center_x + max_radius
+    cdef float item_y_min = center_y - max_radius
+    cdef float item_y_max = center_y + max_radius
+    
+    return t_item_fully_clipped(context, drawlist, item_x_min, item_x_max, item_y_min, item_y_max)
+
+
 cdef void t_draw_elliptical_arc(Context context, void* drawlist,
                                 float center_x, float center_y,
                                 float radius_x, float radius_y,
@@ -1664,6 +1696,9 @@ cdef void t_draw_elliptical_arc(Context context, void* drawlist,
         fill_color: Color for the filling (ImU32)
         thickness: Thickness of the outline
     """
+    if t_ellipse_fully_clipped(context, drawlist, center_x, center_y, 
+                               radius_x, radius_y, rotation, thickness):
+        return
     # For correct filling, angles must be increasing
     if end_angle < start_angle:
         swap(start_angle, end_angle)  
@@ -1754,6 +1789,9 @@ cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
         fill_color: Color for the filling (ImU32)
         thickness: Thickness of the outline
     """
+    if t_ellipse_fully_clipped(context, drawlist, center_x, center_y, 
+                               radius_x, radius_y, rotation, thickness):
+        return
     # For correct filling, angles must be increasing
     if end_angle < start_angle:
         swap(start_angle, end_angle)  
@@ -1879,6 +1917,9 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
         0 < inner_radius_x < radius_x
         0 < inner_radius_y < radius_y
     """
+    if t_ellipse_fully_clipped(context, drawlist, center_x, center_y, 
+                               radius_x, radius_y, rotation, thickness):
+        return
     # For correct filling, angles must be increasing
     if end_angle < start_angle:
         swap(start_angle, end_angle)  
@@ -2034,6 +2075,9 @@ cdef void t_draw_ellipse(Context context, void* drawlist,
         fill_color: Color for the filling (ImU32)
         thickness: Thickness of the outline
     """
+    if t_ellipse_fully_clipped(context, drawlist, center_x, center_y, 
+                               radius_x, radius_y, rotation, thickness):
+        return
     # Clear previous points
     context.viewport.temp_point_coords.clear()
     context.viewport.temp_normals.clear()
@@ -2126,6 +2170,9 @@ cdef void t_draw_elliptical_ring(Context context, void* drawlist,
         0 < inner_radius_x < radius_x
         0 < inner_radius_y < radius_y
     """
+    if t_ellipse_fully_clipped(context, drawlist, center_x, center_y, 
+                               radius_x, radius_y, rotation, thickness):
+        return
     # Clear previous points
     context.viewport.temp_point_coords.clear()
     context.viewport.temp_normals.clear()
