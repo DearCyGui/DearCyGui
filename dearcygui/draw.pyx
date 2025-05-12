@@ -494,6 +494,7 @@ cdef class DrawArc(drawingItem):
         self._fill = 0
         self._color = 4294967295 # 0xffffffff, white
         self._thickness = 1.0
+        self._segments = 0
 
     @property
     def center(self):
@@ -662,6 +663,23 @@ cdef class DrawArc(drawingItem):
         lock_gil_friendly(m, self.mutex)
         self._rotation = value
 
+    @property
+    def segments(self):
+        """
+        Number of segments used to approximate the external
+        outline of the shape.
+        
+        Returns:
+            int: Number of segments. 0 for auto.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._segments
+    @segments.setter
+    def segments(self, int32_t value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._segments = max(0, value)
 
     cdef void draw(self, void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
@@ -1079,7 +1097,7 @@ cdef class DrawBezierCubic(drawingItem):
     def segments(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._segments = value
+        self._segments = max(0, value)
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
@@ -1220,7 +1238,7 @@ cdef class DrawBezierQuadratic(drawingItem):
     def segments(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._segments = value
+        self._segments = max(0, value)
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
@@ -1368,7 +1386,7 @@ cdef class DrawCircle(drawingItem):
     def segments(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._segments = value
+        self._segments = max(0, value)
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
@@ -1395,6 +1413,9 @@ cdef class DrawEllipse(drawingItem):
 
     The ellipse is defined by its bounding box and can be filled and/or outlined.
 
+    For a more complex ellipse, defined by a center, radii, and rotation,
+    use DrawArc with start_angle=0 and end_angle=2*pi.
+
     Attributes:
         pmin (tuple): Top-left corner coordinates (x, y)
         pmax (tuple): Bottom-right corner coordinates (x, y)
@@ -1403,9 +1424,6 @@ cdef class DrawEllipse(drawingItem):
         thickness (float): Outline thickness
         segments (int): Number of segments used to approximate the ellipse
     """
-    # TODO: I adapted the original code,
-    # But these deserves rewrite: call the imgui Ellipse functions instead
-    # and add rotation parameter
     def __cinit__(self):
         # pmin/pmax is zero init by cython
         self._color = 4294967295 # 0xffffffff
@@ -1428,7 +1446,6 @@ cdef class DrawEllipse(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmin, value)
-        self.__fill_points()
     @property
     def pmax(self):
         """
@@ -1445,7 +1462,6 @@ cdef class DrawEllipse(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmax, value)
-        self.__fill_points()
     @property
     def color(self):
         """
@@ -1504,7 +1520,7 @@ cdef class DrawEllipse(drawingItem):
         Number of segments used to approximate the ellipse.
         
         Returns:
-            int: Number of segments
+            int: Number of segments. 0 for auto.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1513,71 +1529,36 @@ cdef class DrawEllipse(drawingItem):
     def segments(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._segments = value
-        self.__fill_points()
-
-    cdef void __fill_points(self):
-        cdef int32_t segments = max(self._segments, 3)
-        if self._segments == 0: # Auto
-            segments = 24
-        cdef double width = self._pmax[0] - self._pmin[0]
-        cdef double height = self._pmax[1] - self._pmin[1]
-        cdef double cx = width / 2. + self._pmin[0]
-        cdef double cy = height / 2. + self._pmin[1]
-        cdef double radian_inc = (M_PI * 2.) / <double>segments
-        self._points.clear()
-        self._points.reserve(segments+1)
-        cdef int32_t i
-        # vector needs double2 rather than double[2]
-        cdef double2 p
-        width = abs(width)
-        height = abs(height)
-        for i in range(segments):
-            p.p[0] = cx + cos(<double>i * radian_inc) * width / 2.
-            p.p[1] = cy - sin(<double>i * radian_inc) * height / 2.
-            self._points.push_back(p)
-        self._points.push_back(self._points[0])
+        self._segments = max(0, value)
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        if not(self._show) or self._points.size() < 3:
+        if not(self._show):
             return
 
         cdef float thickness = get_scaled_thickness(self.context, self._thickness)
+        cdef float[2] p1
+        cdef float[2] p2
+        self.context.viewport.coordinate_to_screen(p1, self._pmin)
+        self.context.viewport.coordinate_to_screen(p2, self._pmax)
 
-        cdef int num_points = self._points.size()
-        cdef int32_t i
-        cdef DCGVector[float] *ipoints = &self.context.viewport.temp_point_coords
-        ipoints.resize(2*num_points)
-        cdef float *ipoints_p = ipoints.data()
-        for i in range(num_points):
-            self.context.viewport.coordinate_to_screen(&ipoints_p[2*i], self._points[i].p)
+        cdef float center_x = (p1[0] + p2[0]) / 2.
+        cdef float center_y = (p1[1] + p2[1]) / 2.
+        cdef float radius_x = abs(p2[0] - p1[0]) / 2.
+        cdef float radius_y = abs(p2[1] - p1[1]) / 2.
 
-        # Create fan triangulation indices for the polygon
-        cdef DCGVector[uint32_t] *indices = &self.context.viewport.temp_indices
-        indices.clear()
-
-        # Create indices for a fan triangulation (0,i,i+1)
-        for i in range(1, num_points-1):
-            indices.push_back(0)  # Start point
-            indices.push_back(i)  # Current perimeter point
-            indices.push_back(i+1)  # Next perimeter point
-
-        # Use the shared t_draw_polygon function to handle both fill and outline
-        t_draw_polygon(
-            self.context,
-            drawlist,
-            ipoints.data(),
-            num_points,
-            NULL,
-            0,
-            indices.data(),
-            <int>indices.size(),
-            self._color,
-            self._fill,
-            thickness
-        )
+        t_draw_ellipse(self.context,
+                       drawlist,
+                       center_x,
+                       center_y,
+                       radius_x,
+                       radius_y,
+                       0.,
+                       self._segments,
+                       self._color,
+                       self._fill,
+                       thickness)
 
 
 cdef class DrawImage(drawingItem):

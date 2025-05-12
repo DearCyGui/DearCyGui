@@ -37,6 +37,7 @@ cdef class DrawArc(drawingItem):
     cdef float _end_angle
     cdef float _rotation
     cdef float _thickness
+    cdef int32_t _segments
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
 
@@ -86,8 +87,6 @@ cdef class DrawEllipse(drawingItem):
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
     cdef int32_t _segments
-    cdef DCGVector[double2] _points
-    cdef void __fill_points(self)
     cdef void draw(self, void*) noexcept nogil
 
 cdef class DrawImage(drawingItem):
