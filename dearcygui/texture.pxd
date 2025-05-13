@@ -14,6 +14,7 @@ cdef class Texture(baseItem):
     cdef bint _dynamic
     cdef unsigned _buffer_type
     cdef int32_t _filtering_mode
+    cdef int32_t _repeat_mode
     cdef bint _readonly
     cdef bint _no_realloc
     cdef void set_content(self, content)

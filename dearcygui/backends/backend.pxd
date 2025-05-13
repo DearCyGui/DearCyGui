@@ -26,7 +26,7 @@ cdef extern from "backend.h" nogil:
         GLContext *createSharedContext(int, int)
 
         # Texture methods
-        void* allocateTexture(unsigned, unsigned, unsigned, unsigned, unsigned, unsigned)
+        void* allocateTexture(unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned)
         void freeTexture(void*)
         bint updateDynamicTexture(void*, unsigned, unsigned, unsigned, unsigned, void*, unsigned)
         bint updateStaticTexture(void*, unsigned, unsigned, unsigned, unsigned, void*, unsigned)

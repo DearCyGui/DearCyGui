@@ -57,6 +57,7 @@ cdef class Texture(baseItem):
         self.num_chans = 0
         self._buffer_type = 0
         self._filtering_mode = 0
+        self._repeat_mode = 0
 
     def __dealloc__(self):
         cdef unique_lock[DCGMutex] imgui_m
@@ -96,8 +97,9 @@ cdef class Texture(baseItem):
         Whether to use nearest neighbor interpolation when upscaling.
         
         When True, nearest neighbor interpolation is used instead of bilinear
-        interpolation when upscaling the texture. This should be set before
-        calling set_value or allocate.
+        interpolation when upscaling the texture.
+
+        This should be set before calling `set_value` or `allocate`.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -107,6 +109,50 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._filtering_mode = 1 if value else 0
+
+    @property
+    def wrap_x(self):
+        """
+        Whether to repeat the texture on x.
+
+        When set, reading outside the texture on x will
+        wrap to inside the texture (GL_REPEAT), instead
+        of the default clamping to the edge.
+
+        This should be set before calling `set_value` or `allocate`.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return True if self._repeat_mode & 1 else False
+    @wrap_x.setter
+    def wrap_x(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._repeat_mode &= ~1
+        if value:
+            self._repeat_mode |= 1
+
+    @property
+    def wrap_y(self):
+        """
+        Whether to repeat the texture on y.
+
+        When set, reading outside the texture on y will
+        wrap to inside the texture (GL_REPEAT), instead
+        of the default clamping to the edge.
+
+        This should be set before calling `set_value` or `allocate`.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return True if self._repeat_mode & 2 else False
+    @wrap_y.setter
+    def wrap_y(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._repeat_mode &= ~2
+        if value:
+            self._repeat_mode |= 2
         
     @property
     def width(self):
@@ -194,7 +240,8 @@ cdef class Texture(baseItem):
                                                                     num_chans,
                                                                     self._dynamic,
                                                                     buffer_type,
-                                                                    self._filtering_mode)
+                                                                    self._filtering_mode,
+                                                                    self._repeat_mode)
             (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
             success = self.allocated_texture != NULL
             if success:
@@ -224,10 +271,6 @@ cdef class Texture(baseItem):
         Note that for single-channel textures, R is duplicated to G and B
         during rendering, displaying as gray rather than red.
         """
-        cdef int chan, row, col
-        cdef int num_chans, num_rows, num_cols
-        cdef double min_value = 255., max_value = 0.
-        cdef bint has_float
         if cpython.PyObject_CheckBuffer(src):
             value = src
         else:
@@ -343,7 +386,8 @@ cdef class Texture(baseItem):
                                                                     num_chans,
                                                                     self._dynamic,
                                                                     buffer_type,
-                                                                    self._filtering_mode)
+                                                                    self._filtering_mode,
+                                                                    self._repeat_mode)
 
             success = self.allocated_texture != NULL
             if success:

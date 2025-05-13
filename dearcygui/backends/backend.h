@@ -52,7 +52,8 @@ public:
 	// operations are performed, and releaseUploadContext must be
 	// called after the texture operations are done.
     virtual void* allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
-                                unsigned dynamic, unsigned type, unsigned filtering_mode) = 0;
+                                  unsigned dynamic, unsigned type, unsigned filtering_mode,
+                                  unsigned repeat_mode) = 0;
     virtual void freeTexture(void* texture) = 0;
     virtual bool updateDynamicTexture(void* texture, unsigned width, unsigned height,
                                    unsigned num_chans, unsigned type, void* data, 
@@ -191,10 +192,12 @@ public:
      * @param dynamic Whether texture will be frequently updated
      * @param type Pixel data type (1=byte, other=float)
      * @param filtering_mode Texture filtering (0=linear, 1=nearest, 2=font)
+     * @param repeat_mode Texture repeat mode flag (0=clamp, 1=repeat on x, 2=repeat on y, 3=repeat on both)
      * @return void* Cast of GLuint texture ID, or nullptr on failure
      */
     virtual void* allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
-                                  unsigned dynamic, unsigned type, unsigned filtering_mode) override;
+                                  unsigned dynamic, unsigned type, unsigned filtering_mode,
+                                  unsigned repeat_mode) override;
 
     /**
      * Mark a texture for deletion and cache reuse.

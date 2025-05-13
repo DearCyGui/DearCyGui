@@ -140,7 +140,8 @@ GLuint SDLViewport::findTextureInCache(unsigned width, unsigned height, unsigned
 }
 
 void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
-                                 unsigned dynamic, unsigned type, unsigned filtering_mode) {
+                                   unsigned dynamic, unsigned type, unsigned filtering_mode,
+                                   unsigned repeat_mode) {
     // Look for a cached texture first
     GLuint image_texture = 0;
     {
@@ -193,8 +194,13 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (filtering_mode == 1) ? GL_NEAREST : GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Required for fonts
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (filtering_mode == 2 || !repeat_mode) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Required for fonts
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (repeat_mode & 1) ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (repeat_mode & 2) ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+    }
 
     // Duplicate the first channel on g and b to display as gray
     if (num_chans == 1) {
