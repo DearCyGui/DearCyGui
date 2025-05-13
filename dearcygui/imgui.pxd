@@ -289,9 +289,9 @@ cdef void draw_star(Context context, void* drawlist,
 ## Special ##
 
 cdef void draw_rect_multicolor(Context context, void* drawlist,
-                              double x1, double y1, double x2, double y2,
-                              uint32_t col_up_left, uint32_t col_up_right,
-                              uint32_t col_bot_right, uint32_t col_bot_left) noexcept nogil
+                               double x1, double y1, double x2, double y2,
+                               uint32_t col_up_left, uint32_t col_up_right,
+                               uint32_t col_bot_right, uint32_t col_bot_left) noexcept nogil
 """
     Draw a rectangle with different colors at each corner.
 
@@ -342,12 +342,12 @@ cdef void draw_textured_triangle(Context context, void* drawlist,
 # Helpers that map to the above function
 
 cdef void draw_image_quad(Context context, void* drawlist,
-                         void* texture,
-                         double x1, double y1, double x2, double y2,
-                         double x3, double y3, double x4, double y4,
-                         float u1, float v1, float u2, float v2,
-                         float u3, float v3, float u4, float v4,
-                         uint32_t color_factor) noexcept nogil
+                          void* texture,
+                          double x1, double y1, double x2, double y2,
+                          double x3, double y3, double x4, double y4,
+                          float u1, float v1, float u2, float v2,
+                          float u3, float v3, float u4, float v4,
+                          uint32_t color_factor) noexcept nogil
 """
     Draw a textured quad with custom UV coordinates.
 
@@ -711,13 +711,15 @@ cdef void t_draw_text_quad(Context, void*, float, float, float, float,
                            const char*, uint32_t, void*, bint) noexcept nogil
 
 # Advanced polygon functions
-cdef void t_draw_compute_normals(float* normals,
+cdef void t_draw_compute_normals(Context context,
+                                 float* normals,
                                  const float* points,
                                  int points_count,
                                  bint closed) noexcept nogil
 """
     Computes the normals at each point of an outline
     Inputs:
+        context: The DearCyGui context
         points: array of points [x0, y0, ..., xn-1, yn-1]
         points_count: number of points n
         closed: Whether the last point of the outline is
@@ -732,7 +734,8 @@ cdef void t_draw_compute_normals(float* normals,
     the normal of the point.
 """
 
-cdef void t_draw_compute_normal_at(float* normal_out,
+cdef void t_draw_compute_normal_at(Context context,
+                                   float* normal_out,
                                    const float* points,
                                    int points_count,
                                    int point_idx,
@@ -743,6 +746,7 @@ cdef void t_draw_compute_normal_at(float* normal_out,
     and needs to fix it at specific points.
     
     Args:
+        context: The DearCyGui context
         normal_out: Output array [dx, dy] where the normal will be written
         points: Array of points [x0, y0, ..., xn-1, yn-1]
         points_count: Number of points n
@@ -753,7 +757,8 @@ cdef void t_draw_compute_normal_at(float* normal_out,
     adjacent edges, scaled by the inverse of the squared length.
 """
 
-cdef void t_draw_polygon_outline(void* drawlist_ptr,
+cdef void t_draw_polygon_outline(Context context,
+                                 void* drawlist_ptr,
                                  const float* points,
                                  int points_count,
                                  const float* normals,
@@ -765,6 +770,7 @@ cdef void t_draw_polygon_outline(void* drawlist_ptr,
     by the set of points.
 
     Inputs:
+        context: The DearCyGui context
         drawlist_ptr: ImGui draw list to render to
         points: array of points [x0, y0, ..., xn-1, yn-1]
         points_count: number of points n
@@ -775,7 +781,8 @@ cdef void t_draw_polygon_outline(void* drawlist_ptr,
             connected to the first point
 """
 
-cdef void t_draw_polygon_filling(void* drawlist_ptr,
+cdef void t_draw_polygon_filling(Context context,
+                                 void* drawlist_ptr,
                                  const float* points,
                                  int points_count,
                                  const float* normals,
@@ -788,6 +795,7 @@ cdef void t_draw_polygon_filling(void* drawlist_ptr,
     Draws a filled polygon using the provided points, indices and normals.
     
     Args:
+        context: The DearCyGui context
         drawlist_ptr: ImGui draw list to render to
         points: array of points [x0, y0, ..., xn-1, yn-1] defining the polygon in order.
         points_count: number of points n
@@ -802,18 +810,20 @@ cdef void t_draw_polygon_filling(void* drawlist_ptr,
         fill_color: Color to fill the polygon with (ImU32)
 """
 
-cdef void t_draw_polygon_filling_no_aa(void* drawlist_ptr,
-                                      const float* points,
-                                      int points_count,
-                                      const float* inner_points,
-                                      int inner_points_count,
-                                      const uint32_t* indices,
-                                      int indices_count,
-                                      uint32_t fill_color) noexcept nogil
+cdef void t_draw_polygon_filling_no_aa(Context context,
+                                       void* drawlist_ptr,
+                                       const float* points,
+                                       int points_count,
+                                       const float* inner_points,
+                                       int inner_points_count,
+                                       const uint32_t* indices,
+                                       int indices_count,
+                                       uint32_t fill_color) noexcept nogil
 """
     Draws a filled polygon without anti-aliasing for improved performance.
     
     Args:
+        context: The DearCyGui context
         drawlist_ptr: ImGui draw list to render to
         points: array of points [x0, y0, ..., xn-1, yn-1] defining the polygon in order
         points_count: number of points n
@@ -828,17 +838,20 @@ cdef void t_draw_polygon_filling_no_aa(void* drawlist_ptr,
 # When subclassing drawingItem and Draw* items, the drawlist
 # is passed to the draw method. This is a helper to get the
 # drawlist for the current window if subclassing uiItem.
-cdef void* get_window_drawlist() noexcept nogil
+cdef void* get_window_drawlist(Context context) noexcept nogil
 """
     Get the ImDrawList for the current window.
     
     Used by draw items that want to render into the current window.
-    
+
+    Args:
+        context: The DearCyGui context
+
     Returns:
         ImDrawList* for the current window
 """
 
-cdef Vec2 get_cursor_pos() noexcept nogil
+cdef Vec2 get_cursor_pos(Context context) noexcept nogil
 """
     Get the current cursor position in the current window.
     Useful when drawing on top of subclassed UI items.
@@ -853,26 +866,27 @@ cdef Vec2 get_cursor_pos() noexcept nogil
 # ImGuiColorIndex, etc enums which are available
 # using an import dearcygui.
 # Load these indices in your __cinit__.
-cdef void push_theme_color(int32_t idx, float r, float g, float b, float a) noexcept nogil
+cdef void push_theme_color(Context context, int32_t idx, float r, float g, float b, float a) noexcept nogil
 """Push a theme color onto the stack (use at start of drawing code)"""
 
-cdef void pop_theme_color() noexcept nogil
+cdef void pop_theme_color(Context context) noexcept nogil
 """Pop a theme color from the stack (use at end of drawing code)"""
 
-cdef void push_theme_style_float(int32_t idx, float val) noexcept nogil
+cdef void push_theme_style_float(Context context, int32_t idx, float val) noexcept nogil
 """Push a float style value onto the stack"""
 
-cdef void push_theme_style_vec2(int32_t idx, float x, float y) noexcept nogil  
+cdef void push_theme_style_vec2(Context context, int32_t idx, float x, float y) noexcept nogil  
 """Push a Vec2 style value onto the stack"""
 
-cdef void pop_theme_style() noexcept nogil
+cdef void pop_theme_style(Context context) noexcept nogil
 """Pop a style value from the stack"""
 
-cdef Vec4 get_theme_color(int32_t idx) noexcept nogil
+cdef Vec4 get_theme_color(Context context, int32_t idx) noexcept nogil
 """
 Retrieve the current theme color for a target idx.
 
 Args:
+    context: The DearCyGui context
     idx: ThemeCol index to query
 
 Returns:
@@ -880,11 +894,12 @@ Returns:
 """
 
 # Text measurement functions
-cdef Vec2 calc_text_size(const char* text, void* font, float size, float wrap_width) noexcept nogil
+cdef Vec2 calc_text_size(Context context, const char* text, void* font, float size, float wrap_width) noexcept nogil
 """
 Calculate text size in screen coordinates.
 
 Args:
+    context: The DearCyGui context
     text: Text string to measure
     font: ImFont* to use, NULL for default 
     size: Text size, 0 for default, negative for screen space
@@ -904,11 +919,12 @@ cdef struct GlyphInfo:
     float offset_y     # Vertical offset from cursor position
     bint visible       # True if glyph has a visible bitmap
     
-cdef GlyphInfo get_glyph_info(void* font, uint32_t codepoint) noexcept nogil
+cdef GlyphInfo get_glyph_info(Context context, void* font, uint32_t codepoint) noexcept nogil
 """
 Get rendering information for a Unicode codepoint.
 
 Args:
+    context: The DearCyGui context
     codepoint: Unicode codepoint value
     font: ImFont* to query, NULL for default font
 

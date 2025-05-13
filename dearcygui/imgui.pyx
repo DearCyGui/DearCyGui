@@ -56,7 +56,8 @@ cdef bint _is_polygon_counter_clockwise(const float* points, int points_count) n
     return area > 0.0
 
 
-cdef void t_draw_compute_normals(float* normals,
+cdef void t_draw_compute_normals(Context context,
+                                 float* normals,
                                  const float* points,
                                  int points_count,
                                  bint closed) noexcept nogil:
@@ -173,11 +174,12 @@ cdef void t_draw_compute_normals(float* normals,
             normals[2*i+1] = -cos(edge_angle) * 100.
 
 
-cdef void t_draw_compute_normal_at(float* normal_out,
-                                  const float* points,
-                                  int points_count,
-                                  int point_idx,
-                                  bint closed) noexcept nogil:
+cdef void t_draw_compute_normal_at(Context context,
+                                   float* normal_out,
+                                   const float* points,
+                                   int points_count,
+                                   int point_idx,
+                                   bint closed) noexcept nogil:
     """
     Computes the normal vector at a specific point index of an outline.
     
@@ -273,6 +275,26 @@ cdef void t_draw_compute_normal_at(float* normal_out,
         normal_out[0] = sin(edge_angle) * 100.0
         normal_out[1] = -cos(edge_angle) * 100.0
 
+cdef inline imgui.ImVec2 _get_point_uv(const float* u_array,
+                                       const float v,
+                                       int point_idx,
+                                       const imgui.ImVec2 default) noexcept nogil:
+    """
+    Get the UV coordinates for a specific point index.
+    
+    Args:
+        u_array: Array of U coordinates. NULL for default
+        v: V coordinate
+        point_idx: Index of the point to retrieve UV for
+    
+    Returns:
+        imgui.ImVec2 containing the U and V coordinates
+    """
+    if u_array is NULL:
+        # Default UV coordinates
+        return default
+    return imgui.ImVec2(u_array[point_idx], v)
+
 """
     ## AA strategy for polylines
 
@@ -318,6 +340,7 @@ cdef void _t_draw_polygon_outline_thin(void* drawlist_ptr,
                                        const float* points,
                                        int points_count,
                                        const float* normals,
+                                       const float* u_array,
                                        uint32_t color,
                                        float thickness,
                                        bint closed) noexcept nogil:
@@ -325,7 +348,7 @@ cdef void _t_draw_polygon_outline_thin(void* drawlist_ptr,
     t_draw_polygon_outline for thickness <= AA_SIZE
     """
     cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
-    cdef imgui.ImVec2 uv = imgui.GetFontTexUvWhitePixel()
+    cdef imgui.ImVec2 uv_white = imgui.GetFontTexUvWhitePixel()
     cdef imgui.ImU32 color_trans = color & ~imgui.IM_COL32_A_MASK
     cdef float AA_SIZE = draw_list._FringeScale
 
@@ -372,7 +395,7 @@ cdef void _t_draw_polygon_outline_thin(void* drawlist_ptr,
         # Center vertex
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0], points[2*i0+1]),
-            uv, 
+            _get_point_uv(u_array, 0.5, i0, uv_white), 
             <imgui.ImU32>color  # Center, full color
         )
         
@@ -380,12 +403,14 @@ cdef void _t_draw_polygon_outline_thin(void* drawlist_ptr,
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] + dm_x * AA_SIZE,
                          points[2*i0+1] + dm_y * AA_SIZE),
-            uv, <imgui.ImU32>color_trans  # Edge, transparent
+            _get_point_uv(u_array, 1., i0, uv_white),
+            <imgui.ImU32>color_trans  # Edge, transparent
         )
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] - dm_x * AA_SIZE,
                          points[2*i0+1] - dm_y * AA_SIZE),
-            uv, <imgui.ImU32>color_trans  # Edge, transparent
+            _get_point_uv(u_array, 0., i0, uv_white),
+            <imgui.ImU32>color_trans  # Edge, transparent
         )
         
         # Add indices for thin line segment
@@ -415,6 +440,7 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
                                         const float* points,
                                         int points_count,
                                         const float* normals,
+                                        const float* u_array,
                                         uint32_t color,
                                         float thickness,
                                         bint closed) noexcept nogil:
@@ -422,7 +448,7 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
     t_draw_polygon_outline for thickness > AA_SIZE.
     """
     cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
-    cdef imgui.ImVec2 uv = imgui.GetFontTexUvWhitePixel()
+    cdef imgui.ImVec2 uv_white = imgui.GetFontTexUvWhitePixel()
     cdef imgui.ImU32 color_trans = color & ~imgui.IM_COL32_A_MASK
     cdef float AA_SIZE = draw_list._FringeScale
 
@@ -502,24 +528,24 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] - dm_x * half_inner_thickness + dn_x * half_inner_thickness, 
                          points[2*i0+1] - dm_y * half_inner_thickness + dn_y * half_inner_thickness),
-            uv, <imgui.ImU32>color  # Inner edge, full color
+            _get_point_uv(u_array, 0., 0, uv_white), <imgui.ImU32>color  # Inner edge, full color
         )
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] + dm_x * half_inner_thickness + dn_x * half_inner_thickness, 
                          points[2*i0+1] + dm_y * half_inner_thickness + dn_y * half_inner_thickness),
-            uv, <imgui.ImU32>color  # Inner edge, full color
+            _get_point_uv(u_array, 1., 0, uv_white), <imgui.ImU32>color  # Inner edge, full color
         )
 
         # Outer vertices (with AA fringe)
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] - dm_x * (half_inner_thickness + AA_SIZE) + dn_x * (half_inner_thickness + AA_SIZE),
                          points[2*i0+1] - dm_y * (half_inner_thickness + AA_SIZE) + dn_y * (half_inner_thickness + AA_SIZE)),
-            uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            _get_point_uv(u_array, 0., 0, uv_white), <imgui.ImU32>color_trans  # Outer edge, transparent
         )
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] + dm_x * (half_inner_thickness + AA_SIZE) + dn_x * (half_inner_thickness + AA_SIZE),
                          points[2*i0+1] + dm_y * (half_inner_thickness + AA_SIZE) + dn_y * (half_inner_thickness + AA_SIZE)),
-            uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            _get_point_uv(u_array, 1., 0, uv_white), <imgui.ImU32>color_trans  # Outer edge, transparent
         )
 
         idx_exterior_aa = 3
@@ -557,24 +583,24 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
             draw_list.PrimWriteVtx(
                 imgui.ImVec2(points[2*i0] - dm_x * half_inner_thickness, 
                              points[2*i0+1] - dm_y * half_inner_thickness),
-                uv, <imgui.ImU32>color  # Inner edge, full color
+                _get_point_uv(u_array, 0., 0, uv_white), <imgui.ImU32>color  # Inner edge, full color
             )
             draw_list.PrimWriteVtx(
                 imgui.ImVec2(points[2*i0] + dm_x * half_inner_thickness, 
                              points[2*i0+1] + dm_y * half_inner_thickness),
-                uv, <imgui.ImU32>color  # Inner edge, full color
+                _get_point_uv(u_array, 1., 0, uv_white), <imgui.ImU32>color  # Inner edge, full color
             )
             
             # Outer vertices (with AA fringe)
             draw_list.PrimWriteVtx(
                 imgui.ImVec2(points[2*i0] - dm_x * (half_inner_thickness + AA_SIZE),
                              points[2*i0+1] - dm_y * (half_inner_thickness + AA_SIZE)),
-                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+                _get_point_uv(u_array, 0., 0, uv_white), <imgui.ImU32>color_trans  # Outer edge, transparent
             )
             draw_list.PrimWriteVtx(
                 imgui.ImVec2(points[2*i0] + dm_x * (half_inner_thickness + AA_SIZE),
                              points[2*i0+1] + dm_y * (half_inner_thickness + AA_SIZE)),
-                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+                _get_point_uv(u_array, 1., 0, uv_white), <imgui.ImU32>color_trans  # Outer edge, transparent
             )
 
             idx_exterior_aa = vtx_count + 3
@@ -657,20 +683,23 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
             draw_list.PrimWriteVtx(
                 imgui.ImVec2(points[2*i0] - dm_x * inner_distance, 
                              points[2*i0+1] - dm_y * inner_distance),
-                uv, <imgui.ImU32>color  # Inner edge, full color
+                _get_point_uv(u_array, 1. if normal_direction_inverted else 0., 0, uv_white),
+                <imgui.ImU32>color  # Inner edge, full color
             )
 
             # Exterior part of the intersection
             draw_list.PrimWriteVtx(
                 imgui.ImVec2(points[2*i0] + dm_x * clipped_miter_distance - dn_x * perpendicular_distance, 
                              points[2*i0+1] + dm_y * clipped_miter_distance - dn_y * perpendicular_distance),
-                uv, <imgui.ImU32>color  # Inner edge, full color
+                _get_point_uv(u_array, 0. if normal_direction_inverted else 1., 0, uv_white),
+                <imgui.ImU32>color  # Inner edge, full color
             )
 
             draw_list.PrimWriteVtx(
                 imgui.ImVec2(points[2*i0] + dm_x * clipped_miter_distance + dn_x * perpendicular_distance, 
                              points[2*i0+1] + dm_y * clipped_miter_distance + dn_y * perpendicular_distance),
-                uv, <imgui.ImU32>color  # Inner edge, full color
+                _get_point_uv(u_array, 0. if normal_direction_inverted else 1., 0, uv_white),
+                <imgui.ImU32>color  # Inner edge, full color
             )
 
             # Outer vertices (with AA fringe):
@@ -678,7 +707,8 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
             draw_list.PrimWriteVtx(
                 imgui.ImVec2(points[2*i0] - dm_x * inner_distance - dm_x * AA_SIZE, 
                              points[2*i0+1] - dm_y * inner_distance - dm_y * AA_SIZE),
-                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+                _get_point_uv(u_array, 1. if normal_direction_inverted else 0., 0, uv_white),
+                <imgui.ImU32>color_trans  # Outer edge, transparent
             )
 
             # Angular part: the points are aligned.
@@ -688,7 +718,8 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
                              (half_inner_thickness+AA_SIZE) * (dm_x * (cos_theta_half + sin_theta_half) - dn_x * (cos_theta_half - sin_theta_half)),
                              points[2*i0+1] + \
                              (half_inner_thickness+AA_SIZE) * (dm_y * (cos_theta_half + sin_theta_half) - dn_y * (cos_theta_half - sin_theta_half))),
-                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+                _get_point_uv(u_array, 0. if normal_direction_inverted else 1., 0, uv_white),
+                <imgui.ImU32>color_trans  # Outer edge, transparent
             )
 
             draw_list.PrimWriteVtx(
@@ -696,7 +727,8 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
                              (half_inner_thickness+AA_SIZE) * (dm_x * (cos_theta_half + sin_theta_half) + dn_x * (cos_theta_half - sin_theta_half)), 
                              points[2*i0+1] + \
                              (half_inner_thickness+AA_SIZE) * (dm_y * (cos_theta_half + sin_theta_half) + dn_y * (cos_theta_half - sin_theta_half))),
-                uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+                _get_point_uv(u_array, 0. if normal_direction_inverted else 1., 0, uv_white),
+                <imgui.ImU32>color_trans  # Outer edge, transparent
             )
 
             # Add the joint triangles
@@ -817,24 +849,24 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] - dm_x * half_inner_thickness + dn_x * half_inner_thickness, 
                          points[2*i0+1] - dm_y * half_inner_thickness + dn_y * half_inner_thickness),
-            uv, <imgui.ImU32>color  # Inner edge, full color
+            _get_point_uv(u_array, 0., 0, uv_white), <imgui.ImU32>color  # Inner edge, full color
         )
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] + dm_x * half_inner_thickness + dn_x * half_inner_thickness, 
                          points[2*i0+1] + dm_y * half_inner_thickness + dn_y * half_inner_thickness),
-            uv, <imgui.ImU32>color  # Inner edge, full color
+            _get_point_uv(u_array, 1., 0, uv_white), <imgui.ImU32>color  # Inner edge, full color
         )
 
         # Outer vertices (with AA fringe)
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] - dm_x * (half_inner_thickness + AA_SIZE) + dn_x * (half_inner_thickness + AA_SIZE),
                          points[2*i0+1] - dm_y * (half_inner_thickness + AA_SIZE) + dn_y * (half_inner_thickness + AA_SIZE)),
-            uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            _get_point_uv(u_array, 0., 0, uv_white), <imgui.ImU32>color_trans  # Outer edge, transparent
         )
         draw_list.PrimWriteVtx(
             imgui.ImVec2(points[2*i0] + dm_x * (half_inner_thickness + AA_SIZE) + dn_x * (half_inner_thickness + AA_SIZE),
                          points[2*i0+1] + dm_y * (half_inner_thickness + AA_SIZE) + dn_y * (half_inner_thickness + AA_SIZE)),
-            uv, <imgui.ImU32>color_trans  # Outer edge, transparent
+            _get_point_uv(u_array, 1., 0, uv_white), <imgui.ImU32>color_trans  # Outer edge, transparent
         )
 
         idx_exterior_aa = vtx_count + 3
@@ -923,7 +955,8 @@ cdef void _t_draw_polygon_outline_thick(void* drawlist_ptr,
     draw_list.PrimUnreserve(max_idx_count - idx_count, max_vtx_count - vtx_count)
 
 
-cdef void t_draw_polygon_outline(void* drawlist_ptr,
+cdef void t_draw_polygon_outline(Context context,
+                                 void* drawlist_ptr,
                                  const float* points,
                                  int points_count,
                                  const float* normals,
@@ -949,17 +982,18 @@ cdef void t_draw_polygon_outline(void* drawlist_ptr,
     if thickness <= draw_list._FringeScale:
         _t_draw_polygon_outline_thin(
             drawlist_ptr, points, points_count,
-            normals, color, thickness, closed
+            normals, NULL, color, thickness, closed
         )
     else:
         _t_draw_polygon_outline_thick(
             drawlist_ptr, points, points_count,
-            normals, color, thickness, closed
+            normals, NULL, color, thickness, closed
         )
 
 
 
-cdef void t_draw_polygon_filling(void* drawlist_ptr,
+cdef void t_draw_polygon_filling(Context context,
+                                 void* drawlist_ptr,
                                  const float* points,
                                  int points_count,
                                  const float* normals,
@@ -1099,14 +1133,15 @@ cdef void t_draw_polygon_filling(void* drawlist_ptr,
             <imgui.ImU32>fill_color
         )
 
-cdef void t_draw_polygon_filling_no_aa(void* drawlist_ptr,
-                                      const float* points,
-                                      int points_count,
-                                      const float* inner_points,
-                                      int inner_points_count,
-                                      const uint32_t* indices,
-                                      int indices_count,
-                                      uint32_t fill_color) noexcept nogil:
+cdef void t_draw_polygon_filling_no_aa(Context context,
+                                       void* drawlist_ptr,
+                                       const float* points,
+                                       int points_count,
+                                       const float* inner_points,
+                                       int inner_points_count,
+                                       const uint32_t* indices,
+                                       int indices_count,
+                                       uint32_t fill_color) noexcept nogil:
     """
     Draws a filled polygon without anti-aliasing for improved performance.
     
@@ -1163,7 +1198,8 @@ cdef void t_draw_polygon_filling_no_aa(void* drawlist_ptr,
             # Inner points are stored after perimeter points
             draw_list.PrimWriteIdx(vtx_base_idx + (indices[i] - points_count) + points_count)
 
-cdef void t_draw_polygon_filling_adaptive(void* drawlist_ptr,
+cdef void t_draw_polygon_filling_adaptive(Context context,
+                                          void* drawlist_ptr,
                                           const float* points,
                                           int points_count,
                                           const float* normals,
@@ -1197,7 +1233,8 @@ cdef void t_draw_polygon_filling_adaptive(void* drawlist_ptr,
     # If the outline is opaque we don't need AA borders for the filling
     if thickness >= 1. and (outline_color & imgui.IM_COL32_A_MASK) == imgui.IM_COL32_A_MASK:
         # Draw the filling without AA
-        t_draw_polygon_filling_no_aa(drawlist_ptr,
+        t_draw_polygon_filling_no_aa(context,
+                                     drawlist_ptr,
                                      points,
                                      points_count,
                                      inner_points,
@@ -1207,7 +1244,8 @@ cdef void t_draw_polygon_filling_adaptive(void* drawlist_ptr,
                                      fill_color)
     else:
         # Draw the filling with AA
-        t_draw_polygon_filling(drawlist_ptr,
+        t_draw_polygon_filling(context,
+                               drawlist_ptr,
                                points,
                                points_count,
                                normals,
@@ -1261,12 +1299,14 @@ cdef void t_draw_polygon(Context context,
         context.viewport.temp_normals.resize(points_count * 2)
 
     # Compute normals for the polygon
-    t_draw_compute_normals(context.viewport.temp_normals.data(),
+    t_draw_compute_normals(context,
+                           context.viewport.temp_normals.data(),
                            points, points_count, True)
 
     # Render the filling
 
-    t_draw_polygon_filling_adaptive(drawlist_ptr,
+    t_draw_polygon_filling_adaptive(context,
+                                    drawlist_ptr,
                                     points,
                                     points_count,
                                     context.viewport.temp_normals.data(),
@@ -1279,7 +1319,8 @@ cdef void t_draw_polygon(Context context,
                                     thickness)
 
     # Render the outline
-    t_draw_polygon_outline(drawlist_ptr,
+    t_draw_polygon_outline(context,
+                           drawlist_ptr,
                            points,
                            points_count,
                            context.viewport.temp_normals.data(),
@@ -1362,10 +1403,12 @@ cdef void t_draw_polyline(Context context,
     if (2 * points_count) > <int>context.viewport.temp_normals.size():
         context.viewport.temp_normals.resize(points_count * 2)
 
-    t_draw_compute_normals(context.viewport.temp_normals.data(),
+    t_draw_compute_normals(context,
+                           context.viewport.temp_normals.data(),
                            points, points_count, closed)
 
-    t_draw_polygon_outline(drawlist_ptr,
+    t_draw_polygon_outline(context,
+                           drawlist_ptr,
                            points,
                            points_count,
                            context.viewport.temp_normals.data(),
@@ -1470,9 +1513,10 @@ cdef void t_draw_triangle(Context context, void* drawlist,
                    thickness)
 
 cdef void draw_triangle(Context context, void* drawlist,
-                       double x1, double y1, double x2, double y2, double x3, double y3,
-                       uint32_t color, uint32_t fill_color,
-                       float thickness) noexcept nogil:
+                        double x1, double y1, double x2,
+                        double y2, double x3, double y3,
+                        uint32_t color, uint32_t fill_color,
+                        float thickness) noexcept nogil:
     # Transform coordinates
     cdef float[2] p1, p2, p3
     cdef double[2] pos1, pos2, pos3
@@ -1601,9 +1645,9 @@ cdef void draw_quad(Context context, void* drawlist,
 
 # We use AddCircle as it does the computation of the points for us
 cdef void t_draw_circle(Context context, void* drawlist,
-                      float x, float y, float radius,
-                      uint32_t color, uint32_t fill_color,
-                      float thickness, int32_t num_segments) noexcept nogil:
+                        float x, float y, float radius,
+                        uint32_t color, uint32_t fill_color,
+                        float thickness, int32_t num_segments) noexcept nogil:
     radius = fabs(radius)
     # Early clipping test
     cdef float expanded_radius = radius + thickness
@@ -1739,6 +1783,7 @@ cdef void t_draw_elliptical_arc(Context context, void* drawlist,
 
         # Fill the arc
         t_draw_polygon_filling_adaptive(
+            context,
             drawlist,
             context.viewport.temp_point_coords.data(),
             context.viewport.temp_point_coords.size() >> 1,
@@ -1754,6 +1799,7 @@ cdef void t_draw_elliptical_arc(Context context, void* drawlist,
 
     # Draw the arc
     t_draw_polygon_outline(
+        context,
         drawlist,
         context.viewport.temp_point_coords.data(),
         context.viewport.temp_point_coords.size() >> 1,
@@ -1823,6 +1869,7 @@ cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
     # Center normal
     cdef float[2] normal
     t_draw_compute_normal_at(
+        context,
         normal,
         context.viewport.temp_point_coords.data(),
         context.viewport.temp_point_coords.size() >> 1,
@@ -1836,6 +1883,7 @@ cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
 
     # Replaces normals for arc extremums
     t_draw_compute_normal_at(
+        context,
         context.viewport.temp_normals.data(),
         context.viewport.temp_point_coords.data(),
         context.viewport.temp_point_coords.size() >> 1,
@@ -1843,6 +1891,7 @@ cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
         True
     )
     t_draw_compute_normal_at(
+        context,
         context.viewport.temp_normals.data() + 
             (num_points_upper_arc - 1) * 2,
         context.viewport.temp_point_coords.data(),
@@ -1862,6 +1911,7 @@ cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
 
         # Fill the arc
         t_draw_polygon_filling_adaptive(
+            context,
             drawlist,
             context.viewport.temp_point_coords.data(),
             context.viewport.temp_point_coords.size() >> 1,
@@ -1876,6 +1926,7 @@ cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
         )
     # Draw the outline
     t_draw_polygon_outline(
+        context,
         drawlist,
         context.viewport.temp_point_coords.data(),
         context.viewport.temp_point_coords.size() >> 1,
@@ -1966,6 +2017,7 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
 
     # Fix the normals at extremums of both arcs
     t_draw_compute_normal_at(
+        context,
         context.viewport.temp_normals.data(),
         context.viewport.temp_point_coords.data(),
         context.viewport.temp_point_coords.size() >> 1,
@@ -1973,6 +2025,7 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
         True
     )
     t_draw_compute_normal_at(
+        context,
         context.viewport.temp_normals.data() + 
             (num_points_upper_arc - 1) * 2,
         context.viewport.temp_point_coords.data(),
@@ -1981,6 +2034,7 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
         True
     )
     t_draw_compute_normal_at(
+        context,
         context.viewport.temp_normals.data() + 
             num_points_upper_arc * 2,
         context.viewport.temp_point_coords.data(),
@@ -1990,6 +2044,7 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
     )
     cdef int num_points_tot = context.viewport.temp_point_coords.size() >> 1
     t_draw_compute_normal_at(
+        context,
         context.viewport.temp_normals.data() + 
             (num_points_tot - 1) * 2,
         context.viewport.temp_point_coords.data(),
@@ -2030,6 +2085,7 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
 
         # Draw the arc filling
         t_draw_polygon_filling_adaptive(
+            context,
             drawlist,
             context.viewport.temp_point_coords.data(),
             context.viewport.temp_point_coords.size() >> 1,
@@ -2043,6 +2099,7 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
             thickness
         )
     t_draw_polygon_outline(
+        context,
         drawlist,
         context.viewport.temp_point_coords.data(),
         context.viewport.temp_point_coords.size() >> 1,
@@ -2117,6 +2174,7 @@ cdef void t_draw_ellipse(Context context, void* drawlist,
     
         # Fill the arc
         t_draw_polygon_filling_adaptive(
+            context,
             drawlist,
             context.viewport.temp_point_coords.data(),
             num_points_upper_arc,
@@ -2132,6 +2190,7 @@ cdef void t_draw_ellipse(Context context, void* drawlist,
 
     # Draw the outline
     t_draw_polygon_outline(
+        context,
         drawlist,
         context.viewport.temp_point_coords.data(),
         num_points_upper_arc,
@@ -2239,6 +2298,7 @@ cdef void t_draw_elliptical_ring(Context context, void* drawlist,
 
     # Inside
     t_draw_polygon_filling_adaptive(
+        context,
         drawlist,
         context.viewport.temp_point_coords.data(),
         num_points_upper_arc,
@@ -2254,6 +2314,7 @@ cdef void t_draw_elliptical_ring(Context context, void* drawlist,
 
     # Draw the external outline
     t_draw_polygon_outline(
+        context,
         drawlist,
         context.viewport.temp_point_coords.data(),
         num_points_upper_arc,
@@ -2264,6 +2325,7 @@ cdef void t_draw_elliptical_ring(Context context, void* drawlist,
     )
     # Draw the internal outline
     t_draw_polygon_outline(
+        context,
         drawlist,
         context.viewport.temp_point_coords.data() + num_points_upper_arc * 2,
         num_points_upper_arc,
@@ -2553,8 +2615,10 @@ cdef void draw_rect_multicolor(Context context, void* drawlist,
 
 cdef void t_draw_textured_triangle(Context context, void* drawlist,
                                    void* texture,
-                                   float x1, float y1, float x2, float y2, float x3, float y3,
-                                   float u1, float v1, float u2, float v2, float u3, float v3,
+                                   float x1, float y1, float x2,
+                                   float y2, float x3, float y3,
+                                   float u1, float v1, float u2,
+                                   float v2, float u3, float v3,
                                    uint32_t tint_color) noexcept nogil:
     if tint_color == 0:
         return
@@ -2587,10 +2651,12 @@ cdef void t_draw_textured_triangle(Context context, void* drawlist,
 
 
 cdef void draw_textured_triangle(Context context, void* drawlist,
-                                void* texture,
-                                double x1, double y1, double x2, double y2, double x3, double y3,
-                                float u1, float v1, float u2, float v2, float u3, float v3,
-                                uint32_t tint_color) noexcept nogil:
+                                 void* texture,
+                                 double x1, double y1, double x2,
+                                 double y2, double x3, double y3,
+                                 float u1, float v1, float u2,
+                                 float v2, float u3, float v3,
+                                 uint32_t tint_color) noexcept nogil:
     # Transform coordinates
     cdef float[2] p1, p2, p3
     cdef double[2] pos1, pos2, pos3
@@ -2610,12 +2676,12 @@ cdef void draw_textured_triangle(Context context, void* drawlist,
 
 
 cdef void t_draw_image_quad(Context context, void* drawlist,
-                           void* texture,
-                           float x1, float y1, float x2, float y2,
-                           float x3, float y3, float x4, float y4,
-                           float u1, float v1, float u2, float v2,
-                           float u3, float v3, float u4, float v4,
-                           uint32_t tint_color) noexcept nogil:
+                            void* texture,
+                            float x1, float y1, float x2, float y2,
+                            float x3, float y3, float x4, float y4,
+                            float u1, float v1, float u2, float v2,
+                            float u3, float v3, float u4, float v4,
+                            uint32_t tint_color) noexcept nogil:
     if tint_color == 0:
         return
     if t_item_fully_clipped(context,
@@ -2642,12 +2708,12 @@ cdef void t_draw_image_quad(Context context, void* drawlist,
                                               tint_color)
 
 cdef void draw_image_quad(Context context, void* drawlist,
-                         void* texture,
-                         double x1, double y1, double x2, double y2,
-                         double x3, double y3, double x4, double y4,
-                         float u1, float v1, float u2, float v2,
-                         float u3, float v3, float u4, float v4,
-                         uint32_t tint_color) noexcept nogil:
+                          void* texture,
+                          double x1, double y1, double x2, double y2,
+                          double x3, double y3, double x4, double y4,
+                          float u1, float v1, float u2, float v2,
+                          float u3, float v3, float u4, float v4,
+                          uint32_t tint_color) noexcept nogil:
     # Transform coordinates
     cdef float[2] p1, p2, p3, p4
     cdef double[2] pos1, pos2, pos3, pos4
@@ -2706,10 +2772,10 @@ cdef void draw_text(Context context, void* drawlist,
     t_draw_text(context, drawlist, pos[0], pos[1], text, color, font, size)
 
 cdef void t_draw_text_quad(Context context, void* drawlist,
-                         float x1, float y1, float x2, float y2,  
-                         float x3, float y3, float x4, float y4,
-                         const char* text, uint32_t color,
-                         void* font, bint preserve_ratio) noexcept nogil:
+                           float x1, float y1, float x2, float y2,  
+                           float x3, float y3, float x4, float y4,
+                           const char* text, uint32_t color,
+                           void* font, bint preserve_ratio) noexcept nogil:
     if t_item_fully_clipped(context,
                             drawlist,
                             min(x1, x2, x3, x4),
@@ -2866,10 +2932,10 @@ cdef void draw_text_quad(Context context, void* drawlist,
                      pos4[0], pos4[1], text, color, font,
                      preserve_ratio)
 
-cdef void* get_window_drawlist() noexcept nogil:
+cdef void* get_window_drawlist(Context context) noexcept nogil:
     return <void*>imgui.GetWindowDrawList()
 
-cdef Vec2 get_cursor_pos() noexcept nogil:
+cdef Vec2 get_cursor_pos(Context context) noexcept nogil:
     """
     Get the current cursor position in the current window.
     Useful when drawing on top of subclassed UI items.
@@ -2883,23 +2949,23 @@ cdef Vec2 get_cursor_pos() noexcept nogil:
     result.y = pos.y
     return result
 
-cdef void push_theme_color(int32_t idx, float r, float g, float b, float a) noexcept nogil:
+cdef void push_theme_color(Context context, int32_t idx, float r, float g, float b, float a) noexcept nogil:
     imgui.PushStyleColor(idx, imgui.ImVec4(r, g, b, a))
 
-cdef void pop_theme_color() noexcept nogil:
+cdef void pop_theme_color(Context context) noexcept nogil:
     imgui.PopStyleColor(1)
     
-cdef void push_theme_style_float(int32_t idx, float val) noexcept nogil:
+cdef void push_theme_style_float(Context context, int32_t idx, float val) noexcept nogil:
     imgui.PushStyleVar(idx, val)
 
-cdef void push_theme_style_vec2(int32_t idx, float x, float y) noexcept nogil:
+cdef void push_theme_style_vec2(Context context, int32_t idx, float x, float y) noexcept nogil:
     cdef imgui.ImVec2 val = imgui.ImVec2(x, y)
     imgui.PushStyleVar(idx, val)
     
-cdef void pop_theme_style() noexcept nogil:
+cdef void pop_theme_style(Context context) noexcept nogil:
     imgui.PopStyleVar(1)
 
-cdef Vec4 get_theme_color(int32_t idx) noexcept nogil:
+cdef Vec4 get_theme_color(Context context, int32_t idx) noexcept nogil:
     """Retrieve the current theme color for a target idx."""
     cdef imgui.ImVec4 color = imgui.GetStyleColorVec4(idx)
     cdef Vec4 result
@@ -2909,7 +2975,7 @@ cdef Vec4 get_theme_color(int32_t idx) noexcept nogil:
     result.w = color.w
     return result
 
-cdef Vec2 calc_text_size(const char* text, void* font, float size, float wrap_width) noexcept nogil:
+cdef Vec2 calc_text_size(Context context, const char* text, void* font, float size, float wrap_width) noexcept nogil:
     # Push font if provided
     if font != NULL:
         imgui.PushFont(<imgui.ImFont*>font)
@@ -2938,7 +3004,7 @@ cdef Vec2 calc_text_size(const char* text, void* font, float size, float wrap_wi
     result.y = text_size.y
     return result
 
-cdef GlyphInfo get_glyph_info(void* font, uint32_t codepoint) noexcept nogil:
+cdef GlyphInfo get_glyph_info(Context context, void* font, uint32_t codepoint) noexcept nogil:
     # Get font
     cdef imgui.ImFont* cur_font
     if font != NULL:
