@@ -6,7 +6,11 @@ from libc.stdint cimport uint32_t, int32_t
 
 cdef class baseThemeColor(baseTheme):
     cdef list _names
-    cdef unordered_map[int32_t, uint32_t] _index_to_value
+    # We use pointers to maintain a fixed structure size,
+    # even if map implementation changes.
+    # Do not use these fields as they may be implemented
+    # with a different map implementation than your compiler.
+    cdef unordered_map[int32_t, uint32_t] *_index_to_value
     cdef object _common_getter(self, int32_t)
     cdef void _common_setter(self, int32_t, object)
 
@@ -44,8 +48,12 @@ ctypedef struct theme_value_info:
 
 cdef class baseThemeStyle(baseTheme):
     cdef list _names
-    cdef unordered_map[int32_t, theme_value_info] _index_to_value
-    cdef unordered_map[int32_t, theme_value_info] _index_to_value_for_dpi
+    # We use pointers to maintain a fixed structure size,
+    # even if map implementation changes.
+    # Do not use these fields as they may be implemented
+    # with a different map implementation than your compiler.
+    cdef unordered_map[int32_t, theme_value_info] *_index_to_value
+    cdef unordered_map[int32_t, theme_value_info] *_index_to_value_for_dpi
     cdef float _dpi
     cdef bint _dpi_scaling
     cdef bint _round_after_scale

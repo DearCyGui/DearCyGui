@@ -73,6 +73,12 @@ cdef class baseThemeColor(baseTheme):
     The class implements common dictionary-style access to colors through string names
     or numeric indices.
     """
+    def __cinit__(self):
+        self._index_to_value = new unordered_map[int32_t, uint32_t]()
+
+    def __dealloc__(self):
+        if self._index_to_value != NULL:
+            del self._index_to_value
 
     def __getitem__(self, key):
         """Get color by string name or numeric index"""
@@ -110,7 +116,7 @@ cdef class baseThemeColor(baseTheme):
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
         cdef pair[int32_t, uint32_t] element_content
-        for element_content in self._index_to_value:
+        for element_content in dereference(self._index_to_value):
             name = self._names[element_content.first] 
             result.append((name, int(element_content.second)))
         return iter(result)
@@ -132,7 +138,7 @@ cdef class baseThemeColor(baseTheme):
             self._index_to_value.erase(index)
             return
         cdef imgui.ImU32 color = parse_color(value)
-        self._index_to_value[index] = <uint32_t> color
+        dereference(self._index_to_value)[index] = <uint32_t> color
 
 cdef class ThemeColorImGui(baseThemeColor):
     """
@@ -950,7 +956,7 @@ cdef class ThemeColorImGui(baseThemeColor):
             self._last_push_size.push_back(0)
             return
         cdef pair[int32_t, uint32_t] element_content
-        for element_content in self._index_to_value:
+        for element_content in dereference(self._index_to_value):
             # Note: imgui seems to convert U32 for this. Maybe use float4
             imgui.PushStyleColor(<imgui.ImGuiCol>element_content.first, <imgui.ImU32>element_content.second)
         self._last_push_size.push_back(<int>self._index_to_value.size())
@@ -1288,7 +1294,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
             self._last_push_size.push_back(0)
             return
         cdef pair[int32_t, uint32_t] element_content
-        for element_content in self._index_to_value:
+        for element_content in dereference(self._index_to_value):
             # Note: imgui seems to convert U32 for this. Maybe use float4
             implot.PushStyleColor(<implot.ImPlotCol>element_content.first, <imgui.ImU32>element_content.second)
         self._last_push_size.push_back(<int>self._index_to_value.size())
@@ -1305,6 +1311,14 @@ cdef class baseThemeStyle(baseTheme):
     def __cinit__(self):
         self._dpi = -1.
         self._dpi_scaling = True
+        self._index_to_value = new unordered_map[int32_t, theme_value_info]()
+        self._index_to_value_for_dpi = new unordered_map[int32_t, theme_value_info]()
+
+    def __dealloc__(self):
+        if self._index_to_value != NULL:
+            del self._index_to_value
+        if self._index_to_value_for_dpi != NULL:
+            del self._index_to_value_for_dpi
 
     @property
     def no_scaling(self):
@@ -1374,7 +1388,7 @@ cdef class baseThemeStyle(baseTheme):
         lock_gil_friendly(m, self.mutex)
         cdef list result = []
         cdef pair[int32_t, theme_value_info] element_content
-        for element_content in self._index_to_value:
+        for element_content in dereference(self._index_to_value):
             name = self._names[element_content.first]
             if element_content.second.value_type == theme_value_types.t_int:
                 result.append((name, element_content.second.value.value_int))
@@ -1452,7 +1466,7 @@ cdef class baseThemeStyle(baseTheme):
         value.value_type = type
         value.should_scale = should_scale
         value.should_round = should_round
-        self._index_to_value[index] = value
+        dereference(self._index_to_value)[index] = value
         self._dpi = -1 # regenerate the scaled dpi array
 
     cdef void _compute_for_dpi(self) noexcept nogil:
@@ -1462,7 +1476,7 @@ cdef class baseThemeStyle(baseTheme):
         self._dpi = dpi
         self._index_to_value_for_dpi.clear()
         cdef pair[int32_t, theme_value_info] element_content
-        for element_content in self._index_to_value:
+        for element_content in dereference(self._index_to_value):
             if should_scale and element_content.second.should_scale:
                 if element_content.second.value_type == theme_value_types.t_int:
                     element_content.second.value.value_int = <int>(round(element_content.second.value.value_int * dpi))
@@ -2032,7 +2046,7 @@ cdef class ThemeStyleImGui(baseThemeStyle):
         if self.context.viewport.global_scale != self._dpi:
             baseThemeStyle._compute_for_dpi(self)
         cdef pair[int32_t, theme_value_info] element_content
-        for element_content in self._index_to_value_for_dpi:
+        for element_content in dereference(self._index_to_value_for_dpi):
             if element_content.second.value_type == theme_value_types.t_float:
                 imgui.PushStyleVar(element_content.first, element_content.second.value.value_float)
             else: # t_float2
@@ -2505,7 +2519,7 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
         if self.context.viewport.global_scale != self._dpi:
             baseThemeStyle._compute_for_dpi(self)
         cdef pair[int32_t, theme_value_info] element_content
-        for element_content in self._index_to_value_for_dpi:
+        for element_content in dereference(self._index_to_value_for_dpi):
             if element_content.second.value_type == theme_value_types.t_float:
                 implot.PushStyleVar(element_content.first, element_content.second.value.value_float)
             elif element_content.second.value_type == theme_value_types.t_int:

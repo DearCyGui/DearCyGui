@@ -7088,7 +7088,7 @@ cdef class SharedFloatVect(SharedValue):
         self._value =  cython_array(shape=(len(value),), itemsize=4, format='f')
         # Copy values into array
         cdef size_t i
-        for i in range(len(value)):
+        for i in range(<size_t>len(value)):
             self._value[i] = value[i]
         self._num_attached = 0
 
