@@ -14,6 +14,101 @@ cdef extern from * nogil:
         bool constrained_success;
     };
 
+    // Exact copy from Contrainautor:
+    static double orient2d(double ax, double ay, double bx, double by, double cx, double cy) {
+        return (by - ay) * (cx - bx) - (bx - ax) * (cy - by);
+    }
+
+    // Exact copy from Contrainautor:
+    static bool intersectSegments(
+        double p1x, double p1y, double p2x, double p2y,
+        double p3x, double p3y, double p4x, double p4y) {
+        
+        const double x0 = orient2d(p1x, p1y, p3x, p3y, p4x, p4y);
+        const double y0 = orient2d(p2x, p2y, p3x, p3y, p4x, p4y);
+        
+        if ((x0 > 0 && y0 > 0) || (x0 < 0 && y0 < 0)) {
+            return false;
+        }
+
+        const double x1 = orient2d(p3x, p3y, p1x, p1y, p2x, p2y);
+        const double y1 = orient2d(p4x, p4y, p1x, p1y, p2x, p2y);
+        
+        if ((x1 > 0 && y1 > 0) || (x1 < 0 && y1 < 0)) {
+            return false;
+        }
+
+        if (x0 == 0 && y0 == 0 && x1 == 0 && y1 == 0) {
+            return !(std::max(p3x, p4x) < std::min(p1x, p2x) ||
+                    std::max(p1x, p2x) < std::min(p3x, p4x) ||
+                    std::max(p3y, p4y) < std::min(p1y, p2y) ||
+                    std::max(p1y, p2y) < std::min(p3y, p4y));
+        }
+
+        return true;
+    }
+
+    // Check if the polygon is self-intersecting.
+    // This prevents Constrainautor from getting stuck.
+    static bool hasSelfIntersections(const std::vector<double>& coords) {
+        const size_t num_points = coords.size() / 2;
+        if (num_points < 4) return false; // Triangles cannot self-intersect
+        
+        // Check each edge against all non-adjacent edges
+        for (size_t i = 0; i < num_points; i++) {
+            size_t i_next = (i + 1) % num_points;
+            double p1x = coords[i * 2];
+            double p1y = coords[i * 2 + 1];
+            double p2x = coords[i_next * 2];
+            double p2y = coords[i_next * 2 + 1];
+            
+            // Check against all non-adjacent edges
+            for (size_t j = 0; j < num_points; j++) {
+                size_t j_next = (j + 1) % num_points;
+                
+                // Skip adjacent edges
+                if (i == j || i_next == j || i == j_next || i_next == j_next) {
+                    continue;
+                }
+                
+                // Skip if the segments share an endpoint (already checked by adjacency)
+                double p3x = coords[j * 2];
+                double p3y = coords[j * 2 + 1];
+                double p4x = coords[j_next * 2];
+                double p4y = coords[j_next * 2 + 1];
+                
+                // Use the same intersection test from Constrainautor
+                if (intersectSegments(p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Check if points are too close to each other
+    bool hasDuplicateOrClosePoints(const std::vector<double>& coords, double tolerance = 1e-80) {
+        const size_t num_points = coords.size() / 2;
+        
+        for (size_t i = 0; i < num_points; i++) {
+            size_t next = (i + 1) % num_points;
+            double p1x = coords[i * 2];
+            double p1y = coords[i * 2 + 1];
+            double p2x = coords[next * 2];
+            double p2y = coords[next * 2 + 1];
+            
+            // Check if two adjacent points are too close
+            double dx = p2x - p1x;
+            double dy = p2y - p1y;
+            double distSq = dx*dx + dy*dy;
+            
+            if (distSq < tolerance) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     inline DelaunationResult delaunator_get_triangles(const std::vector<double>& coords) {
         DelaunationResult result;
         result.constrained_success = false;
@@ -30,6 +125,14 @@ cdef extern from * nogil:
 
         // Get hull triangulation (all triangles for now)
         result.hull_triangles = d.triangles;
+
+        // Check for self-intersections and duplications
+        // (required for Constrainautor)
+        if (hasSelfIntersections(coords) || hasDuplicateOrClosePoints(coords)) {
+            result.constrained_success = false;
+            result.polygon_triangles.clear();
+            return result;
+        }
 
         try {
             // Create edge constraints for the polygon from the original coordinate sequence
