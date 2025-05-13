@@ -1450,7 +1450,7 @@ cdef class Slider(uiItem):
         if "logarithmic" in kwargs:
             self.logarithmic = kwargs.pop("logarithmic")
         # baseItem configure will configure the rest.
-        return uiItem.configure(**kwargs)
+        return uiItem.configure(self, **kwargs)
 
     @property
     def format(self):
@@ -2198,7 +2198,7 @@ cdef class InputText(uiItem):
         """
         if 'max_characters' in kwargs:
             self.max_characters = kwargs.pop('max_characters')
-        return uiItem.configure(**kwargs)
+        return uiItem.configure(self, **kwargs)
 
     @property
     def hint(self):
@@ -2736,7 +2736,7 @@ cdef class InputValue(uiItem):
         if "size" in kwargs:
             self.size = kwargs.pop("size")
         # baseItem configure will configure the rest.
-        return uiItem.configure(**kwargs)
+        return uiItem.configure(self, **kwargs)
 
     @property
     def format(self):
