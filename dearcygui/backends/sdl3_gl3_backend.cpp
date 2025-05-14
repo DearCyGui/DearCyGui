@@ -828,6 +828,8 @@ void SDLViewport::processEvents(int timeout_ms) {
                 case SDL_EVENT_WINDOW_FOCUS_LOST:
                 case SDL_EVENT_WINDOW_MOVED:
                 case SDL_EVENT_MOUSE_MOTION:
+                    activityDetected.store(true);
+                    break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 case SDL_EVENT_MOUSE_BUTTON_UP:
                 case SDL_EVENT_MOUSE_WHEEL:
@@ -835,7 +837,7 @@ void SDLViewport::processEvents(int timeout_ms) {
                 case SDL_EVENT_TEXT_INPUT:
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
-                    activityDetected.store(true);
+                    needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
                     isFullScreen = true;
