@@ -79,6 +79,7 @@ and the t_draw_elli* functions
 from libc.stdint cimport uint32_t, int32_t
 
 from .core cimport Context
+from .texture cimport Texture, Pattern
 from .c_types cimport Vec2, Vec4
 
 ### Drawing helpers ###
@@ -97,6 +98,7 @@ cdef void draw_polygon(Context context,
                        int inner_points_count,
                        const uint32_t* indices,
                        int indices_count, 
+                       Pattern pattern,
                        uint32_t outline_color,
                        uint32_t fill_color,
                        float thickness) noexcept nogil
@@ -116,6 +118,7 @@ cdef void draw_polygon(Context context,
         indices: Triangulation indices for the polygon (groups of 3 indices per triangle)
         indices_count: Number of indices (should be a multiple of 3)
         outline_color: Color for the polygon outline (ImU32)
+        pattern: Pattern to use for the polygon outline
         fill_color: Color to fill the polygon with (ImU32)
         thickness: Thickness of the outline in pixels
 
@@ -128,6 +131,7 @@ cdef void draw_polyline(Context context,
                         void* drawlist,
                         const double* points,
                         int points_count,
+                        Pattern pattern,
                         uint32_t color,
                         bint closed,
                         float thickness) noexcept nogil
@@ -139,6 +143,7 @@ cdef void draw_polyline(Context context,
         drawlist_ptr: ImGui draw list to render to
         points: array of points [x0, y0, ..., xn-1, yn-1] defining the polyline in order.
         points_count: number of points n
+        pattern: pattern to use for the lines
         color: Color of the line (ImU32)
         closed: Whether to connect the last point back to the first
         thickness: Thickness of the line in pixels
@@ -151,6 +156,7 @@ cdef void draw_polyline(Context context,
 
 cdef void draw_line(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
+                    Pattern pattern,
                     uint32_t color, float thickness) noexcept nogil
 """
     Draw a line segment between two points.
@@ -160,12 +166,14 @@ cdef void draw_line(Context context, void* drawlist,
         drawlist: ImDrawList to render into
         x1, y1: Starting point coordinates in coordinate space
         x2, y2: Ending point coordinates in coordinate space  
+        pattern: Pattern to use for the line
         color: Line color as 32-bit RGBA value
         thickness: Line thickness in pixels
 """
 
 cdef void draw_triangle(Context context, void* drawlist,
-                        double x1, double y1, double x2, double y2, double x3, double y3,
+                        double x1, double y1, double x2, double y2,
+                        double x3, double y3, Pattern pattern,
                         uint32_t color, uint32_t fill_color,
                         float thickness) noexcept nogil
 """
@@ -177,6 +185,7 @@ cdef void draw_triangle(Context context, void* drawlist,
         x1, y1: First point coordinates in coordinate space
         x2, y2: Second point coordinates in coordinate space  
         x3, y3: Third point coordinates in coordinate space
+        pattern: Pattern to use for the triangle outline
         color: Outline color as 32-bit RGBA value, alpha=0 for no outline
         fill_color: Fill color as 32-bit RGBA value, alpha=0 for no fill
         thickness: Outline thickness in pixels
@@ -184,6 +193,7 @@ cdef void draw_triangle(Context context, void* drawlist,
 
 cdef void draw_rect(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
+                    Pattern pattern,
                     uint32_t color, uint32_t fill_color,
                     float thickness, float rounding) noexcept nogil
 """
@@ -194,6 +204,7 @@ cdef void draw_rect(Context context, void* drawlist,
         drawlist: ImDrawList to render into
         x1, y1: First corner coordinates in coordinate space
         x2, y2: Opposite corner coordinates in coordinate space
+        pattern: Pattern to use for the rectangle outline
         color: Outline color as 32-bit RGBA value, alpha=0 for no outline
         fill_color: Fill color as 32-bit RGBA value, alpha=0 for no fill
         thickness: Outline thickness in pixels
@@ -203,6 +214,7 @@ cdef void draw_rect(Context context, void* drawlist,
 cdef void draw_quad(Context context, void* drawlist,
                     double x1, double y1, double x2, double y2,
                     double x3, double y3, double x4, double y4,
+                    Pattern pattern,
                     uint32_t color, uint32_t fill_color,
                     float thickness) noexcept nogil
 """
@@ -215,6 +227,7 @@ cdef void draw_quad(Context context, void* drawlist,
         x2, y2: Second point coordinates in coordinate space
         x3, y3: Third point coordinates in coordinate space
         x4, y4: Fourth point coordinates in coordinate space
+        pattern: Pattern to use for the quadrilateral outline
         color: Outline color as 32-bit RGBA value, alpha=0 for no outline
         fill_color: Fill color as 32-bit RGBA value, alpha=0 for no fill
         thickness: Outline thickness in pixels
@@ -226,6 +239,7 @@ cdef void draw_quad(Context context, void* drawlist,
 
 cdef void draw_circle(Context context, void* drawlist,
                       double x, double y, double radius,
+                      Pattern pattern,
                       uint32_t color, uint32_t fill_color,
                       float thickness, int32_t num_segments) noexcept nogil
 """
@@ -236,6 +250,7 @@ cdef void draw_circle(Context context, void* drawlist,
         drawlist: ImDrawList to render into
         x, y: Center coordinates in coordinate space
         radius: Circle radius in coordinate space units. Negative for screen space
+        pattern: Pattern to use for the circle outline
         color: Outline color as 32-bit RGBA value 
         fill_color: Fill color as 32-bit RGBA value, alpha=0 for no fill
         thickness: Outline thickness in pixels
@@ -246,7 +261,7 @@ cdef void draw_circle(Context context, void* drawlist,
 cdef void draw_regular_polygon(Context context, void* drawlist,
                                double centerx, double centery,
                                double radius, double direction,  
-                               int32_t num_points,
+                               int32_t num_points, Pattern pattern,
                                uint32_t color, uint32_t fill_color,
                                float thickness) noexcept nogil
 """
@@ -259,6 +274,7 @@ cdef void draw_regular_polygon(Context context, void* drawlist,
         radius: Circle radius that contains the points. Negative for screen space.
         direction: Angle of first point from horizontal axis
         num_points: Number of points. If 0 or 1, draws a circle.
+        pattern: Pattern to use for the polygon outline
         color: Outline color as 32-bit RGBA value, alpha=0 for no outline
         fill_color: Fill color as 32-bit RGBA value, alpha=0 for no fill
         thickness: Outline thickness in pixels
@@ -268,6 +284,7 @@ cdef void draw_star(Context context, void* drawlist,
                     double centerx, double centery, 
                     double radius, double inner_radius,
                     double direction, int32_t num_points,
+                    Pattern pattern,
                     uint32_t color, uint32_t fill_color,
                     float thickness) noexcept nogil
 """
@@ -281,6 +298,7 @@ cdef void draw_star(Context context, void* drawlist,
         inner_radius: Inner circle radius
         direction: Angle of first point from horizontal axis
         num_points: Number of outer points
+        pattern: Pattern to use for the polygon outline
         color: Outline color as 32-bit RGBA value, alpha=0 for no outline
         fill_color: Fill color as 32-bit RGBA value, alpha=0 for no fill
         thickness: Outline thickness in pixels
@@ -493,6 +511,7 @@ cdef void t_draw_polygon(Context context,
                          int inner_points_count,
                          const uint32_t* indices,
                          int indices_count, 
+                         Pattern pattern,
                          uint32_t outline_color,
                          uint32_t fill_color,
                          float thickness) noexcept nogil
@@ -501,32 +520,38 @@ cdef void t_draw_polyline(Context context,
                           void* drawlist_ptr,
                           const float* points,
                           int points_count,
+                          Pattern pattern,
                           uint32_t color,
                           bint closed,
                           float thickness) noexcept nogil
 
 cdef void t_draw_line(Context context, void* drawlist,
                       float x1, float y1, float x2, float y2,
+                      Pattern pattern,
                       uint32_t color, float thickness) noexcept nogil
 
 cdef void t_draw_triangle(Context context, void* drawlist,
-                          float x1, float y1, float x2, float y2, float x3, float y3,
+                          float x1, float y1, float x2, float y2,
+                          float x3, float y3, Pattern pattern,
                           uint32_t color, uint32_t fill_color,
                           float thickness) noexcept nogil
 
 cdef void t_draw_rect(Context context, void* drawlist,
                       float x1, float y1, float x2, float y2,
+                      Pattern pattern,
                       uint32_t color, uint32_t fill_color,
                       float thickness, float rounding) noexcept nogil
 
 cdef void t_draw_quad(Context context, void* drawlist,
                     float x1, float y1, float x2, float y2,
                     float x3, float y3, float x4, float y4, 
+                    Pattern pattern,
                     uint32_t color, uint32_t fill_color,
                     float thickness) noexcept nogil
 
 cdef void t_draw_circle(Context context, void* drawlist,
                       float x, float y, float radius,
+                      Pattern pattern,
                       uint32_t color, uint32_t fill_color,
                       float thickness, int32_t num_segments) noexcept nogil
 
@@ -537,6 +562,7 @@ cdef void t_draw_elliptical_arc(Context context, void* drawlist,
                                 float start_angle, float end_angle,
                                 float rotation,  
                                 int32_t num_points,
+                                Pattern pattern,
                                 uint32_t outline_color,
                                 uint32_t fill_color,
                                 float thickness) noexcept nogil
@@ -564,6 +590,7 @@ cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
                                       float start_angle, float end_angle,
                                       float rotation,  
                                       int32_t num_points,
+                                      Pattern pattern,
                                       uint32_t outline_color,
                                       uint32_t fill_color,
                                       float thickness) noexcept nogil
@@ -592,6 +619,7 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
                                          float start_angle, float end_angle,
                                          float rotation,  
                                          int32_t num_points,
+                                         Pattern pattern,
                                          uint32_t outline_color,
                                          uint32_t fill_color,
                                          float thickness) noexcept nogil
@@ -623,6 +651,7 @@ cdef void t_draw_ellipse(Context context, void* drawlist,
                          float radius_x, float radius_y,
                          float rotation,  
                          int32_t num_points,
+                         Pattern pattern,
                          uint32_t outline_color,
                          uint32_t fill_color,
                          float thickness) noexcept nogil
@@ -647,6 +676,7 @@ cdef void t_draw_elliptical_ring(Context context, void* drawlist,
                                  float inner_radius_x, float inner_radius_y,
                                  float rotation,  
                                  int32_t num_points,
+                                 Pattern pattern,
                                  uint32_t outline_color,
                                  uint32_t fill_color,
                                  float thickness) noexcept nogil
@@ -674,6 +704,7 @@ cdef void t_draw_regular_polygon(Context context, void* drawlist,
                                  float centerx, float centery,
                                  float radius, float direction,  
                                  int32_t num_points,
+                                 Pattern pattern,
                                  uint32_t color, uint32_t fill_color,
                                  float thickness) noexcept nogil
 
@@ -681,6 +712,7 @@ cdef void t_draw_star(Context context, void* drawlist,
                       float centerx, float centery, 
                       float radius, float inner_radius,
                       float direction, int32_t num_points,
+                      Pattern pattern,
                       uint32_t color, uint32_t fill_color,
                       float thickness) noexcept nogil
 
@@ -762,6 +794,7 @@ cdef void t_draw_polygon_outline(Context context,
                                  const float* points,
                                  int points_count,
                                  const float* normals,
+                                 Pattern pattern,
                                  uint32_t color,
                                  float thickness,
                                  bint closed) noexcept nogil
@@ -775,6 +808,7 @@ cdef void t_draw_polygon_outline(Context context,
         points: array of points [x0, y0, ..., xn-1, yn-1]
         points_count: number of points n
         normals: array of normals [dx0, dy0, ..., dxn-1, dyn-1] for each point
+        pattern: The outline pattern (None for solid)
         color: color of the outline
         thickness: thickness of the outline
         closed: Whether the last point of the outline is

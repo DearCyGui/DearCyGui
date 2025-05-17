@@ -42,7 +42,7 @@ cdef int compute_ellipse_num_segments(float radiusx,
     num_segments = <int>(base_segments * angle_factor * eccentricity_factor + 0.5)
     
     # Ensure minimum number of segments
-    num_segments = min(max(3, num_segments), 50)
+    num_segments = min(max(3, num_segments), 200)
     return num_segments
 
 cdef extern from * nogil:

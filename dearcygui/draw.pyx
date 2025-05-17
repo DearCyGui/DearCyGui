@@ -594,6 +594,23 @@ cdef class DrawArc(drawingItem):
         self._thickness = value
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
+    @property
     def color(self):
         """
         Color of the arc outline.
@@ -735,6 +752,7 @@ cdef class DrawArc(drawingItem):
                                radius_y,
                                self._rotation,
                                0,
+                               self._pattern,
                                self._color,
                                self._fill,
                                thickness)
@@ -750,6 +768,7 @@ cdef class DrawArc(drawingItem):
                                        inner_radius_y,
                                        self._rotation,
                                        0,
+                                       self._pattern,
                                        self._color,
                                        self._fill,
                                        thickness)
@@ -765,6 +784,7 @@ cdef class DrawArc(drawingItem):
                                   end_angle,
                                   self._rotation,
                                   0,
+                                  self._pattern,
                                   self._color,
                                   self._fill,
                                   thickness)
@@ -780,6 +800,7 @@ cdef class DrawArc(drawingItem):
                                         end_angle,
                                         self._rotation,
                                         0,
+                                        self._pattern,
                                         self._color,
                                         self._fill,
                                         thickness)
@@ -797,6 +818,7 @@ cdef class DrawArc(drawingItem):
                                            end_angle,
                                            self._rotation,
                                            0,
+                                           self._pattern,
                                            self._color,
                                            self._fill,
                                            thickness)
@@ -853,6 +875,23 @@ cdef class DrawArrow(drawingItem):
         lock_gil_friendly(m, self.mutex)
         read_coord(self._start, value)
         self.__compute_tip()
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
 
     @property
     def color(self):
@@ -939,7 +978,7 @@ cdef class DrawArrow(drawingItem):
                         y1 - 0.5 * self._size * sin((M_PI / 2.0) - angle)]
 
     cdef void draw(self,
-                   void* drawlist) noexcept nogil:
+                   void* drawlist) noexcept nogil: # TODO pattern
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
@@ -1047,6 +1086,23 @@ cdef class DrawBezierCubic(drawingItem):
         read_coord(self._p4, value)
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
+    @property
     def color(self):
         """
         Color of the Bezier curve.
@@ -1100,7 +1156,7 @@ cdef class DrawBezierCubic(drawingItem):
         self._segments = max(0, value)
 
     cdef void draw(self,
-                   void* drawlist) noexcept nogil:
+                   void* drawlist) noexcept nogil: # TODO pattern
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
@@ -1188,6 +1244,23 @@ cdef class DrawBezierQuadratic(drawingItem):
         read_coord(self._p3, value)
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
+    @property
     def color(self):
         """
         Color of the Bezier curve.
@@ -1241,7 +1314,7 @@ cdef class DrawBezierQuadratic(drawingItem):
         self._segments = max(0, value)
 
     cdef void draw(self,
-                   void* drawlist) noexcept nogil:
+                   void* drawlist) noexcept nogil: # TODO pattern
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
@@ -1314,6 +1387,23 @@ cdef class DrawCircle(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._radius = value
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
 
     @property
     def color(self):
@@ -1400,6 +1490,7 @@ cdef class DrawCircle(drawingItem):
             self._center[0],
             self._center[1],
             get_scaled_radius(self.context, self._radius),
+            self._pattern,
             self._color,
             self._fill,
             get_scaled_thickness(self.context, self._thickness),
@@ -1430,6 +1521,7 @@ cdef class DrawEllipse(drawingItem):
         self._fill = 0
         self._thickness = 1.
         self._segments = 0
+
     @property
     def pmin(self):
         """
@@ -1446,6 +1538,7 @@ cdef class DrawEllipse(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmin, value)
+
     @property
     def pmax(self):
         """
@@ -1462,6 +1555,24 @@ cdef class DrawEllipse(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmax, value)
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
     @property
     def color(self):
         """
@@ -1480,6 +1591,7 @@ cdef class DrawEllipse(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
+
     @property
     def fill(self):
         """
@@ -1498,6 +1610,7 @@ cdef class DrawEllipse(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._fill = parse_color(value)
+
     @property
     def thickness(self):
         """
@@ -1514,6 +1627,7 @@ cdef class DrawEllipse(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
+
     @property
     def segments(self):
         """
@@ -1556,6 +1670,7 @@ cdef class DrawEllipse(drawingItem):
                        radius_y,
                        0.,
                        self._segments,
+                       self._pattern,
                        self._color,
                        self._fill,
                        thickness)
@@ -2223,6 +2338,23 @@ cdef class DrawLine(drawingItem):
                 )
 
     @property
+    def pattern(self):
+        """
+        Pattern of the line.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
+    @property
     def color(self):
         """
         Color of the line.
@@ -2288,6 +2420,7 @@ cdef class DrawLine(drawingItem):
             p1[1],
             p2[0],
             p2[1],
+            self._pattern,
             self._color,
             get_scaled_thickness(self.context, self._thickness)
         )
@@ -2333,6 +2466,23 @@ cdef class DrawPolyline(drawingItem):
         for i in range(len(value)):
             read_coord(p.p, value[i])
             self._points.push_back(p)
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the lines.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
 
     @property
     def color(self):
@@ -2405,7 +2555,8 @@ cdef class DrawPolyline(drawingItem):
         for i in range(num_points):
             self.context.viewport.coordinate_to_screen(&ipoints_p[2*i], self._points[i].p)
 
-        t_draw_polyline(self.context, drawlist, ipoints.data(), num_points, <imgui.ImU32>self._color, self._closed, thickness)
+        t_draw_polyline(self.context, drawlist, ipoints.data(), num_points,
+                        self._pattern, self._color, self._closed, thickness)
 
 cdef class DrawPolygon(drawingItem):
     """
@@ -2453,6 +2604,23 @@ cdef class DrawPolygon(drawingItem):
             read_coord(p.p, value[i])
             self._points.push_back(p)
         self._triangulate()
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
 
     @property
     def color(self):
@@ -2631,7 +2799,8 @@ cdef class DrawPolygon(drawingItem):
                 self.context,
                 drawlist, 
                 ipoints.data(), 
-                num_points, 
+                num_points,
+                self._pattern,
                 <imgui.ImU32>self._color, 
                 True, 
                 thickness
@@ -2648,6 +2817,7 @@ cdef class DrawPolygon(drawingItem):
             0,
             triangulation_ptr.data(), 
             <int>triangulation_ptr.size(), 
+            self._pattern,
             self._color, 
             self._fill, 
             thickness
@@ -2737,6 +2907,23 @@ cdef class DrawQuad(drawingItem):
         read_coord(self._p4, value)
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
+    @property
     def color(self):
         """
         Color of the quadrilateral outline.
@@ -2809,6 +2996,7 @@ cdef class DrawQuad(drawingItem):
             self._p3[1],
             self._p4[0],
             self._p4[1],
+            self._pattern,
             self._color,
             self._fill,
             get_scaled_thickness(self.context, self._thickness)
@@ -2873,6 +3061,23 @@ cdef class DrawRect(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._pmax, value)
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
 
     @property
     def color(self):
@@ -3039,7 +3244,7 @@ cdef class DrawRect(drawingItem):
         self._rounding = value
 
     cdef void draw(self,
-                   void* drawlist) noexcept nogil:
+                   void* drawlist) noexcept nogil: # TODO: pattern
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
@@ -3196,7 +3401,24 @@ cdef class DrawRegularPolygon(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._num_points = value
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
         
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
     @property
     def color(self):
         """
@@ -3266,7 +3488,8 @@ cdef class DrawRegularPolygon(drawingItem):
             self._center[1],
             get_scaled_radius(self.context, self._radius),
             self._direction,
-            self._num_points, 
+            self._num_points,
+            self._pattern,
             self._color, 
             self._fill,
             get_scaled_thickness(self.context, self._thickness)
@@ -3382,6 +3605,23 @@ cdef class DrawStar(drawingItem):
         self._num_points = value
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
+    @property
     def color(self):
         """
         Color of the star outline.
@@ -3450,7 +3690,8 @@ cdef class DrawStar(drawingItem):
             get_scaled_radius(self.context, self._radius),
             get_scaled_radius(self.context, self._inner_radius),
             self._direction,
-            self._num_points, 
+            self._num_points,
+            self._pattern,
             self._color, 
             self._fill, 
             get_scaled_thickness(self.context, self._thickness)
@@ -3650,6 +3891,23 @@ cdef class DrawTriangle(drawingItem):
         read_coord(self._p3, value)
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+        
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._pattern
+    @pattern.setter
+    def pattern(self, Pattern value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._pattern = value
+
+    @property
     def color(self):
         """
         Color of the triangle outline.
@@ -3719,7 +3977,8 @@ cdef class DrawTriangle(drawingItem):
             self._p2[0],
             self._p2[1],
             self._p3[0],
-            self._p3[1], 
+            self._p3[1],
+            self._pattern,
             self._color, 
             self._fill, 
             get_scaled_thickness(self.context, self._thickness)

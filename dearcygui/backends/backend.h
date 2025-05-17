@@ -191,7 +191,7 @@ public:
      * @param num_chans Number of color channels (1-4)
      * @param dynamic Whether texture will be frequently updated
      * @param type Pixel data type (1=byte, other=float)
-     * @param filtering_mode Texture filtering (0=linear, 1=nearest, 2=font)
+     * @param filtering_mode Texture filtering (0=linear, 1=nearest, 2=font, 3=antialias)
      * @param repeat_mode Texture repeat mode flag (0=clamp, 1=repeat on x, 2=repeat on y, 3=repeat on both)
      * @return void* Cast of GLuint texture ID, or nullptr on failure
      */
@@ -279,6 +279,8 @@ private:
     // GL extension support flags
     bool has_texture_storage = false;
     bool has_buffer_storage = false;
+    bool has_anisotropic_filter = false;
+    float max_anisotropy = 1.0f;
 
     // Fence management
     struct FenceSync {

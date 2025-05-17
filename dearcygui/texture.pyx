@@ -15,6 +15,7 @@
 #distutils: language=c++
 
 from libc.stdint cimport uint8_t, uintptr_t, int32_t
+from libc.string cimport memset
 
 from cython.view cimport array as cython_array
 from cython.operator cimport dereference
@@ -90,7 +91,33 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._hint_dynamic = value
+
+    @property
+    def antialiased(self):
+        """
+        Whether this texture uses mipmapping with anisotropic filtering for antialiasing.
         
+        When True, the texture will use mipmaps and anisotropic filtering
+        to create smoother patterns when viewed at different angles and scales.
+        This is particularly useful for line patterns to prevent aliasing.
+
+        This setting is not compatible with nearest_neighbor_upsampling.
+
+        This should be set before uploading texture data.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return True if self._filtering_mode == 3 else False
+        
+    @antialiased.setter
+    def antialiased(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value:
+            self._filtering_mode = 3
+        elif self._filtering_mode == 3:
+            self._filtering_mode = 0  # Reset to default filtering
+
     @property
     def nearest_neighbor_upsampling(self):
         """
@@ -552,3 +579,763 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.c_gl_end_write()
+
+
+cdef class Pattern(baseItem):
+    """
+    Defines a repeating pattern for outlining shapes.
+    
+    A pattern consists of a texture that gets sampled along the outline path,
+    with configurable sampling behavior. The texture is applied in GL_REPEAT mode.
+    
+    The x-coordinate of the texture is sampled along the path of the outline,
+    while the y-coordinate is sampled across the width of the outline (from
+    interior to exterior).
+    """
+
+    def __cinit__(self):
+        self._texture = None
+        self._x_mode = 0  # default to points mode
+        self._scale_factor = 1.0
+        self._screen_space = False
+
+    @property
+    def texture(self):
+        """
+        Texture to use for the pattern.
+        
+        This texture will be sampled along the outline of the shape.
+        The texture should have wrap_x set to True to enable repetition.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._texture
+
+    @texture.setter
+    def texture(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if not(isinstance(value, Texture)) and value is not None:
+            raise TypeError("texture must be a Texture object or None")
+        self._texture = value
+
+    @property
+    def x_mode(self):
+        """
+        How to sample the x-coordinate of the texture.
+        
+        'points': x goes from 0 to 1 between each point in the outline
+        'length': x increases linearly with the length of the path in pixels
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return "points" if self._x_mode == 0 else "length"
+
+    @x_mode.setter
+    def x_mode(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value == "points":
+            self._x_mode = 0
+        elif value == "length":
+            self._x_mode = 1
+        else:
+            raise ValueError("x_mode must be 'points' or 'length'")
+
+    @property
+    def scale_factor(self):
+        """
+        Scaling factor for the pattern repetition.
+        
+        For 'points' mode: controls how many repetitions per segment
+        For 'length' mode: controls how many repetitions per pixel
+
+        Note scale_factor must be positive, but can be float.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._scale_factor
+
+    @scale_factor.setter
+    def scale_factor(self, float value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value <= 0:
+            raise ValueError("scale_factor must be positive")
+        self._scale_factor = value
+
+    @property
+    def screen_space(self):
+        """
+        Whether the 'length' mode is in screen space (pixels) or coordinate space.
+        
+        When True, the number of pattern repetitions depends on the zoom level,
+           but the visual effect of the pattern is invariant of zoom.
+        When False, the number of pattern repetitions is invariant of zoom.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._screen_space
+
+    @screen_space.setter
+    def screen_space(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._screen_space = value
+
+    # Base factory method
+    @staticmethod
+    def from_array(context, array, int32_t upscale_factor=1, bint antialiased=True, **kwargs):
+        """
+        Creates a pattern from a provided array with optional upscaling.
+        
+        The upscaling maintains the sharp edges of the original pattern, while the
+        mipmapping system handles antialiasing when the pattern is displayed at
+        different scales.
+        
+        Args:
+            context: The DearCyGui context
+            array: Source array defining the pattern (1D or 2D with 4th dimension as RGBA)
+            upscale_factor: Integer factor to upscale the pattern (must be >= 1)
+            antialiased: Whether to enable mipmapping for antialiasing
+            **kwargs: Additional arguments passed to Pattern constructor
+        
+        Returns:
+            Pattern: A pattern using the provided array data
+        """
+        if upscale_factor < 1:
+            raise ValueError("upscale_factor must be at least 1")
+        
+        cdef Pattern pattern = Pattern(context, **kwargs)
+        cdef cpython.Py_buffer buf_info
+        cdef bint buffer_acquired = False
+        cdef cython_array upscaled_arr
+        cdef Texture texture
+        cdef int32_t ndim
+        cdef int32_t src_height = 1
+        cdef int32_t src_width = 1
+        cdef int32_t num_chans = 1
+        cdef int32_t stride = 1
+        cdef int32_t col_stride
+        cdef int32_t chan_stride
+        cdef int32_t dst_width
+        cdef int32_t dst_height
+        cdef uint8_t[:,:,:] upscaled_view
+        cdef int32_t dst_x, dst_y, chan
+        cdef int32_t src_x, src_y
+        cdef float val_float
+        cdef uint8_t val_uint8
+        cdef uint8_t* src_ptr
+        cdef unsigned char* src_byte_ptr
+        cdef bint is_uint8
+        cdef bint is_float32
+        
+        pattern._x_mode = 1  # "length" mode
+        
+        try:
+            if cpython.PyObject_GetBuffer(array, &buf_info, cpython.PyBUF_RECORDS_RO) < 0:
+                raise TypeError("Failed to retrieve buffer information")
+            buffer_acquired = True
+            
+            ndim = buf_info.ndim
+            if ndim > 3 or ndim == 0:
+                raise ValueError("Invalid number of dimensions")
+            
+            col_stride = buf_info.itemsize
+            chan_stride = buf_info.itemsize
+            
+            if ndim >= 1:
+                src_height = buf_info.shape[0]
+                stride = buf_info.strides[0]
+            if ndim >= 2:
+                src_width = buf_info.shape[1]
+                col_stride = buf_info.strides[1]
+            if ndim >= 3:
+                num_chans = buf_info.shape[2]
+                chan_stride = buf_info.strides[2]
+            if num_chans > 4:
+                raise ValueError("Invalid number of channels, must be 1, 2, 3, or 4")
+            
+            # Calculate dimensions of upscaled texture
+            dst_width = src_width * upscale_factor
+            dst_height = src_height * upscale_factor
+            
+            # Create destination array with appropriate dimensions
+            upscaled_arr = cython_array(
+                shape=(dst_height, dst_width, 4), 
+                itemsize=1, 
+                format='B', 
+                mode='c', 
+                allocate_buffer=True
+            )
+            
+            upscaled_view = upscaled_arr
+            is_uint8 = buf_info.format[0] == b'B'
+            is_float32 = buf_info.format[0] == b'f'
+            
+            if not (is_uint8 or is_float32):
+                raise ValueError("Unsupported buffer format, expected uint8 or float32")
+            
+            # Perform nearest-neighbor upscaling
+            for dst_y in range(dst_height):
+                src_y = dst_y // upscale_factor
+                for dst_x in range(dst_width):
+                    src_x = dst_x // upscale_factor
+                    
+                    # Initialize to transparent black
+                    upscaled_view[dst_y, dst_x, 0] = 0
+                    upscaled_view[dst_y, dst_x, 1] = 0
+                    upscaled_view[dst_y, dst_x, 2] = 0
+                    upscaled_view[dst_y, dst_x, 3] = 0
+                    
+                    # 1D array case (single row)
+                    if ndim == 1 and src_y == 0:
+                        if is_uint8:
+                            src_ptr = <uint8_t*>buf_info.buf + src_x * stride
+                            upscaled_view[dst_y, dst_x, 0] = src_ptr[0]
+                            upscaled_view[dst_y, dst_x, 1] = src_ptr[0]
+                            upscaled_view[dst_y, dst_x, 2] = src_ptr[0]
+                            upscaled_view[dst_y, dst_x, 3] = 255
+                        elif is_float32:
+                            src_byte_ptr = <unsigned char*>buf_info.buf + src_x * stride
+                            val_float = dereference(<float*>src_byte_ptr)
+                            val_uint8 = <uint8_t>max(0, min(255, int(val_float * 255)))
+                            upscaled_view[dst_y, dst_x, 0] = val_uint8
+                            upscaled_view[dst_y, dst_x, 1] = val_uint8
+                            upscaled_view[dst_y, dst_x, 2] = val_uint8
+                            upscaled_view[dst_y, dst_x, 3] = 255
+                    
+                    # 2D or 3D array case
+                    elif ndim >= 2:
+                        if is_uint8:
+                            src_ptr = <uint8_t*>buf_info.buf + src_y * stride + src_x * col_stride
+                            
+                            # Handle different channel counts
+                            if num_chans == 1:  # Grayscale
+                                upscaled_view[dst_y, dst_x, 0] = src_ptr[0]
+                                upscaled_view[dst_y, dst_x, 1] = src_ptr[0]
+                                upscaled_view[dst_y, dst_x, 2] = src_ptr[0]
+                                upscaled_view[dst_y, dst_x, 3] = 255
+                            elif num_chans == 2:  # Grayscale + Alpha
+                                upscaled_view[dst_y, dst_x, 0] = src_ptr[0]
+                                upscaled_view[dst_y, dst_x, 1] = src_ptr[0]
+                                upscaled_view[dst_y, dst_x, 2] = src_ptr[0]
+                                upscaled_view[dst_y, dst_x, 3] = src_ptr[chan_stride]
+                            elif num_chans == 3:  # RGB
+                                upscaled_view[dst_y, dst_x, 0] = src_ptr[0]
+                                upscaled_view[dst_y, dst_x, 1] = src_ptr[chan_stride]
+                                upscaled_view[dst_y, dst_x, 2] = src_ptr[2 * chan_stride]
+                                upscaled_view[dst_y, dst_x, 3] = 255
+                            elif num_chans >= 4:  # RGBA
+                                upscaled_view[dst_y, dst_x, 0] = src_ptr[0]
+                                upscaled_view[dst_y, dst_x, 1] = src_ptr[chan_stride]
+                                upscaled_view[dst_y, dst_x, 2] = src_ptr[2 * chan_stride]
+                                upscaled_view[dst_y, dst_x, 3] = src_ptr[3 * chan_stride]
+                        
+                        elif is_float32:
+                            src_byte_ptr = <unsigned char*>buf_info.buf + src_y * stride + src_x * col_stride
+                            
+                            # Handle different channel counts
+                            if num_chans == 1:  # Grayscale
+                                val_float = dereference(<float*>src_byte_ptr)
+                                val_uint8 = <uint8_t>max(0, min(255, int(val_float * 255)))
+                                upscaled_view[dst_y, dst_x, 0] = val_uint8
+                                upscaled_view[dst_y, dst_x, 1] = val_uint8
+                                upscaled_view[dst_y, dst_x, 2] = val_uint8
+                                upscaled_view[dst_y, dst_x, 3] = 255
+                            elif num_chans == 2:  # Grayscale + Alpha
+                                val_float = dereference(<float*>src_byte_ptr)
+                                val_uint8 = <uint8_t>max(0, min(255, int(val_float * 255)))
+                                upscaled_view[dst_y, dst_x, 0] = val_uint8
+                                upscaled_view[dst_y, dst_x, 1] = val_uint8
+                                upscaled_view[dst_y, dst_x, 2] = val_uint8
+                                
+                                val_float = dereference(<float*>(src_byte_ptr + chan_stride))
+                                upscaled_view[dst_y, dst_x, 3] = <uint8_t>max(0, min(255, int(val_float * 255)))
+                            elif num_chans == 3:  # RGB
+                                for chan in range(3):
+                                    val_float = dereference(<float*>(src_byte_ptr + chan * chan_stride))
+                                    upscaled_view[dst_y, dst_x, chan] = <uint8_t>max(0, min(255, int(val_float * 255)))
+                                upscaled_view[dst_y, dst_x, 3] = 255
+                            elif num_chans >= 4:  # RGBA
+                                for chan in range(4):
+                                    val_float = dereference(<float*>(src_byte_ptr + chan * chan_stride))
+                                    upscaled_view[dst_y, dst_x, chan] = <uint8_t>max(0, min(255, int(val_float * 255)))
+            
+            # Create and configure texture
+            texture = Texture(context)
+            texture.wrap_x = True
+                
+            # Enable antialiasing via mipmapping
+            texture.antialiased = antialiased
+            
+            # Set texture data
+            texture.set_value(upscaled_arr)
+            
+            # Configure pattern
+            pattern.texture = texture
+            pattern.scale_factor = 1.0 / dst_width
+            
+            return pattern
+        
+        finally:
+            # Clean up buffer regardless of success or failure
+            if buffer_acquired:
+                cpython.PyBuffer_Release(&buf_info)
+
+    # Factory methods for common patterns
+    @staticmethod
+    def solid(context, **kwargs):
+        """
+        Creates a solid line pattern (no pattern).
+
+        This is equivalent to not using a pattern at all.
+
+        Args:
+            context: The DearCyGui context
+
+        Returns:
+            Pattern: A solid pattern
+        """
+        pattern = Pattern(context, **kwargs)
+
+        # Create a solid white 1x1 texture using cython array with uint8
+        texture = Texture(context)
+        cdef cython_array arr = \
+            cython_array(shape=(1, 1, 4), itemsize=1,
+                         format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        arr_view[0, 0, 0] = 255
+        arr_view[0, 0, 1] = 255
+        arr_view[0, 0, 2] = 255
+        arr_view[0, 0, 3] = 255
+        texture.set_value(arr)
+        pattern.texture = texture
+        return pattern
+
+    @staticmethod
+    def dashed(context, int32_t dash_length=10, int32_t gap_length=10,
+               int32_t upscale_factor=32, bint opaque=False, **kwargs):
+        """
+        Creates a dashed line pattern.
+
+        Args:
+            context: The DearCyGui context
+            dash_length: Length of the dash in pixels
+            gap_length: Length of the gap in pixels
+            upscale_factor: Upscaling factor for the pattern
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A dashed line pattern
+        """
+        # Create a texture with dash_length white followed by gap_length transparent
+        cdef int32_t width = dash_length + gap_length
+        cdef cython_array arr = \
+            cython_array(shape=(1, width, 4), itemsize=1,
+                         format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        cdef int32_t x
+
+        if opaque:
+            # Set everything to black and opaque
+            for x in range(width):
+                arr_view[0, x, 0] = 0
+                arr_view[0, x, 1] = 0
+                arr_view[0, x, 2] = 0
+                arr_view[0, x, 3] = 255
+        else:
+            # Initialize to transparent black
+            memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
+
+        # Set dash section to white (255)
+        for x in range(dash_length):
+            arr_view[0, x, 0] = 255
+            arr_view[0, x, 1] = 255
+            arr_view[0, x, 2] = 255
+            arr_view[0, x, 3] = 255
+
+        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+    @staticmethod
+    def dotted(context, int32_t dot_size=2, int32_t spacing=8,
+               int32_t upscale_factor=64, bint opaque=False, **kwargs):
+        """
+        Creates a dotted line pattern.
+
+        Args:
+            context: The DearCyGui context
+            dot_size: Size of each dot in pixels
+            spacing: Total spacing between dots in pixels
+            upscale_factor: Upscaling factor for the pattern
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A dotted line pattern
+        """
+        # Create a texture with a dot and spacing
+        cdef int32_t width = max(dot_size + spacing, 2)
+        cdef cython_array arr = \
+            cython_array(shape=(1, width, 4), itemsize=1,
+                         format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        cdef int32_t x
+
+        if opaque:
+            # Set everything to black and opaque
+            for x in range(width):
+                arr_view[0, x, 0] = 0
+                arr_view[0, x, 1] = 0
+                arr_view[0, x, 2] = 0
+                arr_view[0, x, 3] = 255
+        else:
+            # Initialize to transparent black
+            memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
+
+        # Set dot section to white (255)
+        for x in range(dot_size):
+            arr_view[0, x, 0] = 255
+            arr_view[0, x, 1] = 255
+            arr_view[0, x, 2] = 255
+            arr_view[0, x, 3] = 255
+
+        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+    @staticmethod
+    def dash_dot(context, int32_t dash_length=10, int32_t dot_size=2,
+                 int32_t spacing=5, int32_t upscale_factor=64,
+                 bint opaque=False, **kwargs):
+        """
+        Creates a dash-dot-dash pattern (commonly used in technical drawings).
+
+        Args:
+            context: The DearCyGui context
+            dash_length: Length of each dash in pixels
+            dot_size: Size of each dot in pixels
+            spacing: Spacing between elements in pixels
+            upscale_factor: Upscaling factor for the pattern
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A dash-dot pattern
+        """
+        # Create pattern: dash - space - dot - space
+        cdef int32_t width = dash_length + spacing + dot_size + spacing
+        cdef cython_array arr = \
+            cython_array(shape=(1, width, 4), itemsize=1,
+                         format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        cdef int32_t x
+
+        if opaque:
+            # Set everything to black and opaque
+            for x in range(width):
+                arr_view[0, x, 0] = 0
+                arr_view[0, x, 1] = 0
+                arr_view[0, x, 2] = 0
+                arr_view[0, x, 3] = 255
+        else:
+            # Initialize to transparent black
+            memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
+
+        # Set dash section
+        for x in range(dash_length):
+            arr_view[0, x, 0] = 255
+            arr_view[0, x, 1] = 255
+            arr_view[0, x, 2] = 255
+            arr_view[0, x, 3] = 255
+
+        # Set dot section
+        for x in range(dot_size):
+            arr_view[0, dash_length + spacing + x, 0] = 255
+            arr_view[0, dash_length + spacing + x, 1] = 255
+            arr_view[0, dash_length + spacing + x, 2] = 255
+            arr_view[0, dash_length + spacing + x, 3] = 255
+
+        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+    @staticmethod
+    def dash_dot_dot(context, int32_t dash_length=10, int32_t dot_size=2,
+                     int32_t spacing=5, int32_t upscale_factor=64,
+                     bint opaque=False, **kwargs):
+        """
+        Creates a dash-dot-dot pattern with one dash followed by two dots.
+
+        Args:
+            context: The DearCyGui context
+            dash_length: Length of the dash in pixels
+            dot_size: Size of each dot in pixels
+            spacing: Spacing between elements in pixels
+            upscale_factor: Upscaling factor for the pattern
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A dash-dot-dot pattern
+        """
+        # Create pattern: dash - space - dot - space - dot - space
+        cdef int32_t width = dash_length + spacing + dot_size + spacing + dot_size + spacing
+        cdef cython_array arr = \
+            cython_array(shape=(1, width, 4), itemsize=1,
+                         format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        cdef int32_t x
+
+        if opaque:
+            # Set everything to black and opaque
+            for x in range(width):
+                arr_view[0, x, 0] = 0
+                arr_view[0, x, 1] = 0
+                arr_view[0, x, 2] = 0
+                arr_view[0, x, 3] = 255
+        else:
+            # Initialize to transparent black
+            memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
+
+        # Set dash section
+        for x in range(dash_length):
+            arr_view[0, x, 0] = 255
+            arr_view[0, x, 1] = 255
+            arr_view[0, x, 2] = 255
+            arr_view[0, x, 3] = 255
+
+        # Set first dot
+        for x in range(dot_size):
+            arr_view[0, dash_length + spacing + x, 0] = 255
+            arr_view[0, dash_length + spacing + x, 1] = 255
+            arr_view[0, dash_length + spacing + x, 2] = 255
+            arr_view[0, dash_length + spacing + x, 3] = 255
+
+        # Set second dot
+        for x in range(dot_size):
+            arr_view[0, dash_length + spacing + dot_size + spacing + x, 0] = 255
+            arr_view[0, dash_length + spacing + dot_size + spacing + x, 1] = 255
+            arr_view[0, dash_length + spacing + dot_size + spacing + x, 2] = 255
+            arr_view[0, dash_length + spacing + dot_size + spacing + x, 3] = 255
+
+        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+    @staticmethod
+    def zigzag(context, int32_t width=20, int32_t height=20,
+               int32_t thickness=4, int32_t upscale_factor=8,
+               bint opaque=False, **kwargs):
+        """
+        Creates a zigzag pattern.
+
+        Args:
+            context: The DearCyGui context
+            width: Width of the zigzag cycle in pixels
+            height: Height of the zigzag in pixels
+            thickness: Thickness of the zigzag line in pixels
+            upscale_factor: Factor to upscale the pattern for better quality (default: 8)
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A zigzag pattern
+        """
+        cdef int32_t half_width = width // 2
+        cdef int32_t padded_height = height + thickness  # Add padding for the thickness
+        cdef cython_array arr = \
+            cython_array(shape=(padded_height, width, 4), itemsize=1,
+                        format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        cdef int32_t x, ty, tx
+        cdef int32_t half_thickness = thickness // 2
+        cdef int32_t path_y
+
+        if opaque:
+            # Set everything to black and opaque
+            for x in range(width):
+                arr_view[0, x, 0] = 0
+                arr_view[0, x, 1] = 0
+                arr_view[0, x, 2] = 0
+                arr_view[0, x, 3] = 255
+        else:
+            # Initialize to transparent black
+            memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
+
+        # Draw thicker zigzag by filling pixels around the path
+        for x in range(width):
+            # Calculate the y-coordinate of the main zigzag path
+            if x < half_width:
+                path_y = height - int((x * height) / half_width)
+            else:
+                path_y = int(((x - half_width) * height) / half_width)
+            
+            # Draw a "thickness" wide line centered on the path
+            for ty in range(max(0, path_y - half_thickness), min(padded_height, path_y + half_thickness + 1)):
+                for tx in range(max(0, x - half_thickness), min(width, x + half_thickness + 1)):
+                    # Calculate distance from path (simple approximation)
+                    if abs(tx - x) + abs(ty - path_y) <= thickness:
+                        arr_view[ty, tx, 0] = 255
+                        arr_view[ty, tx, 1] = 255
+                        arr_view[ty, tx, 2] = 255
+                        arr_view[ty, tx, 3] = 255
+
+        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+    @staticmethod
+    def railroad(context, int32_t track_width=4, int32_t tie_width=10,
+                 int32_t tie_spacing=10, upscale_factor=64,
+                 bint opaque=False, **kwargs):
+        """
+        Creates a railroad track pattern with parallel lines and perpendicular ties.
+
+        Args:
+            context: The DearCyGui context
+            track_width: Width between the parallel lines in pixels
+            tie_width: Width of the perpendicular ties in pixels
+            tie_spacing: Spacing between ties in pixels
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A railroad track pattern
+        """
+        cdef int32_t width = tie_width + tie_spacing
+        cdef int32_t height = track_width + 2  # +2 for the tracks
+        cdef cython_array arr = \
+            cython_array(shape=(height, width, 4), itemsize=1,
+                         format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        cdef int32_t x, y
+
+        if opaque:
+            # Set everything to black and opaque
+            for x in range(width):
+                arr_view[0, x, 0] = 0
+                arr_view[0, x, 1] = 0
+                arr_view[0, x, 2] = 0
+                arr_view[0, x, 3] = 255
+        else:
+            # Initialize to transparent black
+            memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
+
+        # Draw top horizontal line
+        for x in range(width):
+            arr_view[0, x, 0] = 255
+            arr_view[0, x, 1] = 255
+            arr_view[0, x, 2] = 255
+            arr_view[0, x, 3] = 255
+
+        # Draw bottom horizontal line
+        for x in range(width):
+            arr_view[height-1, x, 0] = 255
+            arr_view[height-1, x, 1] = 255
+            arr_view[height-1, x, 2] = 255
+            arr_view[height-1, x, 3] = 255
+
+        # Draw vertical ties
+        for x in range(tie_width):
+            for y in range(height):
+                arr_view[y, x, 0] = 255
+                arr_view[y, x, 1] = 255
+                arr_view[y, x, 2] = 255
+                arr_view[y, x, 3] = 255
+
+        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+    @staticmethod
+    def double_dash(context, int32_t dash_length=10, int32_t gap_length=5,
+                    int32_t dash_width=2, int32_t upscale_factor=64,
+                    bint opaque=False, **kwargs):
+        """
+        Creates a double-dashed line pattern with two parallel dashed lines.
+
+        Args:
+            context: The DearCyGui context
+            dash_length: Length of each dash in pixels
+            gap_length: Length of the gap between dashes in pixels
+            dash_width: Width of each dash line in pixels
+            opaque: Whether gaps should be black (True) or transparent (False)
+            
+        Returns:
+            Pattern: A double-dashed pattern
+        """
+        cdef int32_t width = dash_length + gap_length
+        cdef int32_t height = dash_width * 3  # Space for two dashes and gap between
+        cdef cython_array arr = \
+            cython_array(shape=(height, width, 4), itemsize=1,
+                         format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        cdef int32_t x, y
+
+        if opaque:
+            # Set everything to black and opaque
+            for x in range(width):
+                arr_view[0, x, 0] = 0
+                arr_view[0, x, 1] = 0
+                arr_view[0, x, 2] = 0
+                arr_view[0, x, 3] = 255
+        else:
+            # Initialize to transparent black
+            memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
+
+        # Top dash
+        for y in range(dash_width):
+            for x in range(dash_length):
+                arr_view[y, x, 0] = 255
+                arr_view[y, x, 1] = 255
+                arr_view[y, x, 2] = 255
+                arr_view[y, x, 3] = 255
+
+        # Bottom dash
+        for y in range(height-dash_width, height):
+            for x in range(dash_length):
+                arr_view[y, x, 0] = 255
+                arr_view[y, x, 1] = 255
+                arr_view[y, x, 2] = 255
+                arr_view[y, x, 3] = 255
+
+        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+    @staticmethod
+    def checkerboard(context, int32_t cell_size=5, int32_t stripe_width=1,
+                     int32_t upscale_factor=64, bint opaque=False, **kwargs):
+        """
+        Creates a checkerboard pattern with white stripes borders.
+        
+        Args:
+            context: The DearCyGui context
+            cell_size: Size of each square cell in pixels
+            stripe_width: Width of white stripes borders (applied to both sides)
+            upscale_factor: Factor to upscale the pattern for better quality (default: 8)
+            opaque: Whether black squares should be opaque (True) or transparent (False)
+            
+        Returns:
+            Pattern: A checkerboard pattern with white stripes
+        """
+        # Calculate dimensions for a 2x2 cell pattern plus border stripes
+        cdef int32_t grid_unit = cell_size
+        cdef int32_t width = grid_unit * 2
+        cdef int32_t height = grid_unit * 2
+        
+        # Add border stripes (one stripe width on each side)
+        height += stripe_width * 2
+        
+        cdef cython_array arr = \
+            cython_array(shape=(height, width, 4), itemsize=1,
+                        format='B', mode='c', allocate_buffer=True)
+        cdef uint8_t[:,:,:] arr_view = arr
+        cdef int32_t x, y
+    
+        # Initialize all pixels to white and fully opaque
+        memset(&arr_view[0, 0, 0], 255, arr_view.nbytes)
+                
+        # Fill the checkerboard pattern (skipping border stripes)
+        for y in range(stripe_width, height - stripe_width):
+            # Calculate grid position (adjusted for borders)
+            grid_y = (y - stripe_width) // cell_size
+            
+            for x in range(width):
+                # Calculate grid position (adjusted for borders)
+                grid_x = x // cell_size
+                
+                # Create checkerboard pattern
+                if (grid_x + grid_y) % 2 == 1:
+                    arr_view[y, x, 0] = 0
+                    arr_view[y, x, 1] = 0
+                    arr_view[y, x, 2] = 0
+                    # Set alpha based on opaque parameter
+                    arr_view[y, x, 3] = 255 if opaque else 0
+    
+        # Create pattern with proper wrapping for both dimensions
+        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)

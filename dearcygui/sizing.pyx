@@ -15,7 +15,7 @@
 #distutils: language=c++
 
 from libc.stdint cimport int32_t
-from libcpp.cmath cimport fabs, powf, fmod
+from libcpp.cmath cimport fabs, pow, fmod
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
@@ -688,7 +688,7 @@ cdef class PowerSize(binarySizeOp):
         cdef float first_value = self._left.resolve(target)
         cdef float second_value = self._right.resolve(target)
 
-        return powf(first_value, second_value)
+        return pow(first_value, second_value)
 
     def __str__(self):
         return f"({self._left} ** {self._right})"

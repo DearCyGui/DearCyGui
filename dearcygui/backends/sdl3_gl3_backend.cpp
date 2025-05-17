@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <GL/gl3w.h>
+#include <GL/glext.h>
 #include <SDL3/SDL.h>
 #include "backend.h"
 
@@ -191,15 +192,55 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
     }
     glBindTexture(GL_TEXTURE_2D, image_texture);
 
+    if (filtering_mode == 2)
+        repeat_mode = 0; // Fonts need clamping
+
+    // Set wrapping mode
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (repeat_mode & 1) ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (repeat_mode & 2) ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+
     // Setup filtering parameters for display
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (filtering_mode == 1) ? GL_NEAREST : GL_LINEAR);
-    if (filtering_mode == 2 || !repeat_mode) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Required for fonts
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (filtering_mode == 3) {  // New mode for mipmapped pattern textures
+        // Calculate mipmap levels based primarily on width for pattern textures
+        int mip_levels = 1 + floor(log2(width));
+
+        // Set trilinear filtering for smooth transitions between mip levels
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // Enable anisotropic filtering if available (helps with pattern quality)
+        if (has_anisotropic_filter) {
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+        }
+
+        // Set the base and max mipmap levels to use
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mip_levels - 1);
+
+        float maxLod = log2f(width);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, 0.0f);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, maxLod);
+
+        // Apply small LOD bias for better antialiasing
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0.5f);
+
+        // Create texture storage with appropriate mipmap levels
+        if (has_texture_storage) {
+            glTexStorage2D(GL_TEXTURE_2D, mip_levels, gl_internal_format, width, height);
+        } else {
+            glTexImage2D(GL_TEXTURE_2D, 0, gl_internal_format, width, height, 0, gl_format, gl_type, NULL);
+        }
     } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (repeat_mode & 1) ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (repeat_mode & 2) ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+        // Original filtering modes (0, 1, 2)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (filtering_mode == 1) ? GL_NEAREST : GL_LINEAR);
+
+        // Use immutable texture storage if available (for performance)
+        if (has_texture_storage) {
+            glTexStorage2D(GL_TEXTURE_2D, 1, gl_internal_format, width, height);
+        } else {
+            glTexImage2D(GL_TEXTURE_2D, 0, gl_internal_format, width, height, 0, gl_format, gl_type, NULL);
+        }
     }
 
     // Duplicate the first channel on g and b to display as gray
@@ -215,13 +256,6 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_RED);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
         }
-    }
-
-    // Use immutable texture storage if available (for performance)
-    if (has_texture_storage) {
-        glTexStorage2D(GL_TEXTURE_2D, 1, gl_internal_format, width, height);
-    } else {
-        glTexImage2D(GL_TEXTURE_2D, 0, gl_internal_format, width, height, 0, gl_format, gl_type, NULL);
     }
 
     if (glGetError() != GL_NO_ERROR) {
@@ -388,6 +422,11 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
 
         glBindTexture(GL_TEXTURE_2D, texture_id);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, gl_format, gl_type, NULL);
+
+        // Generate mipmaps for mipmapped pattern textures (mode 3)
+        if (it->second.filter_mode == 3) {
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
         
         markTextureWritten(it->second);
 
@@ -484,6 +523,12 @@ SDLViewport* SDLViewport::create(render_fun render,
     // Check for important extensions 
     viewport->has_texture_storage = SDL_GL_ExtensionSupported("GL_ARB_texture_storage");
     viewport->has_buffer_storage = SDL_GL_ExtensionSupported("GL_ARB_buffer_storage");
+    viewport->has_anisotropic_filter = SDL_GL_ExtensionSupported("GL_EXT_texture_filter_anisotropic");
+    if (viewport->has_anisotropic_filter) {
+        GLfloat max_anisotropy = 0.f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+        viewport->max_anisotropy = max_anisotropy;
+    }
     // All our uploads have no holes
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     SDL_GL_MakeCurrent(viewport->uploadWindowHandle, NULL);

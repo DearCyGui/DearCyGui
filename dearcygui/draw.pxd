@@ -1,6 +1,6 @@
 from .core cimport drawingItem, baseFont, SharedValue
 from .c_types cimport double2, float2, DCGVector, DCGString
-from .texture cimport Texture
+from .texture cimport Texture, Pattern
 
 from libc.stdint cimport uint32_t, int32_t
 
@@ -38,6 +38,7 @@ cdef class DrawArc(drawingItem):
     cdef float _rotation
     cdef float _thickness
     cdef int32_t _segments
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
 
@@ -46,6 +47,7 @@ cdef class DrawArrow(drawingItem):
     cdef double[2] _end
     cdef double[2] _corner1
     cdef double[2] _corner2
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef float _thickness
     cdef float _size
@@ -57,6 +59,7 @@ cdef class DrawBezierCubic(drawingItem):
     cdef double[2] _p2
     cdef double[2] _p3
     cdef double[2] _p4
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef float _thickness
     cdef int32_t _segments
@@ -66,6 +69,7 @@ cdef class DrawBezierQuadratic(drawingItem):
     cdef double[2] _p1
     cdef double[2] _p2
     cdef double[2] _p3
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef float _thickness
     cdef int32_t _segments
@@ -74,6 +78,7 @@ cdef class DrawBezierQuadratic(drawingItem):
 cdef class DrawCircle(drawingItem):
     cdef double[2] _center
     cdef float _radius
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
@@ -83,6 +88,7 @@ cdef class DrawCircle(drawingItem):
 cdef class DrawEllipse(drawingItem):
     cdef double[2] _pmin
     cdef double[2] _pmax
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
@@ -115,6 +121,7 @@ cdef class DrawLine(drawingItem):
     cdef double[2] _center
     cdef double _length
     cdef double _direction
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef float _thickness
     cdef void update_center(self) noexcept nogil
@@ -122,6 +129,7 @@ cdef class DrawLine(drawingItem):
     cdef void draw(self, void*) noexcept nogil
 
 cdef class DrawPolyline(drawingItem):
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef float _thickness
     cdef bint _closed
@@ -129,6 +137,7 @@ cdef class DrawPolyline(drawingItem):
     cdef void draw(self, void*) noexcept nogil
 
 cdef class DrawPolygon(drawingItem):
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
@@ -146,6 +155,7 @@ cdef class DrawQuad(drawingItem):
     cdef double[2] _p2
     cdef double[2] _p3
     cdef double[2] _p4
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
@@ -154,6 +164,7 @@ cdef class DrawQuad(drawingItem):
 cdef class DrawRect(drawingItem):
     cdef double[2] _pmin
     cdef double[2] _pmax
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _color_upper_left # imgui.ImU32
     cdef uint32_t _color_upper_right # imgui.ImU32
@@ -169,6 +180,7 @@ cdef class DrawRegularPolygon(drawingItem):
     cdef double[2] _center
     cdef float _radius
     cdef double _direction
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
@@ -180,6 +192,7 @@ cdef class DrawStar(drawingItem):
     cdef float _radius
     cdef float _inner_radius
     cdef double _direction
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
@@ -199,6 +212,7 @@ cdef class DrawTriangle(drawingItem):
     cdef double[2] _p1
     cdef double[2] _p2
     cdef double[2] _p3
+    cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef uint32_t _fill # imgui.ImU32
     cdef float _thickness
