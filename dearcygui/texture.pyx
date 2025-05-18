@@ -29,6 +29,8 @@ from .core cimport baseItem, lock_gil_friendly
 from .c_types cimport unique_lock, DCGMutex
 from .types cimport parse_texture
 
+from weakref import WeakKeyDictionary, WeakValueDictionary
+
 
 cdef class Texture(baseItem):
     """
@@ -619,6 +621,47 @@ cdef class Texture(baseItem):
         lock_gil_friendly(m, self.mutex)
         self.c_gl_end_write()
 
+# Global pattern cache: context -> {pattern_key -> weak_pattern}
+_pattern_cache = WeakKeyDictionary()
+
+# Function to create a hashable key from pattern parameters
+cdef tuple _create_pattern_key(str pattern_type, dict params):
+    # Convert params to sorted tuple of (key, value) pairs for hashability
+    param_items = sorted(params.items())
+    return (pattern_type,) + tuple(param_items)
+
+# Function to check if a pattern exists in the cache
+cdef object _get_pattern_from_cache(context, str pattern_type, dict params):
+    # Initialize cache for this context if needed
+    if context not in _pattern_cache:
+        _pattern_cache[context] = WeakValueDictionary()
+        return None
+    
+    # Create a hashable key from the parameters
+    key = _create_pattern_key(pattern_type, params)
+    
+    # Try to get from cache
+    cache = _pattern_cache[context]
+    if key in cache:
+        pattern = cache[key]
+        if pattern is not None:
+            return pattern
+    
+    return None
+
+# Function to store a pattern in the cache
+cdef object _store_pattern_in_cache(context, str pattern_type, dict params, pattern):
+    # Initialize cache for this context if needed
+    if context not in _pattern_cache:
+        _pattern_cache[context] = WeakValueDictionary()
+    
+    # Create a hashable key from the parameters
+    key = _create_pattern_key(pattern_type, params)
+    
+    # Store the pattern
+    cache = _pattern_cache[context]
+    cache[key] = pattern
+
 
 cdef class Pattern(baseItem):
     """
@@ -939,6 +982,16 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A solid pattern
         """
+        # Create parameters dict for caching
+        cdef dict params = {}  # No specific parameters for solid
+        params.update(kwargs)
+        
+        # Check if already in cache
+        cached_pattern = _get_pattern_from_cache(context, "solid", params)
+        if cached_pattern is not None:
+            return cached_pattern
+            
+        # Create new pattern if not in cache
         pattern = Pattern(context, **kwargs)
 
         # Create a solid white 1x1 texture using cython array with uint8
@@ -953,6 +1006,10 @@ cdef class Pattern(baseItem):
         arr_view[0, 0, 3] = 255
         texture.set_value(arr)
         pattern.texture = texture
+        
+        # Store in cache
+        _store_pattern_in_cache(context, "solid", params, pattern)
+        
         return pattern
 
     @staticmethod
@@ -971,6 +1028,21 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A dashed line pattern
         """
+        # Create parameters dict for caching
+        cdef dict params = {
+            'dash_length': dash_length,
+            'gap_length': gap_length,
+            'upscale_factor': upscale_factor,
+            'opaque': opaque
+        }
+        params.update(kwargs)
+        
+        # Check if already in cache
+        cached_pattern = _get_pattern_from_cache(context, "dashed", params)
+        if cached_pattern is not None:
+            return cached_pattern
+            
+        # Not in cache, create new pattern
         if context is None:
             raise ValueError("Context cannot be None")
         
@@ -1009,7 +1081,12 @@ cdef class Pattern(baseItem):
             arr_view[0, x, 2] = 255
             arr_view[0, x, 3] = 255
 
-        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        
+        # Store in cache
+        _store_pattern_in_cache(context, "dashed", params, pattern)
+        
+        return pattern
 
     @staticmethod
     def dotted(context, int32_t dot_size=2, int32_t spacing=8,
@@ -1027,6 +1104,21 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A dotted line pattern
         """
+        # Create parameters dict for caching
+        cdef dict params = {
+            'dot_size': dot_size,
+            'spacing': spacing,
+            'upscale_factor': upscale_factor,
+            'opaque': opaque
+        }
+        params.update(kwargs)
+        
+        # Check if already in cache
+        cached_pattern = _get_pattern_from_cache(context, "dotted", params)
+        if cached_pattern is not None:
+            return cached_pattern
+            
+        # Not in cache, create new pattern
         if context is None:
             raise ValueError("Context cannot be None")
         
@@ -1065,7 +1157,12 @@ cdef class Pattern(baseItem):
             arr_view[0, x, 2] = 255
             arr_view[0, x, 3] = 255
 
-        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        
+        # Store in cache
+        _store_pattern_in_cache(context, "dotted", params, pattern)
+        
+        return pattern
 
     @staticmethod
     def dash_dot(context, int32_t dash_length=10, int32_t dot_size=2,
@@ -1085,6 +1182,22 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A dash-dot pattern
         """
+        # Create parameters dict for caching
+        cdef dict params = {
+            'dash_length': dash_length,
+            'dot_size': dot_size,
+            'spacing': spacing,
+            'upscale_factor': upscale_factor,
+            'opaque': opaque
+        }
+        params.update(kwargs)
+        
+        # Check if already in cache
+        cached_pattern = _get_pattern_from_cache(context, "dash_dot", params)
+        if cached_pattern is not None:
+            return cached_pattern
+            
+        # Not in cache, create new pattern
         if context is None:
             raise ValueError("Context cannot be None")
         
@@ -1119,21 +1232,26 @@ cdef class Pattern(baseItem):
             # Initialize to transparent black
             memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
 
-        # Set dash section
+        # Set dash section to white (255)
         for x in range(dash_length):
             arr_view[0, x, 0] = 255
             arr_view[0, x, 1] = 255
             arr_view[0, x, 2] = 255
             arr_view[0, x, 3] = 255
 
-        # Set dot section
+        # Set dot section to white (255)
         for x in range(dot_size):
             arr_view[0, dash_length + spacing + x, 0] = 255
             arr_view[0, dash_length + spacing + x, 1] = 255
             arr_view[0, dash_length + spacing + x, 2] = 255
             arr_view[0, dash_length + spacing + x, 3] = 255
 
-        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+        # Store in cache
+        _store_pattern_in_cache(context, "dash_dot", params, pattern)
+
+        return pattern
 
     @staticmethod
     def dash_dot_dot(context, int32_t dash_length=10, int32_t dot_size=2,
@@ -1153,6 +1271,22 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A dash-dot-dot pattern
         """
+        # Create parameters dict for caching
+        cdef dict params = {
+            'dash_length': dash_length,
+            'dot_size': dot_size,
+            'spacing': spacing,
+            'upscale_factor': upscale_factor,
+            'opaque': opaque
+        }
+        params.update(kwargs)
+        
+        # Check if already in cache
+        cached_pattern = _get_pattern_from_cache(context, "dash_dot_dot", params)
+        if cached_pattern is not None:
+            return cached_pattern
+            
+        # Not in cache, create new pattern
         if context is None:
             raise ValueError("Context cannot be None")
         
@@ -1208,7 +1342,12 @@ cdef class Pattern(baseItem):
             arr_view[0, dash_length + spacing + dot_size + spacing + x, 2] = 255
             arr_view[0, dash_length + spacing + dot_size + spacing + x, 3] = 255
 
-        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+        # Store in cache
+        _store_pattern_in_cache(context, "dash_dot_dot", params, pattern)
+
+        return pattern
 
     @staticmethod
     def railroad(context, int32_t track_width=4, int32_t tie_width=10,
@@ -1227,6 +1366,21 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A railroad track pattern
         """
+        # Create parameters dict for caching
+        cdef dict params = {
+            'track_width': track_width,
+            'tie_width': tie_width,
+            'tie_spacing': tie_spacing,
+            'opaque': opaque
+        }
+        params.update(kwargs)
+        
+        # Check if already in cache
+        cached_pattern = _get_pattern_from_cache(context, "railroad", params)
+        if cached_pattern is not None:
+            return cached_pattern
+            
+        # Not in cache, create new pattern
         if context is None:
             raise ValueError("Context cannot be None")
         
@@ -1284,7 +1438,12 @@ cdef class Pattern(baseItem):
                 arr_view[y, x, 2] = 255
                 arr_view[y, x, 3] = 255
 
-        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+        # Store in cache
+        _store_pattern_in_cache(context, "railroad", params, pattern)
+
+        return pattern
 
     @staticmethod
     def double_dash(context, int32_t dash_length=10, int32_t gap_length=5,
@@ -1303,6 +1462,22 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A double-dashed pattern
         """
+        cdef dict params = {
+            'dash_length': dash_length,
+            'gap_length': gap_length,
+            'dash_width': dash_width,
+            'upscale_factor': upscale_factor,
+            'opaque': opaque
+        }
+        params.update(kwargs)
+
+        # Check if already in cache
+        cached_pattern = _get_pattern_from_cache(context, "double_dash", params)
+        if cached_pattern is not None:
+            return cached_pattern
+
+        # Not in cache, create new pattern
+
         if context is None:
             raise ValueError("Context cannot be None")
         
@@ -1354,7 +1529,12 @@ cdef class Pattern(baseItem):
                 arr_view[y, x, 2] = 255
                 arr_view[y, x, 3] = 255
 
-        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+        # Store in cache
+        _store_pattern_in_cache(context, "double_dash", params, pattern)
+
+        return pattern
 
     @staticmethod
     def checkerboard(context, int32_t cell_size=5, int32_t stripe_width=1,
@@ -1372,6 +1552,19 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A checkerboard pattern with white stripes
         """
+        cdef dict params = {
+            'cell_size': cell_size,
+            'stripe_width': stripe_width,
+            'upscale_factor': upscale_factor,
+            'opaque': opaque
+        }
+        params.update(kwargs)
+
+        # Check if already in cache
+        cached_pattern = _get_pattern_from_cache(context, "checkerboard", params)
+        if cached_pattern is not None:
+            return cached_pattern
+
         if context is None:
             raise ValueError("Context cannot be None")
         
@@ -1419,4 +1612,9 @@ cdef class Pattern(baseItem):
                     arr_view[y, x, 3] = 255 if opaque else 0
     
         # Create pattern with proper wrapping for both dimensions
-        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+
+        # Store in cache
+        _store_pattern_in_cache(context, "checkerboard", params, pattern)
+
+        return pattern
