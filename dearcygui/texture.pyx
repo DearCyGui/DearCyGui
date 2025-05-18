@@ -90,6 +90,8 @@ cdef class Texture(baseItem):
     def hint_dynamic(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if self.allocated_texture != NULL and self._hint_dynamic != value:
+            raise PermissionError("hint_dynamic cannot be changed after texture allocation")
         self._hint_dynamic = value
 
     @property
@@ -108,11 +110,13 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return True if self._filtering_mode == 3 else False
-        
     @antialiased.setter
     def antialiased(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if self.allocated_texture != NULL and \
+           (((self._filtering_mode == 3) and value) or ((self._filtering_mode == 0) and not value)):
+            raise PermissionError("antialiased cannot be changed after texture allocation")
         if value:
             self._filtering_mode = 3
         elif self._filtering_mode == 3:
@@ -135,6 +139,9 @@ cdef class Texture(baseItem):
     def nearest_neighbor_upsampling(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if self.allocated_texture != NULL and \
+           (((self._filtering_mode == 1) and value) or ((self._filtering_mode == 0) and not value)):
+            raise PermissionError("nearest_neighbor_upsampling cannot be changed after texture allocation")
         self._filtering_mode = 1 if value else 0
 
     @property
@@ -155,6 +162,9 @@ cdef class Texture(baseItem):
     def wrap_x(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if self.allocated_texture != NULL and \
+           ((self._repeat_mode & 1) != 0) == value:
+            raise PermissionError("wrap_x cannot be changed after texture allocation")
         self._repeat_mode &= ~1
         if value:
             self._repeat_mode |= 1
@@ -177,6 +187,9 @@ cdef class Texture(baseItem):
     def wrap_y(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if self.allocated_texture != NULL and \
+           ((self._repeat_mode & 2) != 0) == value:
+            raise PermissionError("wrap_y cannot be changed after texture allocation")
         self._repeat_mode &= ~2
         if value:
             self._repeat_mode |= 2
