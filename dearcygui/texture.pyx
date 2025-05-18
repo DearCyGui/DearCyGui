@@ -261,6 +261,14 @@ cdef class Texture(baseItem):
         """
         if self.allocated_texture != NULL and self._no_realloc:
             raise ValueError("Texture backing cannot be reallocated")
+        
+        # Validate dimensions
+        if width <= 0:
+            raise ValueError("Width must be positive")
+        if height <= 0:
+            raise ValueError("Height must be positive")
+        if num_chans < 1 or num_chans > 4:
+            raise ValueError("Number of channels must be between 1 and 4")
 
         cdef unsigned buffer_type
         if uint8:
@@ -475,14 +483,32 @@ cdef class Texture(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        
+        # Check if texture exists
+        if self.allocated_texture == NULL:
+            raise ValueError("Cannot read from unallocated texture")
+        
         cdef int32_t width = self.width
         cdef int32_t height = self.height
         cdef int32_t num_chans = self.num_chans
         cdef int32_t buffer_type = self._buffer_type
         cdef int32_t crop_width_ = crop_width if crop_width > 0 else width
         cdef int32_t crop_height_ = crop_height if crop_height > 0 else height
-        if x0 < 0 or y0 < 0 or crop_width_ <= 0 or crop_height_ <= 0 or x0 + crop_width_ > width or y0 + crop_height_ > height:
-            raise ValueError("Invalid crop coordinates")
+        
+        # Validate crop coordinates
+        if x0 < 0:
+            raise ValueError(f"Negative x coordinate ({x0})")
+        if y0 < 0:
+            raise ValueError(f"Negative y coordinate ({y0})")
+        if crop_width_ <= 0:
+            raise ValueError(f"Invalid crop width ({crop_width_})")
+        if crop_height_ <= 0:
+            raise ValueError(f"Invalid crop height ({crop_height_})")
+        if x0 + crop_width_ > width:
+            raise ValueError(f"Crop extends beyond texture width ({x0 + crop_width_} > {width})")
+        if y0 + crop_height_ > height:
+            raise ValueError(f"Crop extends beyond texture height ({y0 + crop_height_} > {height})")
+        
         cdef cython_array array
         cdef void *data
         cdef bint success
@@ -643,7 +669,6 @@ cdef class Pattern(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return "points" if self._x_mode == 0 else "length"
-
     @x_mode.setter
     def x_mode(self, value):
         cdef unique_lock[DCGMutex] m
@@ -668,7 +693,6 @@ cdef class Pattern(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._scale_factor
-
     @scale_factor.setter
     def scale_factor(self, float value):
         cdef unique_lock[DCGMutex] m
@@ -689,7 +713,6 @@ cdef class Pattern(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._screen_space
-
     @screen_space.setter
     def screen_space(self, bint value):
         cdef unique_lock[DCGMutex] m
@@ -716,6 +739,12 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A pattern using the provided array data
         """
+        if context is None:
+            raise ValueError("Context cannot be None")
+        
+        if array is None:
+            raise ValueError("Array source cannot be None")
+        
         if upscale_factor < 1:
             raise ValueError("upscale_factor must be at least 1")
         
@@ -942,6 +971,18 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A dashed line pattern
         """
+        if context is None:
+            raise ValueError("Context cannot be None")
+        
+        if dash_length <= 0:
+            raise ValueError("dash_length must be positive")
+        
+        if gap_length <= 0:
+            raise ValueError("gap_length must be positive")
+        
+        if upscale_factor < 1:
+            raise ValueError("upscale_factor must be at least 1")
+        
         # Create a texture with dash_length white followed by gap_length transparent
         cdef int32_t width = dash_length + gap_length
         cdef cython_array arr = \
@@ -986,6 +1027,18 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A dotted line pattern
         """
+        if context is None:
+            raise ValueError("Context cannot be None")
+        
+        if dot_size <= 0:
+            raise ValueError("dot_size must be positive")
+        
+        if spacing <= 0:
+            raise ValueError("spacing must be positive")
+        
+        if upscale_factor < 1:
+            raise ValueError("upscale_factor must be at least 1")
+        
         # Create a texture with a dot and spacing
         cdef int32_t width = max(dot_size + spacing, 2)
         cdef cython_array arr = \
@@ -1032,6 +1085,21 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A dash-dot pattern
         """
+        if context is None:
+            raise ValueError("Context cannot be None")
+        
+        if dash_length <= 0:
+            raise ValueError("dash_length must be positive")
+        
+        if dot_size <= 0:
+            raise ValueError("dot_size must be positive")
+        
+        if spacing <= 0:
+            raise ValueError("spacing must be positive")
+        
+        if upscale_factor < 1:
+            raise ValueError("upscale_factor must be at least 1")
+        
         # Create pattern: dash - space - dot - space
         cdef int32_t width = dash_length + spacing + dot_size + spacing
         cdef cython_array arr = \
@@ -1085,6 +1153,21 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A dash-dot-dot pattern
         """
+        if context is None:
+            raise ValueError("Context cannot be None")
+        
+        if dash_length <= 0:
+            raise ValueError("dash_length must be positive")
+        
+        if dot_size <= 0:
+            raise ValueError("dot_size must be positive")
+        
+        if spacing <= 0:
+            raise ValueError("spacing must be positive")
+        
+        if upscale_factor < 1:
+            raise ValueError("upscale_factor must be at least 1")
+        
         # Create pattern: dash - space - dot - space - dot - space
         cdef int32_t width = dash_length + spacing + dot_size + spacing + dot_size + spacing
         cdef cython_array arr = \
@@ -1128,65 +1211,6 @@ cdef class Pattern(baseItem):
         return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
 
     @staticmethod
-    def zigzag(context, int32_t width=20, int32_t height=20,
-               int32_t thickness=4, int32_t upscale_factor=8,
-               bint opaque=False, **kwargs):
-        """
-        Creates a zigzag pattern.
-
-        Args:
-            context: The DearCyGui context
-            width: Width of the zigzag cycle in pixels
-            height: Height of the zigzag in pixels
-            thickness: Thickness of the zigzag line in pixels
-            upscale_factor: Factor to upscale the pattern for better quality (default: 8)
-            opaque: Whether gaps should be black (True) or transparent (False)
-
-        Returns:
-            Pattern: A zigzag pattern
-        """
-        cdef int32_t half_width = width // 2
-        cdef int32_t padded_height = height + thickness  # Add padding for the thickness
-        cdef cython_array arr = \
-            cython_array(shape=(padded_height, width, 4), itemsize=1,
-                        format='B', mode='c', allocate_buffer=True)
-        cdef uint8_t[:,:,:] arr_view = arr
-        cdef int32_t x, ty, tx
-        cdef int32_t half_thickness = thickness // 2
-        cdef int32_t path_y
-
-        if opaque:
-            # Set everything to black and opaque
-            for x in range(width):
-                arr_view[0, x, 0] = 0
-                arr_view[0, x, 1] = 0
-                arr_view[0, x, 2] = 0
-                arr_view[0, x, 3] = 255
-        else:
-            # Initialize to transparent black
-            memset(&arr_view[0, 0, 0], 0, arr_view.nbytes)
-
-        # Draw thicker zigzag by filling pixels around the path
-        for x in range(width):
-            # Calculate the y-coordinate of the main zigzag path
-            if x < half_width:
-                path_y = height - int((x * height) / half_width)
-            else:
-                path_y = int(((x - half_width) * height) / half_width)
-            
-            # Draw a "thickness" wide line centered on the path
-            for ty in range(max(0, path_y - half_thickness), min(padded_height, path_y + half_thickness + 1)):
-                for tx in range(max(0, x - half_thickness), min(width, x + half_thickness + 1)):
-                    # Calculate distance from path (simple approximation)
-                    if abs(tx - x) + abs(ty - path_y) <= thickness:
-                        arr_view[ty, tx, 0] = 255
-                        arr_view[ty, tx, 1] = 255
-                        arr_view[ty, tx, 2] = 255
-                        arr_view[ty, tx, 3] = 255
-
-        return Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
-
-    @staticmethod
     def railroad(context, int32_t track_width=4, int32_t tie_width=10,
                  int32_t tie_spacing=10, upscale_factor=64,
                  bint opaque=False, **kwargs):
@@ -1203,6 +1227,22 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A railroad track pattern
         """
+        if context is None:
+            raise ValueError("Context cannot be None")
+        
+        if track_width <= 0:
+            raise ValueError("track_width must be positive")
+        
+        if tie_width <= 0:
+            raise ValueError("tie_width must be positive")
+        
+        if tie_spacing <= 0:
+            raise ValueError("tie_spacing must be positive")
+        
+        if upscale_factor < 1:
+            raise ValueError("upscale_factor must be at least 1")
+        
+        # Create pattern: two horizontal lines with vertical ties
         cdef int32_t width = tie_width + tie_spacing
         cdef int32_t height = track_width + 2  # +2 for the tracks
         cdef cython_array arr = \
@@ -1263,6 +1303,22 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A double-dashed pattern
         """
+        if context is None:
+            raise ValueError("Context cannot be None")
+        
+        if dash_length <= 0:
+            raise ValueError("dash_length must be positive")
+        
+        if gap_length <= 0:
+            raise ValueError("gap_length must be positive")
+        
+        if dash_width <= 0:
+            raise ValueError("dash_width must be positive")
+        
+        if upscale_factor < 1:
+            raise ValueError("upscale_factor must be at least 1")
+        
+        # Create pattern: two parallel dashes with a gap
         cdef int32_t width = dash_length + gap_length
         cdef int32_t height = dash_width * 3  # Space for two dashes and gap between
         cdef cython_array arr = \
@@ -1316,6 +1372,18 @@ cdef class Pattern(baseItem):
         Returns:
             Pattern: A checkerboard pattern with white stripes
         """
+        if context is None:
+            raise ValueError("Context cannot be None")
+        
+        if cell_size <= 0:
+            raise ValueError("cell_size must be positive")
+        
+        if stripe_width < 0:
+            raise ValueError("stripe_width cannot be negative")
+        
+        if upscale_factor < 1:
+            raise ValueError("upscale_factor must be at least 1")
+        
         # Calculate dimensions for a 2x2 cell pattern plus border stripes
         cdef int32_t grid_unit = cell_size
         cdef int32_t width = grid_unit * 2
