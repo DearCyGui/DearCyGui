@@ -1596,6 +1596,9 @@ cdef void _t_draw_polygon_outline_pattern(Context context,
             dn1_x = 0.
             dn1_y = 0.
 
+        dm_x = normals[2*i0]
+        dm_y = normals[2*i0+1]
+
         # dm_x_proj: projection on the normalized vector pointing to the next point
         dm_x_proj = (dm_x * dn1_x + dm_y * dn1_y) * half_inner_thickness# * inner_distance_factor
         # dm_y_proj: projection on orthogonal to the normalized vector pointing to the next point
