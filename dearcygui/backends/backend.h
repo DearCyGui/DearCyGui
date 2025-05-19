@@ -39,6 +39,18 @@ public:
     virtual bool renderFrame(bool can_skip_presenting) = 0;
     virtual void present() = 0;
     virtual bool checkPrimaryThread() = 0;
+    /**
+     * Add an icon to the window icon set
+     * @param data Pointer to RGBA image data
+     * @param width Width of the icon in pixels
+     * @param height Height of the icon in pixels
+     * @param rowStride Stride between rows in bytes
+     * @param colStride Stride between columns in bytes
+     * @param chanStride Stride between color channels in bytes
+     * @return bool Success or failure
+     */
+    virtual bool addWindowIcon(void* data, int width, int height, 
+                               int rowStride, int colStride, int chanStride) = 0;
     virtual void wakeRendering() = 0;
     virtual void makeUploadContextCurrent() = 0;
     virtual void releaseUploadContext() = 0;
@@ -98,8 +110,6 @@ public:
     std::atomic<bool> needsRefresh{true};
 
     // Window properties
-    std::string iconSmall; // not allowed to change after init
-    std::string iconLarge; // same
     std::string windowTitle = "DearCyGui Window";
     bool titleChangeRequested = false;
     bool windowResizable = true;
@@ -146,6 +156,8 @@ public:
     virtual bool renderFrame(bool can_skip_presenting) override;
     virtual void present() override;
     virtual bool checkPrimaryThread() override;
+    virtual bool addWindowIcon(void* data, int width, int height, 
+                               int rowStride, int colStride, int chanStride) override;
     virtual void wakeRendering() override;
     virtual void makeUploadContextCurrent() override;
     virtual void releaseUploadContext() override;
@@ -275,6 +287,8 @@ private:
     bool hasOpenGL3Init = false;
     bool hasSDL3Init = false;
     bool hasResized = false;
+    // Icon handling
+    SDL_Surface* iconSurface = nullptr;
 
     // GL extension support flags
     bool has_texture_storage = false;

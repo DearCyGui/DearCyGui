@@ -579,6 +579,12 @@ void SDLViewport::cleanup() {
         uploadWindowHandle = nullptr;
     }
 
+    // Clean up icon surface
+    if (iconSurface) {
+        SDL_DestroySurface(iconSurface);
+        iconSurface = nullptr;
+    }
+
     // Only cleanup if initialization was successful
     if (hasOpenGL3Init) {
         renderContextLock.lock();
@@ -658,6 +664,11 @@ bool SDLViewport::initialize() {
         return false;
     }
 
+    // Apply icon if we have one
+    if (iconSurface != nullptr) {
+        SDL_SetWindowIcon(windowHandle, iconSurface);
+    }
+
     glContext = SDL_GL_CreateContext(windowHandle);
     if (glContext == nullptr) {
         SDL_DestroyWindow(windowHandle);
@@ -702,32 +713,6 @@ bool SDLViewport::initialize() {
     windowWidth = (int)((float)frameWidth / dpiScale);
     windowHeight = (int)((float)frameHeight / dpiScale);
 
-    //std::vector<GLFWimage> images;
-
-    /*
-    if (!viewport.small_icon.empty())
-    {
-        int image_width, image_height;
-        unsigned char* image_data = stbi_load(viewport.small_icon.c_str(), &image_width, &image_height, nullptr, 4);
-        if (image_data)
-        {
-            images.push_back({ image_width, image_height, image_data });
-        }
-    }
-
-    if (!viewport.large_icon.empty())
-    {
-        int image_width, image_height;
-        unsigned char* image_data = stbi_load(viewport.large_icon.c_str(), &image_width, &image_height, nullptr, 4);
-        if (image_data)
-        {
-            images.push_back({ image_width, image_height, image_data });
-        }
-    }
-
-    if (!images.empty())
-        glfwSetWindowIcon(sdlViewport->handle, images.size(), images.data());
-    */
 
     // A single thread can use a context at a time
     renderContextLock.lock();
@@ -1465,4 +1450,71 @@ bool SDLViewport::downloadTexture(void* texture,
 
 bool SDLViewport::checkPrimaryThread() {
     return SDL_GetCurrentThreadID() == sdlMainThreadId;
+}
+
+bool SDLViewport::addWindowIcon(void* data, int width, int height, 
+                              int rowStride, int colStride, int chanStride) {
+    if (!data || width <= 0 || height <= 0) {
+        return false;
+    }
+    
+    if (windowHandle != NULL) {
+        // Window already initialized, can't add icons
+        return false;
+    }
+    
+    // Create an SDL surface from the RGBA data
+    SDL_Surface* newSurface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
+    if (!newSurface) {
+        return false;
+    }
+    
+    // Lock the surface for pixel manipulation
+    if (SDL_LockSurface(newSurface) != 0) {
+        SDL_DestroySurface(newSurface);
+        return false;
+    }
+    
+    // Copy the pixel data to the surface
+    uint8_t* srcRow = static_cast<uint8_t*>(data);
+    uint8_t* dstRow = static_cast<uint8_t*>(newSurface->pixels);
+    
+    for (int y = 0; y < height; y++) {
+        uint8_t* srcPixel = srcRow;
+        uint8_t* dstPixel = dstRow;
+        
+        for (int x = 0; x < width; x++) {
+            // Copy RGBA channels
+            for (int c = 0; c < 4; c++) {
+                dstPixel[c] = srcPixel[c * chanStride];
+            }
+            
+            // Move to next pixel
+            srcPixel += colStride;
+            dstPixel += 4; // 4 bytes per pixel in RGBA32
+        }
+        
+        // Move to next row
+        srcRow += rowStride;
+        dstRow += newSurface->pitch;
+    }
+    
+    // Unlock the surface
+    SDL_UnlockSurface(newSurface);
+    
+    // Check if this is the first icon or an additional one
+    if (iconSurface == nullptr) {
+        // First icon
+        iconSurface = newSurface;
+    } else {
+        // Add as alternate icon
+        if (SDL_AddSurfaceAlternateImage(iconSurface, newSurface) != 0) {
+            // Failed to add alternate image
+            SDL_DestroySurface(newSurface);
+            return false;
+        }
+        // SDL_AddSurfaceAlternateImage takes ownership of newSurface
+    }
+    
+    return true;
 }

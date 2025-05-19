@@ -20,6 +20,7 @@ cdef extern from "backend.h" nogil:
         void present()
         bint checkPrimaryThread()
         void toggleFullScreen()
+        bint addWindowIcon(void*, int, int, int, int, int)
         void wakeRendering()
         void makeUploadContextCurrent()
         void releaseUploadContext()
@@ -88,8 +89,6 @@ cdef extern from "backend.h" nogil:
         bint sizeChangeRequested
 
         # Protected members
-        string iconSmall
-        string iconLarge
         string windowTitle
         render_fun renderCallback
         on_resize_fun resizeCallback

@@ -22,6 +22,7 @@ from libcpp.set cimport set as cpp_set
 from libcpp.string cimport string
 
 cimport cython
+from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer, PyBuffer_Release, PyBUF_RECORDS_RO
 from cpython.sequence cimport PySequence_Check
 
 from .backends.backend cimport SDLViewport, platformViewport, GLContext
@@ -32,7 +33,7 @@ from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color
 from .sizing cimport resolve_size, set_size, RefWidth, RefHeight
 from .texture cimport Texture
 from .types cimport Vec2, MouseButton, child_type, check_Positioning,\
-    Coord, MouseCursor, make_Positioning
+    Coord, MouseCursor, make_Positioning, parse_texture
 from .wrapper cimport imgui, implot, imnodes
 
 from concurrent.futures import Executor, ThreadPoolExecutor
@@ -2830,45 +2831,98 @@ cdef class Viewport(baseItem):
         unparse_color((<platformViewport*>self._platform).clearColor, parse_color(value))
 
     @property
-    def small_icon(self):
+    def icon(self):
         """
-        Path to the small icon displayed in the viewport's window decoration.
+        Set the window icon from one or more images.
         
-        The small icon appears in the window title bar, taskbar, and other OS-specific
-        locations. For best results, use an appropriate size as required by your
-        target platform (typically 16x16 or 32x32 pixels).
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return str((<platformViewport*>self._platform).iconSmall)
-
-    @small_icon.setter
-    def small_icon(self, str value):
-        cdef unique_lock[DCGMutex] m
-        self.__check_not_initialized()
-        cdef string icon = value.encode("utf-8")
-        (<platformViewport*>self._platform).iconSmall = icon
-
-    @property
-    def large_icon(self):
-        """
-        Path to the large icon displayed for the viewport's window.
+        The property accepts a single image or a sequence of images with different sizes.
+        Each image should be a 3D array with shape (height, width, 4) representing RGBA data.
+        The OS will automatically select the most appropriate size for different contexts
+        (window decoration, taskbar, alt-tab switcher, etc).
         
-        The large icon is used in places where a higher resolution icon is needed,
-        such as Alt+Tab switching on Windows. For best results, use an appropriate
-        size as required by your target platform (typically 48x48 or 64x64 pixels).
+        This property can only be set before the window is initialized,
+        and cannot be retrieved once set. The icon data is not stored
+        in the viewport object, but passed directly to the platform backend.
+        
+        Accepts:
+        - A single array-like image with RGBA data (height, width, 4)
+        - A sequence of array-like images with RGBA data
         """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return str((<platformViewport*>self._platform).iconLarge)
+        # Cannot return the icon data once set
+        return None  
 
-    @large_icon.setter
-    def large_icon(self, str value):
+    @icon.setter
+    def icon(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        
+        if value is None:
+            return
+        
+        # Check if window is already initialized
         self.__check_not_initialized()
-        cdef string icon = value.encode("utf-8")
-        (<platformViewport*>self._platform).iconLarge = icon
+        
+        # Handle single image case vs sequence of images
+        cdef list icon_list = []
+        if isinstance(value, (list, tuple)):
+            icon_list = list(value)
+        else:
+            icon_list = [value]
+            
+        if not icon_list:
+            return
+        
+        # Process each icon one by one
+        cdef Py_buffer buf_info
+        cdef bint success = True
+        
+        for img in icon_list:
+            # Initialize buffer info
+            memset(&buf_info, 0, sizeof(Py_buffer))
+            
+            # Parse the texture data if needed
+            if not PyObject_CheckBuffer(img):
+                img = parse_texture(img)
+            
+            try:
+                # Get buffer info
+                if PyObject_GetBuffer(img, &buf_info, PyBUF_RECORDS_RO) < 0:
+                    raise TypeError("Failed to retrieve buffer information for icon")
+                    
+                # Validate dimensions
+                if buf_info.ndim != 3:
+                    raise ValueError("Icon must be a 3D array (height, width, channels)")
+
+                if buf_info.format[0] != b'B':
+                    raise ValueError("Invalid texture format. Must be uint8[0-255]")
+                    
+                height = buf_info.shape[0]
+                width = buf_info.shape[1]
+
+                if height <= 0 or width <= 0:
+                    raise ValueError("Icon dimensions must be positive")
+                
+                if buf_info.shape[2] != 4:
+                    raise ValueError("Icon must have 4 channels (RGBA)")
+                    
+                # Set strides
+                row_stride = buf_info.strides[0]
+                col_stride = buf_info.strides[1]
+                chan_stride = buf_info.strides[2]
+                
+                # Call the backend to add this icon
+                success = (<platformViewport*>self._platform).addWindowIcon(
+                    buf_info.buf, width, height,
+                    row_stride, col_stride, chan_stride
+                )
+                
+                if not success:
+                    raise RuntimeError(f"Failed to add window icon (size: {width}x{height})")
+            
+            finally:
+                # Free buffer resources
+                if buf_info.buf != NULL:
+                    PyBuffer_Release(&buf_info)
 
     @property
     def x_pos(self):
