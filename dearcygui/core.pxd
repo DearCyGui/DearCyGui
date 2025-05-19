@@ -91,6 +91,7 @@ cdef class Context:
     cdef object _queue
     ### private variables ###
     cdef bint _started
+    cdef object __weakref__
     ### public methods ###
     cdef void queue_callback_noarg(self, Callback, baseItem, baseItem) noexcept nogil
     cdef void queue_callback_arg1obj(self, Callback, baseItem, baseItem, baseItem) noexcept nogil
