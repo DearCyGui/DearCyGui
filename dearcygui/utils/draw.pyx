@@ -1,3 +1,5 @@
+#cython: freethreading_compatible=True
+
 cimport dearcygui as dcg
 import dearcygui as dcg
 

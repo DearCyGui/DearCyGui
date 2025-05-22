@@ -1,3 +1,5 @@
+#cython: freethreading_compatible=True
+
 cimport dearcygui as dcg
 
 from dearcygui.core cimport lock_gil_friendly

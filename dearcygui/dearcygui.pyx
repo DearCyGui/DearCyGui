@@ -1,3 +1,5 @@
+#cython: freethreading_compatible=True
+
 # from https://stackoverflow.com/questions/30157363/collapse-multiple-submodules-to-one-cython-extension/52729181#52729181
 import sys
 import importlib

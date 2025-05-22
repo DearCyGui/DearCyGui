@@ -12,6 +12,7 @@
 #cython: initializedcheck=False
 #cython: c_line_in_traceback=False
 #cython: auto_pickle=False
+#cython: freethreading_compatible=True
 #distutils: language=c++
 
 from cpython.object cimport PyObject

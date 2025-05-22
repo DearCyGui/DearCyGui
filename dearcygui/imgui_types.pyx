@@ -1,3 +1,5 @@
+#cython: freethreading_compatible=True
+
 from .wrapper cimport imgui
 
 cdef imgui.ImU32 imgui_ColorConvertFloat4ToU32(imgui.ImVec4 color_float4) noexcept nogil:
