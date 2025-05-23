@@ -6668,7 +6668,8 @@ cdef class Window(uiItem):
 
         self.set_previous_states()
 
-        if self._focus_update_requested:
+        cdef bint focus_update_requested = self._focus_update_requested
+        if focus_update_requested:
             if self.state.cur.focused:
                 imgui.SetNextWindowFocus()
             self._focus_update_requested = False
@@ -6768,10 +6769,12 @@ cdef class Window(uiItem):
         cdef bint visible = True
         # Modal/Popup windows must be manually opened
         if self._modal or self._popup:
-            if self._show_update_requested and self._show:
+            if (self._show_update_requested or focus_update_requested)\
+               and self._show:
                 self._show_update_requested = False
                 imgui.OpenPopup(self._imgui_label.c_str(),
-                                imgui.ImGuiPopupFlags_NoOpenOverExistingPopup if self._no_open_over_existing_popup else imgui.ImGuiPopupFlags_None)
+                                (imgui.ImGuiPopupFlags_NoOpenOverExistingPopup if self._no_open_over_existing_popup else imgui.ImGuiPopupFlags_None)
+                                | imgui.ImGuiPopupFlags_NoReopen)
 
         # Begin drawing the window
         cdef imgui.ImGuiWindowFlags flags = self._window_flags
