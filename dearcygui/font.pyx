@@ -401,7 +401,8 @@ cdef class AutoFont(FontMultiScales):
         self._create_font_at_scale(self.context.viewport.global_scale, False)
 
     def __del__(self):
-        self._font_creation_executor.shutdown(wait=True)
+        if self._font_creation_executor is not None:
+            self._font_creation_executor.shutdown(wait=True)
 
     def _on_new_scale(self, sender, target, float scale) -> None:
         """Called when a new global scale is encountered"""
@@ -525,6 +526,8 @@ cdef class FontTexture(baseItem):
 
     def __dealloc__(self):
         cdef imgui.ImFontAtlas *atlas = <imgui.ImFontAtlas*>self._atlas
+        if atlas == NULL:
+            return
         atlas.Clear() # Unsure if needed
         del atlas
 
