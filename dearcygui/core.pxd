@@ -83,7 +83,6 @@ cdef class Context:
     cdef Viewport viewport
     cdef void* imgui_context # imgui.ImGuiContext
     cdef void* implot_context # implot.ImPlotContext
-    cdef void* imnodes_context # imnodes.ImNodesContext
     cdef uint32_t[5] prev_last_id_button_catch # for custom buttons
     cdef uint32_t[5] cur_last_id_button_catch
     ### protected variables ###

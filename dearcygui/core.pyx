@@ -35,7 +35,7 @@ from .sizing cimport resolve_size, set_size, RefWidth, RefHeight
 from .texture cimport Texture
 from .types cimport Vec2, MouseButton, child_type, check_Positioning,\
     Coord, MouseCursor, make_Positioning, parse_texture
-from .wrapper cimport imgui, implot, imnodes
+from .wrapper cimport imgui, implot
 
 from concurrent.futures import Executor, ThreadPoolExecutor
 import os
@@ -54,7 +54,7 @@ with various .so and contexts, we must ensure the correct
 context is current. The call is almost free as it's just
 a pointer that is set.
 If you create your own custom rendering objects, you must ensure
-that you link to the same version of ImGui (ImPlot/ImNodes if
+that you link to the same version of ImGui (ImPlot if
 applicable) and you must call ensure_correct_* at the start
 of your draw() overrides
 """
@@ -65,13 +65,9 @@ cdef inline void ensure_correct_imgui_context(Context context) noexcept nogil:
 cdef inline void ensure_correct_implot_context(Context context) noexcept nogil:
     implot.SetCurrentContext(<implot.ImPlotContext*>context.implot_context)
 
-cdef inline void ensure_correct_imnodes_context(Context context) noexcept nogil:
-    imnodes.SetCurrentContext(<imnodes.ImNodesContext*>context.imnodes_context)
-
 cdef void ensure_correct_im_context(Context context) noexcept nogil:
     ensure_correct_imgui_context(context)
     ensure_correct_implot_context(context)
-    ensure_correct_imnodes_context(context)
 
 
 cdef class BackendRenderingContext:
@@ -266,7 +262,7 @@ cdef class Context:
         - Item creation and lifecycle management
         - Thread-safe callback execution
         - Global viewport management
-        - ImGui/ImPlot/ImNodes context management
+        - ImGui/ImPlot context management
 
     There is exactly one viewport per context. The last created context can be accessed 
     as dearcygui.C.
@@ -276,7 +272,7 @@ cdef class Context:
     - Thread safety is achieved through recursive mutexes on items and ImGui context
     - Callbacks are executed in a separate thread pool to prevent blocking the render loop
     - References between items form a tree structure with viewport as root
-    - ImGui/ImPlot/ImNodes contexts are managed to support multiple contexts
+    - ImGui/ImPlot contexts are managed to support multiple contexts
     """
 
     def __init__(self,
@@ -315,15 +311,12 @@ cdef class Context:
         imgui.IMGUI_CHECKVERSION()
         self.imgui_context = imgui.CreateContext()
         self.implot_context = implot.CreateContext()
-        self.imnodes_context = imnodes.CreateContext()
 
     def __dealloc__(self):
         """
         Deallocate resources for Context.
         """
         self._started = True
-        if self.imnodes_context != NULL:
-            imnodes.DestroyContext(<imnodes.ImNodesContext*>self.imnodes_context)
         if self.implot_context != NULL:
             implot.DestroyContext(<implot.ImPlotContext*>self.implot_context)
         if self.imgui_context != NULL:
@@ -3834,7 +3827,7 @@ cdef class Viewport(baseItem):
         Rendering occurs in several sequential steps:
         1. Mouse/Keyboard events are processed (wait_for_input applies here)
         2. The viewport and entire rendering tree are traversed to prepare
-        rendering commands using ImGui, ImPlot and ImNodes
+        rendering commands using ImGui and ImPlot
         3. Rendering commands are submitted to the GPU
         4. The submission is passed to the OS for window update, including
         vsync if applicable
@@ -7176,8 +7169,7 @@ cdef class baseTheme(baseItem):
     Base theme element containing visual style settings.
     
     A theme defines a set of visual properties that can be applied to UI elements
-    to control their appearance. Themes can target different backends (ImGui, ImPlot, 
-    ImNodes) and different aspects (colors, styles).
+    to control their appearance. Themes can target different backends (ImGui, ImPlot) and different aspects (colors, styles).
     
     Themes are applied hierarchically - a theme attached to a parent item will 
     affect all its children unless overridden. Multiple themes can be combined,

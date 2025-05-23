@@ -190,7 +190,6 @@ def setup_package():
                     "dearcygui/backends",
                     "thirdparty/imgui",
                     "thirdparty/imgui/backends",
-                    "thirdparty/imnodes",
                     "thirdparty/implot",
                     "thirdparty/gl3w",
                     "thirdparty/delaunator-cpp/include",
@@ -201,7 +200,6 @@ def setup_package():
 
     cpp_sources = [
         "dearcygui/backends/sdl3_gl3_backend.cpp",
-        "thirdparty/imnodes/imnodes.cpp",
         "thirdparty/implot/implot.cpp",
         "thirdparty/implot/implot_items.cpp",
         "thirdparty/implot/implot_demo.cpp",
