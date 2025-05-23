@@ -245,6 +245,7 @@ cdef class _FileDialogQuery:
                 _RenderFrameCommandSubmission(context, self._submit_in_frame)
             ]
             setattr(context.viewport, "handlers", handlers)
+        context.viewport.wake()
 
 cdef void _dialog_callback(void *userdata,
                           const const_char_p *filelist,
