@@ -13890,7 +13890,7 @@ class Context(object):
         - Item creation and lifecycle management
         - Thread-safe callback execution
         - Global viewport management
-        - ImGui/ImPlot/ImNodes context management
+        - ImGui/ImPlot context management
 
     There is exactly one viewport per context. The last created context can be accessed
     as dearcygui.C.
@@ -13900,7 +13900,7 @@ class Context(object):
     - Thread safety is achieved through recursive mutexes on items and ImGui context
     - Callbacks are executed in a separate thread pool to prevent blocking the render loop
     - References between items form a tree structure with viewport as root
-    - ImGui/ImPlot/ImNodes contexts are managed to support multiple contexts
+    - ImGui/ImPlot contexts are managed to support multiple contexts
 
     """
     def create_new_shared_gl_context(self, major, minor):
@@ -17065,7 +17065,7 @@ class DrawArc(drawingItem):
     Negative radius values are interpreted in screen space rather than coordinate space.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -17076,11 +17076,14 @@ class DrawArc(drawingItem):
         - color: Color of the arc outline.
         - end_angle: Ending angle of the arc in radians.
         - fill: Fill color of the arc.
+        - inner_radius: X and Y radii of the inner arc.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - radius: X and Y radii of the arc.
         - rotation: Rotation of the entire arc around its center in radians.
+        - segments: Number of segments used to approximate the external
         - show: Should the object be drawn/shown ?
         - start_angle: Starting angle of the arc in radians.
         - thickness: Line thickness of the arc outline.
@@ -17105,7 +17108,7 @@ class DrawArc(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -17116,11 +17119,14 @@ class DrawArc(drawingItem):
         - color: Color of the arc outline.
         - end_angle: Ending angle of the arc in radians.
         - fill: Fill color of the arc.
+        - inner_radius: X and Y radii of the inner arc.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - radius: X and Y radii of the arc.
         - rotation: Rotation of the entire arc around its center in radians.
+        - segments: Number of segments used to approximate the external
         - show: Should the object be drawn/shown ?
         - start_angle: Starting angle of the arc in radians.
         - thickness: Line thickness of the arc outline.
@@ -17347,6 +17353,31 @@ class DrawArc(drawingItem):
 
 
     @property
+    def inner_radius(self) -> Coord:
+        """
+        X and Y radii of the inner arc.
+
+        Defines the shape of the ellipse from which the arc is drawn:
+        - Equal values create a circular arc
+        - Different values create an elliptical arc
+        - Negative values are interpreted as screen space units rather than coordinate space
+
+        If radius and inner_radius are equal, the shape
+        corresponds to a simple curved line, and the filling will
+        join the extremities.
+
+        An inner_radius of (0, 0) is equivalent to a filled arc (from the center)
+
+        """
+        ...
+
+
+    @inner_radius.setter
+    def inner_radius(self, value : Sequence[float] | tuple[float, float] | Coord):
+        ...
+
+
+    @property
     def item_type(self) -> ChildType:
         """
         (Read-only) Returns which type of child this item is
@@ -17469,6 +17500,23 @@ class DrawArc(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def previous_sibling(self) -> baseItemSubCls | None:
         """
         Child of the parent rendered just before this item.
@@ -17526,6 +17574,24 @@ class DrawArc(drawingItem):
 
     @rotation.setter
     def rotation(self, value : float):
+        ...
+
+
+    @property
+    def segments(self) -> int:
+        """
+        Number of segments used to approximate the external
+        outline of the shape.
+
+        Returns:
+            int: Number of segments. 0 for auto.
+
+        """
+        ...
+
+
+    @segments.setter
+    def segments(self, value : int):
         ...
 
 
@@ -17632,7 +17698,7 @@ class DrawArrow(drawingItem):
     or visualizing vectors in coordinate space.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -17644,6 +17710,7 @@ class DrawArrow(drawingItem):
         - p1: End point coordinates of the arrow (where the arrowhead is drawn).
         - p2: Start point coordinates of the arrow (the tail end).
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
         - size: Size of the arrow head.
@@ -17669,7 +17736,7 @@ class DrawArrow(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -17681,6 +17748,7 @@ class DrawArrow(drawingItem):
         - p1: End point coordinates of the arrow (where the arrowhead is drawn).
         - p2: Start point coordinates of the arrow (the tail end).
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
         - size: Size of the arrow head.
@@ -18010,6 +18078,23 @@ class DrawArrow(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def previous_sibling(self) -> baseItemSubCls | None:
         """
         Child of the parent rendered just before this item.
@@ -18137,7 +18222,7 @@ class DrawBezierCubic(drawingItem):
     with higher values creating smoother curves at the cost of performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -18151,6 +18236,7 @@ class DrawBezierCubic(drawingItem):
         - p3: Third control point coordinates of the Bezier curve.
         - p4: Fourth control point coordinates of the Bezier curve.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - segments: Number of line segments used to approximate the Bezier curve.
         - show: Should the object be drawn/shown ?
@@ -18176,7 +18262,7 @@ class DrawBezierCubic(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -18190,6 +18276,7 @@ class DrawBezierCubic(drawingItem):
         - p3: Third control point coordinates of the Bezier curve.
         - p4: Fourth control point coordinates of the Bezier curve.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - segments: Number of line segments used to approximate the Bezier curve.
         - show: Should the object be drawn/shown ?
@@ -18554,6 +18641,23 @@ class DrawBezierCubic(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def previous_sibling(self) -> baseItemSubCls | None:
         """
         Child of the parent rendered just before this item.
@@ -18681,7 +18785,7 @@ class DrawBezierQuadratic(drawingItem):
     with higher values creating smoother curves at the cost of performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -18694,6 +18798,7 @@ class DrawBezierQuadratic(drawingItem):
         - p2: Second control point coordinates of the Bezier curve.
         - p3: Third control point coordinates of the Bezier curve.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - segments: Number of line segments used to approximate the Bezier curve.
         - show: Should the object be drawn/shown ?
@@ -18719,7 +18824,7 @@ class DrawBezierQuadratic(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -18732,6 +18837,7 @@ class DrawBezierQuadratic(drawingItem):
         - p2: Second control point coordinates of the Bezier curve.
         - p3: Third control point coordinates of the Bezier curve.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - segments: Number of line segments used to approximate the Bezier curve.
         - show: Should the object be drawn/shown ?
@@ -19079,6 +19185,23 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def previous_sibling(self) -> baseItemSubCls | None:
         """
         Child of the parent rendered just before this item.
@@ -19208,7 +19331,7 @@ class DrawCircle(drawingItem):
     create a more perfect circle at the cost of rendering performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -19220,6 +19343,7 @@ class DrawCircle(drawingItem):
         - fill: Fill color of the circle.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - radius: Radius of the circle.
         - segments: Number of line segments used to approximate the circle.
@@ -19246,7 +19370,7 @@ class DrawCircle(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -19258,6 +19382,7 @@ class DrawCircle(drawingItem):
         - fill: Fill color of the circle.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - radius: Radius of the circle.
         - segments: Number of line segments used to approximate the circle.
@@ -19591,6 +19716,23 @@ class DrawCircle(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def previous_sibling(self) -> baseItemSubCls | None:
         """
         Child of the parent rendered just before this item.
@@ -19731,6 +19873,9 @@ class DrawEllipse(drawingItem):
 
     The ellipse is defined by its bounding box and can be filled and/or outlined.
 
+    For a more complex ellipse, defined by a center, radii, and rotation,
+    use DrawArc with start_angle=0 and end_angle=2*pi.
+
     Attributes:
         pmin (tuple): Top-left corner coordinates (x, y)
         pmax (tuple): Bottom-right corner coordinates (x, y)
@@ -19740,7 +19885,7 @@ class DrawEllipse(drawingItem):
         segments (int): Number of segments used to approximate the ellipse
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -19751,6 +19896,7 @@ class DrawEllipse(drawingItem):
         - fill: Fill color of the drawing.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - pmax: Bottom-right corner position of the drawing in coordinate space.
         - pmin: Top-left corner position of the drawing in coordinate space.
         - previous_sibling: Child of the parent rendered just before this item.
@@ -19778,7 +19924,7 @@ class DrawEllipse(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -19789,6 +19935,7 @@ class DrawEllipse(drawingItem):
         - fill: Fill color of the drawing.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - pmax: Bottom-right corner position of the drawing in coordinate space.
         - pmin: Top-left corner position of the drawing in coordinate space.
         - previous_sibling: Child of the parent rendered just before this item.
@@ -20106,6 +20253,23 @@ class DrawEllipse(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def pmax(self) -> Coord:
         """
         Bottom-right corner position of the drawing in coordinate space.
@@ -20170,7 +20334,7 @@ class DrawEllipse(drawingItem):
         Number of segments used to approximate the ellipse.
 
         Returns:
-            int: Number of segments
+            int: Number of segments. 0 for auto.
 
         """
         ...
@@ -23581,7 +23745,7 @@ class DrawLine(drawingItem):
     allowing for consistent visual size regardless of zoom level.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23596,6 +23760,7 @@ class DrawLine(drawingItem):
         - p1: First endpoint of the line segment.
         - p2: Second endpoint of the line segment.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the line.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
         - thickness: Line thickness in pixels.
@@ -23620,7 +23785,7 @@ class DrawLine(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -23635,6 +23800,7 @@ class DrawLine(drawingItem):
         - p1: First endpoint of the line segment.
         - p2: Second endpoint of the line segment.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the line.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
         - thickness: Line thickness in pixels.
@@ -24018,6 +24184,23 @@ class DrawLine(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the line.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def previous_sibling(self) -> baseItemSubCls | None:
         """
         Child of the parent rendered just before this item.
@@ -24128,7 +24311,7 @@ class DrawPolygon(drawingItem):
     is drawn instead of the exact polygon shape.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -24140,6 +24323,7 @@ class DrawPolygon(drawingItem):
         - hull: Whether to draw the convex hull instead of the exact polygon shape.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - points: List of vertex positions defining the shape.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
@@ -24165,7 +24349,7 @@ class DrawPolygon(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -24177,6 +24361,7 @@ class DrawPolygon(drawingItem):
         - hull: Whether to draw the convex hull instead of the exact polygon shape.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - points: List of vertex positions defining the shape.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
@@ -24510,6 +24695,23 @@ class DrawPolygon(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def points(self) -> list:
         """
         List of vertex positions defining the shape.
@@ -24637,7 +24839,7 @@ class DrawPolyline(drawingItem):
     property, the last point will be connected back to the first, forming a closed shape.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -24648,6 +24850,7 @@ class DrawPolyline(drawingItem):
         - color: Color of the polyline.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the lines.
         - points: List of vertex positions defining the shape.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
@@ -24673,7 +24876,7 @@ class DrawPolyline(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -24684,6 +24887,7 @@ class DrawPolyline(drawingItem):
         - color: Color of the polyline.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the lines.
         - points: List of vertex positions defining the shape.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
@@ -25000,6 +25204,23 @@ class DrawPolyline(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the lines.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def points(self) -> list:
         """
         List of vertex positions defining the shape.
@@ -25130,7 +25351,7 @@ class DrawQuad(drawingItem):
     with proper orientation handling to ensure correct anti-aliasing.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -25145,6 +25366,7 @@ class DrawQuad(drawingItem):
         - p3: Third vertex position of the quadrilateral.
         - p4:
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
         - thickness: Line thickness of the quadrilateral outline.
@@ -25169,7 +25391,7 @@ class DrawQuad(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -25184,6 +25406,7 @@ class DrawQuad(drawingItem):
         - p3: Third vertex position of the quadrilateral.
         - p4:
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
         - thickness: Line thickness of the quadrilateral outline.
@@ -25563,6 +25786,23 @@ class DrawQuad(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def previous_sibling(self) -> baseItemSubCls | None:
         """
         Child of the parent rendered just before this item.
@@ -25675,7 +25915,7 @@ class DrawRect(drawingItem):
     specified for each corner of the rectangle.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -25690,6 +25930,7 @@ class DrawRect(drawingItem):
         - fill_p4: Fill color at the bottom-left corner (p4) for gradient fills.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - pmax: Bottom-right corner position of the rectangle in coordinate space.
         - pmin: Top-left corner position of the rectangle in coordinate space.
         - previous_sibling: Child of the parent rendered just before this item.
@@ -25717,7 +25958,7 @@ class DrawRect(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -25732,6 +25973,7 @@ class DrawRect(drawingItem):
         - fill_p4: Fill color at the bottom-left corner (p4) for gradient fills.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - pmax: Bottom-right corner position of the rectangle in coordinate space.
         - pmin: Top-left corner position of the rectangle in coordinate space.
         - previous_sibling: Child of the parent rendered just before this item.
@@ -26122,6 +26364,23 @@ class DrawRect(drawingItem):
 
 
     @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
+        ...
+
+
+    @property
     def pmax(self) -> Coord:
         """
         Bottom-right corner position of the rectangle in coordinate space.
@@ -26288,7 +26547,7 @@ class DrawRegularPolygon(drawingItem):
     with different colors and thicknesses.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26302,6 +26561,7 @@ class DrawRegularPolygon(drawingItem):
         - next_sibling: Child of the parent rendered just after this item.
         - num_points: Number of sides (vertices) in the regular polygon.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - radius: Radius of the regular polygon.
         - show: Should the object be drawn/shown ?
@@ -26327,7 +26587,7 @@ class DrawRegularPolygon(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -26341,6 +26601,7 @@ class DrawRegularPolygon(drawingItem):
         - next_sibling: Child of the parent rendered just after this item.
         - num_points: Number of sides (vertices) in the regular polygon.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - radius: Radius of the regular polygon.
         - show: Should the object be drawn/shown ?
@@ -26705,6 +26966,23 @@ class DrawRegularPolygon(drawingItem):
         way that does not deadlock.
 
         """
+        ...
+
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
         ...
 
 
@@ -27257,7 +27535,7 @@ class DrawStar(drawingItem):
     or screen space (negative values) to maintain consistent visual size regardless of zoom level.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -27272,6 +27550,7 @@ class DrawStar(drawingItem):
         - next_sibling: Child of the parent rendered just after this item.
         - num_points: Number of outer points in the star.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - radius: Radius of the outer points of the star.
         - show: Should the object be drawn/shown ?
@@ -27297,7 +27576,7 @@ class DrawStar(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -27312,6 +27591,7 @@ class DrawStar(drawingItem):
         - next_sibling: Child of the parent rendered just after this item.
         - num_points: Number of outer points in the star.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - radius: Radius of the outer points of the star.
         - show: Should the object be drawn/shown ?
@@ -27694,6 +27974,23 @@ class DrawStar(drawingItem):
         way that does not deadlock.
 
         """
+        ...
+
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
         ...
 
 
@@ -28335,7 +28632,7 @@ class DrawTriangle(drawingItem):
     The shape can be both filled with a solid color and outlined with a different color and thickness.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -28349,6 +28646,7 @@ class DrawTriangle(drawingItem):
         - p2: Second vertex position of the triangle.
         - p3: Third vertex position of the triangle.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
         - thickness: Line thickness of the triangle outline.
@@ -28373,7 +28671,7 @@ class DrawTriangle(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -28387,6 +28685,7 @@ class DrawTriangle(drawingItem):
         - p2: Second vertex position of the triangle.
         - p3: Third vertex position of the triangle.
         - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Should the object be drawn/shown ?
         - thickness: Line thickness of the triangle outline.
@@ -28748,6 +29047,23 @@ class DrawTriangle(drawingItem):
         way that does not deadlock.
 
         """
+        ...
+
+
+    @property
+    def pattern(self):
+        """
+        Pattern of the outline.
+
+        Controls the pattern of the line tracing the path.
+        None for solid line.
+
+        """
+        ...
+
+
+    @pattern.setter
+    def pattern(self, value):
         ...
 
 
@@ -55610,6 +55926,642 @@ class OtherItemHandler(HandlerList):
         ...
 
 
+class Pattern(baseItem):
+    """
+    Defines a repeating pattern for outlining shapes.
+
+    A pattern consists of a texture that gets sampled along the outline path,
+    with configurable sampling behavior. The texture is applied in GL_REPEAT mode.
+
+    The x-coordinate of the texture is sampled along the path of the outline,
+    while the y-coordinate is sampled across the width of the outline (from
+    interior to exterior).
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : Texture | None = None, user_data : Any = ..., x_mode : str = "points"):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scale_factor: Scaling factor for the pattern repetition.
+        - screen_space: Whether the 'length' mode is in screen space (pixels) or coordinate space.
+        - texture: Texture to use for the pattern.
+        - user_data: User data of any type.
+        - x_mode: How to sample the x-coordinate of the texture.
+        """
+        ...
+
+
+    def attach_before(self, target):
+        """
+        Same as item.next_sibling = target, but target must not be None
+
+        """
+        ...
+
+
+    def attach_to_parent(self, target):
+        """
+        Same as item.parent = target, but target must not be None
+
+        """
+        ...
+
+
+    def checkerboard(context, cell_size=5, stripe_width=1, upscale_factor=64, opaque=False, **kwargs):
+        """
+        Creates a checkerboard pattern with white stripes borders.
+
+        Args:
+            context: The DearCyGui context
+            cell_size: Size of each square cell in pixels
+            stripe_width: Width of white stripes borders (applied to both sides)
+            upscale_factor: Factor to upscale the pattern for better quality (default: 8)
+            opaque: Whether black squares should be opaque (True) or transparent (False)
+
+        Returns:
+            Pattern: A checkerboard pattern with white stripes
+
+        """
+        ...
+
+
+    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : Texture | None = None, user_data : Any = ..., x_mode : str = "points"):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scale_factor: Scaling factor for the pattern repetition.
+        - screen_space: Whether the 'length' mode is in screen space (pixels) or coordinate space.
+        - texture: Texture to use for the pattern.
+        - user_data: User data of any type.
+        - x_mode: How to sample the x-coordinate of the texture.
+        """
+        ...
+
+
+    def copy(self, target_context=None):
+        """
+        Shallow copy of the item to the target context.
+
+        Performs a deep copy of the child tree.
+
+        Parameters:
+        target_context : Context, optional
+            Target context for the copy. Defaults to None.
+            (None = source's context)
+
+        Returns:
+        baseItem
+            Copy of the item in the target context.
+
+        """
+        ...
+
+
+    def dash_dot(context, dash_length=10, dot_size=2, spacing=5, upscale_factor=64, opaque=False, **kwargs):
+        """
+        Creates a dash-dot-dash pattern (commonly used in technical drawings).
+
+        Args:
+            context: The DearCyGui context
+            dash_length: Length of each dash in pixels
+            dot_size: Size of each dot in pixels
+            spacing: Spacing between elements in pixels
+            upscale_factor: Upscaling factor for the pattern
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A dash-dot pattern
+
+        """
+        ...
+
+
+    def dash_dot_dot(context, dash_length=10, dot_size=2, spacing=5, upscale_factor=64, opaque=False, **kwargs):
+        """
+        Creates a dash-dot-dot pattern with one dash followed by two dots.
+
+        Args:
+            context: The DearCyGui context
+            dash_length: Length of the dash in pixels
+            dot_size: Size of each dot in pixels
+            spacing: Spacing between elements in pixels
+            upscale_factor: Upscaling factor for the pattern
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A dash-dot-dot pattern
+
+        """
+        ...
+
+
+    def dashed(context, dash_length=10, gap_length=10, upscale_factor=32, opaque=False, **kwargs):
+        """
+        Creates a dashed line pattern.
+
+        Args:
+            context: The DearCyGui context
+            dash_length: Length of the dash in pixels
+            gap_length: Length of the gap in pixels
+            upscale_factor: Upscaling factor for the pattern
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A dashed line pattern
+
+        """
+        ...
+
+
+    def delete_item(self):
+        """
+        Deletes the item and all its children.
+
+        When an item is not referenced anywhere, it might
+        not get deleted immediately, due to circular references.
+        The Python garbage collector will eventually catch
+        the circular references, but to speedup the process,
+        delete_item will recursively detach the item
+        and all elements in its subtree, as well as bound
+        items. As a result, items with no more references
+        will be freed immediately.
+
+        """
+        ...
+
+
+    def detach_item(self):
+        """
+        Same as item.parent = None
+
+        The item states (if any) are updated
+        to indicate it is not rendered anymore,
+        and the information propagated to the
+        children.
+
+        """
+        ...
+
+
+    def dotted(context, dot_size=2, spacing=8, upscale_factor=64, opaque=False, **kwargs):
+        """
+        Creates a dotted line pattern.
+
+        Args:
+            context: The DearCyGui context
+            dot_size: Size of each dot in pixels
+            spacing: Total spacing between dots in pixels
+            upscale_factor: Upscaling factor for the pattern
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A dotted line pattern
+
+        """
+        ...
+
+
+    def double_dash(context, dash_length=10, gap_length=5, dash_width=2, upscale_factor=64, opaque=False, **kwargs):
+        """
+        Creates a double-dashed line pattern with two parallel dashed lines.
+
+        Args:
+            context: The DearCyGui context
+            dash_length: Length of each dash in pixels
+            gap_length: Length of the gap between dashes in pixels
+            dash_width: Width of each dash line in pixels
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A double-dashed pattern
+
+        """
+        ...
+
+
+    def from_array(context, array, upscale_factor=1, antialiased=True, **kwargs):
+        """
+        Creates a pattern from a provided array with optional upscaling.
+
+        The upscaling maintains the sharp edges of the original pattern, while the
+        mipmapping system handles antialiasing when the pattern is displayed at
+        different scales.
+
+        Args:
+            context: The DearCyGui context
+            array: Source array defining the pattern (1D or 2D with 4th dimension as RGBA)
+            upscale_factor: Integer factor to upscale the pattern (must be >= 1)
+            antialiased: Whether to enable mipmapping for antialiasing
+            **kwargs: Additional arguments passed to Pattern constructor
+
+        Returns:
+            Pattern: A pattern using the provided array data
+
+        """
+        ...
+
+
+    def lock_mutex(self, wait=False):
+        """
+        Lock the internal item mutex.
+
+        **Know what you are doing**
+
+        Locking the mutex will prevent:
+            - Other threads from reading/writing
+            attributes or calling methods with this item,
+            editing the children/parent of the item
+            - Any rendering of this item and its children.
+            If the viewport attemps to render this item,
+            it will be blocked until the mutex is released.
+            (if the rendering thread is holding the mutex,
+            no blocking occurs)
+
+        This is useful if you want to edit several attributes
+        in several commands of an item or its subtree,
+        and prevent rendering or other threads from accessing
+        the item until you have finished.
+
+        If you plan on moving the item position in the rendering
+        tree, to avoid deadlock you must hold the mutex of a
+        parent of all the items involved in the motion (a common
+        parent of the source and target parent). This mutex has to
+        be locked before you lock any mutex of your child item
+        if this item is already in the rendering tree (to avoid
+        deadlock with the rendering thread).
+        If you are unsure and plans to move an item already
+        in the rendering tree, it is thus best to lock the viewport
+        mutex first.
+
+        Input argument:
+            - wait (default = False): if locking the mutex fails (mutex
+            held by another thread), wait it is released
+
+        Returns: True if the mutex is held, False else.
+
+        The mutex is a recursive mutex, thus you can lock it several
+        times in the same thread. Each lock has to be matched to an unlock.
+
+        """
+        ...
+
+
+    def railroad(context, track_width=4, tie_width=10, tie_spacing=10, upscale_factor=64, opaque=False, **kwargs):
+        """
+        Creates a railroad track pattern with parallel lines and perpendicular ties.
+
+        Args:
+            context: The DearCyGui context
+            track_width: Width between the parallel lines in pixels
+            tie_width: Width of the perpendicular ties in pixels
+            tie_spacing: Spacing between ties in pixels
+            opaque: Whether gaps should be black (True) or transparent (False)
+
+        Returns:
+            Pattern: A railroad track pattern
+
+        """
+        ...
+
+
+    def solid(context, **kwargs):
+        """
+        Creates a solid line pattern (no pattern).
+
+        This is equivalent to not using a pattern at all.
+
+        Args:
+            context: The DearCyGui context
+
+        Returns:
+            Pattern: A solid pattern
+
+        """
+        ...
+
+
+    def unlock_mutex(self):
+        """
+        Unlock a previously held mutex on this object by this thread.
+
+        Returns True on success, False if no lock was held by this thread.
+
+        """
+        ...
+
+
+    def __enter__(self) -> Pattern:
+        ...
+
+
+    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
+        ...
+
+
+    @property
+    def children(self) -> Sequence[baseItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[baseItemSubCls]):
+        ...
+
+
+    @property
+    def children_types(self) -> ChildType:
+        """
+        (Read-only) Returns which types of children can be attached to this item
+
+        """
+        ...
+
+
+    @property
+    def context(self) -> Context:
+        """
+        (Read-only) Context in which the item resides
+
+        """
+        ...
+
+
+    @property
+    def item_type(self) -> ChildType:
+        """
+        (Read-only) Returns which type of child this item is
+
+        """
+        ...
+
+
+    @property
+    def mutex(self) -> wrap_mutex:
+        """
+        (Read-only) Context manager instance for the item mutex
+
+        Locking the mutex will prevent:
+            - Other threads from reading/writing
+            attributes or calling methods with this item,
+            editing the children/parent of the item
+            - Any rendering of this item and its children.
+            If the viewport attemps to render this item,
+            it will be blocked until the mutex is released.
+            (if the rendering thread is holding the mutex,
+            no blocking occurs)
+
+        In general, you don't need to use any mutex in your code,
+        unless you are writing a library and cannot make assumptions
+        on what the users will do, or if you know your code manipulates
+        the same objects with multiple threads.
+
+        All attribute accesses are mutex protected.
+
+        If you want to subclass and add attributes, you
+        can use this mutex to protect your new attributes.
+        Be careful not to hold the mutex if your thread
+        intends to access the attributes of a parent item.
+        In case of doubt use parents_mutex instead.
+
+        """
+        ...
+
+
+    @property
+    def next_sibling(self) -> baseItemSubCls | None:
+        """
+        Child of the parent rendered just after this item.
+
+        It is not possible to have siblings if you have no parent,
+        thus if you intend to attach together items outside the
+        rendering tree, there must be a toplevel parent item.
+
+        If you write to this attribute, the item will be moved
+        to be inserted just before the target item.
+        In case of failure, the item remains in a detached state.
+
+        """
+        ...
+
+
+    @next_sibling.setter
+    def next_sibling(self, value : baseItemSubCls | None):
+        ...
+
+
+    @property
+    def parent(self) -> baseItemSubCls | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : baseItemSubCls | None):
+        ...
+
+
+    @property
+    def parents_mutex(self) -> wrap_this_and_parents_mutex:
+        """
+        (Read-only) Context manager instance for the item mutex and all its parents
+
+        Similar to mutex but locks not only this item, but also all
+        its current parents.
+        If you want to access parent fields, or if you are unsure,
+        lock this mutex rather than self.mutex.
+        This mutex will lock the item and all its parent in a safe
+        way that does not deadlock.
+
+        """
+        ...
+
+
+    @property
+    def previous_sibling(self) -> baseItemSubCls | None:
+        """
+        Child of the parent rendered just before this item.
+
+        It is not possible to have siblings if you have no parent,
+        thus if you intend to attach together items outside the
+        rendering tree, there must be a toplevel parent item.
+
+        If you write to this attribute, the item will be moved
+        to be inserted just after the target item.
+        In case of failure, the item remains in a detached state.
+
+        Note that a parent can have several child queues, and thus
+        child elements are not guaranteed to be siblings of each other.
+
+        """
+        ...
+
+
+    @previous_sibling.setter
+    def previous_sibling(self, value : baseItemSubCls | None):
+        ...
+
+
+    @property
+    def scale_factor(self) -> float:
+        """
+        Scaling factor for the pattern repetition.
+
+        For 'points' mode: controls how many repetitions per segment
+        For 'length' mode: controls how many repetitions per pixel
+
+        Note scale_factor must be positive, but can be float.
+
+        """
+        ...
+
+
+    @scale_factor.setter
+    def scale_factor(self, value : float):
+        ...
+
+
+    @property
+    def screen_space(self) -> bool:
+        """
+        Whether the 'length' mode is in screen space (pixels) or coordinate space.
+
+        When True, the number of pattern repetitions depends on the zoom level,
+           but the visual effect of the pattern is invariant of zoom.
+        When False, the number of pattern repetitions is invariant of zoom.
+
+        """
+        ...
+
+
+    @screen_space.setter
+    def screen_space(self, value : bool):
+        ...
+
+
+    @property
+    def texture(self) -> Texture | None:
+        """
+        Texture to use for the pattern.
+
+        This texture will be sampled along the outline of the shape.
+        The texture should have wrap_x set to True to enable repetition.
+
+        """
+        ...
+
+
+    @texture.setter
+    def texture(self, value : Texture | None):
+        ...
+
+
+    @property
+    def user_data(self):
+        """
+        User data of any type.
+
+        To prevent programmer mistakes and improved performance,
+        base DearCyGui items do only accept predefined attributes.
+
+        This attribute is meant to be used by the user to attach
+        any custom data to the item.
+
+        An alternative for more complex needs is to subclass
+        the item and add your own attributes. Subclassed items
+        (unless using slots explicitly) do accept any attribute.
+
+        """
+        ...
+
+
+    @user_data.setter
+    def user_data(self, value):
+        ...
+
+
+    @property
+    def uuid(self) -> int:
+        """
+        (Read-only) Unique identifier created by the context for the item.
+
+        uuid serves as an internal identifier for the item.
+        It is not meant to be used as a key for the item, use the
+        item directly for that purpose.
+
+        """
+        ...
+
+
+    @property
+    def x_mode(self) -> str:
+        """
+        How to sample the x-coordinate of the texture.
+
+        'points': x goes from 0 to 1 between each point in the outline
+        'length': x increases linearly with the length of the path in pixels
+
+        """
+        ...
+
+
+    @x_mode.setter
+    def x_mode(self, value : str):
+        ...
+
+
 class PlaceHolderParent(baseItem):
     """
     Placeholder parent to store items outside the rendering tree.
@@ -75489,7 +76441,7 @@ class SimplePlot(uiItem):
     and modified through the value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Parameters
         ----------
@@ -75526,6 +76478,7 @@ class SimplePlot(uiItem):
         - show: Whether the item should be rendered and process events.
         - theme: Visual styling applied to this item and its children.
         - user_data: User data of any type.
+        - value: Main value associated with this item.
         - width: Requested width for the item.
         """
         ...
@@ -75547,7 +76500,7 @@ class SimplePlot(uiItem):
         ...
 
 
-    def configure(self, autoscale : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., width : float = 0.0):
+    def configure(self, autoscale : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -75584,6 +76537,7 @@ class SimplePlot(uiItem):
         - show: Whether the item should be rendered and process events.
         - theme: Visual styling applied to this item and its children.
         - user_data: User data of any type.
+        - value: Main value associated with this item.
         - width: Requested width for the item.
         """
         ...
@@ -76541,6 +77495,25 @@ class SimplePlot(uiItem):
         item directly for that purpose.
 
         """
+        ...
+
+
+    @property
+    def value(self):
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value):
         ...
 
 
@@ -86974,15 +87947,14 @@ class Text(uiItem):
     A widget that displays text with customizable appearance.
 
     Text widgets provide a way to show informational text in the UI with options
-    for styling, wrapping, and layout. They can display both static text specified
-    by the label property or dynamic text stored in a SharedStr value.
+    for styling, wrapping, and layout. The text, stored in a SharedStr value,
+    can be updated dynamically.
 
     Text can be customized with colors, bullets, wrapping, and can be made
-    selectable. Both the label and value can be shown together, providing
-    flexibility for displaying titles alongside dynamic content.
+    selectable.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
         """
         Parameters
         ----------
@@ -87000,7 +87972,7 @@ class Text(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - indent: Horizontal indentation applied to the item.
-        - label: Text content to display in the widget.
+        - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_scaling: Whether DPI scaling should be disabled for this item.
@@ -87014,7 +87986,6 @@ class Text(uiItem):
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
-        - show_label: Whether to show both the label and value text together.
         - theme: Visual styling applied to this item and its children.
         - user_data: User data of any type.
         - value: Main value associated with this item.
@@ -87040,7 +88011,7 @@ class Text(uiItem):
         ...
 
 
-    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, show_label : bool = False, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
+    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
         """
         Shortcut to set multiple attributes at once.
 
@@ -87058,7 +88029,7 @@ class Text(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - indent: Horizontal indentation applied to the item.
-        - label: Text content to display in the widget.
+        - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_scaling: Whether DPI scaling should be disabled for this item.
@@ -87072,7 +88043,6 @@ class Text(uiItem):
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
-        - show_label: Whether to show both the label and value text together.
         - theme: Visual styling applied to this item and its children.
         - user_data: User data of any type.
         - value: Main value associated with this item.
@@ -87517,11 +88487,11 @@ class Text(uiItem):
     @property
     def label(self) -> str:
         """
-        Text content to display in the widget.
+        Text label displayed with or within the item.
 
-        For Text widgets, this property is handled differently than other UI items.
-        The UUID is not appended to the displayed label, allowing the text to
-        appear exactly as specified without modification.
+        The label is displayed differently depending on the item type. For buttons
+        and selectable items it appears inside them, for windows it becomes the
+        title, and for sliders and input fields it appears next to them.
 
         """
         ...
@@ -87926,25 +88896,6 @@ class Text(uiItem):
 
     @show.setter
     def show(self, value : bool):
-        ...
-
-
-    @property
-    def show_label(self) -> bool:
-        """
-        Whether to show both the label and value text together.
-
-        When enabled, both the label property and the text stored in the
-        widget's value are displayed, with the value appearing first followed
-        by the label. This is useful for displaying a description alongside
-        a dynamic value. The label is displayed at the right of the value text.
-
-        """
-        ...
-
-
-    @show_label.setter
-    def show_label(self, value : bool):
         ...
 
 
@@ -89112,10 +90063,11 @@ class Texture(baseItem):
     and can be read from or written to.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, antialiased : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
         """
         Parameters
         ----------
+        - antialiased: Whether this texture uses mipmapping with anisotropic filtering for antialiasing.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -89125,6 +90077,8 @@ class Texture(baseItem):
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
+        - wrap_x: Whether to repeat the texture on x.
+        - wrap_y: Whether to repeat the texture on y.
         """
         ...
 
@@ -89168,12 +90122,13 @@ class Texture(baseItem):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, antialiased : bool = False, children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
         """
         Shortcut to set multiple attributes at once.
 
         Parameters
         ----------
+        - antialiased: Whether this texture uses mipmapping with anisotropic filtering for antialiasing.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - hint_dynamic: Hint that the texture will be updated frequently.
         - nearest_neighbor_upsampling: Whether to use nearest neighbor interpolation when upscaling.
@@ -89181,6 +90136,8 @@ class Texture(baseItem):
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
+        - wrap_x: Whether to repeat the texture on x.
+        - wrap_y: Whether to repeat the texture on y.
         """
         ...
 
@@ -89390,6 +90347,28 @@ class Texture(baseItem):
 
 
     @property
+    def antialiased(self) -> bool:
+        """
+        Whether this texture uses mipmapping with anisotropic filtering for antialiasing.
+
+        When True, the texture will use mipmaps and anisotropic filtering
+        to create smoother patterns when viewed at different angles and scales.
+        This is particularly useful for line patterns to prevent aliasing.
+
+        This setting is not compatible with nearest_neighbor_upsampling.
+
+        This should be set before uploading texture data.
+
+        """
+        ...
+
+
+    @antialiased.setter
+    def antialiased(self, value : bool):
+        ...
+
+
+    @property
     def children(self) -> Sequence[baseItemSubCls]:
         """
         List of all the children of the item, from first rendered, to last rendered.
@@ -89499,8 +90478,9 @@ class Texture(baseItem):
         Whether to use nearest neighbor interpolation when upscaling.
 
         When True, nearest neighbor interpolation is used instead of bilinear
-        interpolation when upscaling the texture. This should be set before
-        calling set_value or allocate.
+        interpolation when upscaling the texture.
+
+        This should be set before calling `set_value` or `allocate`.
 
         """
         ...
@@ -89684,6 +90664,46 @@ class Texture(baseItem):
         (Read-only) Width of the current texture content in pixels.
 
         """
+        ...
+
+
+    @property
+    def wrap_x(self) -> bool:
+        """
+        Whether to repeat the texture on x.
+
+        When set, reading outside the texture on x will
+        wrap to inside the texture (GL_REPEAT), instead
+        of the default clamping to the edge.
+
+        This should be set before calling `set_value` or `allocate`.
+
+        """
+        ...
+
+
+    @wrap_x.setter
+    def wrap_x(self, value : bool):
+        ...
+
+
+    @property
+    def wrap_y(self) -> bool:
+        """
+        Whether to repeat the texture on y.
+
+        When set, reading outside the texture on y will
+        wrap to inside the texture (GL_REPEAT), instead
+        of the default clamping to the edge.
+
+        This should be set before calling `set_value` or `allocate`.
+
+        """
+        ...
+
+
+    @wrap_y.setter
+    def wrap_y(self, value : bool):
         ...
 
 
@@ -99338,7 +100358,7 @@ class Viewport(baseItem):
     It is decorated by the operating system and can be minimized/maximized/made fullscreen.
 
     """
-    def __init__(self, context : Context, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Parameters
         ----------
@@ -99355,7 +100375,7 @@ class Viewport(baseItem):
         - fullscreen: Whether the viewport is currently in fullscreen mode.
         - handlers: Event handlers attached to the viewport.
         - height: DPI invariant height of the viewport window.
-        - large_icon: Path to the large icon displayed for the viewport's window.
+        - icon: Set the window icon from one or more images.
         - max_height: Maximum height the viewport window can be resized to.
         - max_width: Maximum width the viewport window can be resized to.
         - maximized: Whether the viewport is currently maximized.
@@ -99371,7 +100391,6 @@ class Viewport(baseItem):
         - resize_callback: Callback to be issued when the viewport is resized.
         - retrieve_framebuffer: Whether to activate the framebuffer retrieval.
         - scale: Multiplicative scale applied on top of the system DPI scaling.
-        - small_icon: Path to the small icon displayed in the viewport's window decoration.
         - theme: Global theme applied to all elements within the viewport.
         - title: Text displayed in the viewport window's title bar.
         - user_data: User data of any type.
@@ -99401,7 +100420,7 @@ class Viewport(baseItem):
         ...
 
 
-    def configure(self, always_on_top : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
+    def configure(self, always_on_top : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Shortcut to set multiple attributes at once.
 
@@ -99418,7 +100437,7 @@ class Viewport(baseItem):
         - fullscreen: Whether the viewport is currently in fullscreen mode.
         - handlers: Event handlers attached to the viewport.
         - height: DPI invariant height of the viewport window.
-        - large_icon: Path to the large icon displayed for the viewport's window.
+        - icon: Set the window icon from one or more images.
         - max_height: Maximum height the viewport window can be resized to.
         - max_width: Maximum width the viewport window can be resized to.
         - maximized: Whether the viewport is currently maximized.
@@ -99434,7 +100453,6 @@ class Viewport(baseItem):
         - resize_callback: Callback to be issued when the viewport is resized.
         - retrieve_framebuffer: Whether to activate the framebuffer retrieval.
         - scale: Multiplicative scale applied on top of the system DPI scaling.
-        - small_icon: Path to the small icon displayed in the viewport's window decoration.
         - theme: Global theme applied to all elements within the viewport.
         - title: Text displayed in the viewport window's title bar.
         - user_data: User data of any type.
@@ -99482,7 +100500,7 @@ class Viewport(baseItem):
         ...
 
 
-    def initialize(self, always_on_top : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, large_icon : str = "b''", max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, small_icon : str = "b''", theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
+    def initialize(self, always_on_top : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Initialize the viewport for rendering and show it.
 
@@ -99511,7 +100529,7 @@ class Viewport(baseItem):
         - fullscreen: Whether the viewport is currently in fullscreen mode.
         - handlers: Event handlers attached to the viewport.
         - height: DPI invariant height of the viewport window.
-        - large_icon: Path to the large icon displayed for the viewport's window.
+        - icon: Set the window icon from one or more images.
         - max_height: Maximum height the viewport window can be resized to.
         - max_width: Maximum width the viewport window can be resized to.
         - maximized: Whether the viewport is currently maximized.
@@ -99527,7 +100545,6 @@ class Viewport(baseItem):
         - resize_callback: Callback to be issued when the viewport is resized.
         - retrieve_framebuffer: Whether to activate the framebuffer retrieval.
         - scale: Multiplicative scale applied on top of the system DPI scaling.
-        - small_icon: Path to the small icon displayed in the viewport's window decoration.
         - theme: Global theme applied to all elements within the viewport.
         - title: Text displayed in the viewport window's title bar.
         - user_data: User data of any type.
@@ -99593,7 +100610,7 @@ Render one frame of the application.
         Rendering occurs in several sequential steps:
         1. Mouse/Keyboard events are processed (wait_for_input applies here)
         2. The viewport and entire rendering tree are traversed to prepare
-        rendering commands using ImGui, ImPlot and ImNodes
+        rendering commands using ImGui and ImPlot
         3. Rendering commands are submitted to the GPU
         4. The submission is passed to the OS for window update, including
         vsync if applicable
@@ -99900,29 +100917,38 @@ Render one frame of the application.
 
 
     @property
+    def icon(self):
+        """
+        Set the window icon from one or more images.
+
+        The property accepts a single image or a sequence of images with different sizes.
+        Each image should be a 3D array with shape (height, width, 4) representing RGBA data.
+        The OS will automatically select the most appropriate size for different contexts
+        (window decoration, taskbar, alt-tab switcher, etc).
+
+        This property can only be set before the window is initialized,
+        and cannot be retrieved once set. The icon data is not stored
+        in the viewport object, but passed directly to the platform backend.
+
+        Accepts:
+        - A single array-like image with RGBA data (height, width, 4)
+        - A sequence of array-like images with RGBA data
+
+        """
+        ...
+
+
+    @icon.setter
+    def icon(self, value):
+        ...
+
+
+    @property
     def item_type(self) -> ChildType:
         """
         (Read-only) Returns which type of child this item is
 
         """
-        ...
-
-
-    @property
-    def large_icon(self) -> str:
-        """
-        Path to the large icon displayed for the viewport's window.
-
-        The large icon is used in places where a higher resolution icon is needed,
-        such as Alt+Tab switching on Windows. For best results, use an appropriate
-        size as required by your target platform (typically 48x48 or 64x64 pixels).
-
-        """
-        ...
-
-
-    @large_icon.setter
-    def large_icon(self, value : str):
         ...
 
 
@@ -100318,24 +101344,6 @@ Render one frame of the application.
         (Read-only) Whether the viewport window has been created by the operating system.
 
         """
-        ...
-
-
-    @property
-    def small_icon(self) -> str:
-        """
-        Path to the small icon displayed in the viewport's window decoration.
-
-        The small icon appears in the window title bar, taskbar, and other OS-specific
-        locations. For best results, use an appropriate size as required by your
-        target platform (typically 16x16 or 32x32 pixels).
-
-        """
-        ...
-
-
-    @small_icon.setter
-    def small_icon(self, value : str):
         ...
 
 
@@ -108007,8 +109015,7 @@ class baseTheme(baseItem):
     Base theme element containing visual style settings.
 
     A theme defines a set of visual properties that can be applied to UI elements
-    to control their appearance. Themes can target different backends (ImGui, ImPlot,
-    ImNodes) and different aspects (colors, styles).
+    to control their appearance. Themes can target different backends (ImGui, ImPlot) and different aspects (colors, styles).
 
     Themes are applied hierarchically - a theme attached to a parent item will
     affect all its children unless overridden. Multiple themes can be combined,
