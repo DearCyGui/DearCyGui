@@ -56,7 +56,7 @@ cdef int compute_ellipse_num_segments(float radiusx,
     cdef float angle_factor = angle_range / (2 * M_PI)
     
     # Final segment count
-    num_segments = <int>(base_segments * angle_factor * eccentricity_factor + 0.5)
+    cdef int num_segments = <int>(base_segments * angle_factor * eccentricity_factor + 0.5)
     
     # Ensure minimum number of segments
     num_segments = min(max(3, num_segments), 200)

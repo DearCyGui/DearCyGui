@@ -3514,6 +3514,8 @@ cdef void t_draw_star(Context context, void* drawlist,
 
     cdef float angle
     cdef int32_t i
+    cdef float px1, py1, px2, py2
+    cdef float px, py
 
     # Special case for inner_radius = 0
     if inner_radius == 0.0:
