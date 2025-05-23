@@ -3337,18 +3337,16 @@ cdef class Text(uiItem):
     A widget that displays text with customizable appearance.
     
     Text widgets provide a way to show informational text in the UI with options
-    for styling, wrapping, and layout. They can display both static text specified
-    by the label property or dynamic text stored in a SharedStr value.
+    for styling, wrapping, and layout. The text, stored in a SharedStr value,
+    can be updated dynamically.
     
     Text can be customized with colors, bullets, wrapping, and can be made
-    selectable. Both the label and value can be shown together, providing
-    flexibility for displaying titles alongside dynamic content.
+    selectable.
     """
     def __cinit__(self):
         self._color = 0 # invisible
         self._wrap = -1
         self._bullet = False
-        self._show_label = False
         self._value = <SharedValue>(SharedStr.__new__(SharedStr, self.context))
         self.state.cap.can_be_active = True # unsure
         self.state.cap.can_be_clicked = True
@@ -3374,31 +3372,6 @@ cdef class Text(uiItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._color = parse_color(value)
-
-    @property
-    def label(self):
-        """
-        Text content to display in the widget.
-        
-        For Text widgets, this property is handled differently than other UI items.
-        The UUID is not appended to the displayed label, allowing the text to
-        appear exactly as specified without modification.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._user_label
-    @label.setter
-    def label(self, str value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if value is None:
-            self._user_label = ""
-        else:
-            self._user_label = value
-        # uuid is not used for text, and we don't want to
-        # add it when we show the label, thus why we override
-        # the label property here.
-        self._imgui_label = string_from_str(self._user_label)
 
     @property
     def wrap(self):
@@ -3442,26 +3415,6 @@ cdef class Text(uiItem):
         lock_gil_friendly(m, self.mutex)
         self._bullet = value
 
-    @property
-    def show_label(self):
-        """
-        Whether to show both the label and value text together.
-        
-        When enabled, both the label property and the text stored in the
-        widget's value are displayed, with the value appearing first followed
-        by the label. This is useful for displaying a description alongside
-        a dynamic value. The label is displayed at the right of the value text.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._show_label
-
-    @show_label.setter
-    def show_label(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._show_label = value
-
     cdef bint draw_item(self) noexcept nogil:
         imgui.AlignTextToFramePadding()
         if self._color > 0:
@@ -3470,7 +3423,7 @@ cdef class Text(uiItem):
             imgui.PushTextWrapPos(0.)
         elif self._wrap > 0:
             imgui.PushTextWrapPos(imgui.GetCursorPosX() + <float>self._wrap * (self.context.viewport.global_scale if self._dpi_scaling else 1.))
-        if self._show_label or self._bullet:
+        if self._bullet:
             imgui.BeginGroup()
         if self._bullet:
             imgui.Bullet()
@@ -3485,10 +3438,7 @@ cdef class Text(uiItem):
         if self._color > 0:
             imgui.PopStyleColor(1)
 
-        if self._show_label:
-            imgui.SameLine(0., -1.)
-            imgui.TextUnformatted(self._imgui_label.c_str(), NULL)
-        if self._show_label or self._bullet:
+        if self._bullet:
             # Group enables to share the states for all items
             # And have correct rect_size
             #imgui.PushStyleVar(imgui.ImGuiStyleVar_ItemSpacing,
