@@ -26,6 +26,8 @@ from libc.math cimport INFINITY
 from cpython.sequence cimport PySequence_Check
 from cython.view cimport array as cython_array
 
+from .backends.time cimport monotonic_ns
+
 from .core cimport baseHandler, drawingItem, uiItem, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector, \
     draw_drawing_children, draw_menubar_children, \
@@ -4492,12 +4494,18 @@ cdef class Tooltip(uiItem):
             imgui.GetIO().MouseDelta.y != 0.):
             display_condition = False
 
+        cdef float current_time, remaining_delay
         if display_condition and delay != 0:
             if delay < 0:
                 delay = imgui.GetStyle().HoverStationaryDelay
             if not(self.state.prev.rendered) and \
                imgui.GetCurrentContext().MouseStationaryTimer < delay:
-                display_condition = False
+                display_condition = False # not yet time to show
+                current_time = (<double>monotonic_ns())*1e-9
+                remaining_delay = delay - imgui.GetCurrentContext().MouseStationaryTimer
+                self.context.viewport.ask_refresh_after(
+                    current_time + remaining_delay
+                )
 
         cdef bint was_visible = self.state.cur.rendered
         cdef Vec2 pos_w, pos_p, parent_size_backup
