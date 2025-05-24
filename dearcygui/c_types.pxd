@@ -576,6 +576,12 @@ cdef extern from "<mutex>" namespace "std" nogil:
         mutex_type* mutex()
     void swap[_Mutex](unique_lock[_Mutex]&, unique_lock[_Mutex]&)
 
+cdef extern from "<condition_variable>" namespace "std" nogil:
+    cppclass condition_variable:
+        condition_variable()
+        void notify_one() noexcept
+        void notify_all() noexcept
+        void wait(unique_lock[mutex]& lock)
 
 # Basic array operators to avoid linking to numpy
 

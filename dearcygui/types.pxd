@@ -63,7 +63,7 @@ cpdef enum class MouseCursor:
     ResizeNWSE,        # When hovering over the bottom-right corner of a window
     Hand,              # (Unused by Dear ImGui functions. Use for e.g. hyperlinks)
     Wait,
-    Progress
+    Progress,
     NotAllowed
 
 #Class to describe the positioning policy of an item
@@ -147,6 +147,20 @@ cdef class Rect:
     cdef double _y2
     @staticmethod
     cdef Rect build(double[4] &rect)
+
+cdef class Display:
+    cdef uint32_t _id
+    cdef str _name
+    cdef double[4] _bounds
+    cdef double[4] _usable_bounds
+    cdef float _content_scale
+    cdef bint _is_primary
+    cdef str _orientation
+
+    @staticmethod
+    cdef Display build(uint32_t id, str name, 
+                 float content_scale, bint is_primary, str orientation,
+                 double[4] bounds, double[4] usable_bounds)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

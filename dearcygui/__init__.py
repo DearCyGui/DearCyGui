@@ -7,7 +7,7 @@ from dearcygui.font import *
 from dearcygui.handler import *
 from dearcygui.imgui_types import *
 from dearcygui.layout import *
-from dearcygui.os import *
+import dearcygui.os as os
 from dearcygui.plot import *
 from dearcygui.sizing import *
 from dearcygui.table import *
@@ -22,7 +22,6 @@ del draw
 del handler
 del layout
 del plot
-del os
 del sizing
 del texture
 del theme

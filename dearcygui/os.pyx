@@ -21,7 +21,9 @@ from libcpp.vector cimport vector
 
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 
-from .core cimport baseItem, baseHandler, Context
+from .core cimport baseItem, baseHandler, Context, lock_gil_friendly
+from .c_types cimport unique_lock, mutex, condition_variable
+from .types import Rect
 
 import traceback
 
@@ -45,6 +47,18 @@ cdef extern from * nogil:
     """
     ctypedef const char const_char
     ctypedef const_char* const_char_p
+
+cdef extern from "SDL3/SDL_init.h" nogil:
+    ctypedef void (*SDL_MainThreadCallback)(void *userdata)
+    bint SDL_RunOnMainThread(SDL_MainThreadCallback callback, void *, bint)
+    const char* SDL_PROP_APP_METADATA_NAME_STRING
+    const char* SDL_PROP_APP_METADATA_VERSION_STRING
+    const char* SDL_PROP_APP_METADATA_IDENTIFIER_STRING
+    const char* SDL_PROP_APP_METADATA_CREATOR_STRING
+    const char* SDL_PROP_APP_METADATA_COPYRIGHT_STRING
+    const char* SDL_PROP_APP_METADATA_URL_STRING
+    const char* SDL_PROP_APP_METADATA_TYPE_STRING
+    bint SDL_SetAppMetadataProperty(const char *name, const char *value)
 
 cdef extern from "SDL3/SDL_dialog.h" nogil:
     struct SDL_Window_:
@@ -71,6 +85,37 @@ cdef extern from "SDL3/SDL_dialog.h" nogil:
     void SDL_ShowOpenFolderDialog(SDL_DialogFileCallback, void*, SDL_Window_*, const char*, bint)
     void SDL_ShowFileDialogWithProperties(SDL_FileDialogType, SDL_DialogFileCallback, void *, SDL_PropertiesID)
 
+cdef extern from "SDL3/SDL_error.h" nogil:
+    bint SDL_ClearError()
+    const char *SDL_GetError()
+
+cdef extern from "SDL3/SDL_messagebox.h" nogil:
+    unsigned SDL_MESSAGEBOX_ERROR
+    unsigned SDL_MESSAGEBOX_WARNING
+    unsigned SDL_MESSAGEBOX_INFORMATION
+    unsigned SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT
+    unsigned SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT
+    bint SDL_ShowSimpleMessageBox(unsigned flags, const char *title, const char *message, SDL_Window *window)
+
+cdef extern from "SDL3/SDL_misc.h" nogil:
+    bint SDL_OpenURL(const char*)
+
+cdef extern from "SDL3/SDL_power.h" nogil:
+    enum SDL_PowerState:
+        SDL_POWERSTATE_ERROR,
+        SDL_POWERSTATE_UNKNOWN,
+        SDL_POWERSTATE_ON_BATTERY,
+        SDL_POWERSTATE_NO_BATTERY,
+        SDL_POWERSTATE_CHARGING,
+        SDL_POWERSTATE_CHARGED
+    SDL_PowerState SDL_GetPowerInfo(int*, int*)
+
+cdef extern from "SDL3/SDL_video.h" nogil:
+    enum SDL_SystemTheme:
+        SDL_SYSTEM_THEME_UNKNOWN,
+        SDL_SYSTEM_THEME_LIGHT,
+        SDL_SYSTEM_THEME_DARK
+    SDL_SystemTheme SDL_GetSystemTheme()
 
 
 # The SDL commands need to be called in the 'main' thread, that is the
@@ -257,7 +302,7 @@ cdef void _dialog_callback(void *userdata,
             filelist, filter)
         Py_DECREF(<object><PyObject*>userdata)
 
-def show_open_file_dialog(Context context,
+def show_open_file_dialog(Context context not None,
                           callback,
                           str default_location=None,
                           bint allow_multiple_files=False,
@@ -298,7 +343,7 @@ def show_open_file_dialog(Context context,
     query.submit()
 
 
-def show_save_file_dialog(Context context,
+def show_save_file_dialog(Context context not None,
                           callback,
                           str default_location=None,
                           bint allow_multiple_files=False,
@@ -338,7 +383,7 @@ def show_save_file_dialog(Context context,
     Py_INCREF(query)
     query.submit()
 
-def show_open_folder_dialog(Context context,
+def show_open_folder_dialog(Context context not None,
                           callback,
                           str default_location=None,
                           bint allow_multiple_files=False,
@@ -378,3 +423,258 @@ def show_open_folder_dialog(Context context,
     Py_INCREF(query)
     query.submit()
 
+cdef void _raise_error() noexcept:
+    """
+    Raise an error if there is one.
+    """
+    cdef const char* error = SDL_GetError()
+    cdef str error_str = str(error, encoding='utf-8') if error is not NULL else ''
+    SDL_ClearError()  # Clear the error
+    raise RuntimeError(error_str)
+
+cdef extern from * nogil:
+    """
+    struct _SystemThemeResult {
+        std::mutex lock;
+        std::condition_variable cv;
+        bool completed;
+        SDL_SystemTheme theme;
+        
+        _SystemThemeResult() : theme(SDL_SYSTEM_THEME_UNKNOWN) {
+            // Constructor initializes the mutex and condition variable
+        }
+        
+        ~_SystemThemeResult() {
+            // Destructor ensures proper cleanup
+        }
+    };
+    """
+    cdef cppclass _SystemThemeResult:
+        mutex lock
+        condition_variable cv
+        bint completed
+        SDL_SystemTheme theme
+        _SystemThemeResult() except +
+
+cdef void _get_system_theme(void* p) noexcept nogil:
+    """
+    Get the system theme.
+    Returns:
+        - SDL_SYSTEM_THEME_UNKNOWN: The system theme is unknown.
+        - SDL_SYSTEM_THEME_LIGHT: The system theme is light.
+        - SDL_SYSTEM_THEME_DARK: The system theme is dark.
+    """
+    cdef _SystemThemeResult* result = <_SystemThemeResult*>p
+    cdef unique_lock[mutex] lock = unique_lock[mutex](result.lock)
+    result.theme = SDL_GetSystemTheme()
+    result.completed = True
+    result.cv.notify_all()
+
+def get_system_theme(Context context not None) -> str:
+    """
+    Get the system theme.
+    Returns:
+        - "unknown": The system theme is unknown.
+        - "light": The system theme is light.
+        - "dark": The system theme is dark.
+    """
+    cdef _SystemThemeResult result
+    result.theme = SDL_SYSTEM_THEME_UNKNOWN
+    result.completed = False
+
+    if not SDL_RunOnMainThread(_get_system_theme, <void*>(&result), False):
+        _raise_error()
+    context.viewport.wake() # We need the main thread loop to run
+    cdef unique_lock[mutex] lock
+    with nogil:
+        lock = unique_lock[mutex](result.lock)
+        while not result.completed:
+            # Wait for the result to be set
+            result.cv.wait(lock)
+    if result.theme == SDL_SYSTEM_THEME_UNKNOWN:
+        return "unknown"
+    elif result.theme == SDL_SYSTEM_THEME_LIGHT:
+        return "light"
+    elif result.theme == SDL_SYSTEM_THEME_DARK:
+        return "dark"
+    else:
+        return "unknown"
+
+def open_url(str url) -> None:
+    """
+    Open an URL in the default web browser.
+    """
+    cdef bytes url_bytes = bytes(url, encoding='utf-8')
+    if not SDL_OpenURL(url_bytes):
+        _raise_error()
+
+def get_battery_info() -> tuple[int, int, str]:
+    """
+    Get the battery information.
+    Returns:
+        - percentage: The battery percentage (0-100). -1 if unknown.
+        - seconds_left: The estimated time left in seconds. -1 if unknown.
+        - state: The power state as a string.
+            - "unknown": The power state is unknown.
+            - "on_battery": The system is running on battery.
+            - "no_battery": The system has no battery.
+            - "charging": The system is charging the battery.
+            - "charged": The battery is fully charged.
+
+    You should never take a battery status as absolute truth. Batteries
+    (especially failing batteries) are delicate hardware, and the values
+    reported here are best estimates based on what that hardware reports.
+    It's not uncommon for older batteries to lose stored power much faster
+    than it reports, or completely drain when reporting it has 20 percent
+    left, etc.
+
+    Battery status can change at any time; if you are concerned with power
+    state, you should call this function frequently, and perhaps ignore
+    changes until they seem to be stable for a few seconds.
+
+    It's possible a platform can only report battery percentage or time
+    left but not both.
+
+    On some platforms, retrieving power supply details might be expensive.
+    If you want to display continuous status you could call this function
+    every minute or so.
+    """
+    cdef int percentage = 0
+    cdef int seconds_left = 0
+    cdef SDL_PowerState state = SDL_GetPowerInfo(&seconds_left, &percentage)
+    if state == SDL_POWERSTATE_ERROR:
+        _raise_error()
+    if state == SDL_POWERSTATE_UNKNOWN:
+        return (percentage, seconds_left, "unknown")
+    elif state == SDL_POWERSTATE_ON_BATTERY:
+        return (percentage, seconds_left, "on_battery")
+    elif state == SDL_POWERSTATE_NO_BATTERY:
+        return (percentage, seconds_left, "no_battery")
+    elif state == SDL_POWERSTATE_CHARGING:
+        return (percentage, seconds_left, "charging")
+    elif state == SDL_POWERSTATE_CHARGED:
+        return (percentage, seconds_left, "charged")
+    else:
+        return (percentage, seconds_left, "unknown")
+
+def show_message_box(Context context not None,
+                     str title,
+                     str message,
+                     str message_type="error") -> None:
+    """
+    Stops the rendering thread with a blocking system
+    message box. The rendering thread is blocked until
+    the user to closes the message box.
+
+    If called from the rendering thread (the one that created
+    the context), this function will display the message box
+    immediately, without waiting render_frame().
+
+    Args:
+        context: The context to use.
+        title: The title of the message box.
+        message: The message to display.
+        message_type: The type of the message box. Can be "error", "warning" or "info".
+    """
+    cdef bytes title_bytes = bytes(title, encoding='utf-8')
+    cdef bytes message_bytes = bytes(message, encoding='utf-8')
+    cdef unsigned flags = 0
+    
+    if message_type == "warning":
+        flags = SDL_MESSAGEBOX_WARNING
+    elif message_type == "info":
+        flags = SDL_MESSAGEBOX_INFORMATION
+    else:
+        flags = SDL_MESSAGEBOX_ERROR  # Default to error if not specified
+    
+    ## Add left-to-right button orientation ?
+    #flags |= SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT
+
+    cdef SDL_Window* window = <SDL_Window*>context.viewport.get_platform_window()
+
+    if not SDL_ShowSimpleMessageBox(flags, title_bytes, message_bytes, window):
+        _raise_error()
+    context.viewport.wake()  # Wake the viewport to allow the message box to be displayed
+
+def set_application_metadata(str name=None,
+                             str version=None,
+                             str identifier=None,
+                             str creator=None,
+                             str copyright=None,
+                             str url=None,
+                             str type=None) -> None:
+    """
+    Set the application metadata. This is used by the OS to display
+    information about the application in the system settings or
+    application manager.
+
+    To properly apply, some metadata require this call to be made
+    before context creation.
+
+    Args:
+        name: The name of the application.
+        version: The version of the application.
+        identifier: A unique string that identifies this app.
+            This must be in reverse-domain format, like "com.example.mygame2".
+            This string is used by desktop compositors to identify and group
+            windows together, as well as match applications with associated
+            desktop settings and icons. If you plan to package your
+            application in a container such as Flatpak, the app ID
+            should match the name of your Flatpak container as well. 
+        creator: A one line creator notice for the application.
+        copyright: A one line copyright notice for the application.
+        url: The URL of the application.
+        type: The type of application this is.
+            Currently must be one of: "game", "mediaplayer", "application".
+    """
+    cdef bytes name_b = bytes(name, encoding='utf-8') if name is not None else None
+    cdef bytes version_b = bytes(version, encoding='utf-8') if version is not None else None
+    cdef bytes identifier_b = bytes(identifier, encoding='utf-8') if identifier is not None else None
+    cdef bytes creator_b = bytes(creator, encoding='utf-8') if creator is not None else None
+    cdef bytes copyright_b = bytes(copyright, encoding='utf-8') if copyright is not None else None
+    cdef bytes url_b = bytes(url, encoding='utf-8') if url is not None else None
+    cdef bytes type_b = bytes(type, encoding='utf-8') if type is not None else None
+    cdef const char* name_c = NULL
+    cdef const char* version_c = NULL
+    cdef const char* identifier_c = NULL
+    cdef const char* creator_c = NULL
+    cdef const char* copyright_c = NULL
+    cdef const char* url_c = NULL
+    cdef const char* type_c = NULL
+
+    if name_b is not None:
+        name_c = name_b
+    if version_b is not None:
+        version_c = version_b
+    if identifier_b is not None:
+        identifier_c = identifier_b
+    if creator_b is not None:
+        creator_c = creator_b
+    if copyright_b is not None:
+        copyright_c = copyright_b
+    if url_b is not None:
+        url_c = url_b
+    if type_b is not None:
+        type_c = type_b
+
+    if not SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_NAME_STRING, 
+                                      name_c):
+        _raise_error()
+    if not SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_VERSION_STRING, 
+                                      version_c):
+        _raise_error()
+    if not SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_IDENTIFIER_STRING, 
+                                      identifier_c):
+        _raise_error()
+    if not SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING, 
+                                      creator_c):
+        _raise_error()
+    if not SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING, 
+                                      copyright_c):
+        _raise_error()
+    if not SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_URL_STRING, 
+                                      url_c):
+        _raise_error()
+    if not SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, 
+                                      type_c):
+        _raise_error()

@@ -763,6 +763,59 @@ cdef class Rect:
         item._y2 = rect[3]
         return item
 
+cdef class Display:
+    def __init__(self):
+        raise PermissionError("Display cannot be instantiated directly")
+
+    @property
+    def id(self) -> int:
+        """The display ID"""
+        return self._id
+
+    @property
+    def name(self) -> str:
+        """The display name"""
+        return self._name
+
+    @property
+    def bounds(self) -> Rect:
+        """The display bounds (x1,y1,x2,y2) as a Rect object"""
+        return Rect.build(self._bounds)
+
+    @property
+    def usable_bounds(self) -> Rect:
+        """The usable display bounds (accounting for taskbars, docks, etc.) as a Rect object"""
+        return Rect.build(self._usable_bounds)
+
+    @property
+    def content_scale(self) -> float:
+        """The content scale factor of the display (DPI scaling)"""
+        return self._content_scale
+
+    @property
+    def is_primary(self) -> bool:
+        """True if this is the primary display"""
+        return self._is_primary
+
+    @property
+    def orientation(self) -> str:
+        """The current orientation of the display"""
+        return self._orientation
+
+    @staticmethod
+    cdef Display build(uint32_t id, str name, 
+                 float content_scale, bint is_primary, str orientation,
+                 double[4] bounds, double[4] usable_bounds):
+        cdef Display display = Display.__new__(Display)
+        display._id = id
+        display._name = name
+        display._bounds = bounds
+        display._usable_bounds = usable_bounds
+        display._content_scale = content_scale
+        display._is_primary = is_primary
+        display._orientation = orientation
+        return display
+
 # Texture conversion
 
 

@@ -34,7 +34,7 @@ from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color
 from .sizing cimport resolve_size, set_size, RefWidth, RefHeight
 from .texture cimport Texture
 from .types cimport Vec2, MouseButton, child_type, check_Positioning,\
-    Coord, MouseCursor, make_Positioning, parse_texture
+    Coord, MouseCursor, make_Positioning, parse_texture, Display
 from .wrapper cimport imgui, implot
 
 from concurrent.futures import Executor, ThreadPoolExecutor
@@ -2695,6 +2695,47 @@ class wrap_this_and_parents_mutex:
         return False # Do not catch exceptions
 
 
+cdef extern from "SDL3/SDL_error.h" nogil:
+    bint SDL_ClearError()
+    const char *SDL_GetError()
+
+
+cdef extern from "SDL3/SDL_video.h" nogil:
+    ctypedef uint32_t SDL_DisplayID
+    
+    SDL_DisplayID SDL_GetPrimaryDisplay()
+    SDL_DisplayID* SDL_GetDisplays(int *count)
+    const char* SDL_GetDisplayName(SDL_DisplayID displayID)
+    bint SDL_GetDisplayBounds(SDL_DisplayID displayID, SDL_Rect *rect)
+    bint SDL_GetDisplayUsableBounds(SDL_DisplayID displayID, SDL_Rect *rect)
+    float SDL_GetDisplayContentScale(SDL_DisplayID displayID)
+    SDL_DisplayOrientation SDL_GetCurrentDisplayOrientation(SDL_DisplayID displayID)
+    void SDL_free(void* mem)
+    struct SDL_Window:
+        pass
+    SDL_DisplayID SDL_GetDisplayForWindow(SDL_Window *window)
+    
+    struct SDL_Rect:
+        int x, y
+        int w, h
+        
+    enum SDL_DisplayOrientation:
+        SDL_ORIENTATION_UNKNOWN,
+        SDL_ORIENTATION_LANDSCAPE,
+        SDL_ORIENTATION_LANDSCAPE_FLIPPED,
+        SDL_ORIENTATION_PORTRAIT,
+        SDL_ORIENTATION_PORTRAIT_FLIPPED
+
+cdef void _raise_sdl_error() noexcept:
+    """
+    Raise an error if there is one.
+    """
+    cdef const char* error = SDL_GetError()
+    cdef str error_str = str(error, encoding='utf-8') if error is not NULL else ''
+    SDL_ClearError()  # Clear the error
+    raise RuntimeError(error_str)
+
+
 @cython.final
 @cython.no_gc_clear
 cdef class Viewport(baseItem):
@@ -2967,6 +3008,128 @@ cdef class Viewport(baseItem):
             return
         (<platformViewport*>self._platform).positionY = value
         (<platformViewport*>self._platform).positionChangeRequested = True
+
+    @property
+    def display(self) -> Display:
+        """
+        Get information about the current display for the window
+        """
+        cdef unique_lock[DCGMutex] self_m
+        lock_gil_friendly(self_m, self.mutex)
+        self.__check_initialized()
+        if not (<platformViewport*>self._platform).checkPrimaryThread():
+            raise RuntimeError("displays must be retrieved from the thread where the context was created")
+        cdef list displays = self.displays
+        cdef SDL_DisplayID display_id = SDL_GetDisplayForWindow(<SDL_Window*>self.get_platform_window())
+        cdef Display display
+        for display in displays:
+            if display._id == display_id:
+                return display
+        raise RuntimeError(f"Display with ID {display_id} not found in available displays")
+
+    @property
+    def displays(self) -> list[Display]:
+        """
+        Get information about available displays.
+        
+        Returns:
+            A list of Display objects, each containing:
+            - id: The display ID
+            - name: The display name
+            - bounds: Rect object with display bounds (x1,y1,x2,y2)
+            - usable_bounds: Rect object with usable display bounds
+            (accounting for taskbars, docks, etc.)
+            - content_scale: The content scale factor of the display (DPI scaling)
+            - is_primary: True if this is the primary display
+            - orientation: The current orientation of the display
+        
+        Raises:
+            RuntimeError: If there was an error retrieving display information
+        """
+        cdef unique_lock[DCGMutex] self_m
+        lock_gil_friendly(self_m, self.mutex)
+        self.__check_initialized()
+        if not (<platformViewport*>self._platform).checkPrimaryThread():
+            raise RuntimeError("displays must be retrieved from the thread where the context was created")
+
+        cdef int i, count = 0
+        cdef SDL_DisplayID* displays = SDL_GetDisplays(&count)
+        
+        if displays == NULL:
+            _raise_sdl_error()
+
+        cdef SDL_DisplayID primary_display = SDL_GetPrimaryDisplay()
+        cdef SDL_Rect bounds_rect
+        cdef SDL_Rect usable_bounds_rect
+        cdef SDL_DisplayOrientation orientation
+        cdef const char* display_name
+        cdef float scale
+        cdef double[4] bounds_array
+        cdef double[4] usable_bounds_array
+        
+        result = []
+        
+        try:
+            for i in range(count):
+                display_id = displays[i]
+                
+                # Get display name
+                display_name = SDL_GetDisplayName(display_id)
+                if display_name == NULL:
+                    name = ""
+                else:
+                    name = str(<bytes>display_name, encoding='utf-8')
+                
+                # Get display bounds
+                if not SDL_GetDisplayBounds(display_id, &bounds_rect):
+                    _raise_sdl_error()
+                    
+                # Convert to Rect (using x1,y1,x2,y2 format)
+                bounds_array[0] = bounds_rect.x
+                bounds_array[1] = bounds_rect.y
+                bounds_array[2] = bounds_rect.x + bounds_rect.w
+                bounds_array[3] = bounds_rect.y + bounds_rect.h            
+                # Get usable bounds
+                if not SDL_GetDisplayUsableBounds(display_id, &usable_bounds_rect):
+                    _raise_sdl_error()
+                    
+                # Convert to Rect
+                usable_bounds_array[0] = usable_bounds_rect.x
+                usable_bounds_array[1] = usable_bounds_rect.y
+                usable_bounds_array[2] = usable_bounds_rect.x + usable_bounds_rect.w
+                usable_bounds_array[3] = usable_bounds_rect.y + usable_bounds_rect.h
+                
+                # Get content scale
+                scale = SDL_GetDisplayContentScale(display_id)
+                if scale <= 0.0:
+                    _raise_sdl_error()
+                
+                # Get orientation
+                orientation = SDL_GetCurrentDisplayOrientation(display_id)
+                orientation_str = {
+                    SDL_ORIENTATION_UNKNOWN: "unknown",
+                    SDL_ORIENTATION_LANDSCAPE: "landscape",
+                    SDL_ORIENTATION_LANDSCAPE_FLIPPED: "landscape_flipped",
+                    SDL_ORIENTATION_PORTRAIT: "portrait",
+                    SDL_ORIENTATION_PORTRAIT_FLIPPED: "portrait_flipped"
+                }.get(orientation, "unknown")
+                
+                # Create and add a Display object
+                display_obj = Display.build(
+                    display_id,
+                    name,
+                    scale,
+                    display_id == primary_display,
+                    orientation_str,
+                    bounds_array,
+                    usable_bounds_array,
+                )
+                
+                result.append(display_obj)
+        finally:
+            SDL_free(displays)
+        
+        return result
 
     @property
     def width(self):
@@ -3993,6 +4156,8 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
+        if not self._initialized:
+            return
         (<platformViewport*>self._platform).wakeRendering()
 
     cdef void ask_refresh_after(self, double monotonic) noexcept nogil:
@@ -4026,6 +4191,8 @@ cdef class Viewport(baseItem):
         return size
 
     cdef void *get_platform_window(self) noexcept nogil:
+        if not self._initialized:
+            return NULL
         return (<SDLViewport*>self._platform).getSDLWindowHandle()
 
 # Callbacks
