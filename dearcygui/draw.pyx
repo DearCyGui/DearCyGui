@@ -447,29 +447,6 @@ cdef class DrawingScale(drawingItem):
 
 
 """
-Useful items
-"""
-
-cdef class DrawSplitBatch(drawingItem):
-    """
-    Item to force GPU rendering order.
-
-    By default the rendering algorithms tries
-    to batch drawing primitives together as much
-    as possible. It detects when items need to be
-    drawn in separate batches (for instance UI rendering,
-    or drawing an image), but it is not always enough.
-
-    When you need to force some items to be
-    drawn after others, for instance to have a line
-    overlap another, this item will force later items
-    to be drawn in separate batches to the previous one.
-    """
-    cdef void draw(self, void* drawlist) noexcept nogil:
-        (<imgui.ImDrawList*>drawlist).AddDrawCmd()
-
-
-"""
 Draw items
 """
 
