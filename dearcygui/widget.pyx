@@ -3415,6 +3415,10 @@ cdef class Text(uiItem):
         lock_gil_friendly(m, self.mutex)
         self._bullet = value
 
+    @property
+    def label(self):
+        raise AttributeError("Label not available for Text")
+
     cdef bint draw_item(self) noexcept nogil:
         imgui.AlignTextToFramePadding()
         if self._color > 0:
