@@ -3984,6 +3984,55 @@ cdef class Viewport(baseItem):
             dst_p[0] = <double>(src_p[0] - self.shifts[0]) / <double>self.scales[0]
             dst_p[1] = <double>(src_p[1] - self.shifts[1]) / <double>self.scales[1]
 
+    def wait_events(self, int32_t timeout_ms=0) -> bool:
+        """
+        Waits for an event that justifies running render_frame to occur.
+
+        When using wait_for_input, render_frame will block until a relevant
+        event such as a mouse or keyboard event occurs, or until logical
+        events such as timed UI behaviours are triggered.
+        This method allows the application to implement its own waiting logic.
+
+        When this method returns True, and wait_for_input is True, the next
+        render_frame call is guaranteed to not block on events.
+
+        When wait_for_input is False, render_frame does not block on events
+        whether this method returns True or False.
+
+        This method blocks until an event occurs or the timeout is reached.
+        Args:
+            timeout_ms (int): The maximum time to wait in milliseconds.
+                If 0, no wait is performed and the method returns immediately.
+
+        Returns:
+            bool: True if an event requires render_frame to be processed,
+                  False if no such event was met in the allocated time.
+        """
+        cdef unique_lock[DCGMutex] self_m
+        cdef unique_lock[DCGMutex] backend_m = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
+        lock_gil_friendly(self_m, self.mutex)
+        self.__check_initialized()
+        if not (<platformViewport*>self._platform).checkPrimaryThread():
+            raise RuntimeError("wait_events must be called from the thread where the context was created")
+        cdef bint has_events
+        cdef double current_time_s
+        cdef int32_t internal_timeout_ms
+        cdef bint is_internal_timeout = False
+        with nogil:
+            backend_m.lock()
+            self_m.unlock()
+            current_time_s = self.last_t_before_event_handling * 1e-9
+            internal_timeout_ms = <int32_t>(ceil(self._target_refresh_time - current_time_s) * 1000.)
+            internal_timeout_ms = max(0, internal_timeout_ms)
+            timeout_ms = max(0, timeout_ms)
+            if internal_timeout_ms <= timeout_ms:
+                is_internal_timeout = True # internal timeout event will occur before requested timeout.
+                timeout_ms = internal_timeout_ms
+            has_events = (<platformViewport*>self._platform).processEvents(timeout_ms)
+            if is_internal_timeout:
+                has_events = True # Either has_events was already True, or we meet internal timeout event
+        return has_events
+
     def render_frame(self, bint can_skip_presenting=False):
         """Render one frame of the application.
 

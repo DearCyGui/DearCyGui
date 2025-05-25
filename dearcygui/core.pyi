@@ -23427,6 +23427,34 @@ Render one frame of the application.
         ...
 
 
+    def wait_events(self, timeout_ms=0) -> bool:
+        """
+        Waits for an event that justifies running render_frame to occur.
+
+        When using wait_for_input, render_frame will block until a relevant
+        event such as a mouse or keyboard event occurs, or until logical
+        events such as timed UI behaviours are triggered.
+        This method allows the application to implement its own waiting logic.
+
+        When this method returns True, and wait_for_input is True, the next
+        render_frame call is guaranteed to not block on events.
+
+        When wait_for_input is False, render_frame does not block on events
+        whether this method returns True or False.
+
+        This method blocks until an event occurs or the timeout is reached.
+        Args:
+            timeout_ms (int): The maximum time to wait in milliseconds.
+                If 0, no wait is performed and the method returns immediately.
+
+        Returns:
+            bool: True if an event requires render_frame to be processed,
+                  False if no such event was met in the allocated time.
+
+        """
+        ...
+
+
     def wake(self):
         """
         Wake the viewport to force a redraw.

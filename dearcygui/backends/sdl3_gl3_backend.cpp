@@ -742,8 +742,8 @@ bool SDLViewport::initialize() {
     return true;
 }
 
-void SDLViewport::processEvents(int timeout_ms) {
-    if (!checkPrimaryThread()) return;
+bool SDLViewport::processEvents(int timeout_ms) {
+    if (!checkPrimaryThread()) return true;
     
     if (positionChangeRequested)
     {
@@ -833,7 +833,7 @@ void SDLViewport::processEvents(int timeout_ms) {
         if (!new_events) {
             if (remaining_timeout <= 0)
                 break;
-            if(activityDetected.load() || needsRefresh.load())
+            if (activityDetected.load() || needsRefresh.load())
                 break;
             if (SDL_WaitEventTimeout(&event, remaining_timeout)) {
                 // update the timeout for next iteration
@@ -940,14 +940,12 @@ void SDLViewport::processEvents(int timeout_ms) {
                            SDL_ADDEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST);
         deferredEvents.clear();
     }
-    //if (waitForEvents || glfwGetWindowAttrib(handle, GLFW_ICONIFIED))
-    //    while (!activityDetected.load() && !needs_refresh.load())
-    //        glfwWaitEventsTimeout(0.001);
-    activityDetected.store(false);
+    return activityDetected.load() || needsRefresh.load();
 }
 
 // Update renderFrame to use member prepare_present
 bool SDLViewport::renderFrame(bool can_skip_presenting) {
+    activityDetected.store(false);
     renderContextLock.lock();
     // Note: on X11 at least, this MakeCurrent is slow
     // when vsync is ON for some reason...

@@ -35,7 +35,7 @@ public:
 
     virtual void cleanup() = 0;
     virtual bool initialize() = 0;
-    virtual void processEvents(int timeout_ms = 0) = 0;
+    virtual bool processEvents(int timeout_ms = 0) = 0;
     virtual bool renderFrame(bool can_skip_presenting) = 0;
     virtual void present() = 0;
     virtual bool checkPrimaryThread() = 0;
@@ -152,7 +152,7 @@ class SDLViewport : public platformViewport
 public:
     virtual void cleanup() override;
     virtual bool initialize() override;
-    virtual void processEvents(int timeout_ms) override;
+    virtual bool processEvents(int timeout_ms) override;
     virtual bool renderFrame(bool can_skip_presenting) override;
     virtual void present() override;
     virtual bool checkPrimaryThread() override;

@@ -63,7 +63,7 @@ def extract_class_info(object_class, instance):
             is_accessible = True
             setattr(instance, attr, default_value)
             is_writable = True
-        except AttributeError:
+        except (AttributeError, RuntimeError):
             pass
         except (TypeError, ValueError, OverflowError):
             is_writable = True

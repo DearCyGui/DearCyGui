@@ -15,7 +15,7 @@ cdef extern from "backend.h" nogil:
         # Virtual methods
         void cleanup()
         bint initialize() 
-        void processEvents(int)
+        bint processEvents(int)
         bint renderFrame(bint)
         void present()
         bint checkPrimaryThread()
