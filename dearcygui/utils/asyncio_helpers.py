@@ -211,6 +211,6 @@ async def run_viewport_loop(viewport: dcg.Viewport,
 
         # Render a frame if there are events
         if has_events:
-            viewport.render_frame(can_skip_presenting=True)
+            viewport.render_frame()
 
         await asyncio.sleep(frame_time)

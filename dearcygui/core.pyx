@@ -2757,6 +2757,7 @@ cdef class Viewport(baseItem):
         self.skipped_last_frame = False
         self.frame_count = 0
         self.wait_for_input = False
+        self.always_submit_to_gpu = False
         self._target_refresh_time = 0.
         self.state.cur.rendered = True # For compatibility with RenderHandlers
         self.p_state = &self.state
@@ -3705,6 +3706,8 @@ cdef class Viewport(baseItem):
         because the idea is for the user to call wake() after a
         batch of operations.
         """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         return self.wait_for_input
 
     @wait_for_input.setter
@@ -3712,6 +3715,26 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.wait_for_input = value
+
+    @property
+    def always_submit_to_gpu(self):
+        """
+        By default DearCyGui attemps to skip submitting to the GPU
+        frames when no change have been detected during the CPU preparation
+        of the frame.
+
+        However some cases may be missed. This state is available in order to
+        have a fallback in case issues are met.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self.always_submit_to_gpu
+
+    @always_submit_to_gpu.setter
+    def always_submit_to_gpu(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.always_submit_to_gpu = value
 
     @property
     def shown(self) -> bool:
@@ -4033,25 +4056,17 @@ cdef class Viewport(baseItem):
                 has_events = True # Either has_events was already True, or we meet internal timeout event
         return has_events
 
-    def render_frame(self, bint can_skip_presenting=False):
+    def render_frame(self):
         """Render one frame of the application.
 
         Rendering occurs in several sequential steps:
         1. Mouse/Keyboard events are processed (wait_for_input applies here)
         2. The viewport and entire rendering tree are traversed to prepare
         rendering commands using ImGui and ImPlot
-        3. Rendering commands are submitted to the GPU
-        4. The submission is passed to the OS for window update, including
-        vsync if applicable
-
-        Parameters
-        ----------
-        can_skip_presenting : bool, default=False
-            If True, rendering will occur (handlers checked, etc.) but the backend
-            might decide not to submit rendering commands to the GPU and refresh
-            the window. Useful to avoid GPU usage for simple mouse motions.
-            Only set this if you haven't updated any screen content.
-            Note that wake() will force a redraw on the next frame.
+        3. Rendering commands are submitted to the GPU, if a change was detected
+           (unless always_submit_to_gpu is set, in which case it is always submitted.)
+        4. If submitted to the GPU, a window update is requested to the OS, using
+            vsync if applicable
 
         Returns
         -------
@@ -4149,7 +4164,7 @@ cdef class Viewport(baseItem):
             #imgui.GetMainViewport().DpiScale = self.viewport.dpi
             #imgui.GetIO().FontGlobalScale = self.viewport.dpi
             should_present = \
-                (<platformViewport*>self._platform).renderFrame(can_skip_presenting)
+                (<platformViewport*>self._platform).renderFrame(not(self.always_submit_to_gpu))
             #self.last_t_after_rendering = ctime.monotonic_ns()
             backend_m.unlock()
             self_m.unlock()

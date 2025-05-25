@@ -270,6 +270,7 @@ cdef class Viewport(baseItem):
     cdef double delta_frame
     ### Public read-write variables ###
     cdef bint wait_for_input
+    cdef bint always_submit_to_gpu
     # Temporary info to be accessed during rendering
     # Shouldn't be accessed outside draw()
     cdef float global_scale # Current scale factor to apply to all rendering
