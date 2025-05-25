@@ -184,6 +184,8 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
 
     def __del__(self):
         """Ensure resources are cleaned up when the executor is garbage collected."""
+        if not hasattr(self, '_running') or not self._running:
+            return
         self.shutdown(wait=False)
 
 
