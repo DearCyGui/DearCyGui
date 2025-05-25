@@ -1,6 +1,7 @@
 import asyncio
-import dearcygui as dcg
 from concurrent.futures import ThreadPoolExecutor
+import dearcygui as dcg
+import inspect
 
 class AsyncThreadPoolExecutor(ThreadPoolExecutor):
     """
@@ -43,20 +44,28 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
         """
         # Create a future in the current event loop
         future = self._loop.create_future()
-        
-        # Define a callback wrapper that sets the future result or exception
-        def callback_wrapper(future=future, fn=fn, args=args, kwargs=kwargs):
+
+        async def run_fn(future=future, fn=fn, args=args, kwargs=kwargs):
             try:
-                result = fn(*args, **kwargs)
+                # If it's a coroutine function, await it directly
+                if inspect.iscoroutinefunction(fn):
+                    result = await fn(*args, **kwargs)
+                else:
+                    # For regular functions, call them and handle returned coroutines
+                    result = fn(*args, **kwargs)
+                    # If the function returned a coroutine, await it
+                    if asyncio.iscoroutine(result):
+                        result = await result
+
+                # Set the result if not cancelled
                 if not future.cancelled():
                     future.set_result(result)
             except Exception as exc:
                 if not future.cancelled():
                     future.set_exception(exc)
 
-        # Schedule the callback to run soon in the event loop
-        # This ensures render_frame continues without waiting
-        self._loop.call_soon(callback_wrapper)
+        # Schedule the coroutine execution in the event loop
+        self._loop.create_task(run_fn())
 
         return future
 
@@ -83,6 +92,6 @@ async def run_viewport_loop(viewport: dcg.Viewport,
         
         # Render a frame if there are events
         if has_events:
-            viewport.render_frame()
+            viewport.render_frame(can_skip_presenting=True)
 
         await asyncio.sleep(frame_time)

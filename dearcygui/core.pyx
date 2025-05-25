@@ -4282,13 +4282,13 @@ cdef class Callback:
     def __call__(self, source_item, target_item, call_info):
         try:
             if self.num_args == 3:
-                self.callback(source_item, target_item, call_info)
+                return self.callback(source_item, target_item, call_info)
             elif self.num_args == 2:
-                self.callback(source_item, target_item)
+                return self.callback(source_item, target_item)
             elif self.num_args == 1:
-                self.callback(source_item)
+                return self.callback(source_item)
             else:
-                self.callback()
+                return self.callback()
         except Exception as e:
             print(f"Callback {self.callback} raised exception {e}")
             if self.num_args == 3:
@@ -4301,7 +4301,8 @@ cdef class Callback:
                 print("Callback called without arguments")
             print(traceback.format_exc())
         except (KeyboardInterrupt, SystemExit) as e:
-            self.context._started = False
+            if C is not None:
+                C._started = False
             raise e
 
 
@@ -4315,13 +4316,13 @@ cdef class DPGCallback(Callback):
                 if isinstance(call_info, tuple):
                     call_info = tuple(list(call_info) + [target_item])
             if self.num_args == 3:
-                self.callback(source_item.uuid, call_info, source_item.user_data)
+                return self.callback(source_item.uuid, call_info, source_item.user_data)
             elif self.num_args == 2:
-                self.callback(source_item.uuid, call_info)
+                return self.callback(source_item.uuid, call_info)
             elif self.num_args == 1:
-                self.callback(source_item.uuid)
+                return self.callback(source_item.uuid)
             else:
-                self.callback()
+                return self.callback()
         except Exception as e:
             print(f"Callback {self.callback} raised exception {e}")
             if self.num_args == 3:
