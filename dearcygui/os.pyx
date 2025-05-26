@@ -120,46 +120,7 @@ cdef extern from "SDL3/SDL_video.h" nogil:
 
 # The SDL commands need to be called in the 'main' thread, that is the
 # on that initialize SDL (the one for which the context was created).
-# Thus delay the command until render_frame() in a handler
-
-cdef class _RenderFrameCommandSubmission(baseHandler):
-    cdef bint _has_run
-    cdef object custom_callback
-    
-    def __init__(self, context, callback, **kwargs):
-        baseHandler.__init__(self, context, **kwargs)
-        self.custom_callback = callback
-        self.callback = self._run_async
-
-    def __cinit__(self):
-        self._has_run = False
-
-    def _run_async(self):
-        self.custom_callback()
-        self._delayed_delete()
-
-    def _delayed_delete(self):
-        """Free the item in the queue frame,
-           as we cannot do it safely during rendering.
-        """
-        with getattr(self.context.viewport, "mutex"):
-            setattr(self.context.viewport,
-                    "handlers",
-                   [h for h in getattr(self.context.viewport, "handlers") if h is not self])
-
-    cdef void check_bind(self, baseItem item):
-        if item is not self.context.viewport:
-            raise TypeError("May only be attached to viewport")
-
-    cdef bint check_state(self, baseItem item) noexcept nogil:
-        return not self._has_run
-
-    cdef void run_handler(self, baseItem item) noexcept nogil:
-        if self._has_run:
-            return
-        self.run_callback(item)
-        self._has_run = True
-
+# Thus why we use SDL_RunInMainThread
 
 
 # Callback handling
@@ -257,44 +218,62 @@ cdef class _FileDialogQuery:
         except Exception as e:
             print(traceback.format_exc())
 
-    def _submit_in_frame(self):
-        """Submission of the dialog during the frame"""
-        cdef SDL_PropertiesID props = SDL_CreateProperties()
-        cdef SDL_Window* window = <SDL_Window*>self.context.viewport.get_platform_window()
-        SDL_SetPointerProperty(props, SDL_PROP_FILE_DIALOG_FILTERS_POINTER, self.filters.data())
-        SDL_SetNumberProperty(props, SDL_PROP_FILE_DIALOG_NFILTERS_NUMBER, self.filters.size())
-        SDL_SetPointerProperty(props, SDL_PROP_FILE_DIALOG_WINDOW_POINTER, window)
-        SDL_SetBooleanProperty(props, SDL_PROP_FILE_DIALOG_MANY_BOOLEAN, self.many_allowed)
-        if self._has_default_location:
-            SDL_SetStringProperty(props, SDL_PROP_FILE_DIALOG_LOCATION_STRING, self.default_location.c_str())
-        if self._has_title:
-            SDL_SetStringProperty(props, SDL_PROP_FILE_DIALOG_TITLE_STRING, self.title.c_str())
-        if self._has_accept:
-            SDL_SetStringProperty(props, SDL_PROP_FILE_DIALOG_ACCEPT_STRING, self.accept.c_str())
-        if self._has_cancel:
-            SDL_SetStringProperty(props, SDL_PROP_FILE_DIALOG_CANCEL_STRING, self.cancel.c_str())
-        self.props = props
-        SDL_ShowFileDialogWithProperties(self.dialog_type, _dialog_callback, <void*>self, props)
-
     def submit(self):
-        """Submits on the next frame. Must be Incref'd before
-           submission, as it will be decref'd after the callback
-           is called.
         """
-        cdef Context context = self.context
+        Submits the dialog to run via SDL_RunOnMainThread.
+        """
         assert(not self.submitted)
         self.submitted = True
-        with getattr(context.viewport, "mutex"):
-            handlers = getattr(context.viewport, "handlers")
-            handlers += [
-                _RenderFrameCommandSubmission(context, self._submit_in_frame)
-            ]
-            setattr(context.viewport, "handlers", handlers)
-        context.viewport.wake()
+
+        # Increase reference count as the object will be used in callbacks
+        Py_INCREF(self)
+
+        # Run on main thread
+        if not SDL_RunOnMainThread(_show_file_dialog, <void*>self, False):
+            Py_DECREF(self)  # Decrease reference count on error
+            _raise_error()
+
+        # Note: we do not need to call viewport.wake() here,
+        # as when waiting the viewport still processes events.
+
+
+cdef void _show_file_dialog(void* userdata) noexcept nogil:
+    """Callback run in the main thread to request the file dialog"""
+    # Create properties and show dialog
+    cdef SDL_PropertiesID props = SDL_CreateProperties()
+    cdef SDL_Window* window = <SDL_Window*>(<_FileDialogQuery><PyObject*>userdata).context.viewport.get_platform_window()
+    
+    SDL_SetPointerProperty(props, SDL_PROP_FILE_DIALOG_FILTERS_POINTER, (<_FileDialogQuery><PyObject*>userdata).filters.data())
+    SDL_SetNumberProperty(props, SDL_PROP_FILE_DIALOG_NFILTERS_NUMBER, (<_FileDialogQuery><PyObject*>userdata).filters.size())
+    SDL_SetPointerProperty(props, SDL_PROP_FILE_DIALOG_WINDOW_POINTER, window)
+    SDL_SetBooleanProperty(props, SDL_PROP_FILE_DIALOG_MANY_BOOLEAN, (<_FileDialogQuery><PyObject*>userdata).many_allowed)
+    
+    if (<_FileDialogQuery><PyObject*>userdata)._has_default_location:
+        SDL_SetStringProperty(props, SDL_PROP_FILE_DIALOG_LOCATION_STRING, (<_FileDialogQuery><PyObject*>userdata).default_location.c_str())
+    if (<_FileDialogQuery><PyObject*>userdata)._has_title:
+        SDL_SetStringProperty(props, SDL_PROP_FILE_DIALOG_TITLE_STRING, (<_FileDialogQuery><PyObject*>userdata).title.c_str())
+    if (<_FileDialogQuery><PyObject*>userdata)._has_accept:
+        SDL_SetStringProperty(props, SDL_PROP_FILE_DIALOG_ACCEPT_STRING, (<_FileDialogQuery><PyObject*>userdata).accept.c_str())
+    if (<_FileDialogQuery><PyObject*>userdata)._has_cancel:
+        SDL_SetStringProperty(props, SDL_PROP_FILE_DIALOG_CANCEL_STRING, (<_FileDialogQuery><PyObject*>userdata).cancel.c_str())
+    
+    (<_FileDialogQuery><PyObject*>userdata).props = props
+    
+    # Show the file dialog (this is non-blocking)
+    SDL_ShowFileDialogWithProperties((<_FileDialogQuery><PyObject*>userdata).dialog_type, _dialog_callback, userdata, props)
 
 cdef void _dialog_callback(void *userdata,
                           const const_char_p *filelist,
                           int filter) noexcept nogil:
+    """
+    Callback called when the dialog is closed.
+    Args:
+       - userdata is the _FileDialogQuery instance.
+       - filelist is a list of selected files, or NULL if
+            the dialog was cancelled.
+       - filter is the index of the selected filter, or -1 if
+            no filter was selected.
+    """
     if userdata == NULL:
         return
     with gil:
@@ -339,7 +318,6 @@ def show_open_file_dialog(Context context not None,
                          title,
                          accept,
                          cancel)
-    Py_INCREF(query)
     query.submit()
 
 
@@ -380,7 +358,6 @@ def show_save_file_dialog(Context context not None,
                          title,
                          accept,
                          cancel)
-    Py_INCREF(query)
     query.submit()
 
 def show_open_folder_dialog(Context context not None,
@@ -420,7 +397,6 @@ def show_open_folder_dialog(Context context not None,
                          title,
                          accept,
                          cancel)
-    Py_INCREF(query)
     query.submit()
 
 cdef void _raise_error() noexcept:
@@ -484,7 +460,7 @@ def get_system_theme(Context context not None) -> str:
 
     if not SDL_RunOnMainThread(_get_system_theme, <void*>(&result), False):
         _raise_error()
-    context.viewport.wake() # We need the main thread loop to run
+    #context.viewport.wake() # -> not needed, as the main thread processes all events
     cdef unique_lock[mutex] lock
     with nogil:
         lock = unique_lock[mutex](result.lock)
@@ -594,7 +570,7 @@ def show_message_box(Context context not None,
 
     if not SDL_ShowSimpleMessageBox(flags, title_bytes, message_bytes, window):
         _raise_error()
-    context.viewport.wake()  # Wake the viewport to allow the message box to be displayed
+    #context.viewport.wake()  # -> not needed, as the main thread processes all events
 
 def set_application_metadata(str name=None,
                              str version=None,
