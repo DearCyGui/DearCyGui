@@ -1044,7 +1044,7 @@ cdef void _t_draw_polygon_outline_pattern(Context context,
     cdef float dn1_x, dn1_y # with next segment
     cdef float dm_x_proj, dm_y_proj
     cdef float aa_interior
-    cdef float d_len, d_len_sq
+    cdef float d_len_sq
     cdef float dx0, dy0, dx1, dy1, d_len0, d_len1
     cdef float dx, dy, dn_x, dn_y
     cdef bint normal_direction_inverted
@@ -1246,7 +1246,7 @@ cdef void _t_draw_polygon_outline_pattern(Context context,
         dm_x = normals[2*i0]
         dm_y = normals[2*i0+1]
         d_len_sq = dm_x * dm_x + dm_y * dm_y
-        d_len = sqrt(d_len_sq)
+        #d_len = sqrt(d_len_sq)
 
         # inner_distance: distance of the reference point to the inner point
         # inner_distance_factor: factor to apply to the minus normal to get the inner point

@@ -36,7 +36,7 @@ from .wrapper.delaunator cimport delaunator_get_triangles, DelaunationResult
 from .imgui cimport t_draw_polygon, t_draw_polyline,\
     t_draw_elliptical_arc, t_draw_elliptical_pie_slice, t_draw_elliptical_ring_segment,\
     t_draw_elliptical_ring, t_draw_ellipse, draw_regular_polygon,\
-    t_draw_line, draw_star, draw_triangle, draw_quad,\
+    t_draw_line, t_draw_triangle, draw_star, draw_triangle, draw_quad,\
     get_scaled_thickness, get_scaled_radius, draw_circle, t_item_fully_clipped
 
 
@@ -99,7 +99,14 @@ cdef class ViewportDrawList(drawingItem):
         cdef void* internal_drawlist = \
             imgui.GetForegroundDrawList() if self._front else \
             imgui.GetBackgroundDrawList()
+
+        # Push the current font texture rather than the default one
+        # this prevents wrong white uv coordinate and bad font rendering
+        cdef imgui.ImFont* cur_font = imgui.GetFont()
+        cdef imgui.ImTextureID font_tex_id = cur_font.ContainerAtlas.TexID
+        (<imgui.ImDrawList*>internal_drawlist).PushTextureID(font_tex_id)
         draw_drawing_children(self, internal_drawlist)
+        (<imgui.ImDrawList*>internal_drawlist).PopTextureID()
 
 
 """
@@ -971,13 +978,23 @@ cdef class DrawArrow(drawingItem):
         self.context.viewport.coordinate_to_screen(tend, self._end)
         self.context.viewport.coordinate_to_screen(tcorner1, self._corner1)
         self.context.viewport.coordinate_to_screen(tcorner2, self._corner2)
-        cdef imgui.ImVec2 itstart = imgui.ImVec2(tstart[0], tstart[1])
-        cdef imgui.ImVec2 itend  = imgui.ImVec2(tend[0], tend[1])
-        cdef imgui.ImVec2 itcorner1 = imgui.ImVec2(tcorner1[0], tcorner1[1])
-        cdef imgui.ImVec2 itcorner2 = imgui.ImVec2(tcorner2[0], tcorner2[1])
-        (<imgui.ImDrawList*>drawlist).AddTriangleFilled(itend, itcorner1, itcorner2, <imgui.ImU32>self._color)
-        (<imgui.ImDrawList*>drawlist).AddLine(itend, itstart, <imgui.ImU32>self._color, thickness)
-        (<imgui.ImDrawList*>drawlist).AddTriangle(itend, itcorner1, itcorner2, <imgui.ImU32>self._color, thickness)
+
+        t_draw_triangle(self.context,
+                        drawlist,
+                        tend[0], tend[1],
+                        tcorner1[0], tcorner1[1],
+                        tcorner2[0], tcorner2[1],
+                        self._pattern,
+                        self._color,
+                        self._color,
+                        thickness)
+        t_draw_line(self.context,
+                    drawlist,
+                    tstart[0], tstart[1],
+                    tend[0], tend[1],
+                    self._pattern,
+                    self._color,
+                    thickness)
 
 
 cdef class DrawBezierCubic(drawingItem):
