@@ -239,21 +239,21 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
 
 
 async def run_viewport_loop(viewport: dcg.Viewport,
-                            frame_rate: float = 120,
-                            wait_for_input: bool = True) -> None:
+                            frame_rate: float = 120) -> None:
     """
     Run the viewport's rendering loop in an asyncio-friendly manner.
 
     Args:
         viewport: The DearCyGui viewport object
         frame_rate: Target frame rate for checking events, default is 120Hz
-        wait_for_input: If True, avoids rendering when there are no events.
     """
     frame_time = 1.0 / frame_rate
 
     while viewport.context.running:
         # Check if there are events waiting to be processed
-        if wait_for_input:
+        if viewport.wait_for_input:
+            # Note: viewport.wait_for_input must be set to True
+            # for wait_events to not always return True
             has_events = viewport.wait_events(timeout_ms=0)
         else:
             has_events = True
