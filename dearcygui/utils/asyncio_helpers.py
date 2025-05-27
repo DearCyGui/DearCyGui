@@ -193,7 +193,7 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
             concurrent.futures.Future: A future representing the execution of the callable.
         """
         if not self._running:
-            raise RuntimeError("Executor is not running")
+            raise RuntimeError(f"Executor is not running, cannot submit {fn}, args={args}, kwargs={kwargs}")
 
         future = Future()
 
