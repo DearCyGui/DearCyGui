@@ -1098,6 +1098,9 @@ cdef class Button(uiItem):
         imgui.PopItemFlag()
         self.update_current_state()
         SharedBool.set(<SharedBool>self._value, self.state.cur.active) # Unsure. Not in original
+        if self._repeat and self.state.cur.active != self.state.prev.active:
+            # Just clicked: prepare a check for press after the repeat delay
+            self.context.viewport.ask_refresh_after(imgui.GetIO().KeyRepeatDelay)
         return activated
 
 
