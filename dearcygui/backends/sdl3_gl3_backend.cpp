@@ -903,6 +903,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     closeCallback(callbackData);
                     activityDetected.store(true);
+                    break;
                 case SDL_EVENT_DROP_BEGIN:
                     dropCallback(callbackData, 0, nullptr);
                     break;
