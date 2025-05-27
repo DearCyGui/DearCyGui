@@ -477,7 +477,7 @@ SDLViewport* SDLViewport::create(render_fun render,
 #else
         if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
 #endif
-            printf("Error: SDL_Init(): %s\n", SDL_GetError());
+            fprintf(stderr, "Error: SDL_Init(): %s\n", SDL_GetError());
             return nullptr;
         }
         sdlMainThreadId = SDL_GetCurrentThreadID();
@@ -849,6 +849,11 @@ bool SDLViewport::processEvents(int timeout_ms) {
         SDL_Window* event_window = SDL_GetWindowFromEvent(&event);
         bool isOurWindowEvent = event_window == windowHandle;
 
+        // ignore events for the upload window
+        if (event_window == uploadWindowHandle) {
+            continue; // Skip events for the upload window
+        }
+
         if (isOurWindowEvent || event_window == nullptr) {
             ImGui_ImplSDL3_ProcessEvent(&event);
             switch (event.type) {
@@ -934,11 +939,12 @@ bool SDLViewport::processEvents(int timeout_ms) {
 
     // Move back to the queue events meant for other windows
     if (!deferredEvents.empty()) {
-        if ((int)deferredEvents.size() >= 1024)
+        if ((int)deferredEvents.size() >= 1024) {
             fprintf(stderr, "Warning: %d deferred events. Events are not properly flushed. Skipping...\n", (int)deferredEvents.size());
-        else
+        } else {
             SDL_PeepEvents(deferredEvents.data(), (int)deferredEvents.size(),
                            SDL_ADDEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST);
+        }
         deferredEvents.clear();
     }
     return activityDetected.load() || needsRefresh.load();

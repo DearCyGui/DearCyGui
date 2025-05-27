@@ -396,7 +396,7 @@ cdef class Context:
             SharedGLContext instance
         """
         cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.imgui_mutex)
+        lock_gil_friendly(m, self.viewport._mutex_backend)
         return SharedGLContext.from_context(self, (<platformViewport*>self.viewport._platform).createSharedContext(major, minor))
 
     cdef void queue_callback_noarg(self, Callback callback, baseItem parent_item, baseItem target_item) noexcept nogil:
@@ -4043,6 +4043,7 @@ cdef class Viewport(baseItem):
         cdef int32_t internal_timeout_ms
         cdef bint is_internal_timeout = False
         with nogil:
+            ensure_correct_im_context(self.context) # Doesn't really need the imgui mutex
             backend_m.lock()
             self_m.unlock()
             current_time_s = self.last_t_before_event_handling * 1e-9
@@ -4075,81 +4076,92 @@ cdef class Viewport(baseItem):
             True if the frame was presented to the screen, False otherwise
         """
         # to lock in this order
-        cdef unique_lock[DCGMutex] imgui_m = unique_lock[DCGMutex](self.context.imgui_mutex, defer_lock_t()) # TODO: probably needs to protect processEvents and GetIO
+        cdef unique_lock[DCGMutex] imgui_m = unique_lock[DCGMutex](self.context.imgui_mutex, defer_lock_t())
         cdef unique_lock[DCGMutex] self_m
         cdef unique_lock[DCGMutex] backend_m = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
         lock_gil_friendly(self_m, self.mutex)
         self.__check_initialized()
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("render_frame must be called from the thread where the context was created")
-        ensure_correct_im_context(self.context)
-        self.last_t_before_event_handling = ctime.monotonic_ns()
         cdef double current_time_s, target_timeout_ms
         cdef bint should_present
-        cdef float gs = self.global_scale
-        self.global_scale = (<platformViewport*>self._platform).dpiScale * self._scale
-        cdef imgui.ImGuiStyle *style = &imgui.GetStyle()
-        cdef implot.ImPlotStyle *style_p = &implot.GetStyle()
+        cdef float gs
+        cdef imgui.ImGuiStyle *style
+        cdef implot.ImPlotStyle *style_p
         cdef Texture framebuffer
-        # Handle scaling
-        if gs != self.global_scale:
-            gs = self.global_scale
-            style.WindowPadding = imgui.ImVec2(cround(gs*8), cround(gs*8))
-            #style.WindowRounding = cround(gs*0.)
-            style.WindowMinSize = imgui.ImVec2(cround(gs*32), cround(gs*32))
-            #style.ChildRounding = cround(gs*0.)
-            #style.PopupRounding = cround(gs*0.)
-            style.FramePadding = imgui.ImVec2(cround(gs*4.), cround(gs*3.))
-            #style.FrameRounding = cround(gs*0.)
-            style.ItemSpacing = imgui.ImVec2(cround(gs*8.), cround(gs*4.))
-            style.ItemInnerSpacing = imgui.ImVec2(cround(gs*4.), cround(gs*4.))
-            style.CellPadding = imgui.ImVec2(cround(gs*4.), cround(gs*2.))
-            #style.TouchExtraPadding = imgui.ImVec2(cround(gs*0.), cround(gs*0.))
-            style.IndentSpacing = cround(gs*21.)
-            style.ColumnsMinSpacing = cround(gs*6.)
-            style.ScrollbarSize = cround(gs*14.)
-            style.ScrollbarRounding = cround(gs*9.)
-            style.GrabMinSize = cround(gs*12.)
-            #style.GrabRounding = cround(gs*0.)
-            style.LogSliderDeadzone = cround(gs*4.)
-            style.TabRounding = cround(gs*4.)
-            #style.TabMinWidthForCloseButton = cround(gs*0.)
-            style.TabBarOverlineSize = cround(gs*2.)
-            style.SeparatorTextPadding = imgui.ImVec2(cround(gs*20.), cround(gs*3.))
-            style.DisplayWindowPadding = imgui.ImVec2(cround(gs*19.), cround(gs*19.))
-            style.DisplaySafeAreaPadding = imgui.ImVec2(cround(gs*3.), cround(gs*3.))
-            style.MouseCursorScale = gs*1.
-            style_p.LineWeight = gs*1.
-            style_p.MarkerSize = gs*4.
-            style_p.MarkerWeight = gs*1
-            style_p.ErrorBarSize = cround(gs*5.)
-            style_p.ErrorBarWeight = gs * 1.5
-            style_p.DigitalBitHeight = cround(gs * 8.)
-            style_p.DigitalBitGap = cround(gs * 4.)
-            style_p.MajorTickLen = imgui.ImVec2(gs*10, gs*10)
-            style_p.MinorTickLen = imgui.ImVec2(gs*5, gs*5)
-            style_p.MajorTickSize = imgui.ImVec2(gs*1, gs*1)
-            style_p.MinorTickSize = imgui.ImVec2(gs*1, gs*1)
-            style_p.MajorGridSize = imgui.ImVec2(gs*1, gs*1)
-            style_p.MinorGridSize = imgui.ImVec2(gs*1, gs*1)
-            style_p.PlotPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
-            style_p.LabelPadding = imgui.ImVec2(cround(gs*5), cround(gs*5))
-            style_p.LegendPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
-            style_p.LegendInnerPadding = imgui.ImVec2(cround(gs*5), cround(gs*5))
-            style_p.LegendSpacing = imgui.ImVec2(cround(gs*5), cround(gs*0))
-            style_p.MousePosPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
-            style_p.AnnotationPadding = imgui.ImVec2(cround(gs*2), cround(gs*2))
-            style_p.PlotDefaultSize = imgui.ImVec2(cround(gs*400), cround(gs*300))
-            style_p.PlotMinSize = imgui.ImVec2(cround(gs*200), cround(gs*150))
         with nogil:
+            # Configuring imgui's style. Uses imgui variables and viewport variables
+            self_m.unlock() # lock order
+            imgui_m.lock()
+            self_m.lock()
+            ensure_correct_im_context(self.context)
+            self.last_t_before_event_handling = ctime.monotonic_ns()
+            gs = self.global_scale
+            self.global_scale = (<platformViewport*>self._platform).dpiScale * self._scale
+            style = &imgui.GetStyle()
+            style_p = &implot.GetStyle()
+            # Handle scaling
+            if gs != self.global_scale:
+                gs = self.global_scale
+                style.WindowPadding = imgui.ImVec2(cround(gs*8), cround(gs*8))
+                #style.WindowRounding = cround(gs*0.)
+                style.WindowMinSize = imgui.ImVec2(cround(gs*32), cround(gs*32))
+                #style.ChildRounding = cround(gs*0.)
+                #style.PopupRounding = cround(gs*0.)
+                style.FramePadding = imgui.ImVec2(cround(gs*4.), cround(gs*3.))
+                #style.FrameRounding = cround(gs*0.)
+                style.ItemSpacing = imgui.ImVec2(cround(gs*8.), cround(gs*4.))
+                style.ItemInnerSpacing = imgui.ImVec2(cround(gs*4.), cround(gs*4.))
+                style.CellPadding = imgui.ImVec2(cround(gs*4.), cround(gs*2.))
+                #style.TouchExtraPadding = imgui.ImVec2(cround(gs*0.), cround(gs*0.))
+                style.IndentSpacing = cround(gs*21.)
+                style.ColumnsMinSpacing = cround(gs*6.)
+                style.ScrollbarSize = cround(gs*14.)
+                style.ScrollbarRounding = cround(gs*9.)
+                style.GrabMinSize = cround(gs*12.)
+                #style.GrabRounding = cround(gs*0.)
+                style.LogSliderDeadzone = cround(gs*4.)
+                style.TabRounding = cround(gs*4.)
+                #style.TabMinWidthForCloseButton = cround(gs*0.)
+                style.TabBarOverlineSize = cround(gs*2.)
+                style.SeparatorTextPadding = imgui.ImVec2(cround(gs*20.), cround(gs*3.))
+                style.DisplayWindowPadding = imgui.ImVec2(cround(gs*19.), cround(gs*19.))
+                style.DisplaySafeAreaPadding = imgui.ImVec2(cround(gs*3.), cround(gs*3.))
+                style.MouseCursorScale = gs*1.
+                style_p.LineWeight = gs*1.
+                style_p.MarkerSize = gs*4.
+                style_p.MarkerWeight = gs*1
+                style_p.ErrorBarSize = cround(gs*5.)
+                style_p.ErrorBarWeight = gs * 1.5
+                style_p.DigitalBitHeight = cround(gs * 8.)
+                style_p.DigitalBitGap = cround(gs * 4.)
+                style_p.MajorTickLen = imgui.ImVec2(gs*10, gs*10)
+                style_p.MinorTickLen = imgui.ImVec2(gs*5, gs*5)
+                style_p.MajorTickSize = imgui.ImVec2(gs*1, gs*1)
+                style_p.MinorTickSize = imgui.ImVec2(gs*1, gs*1)
+                style_p.MajorGridSize = imgui.ImVec2(gs*1, gs*1)
+                style_p.MinorGridSize = imgui.ImVec2(gs*1, gs*1)
+                style_p.PlotPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
+                style_p.LabelPadding = imgui.ImVec2(cround(gs*5), cround(gs*5))
+                style_p.LegendPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
+                style_p.LegendInnerPadding = imgui.ImVec2(cround(gs*5), cround(gs*5))
+                style_p.LegendSpacing = imgui.ImVec2(cround(gs*5), cround(gs*0))
+                style_p.MousePosPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
+                style_p.AnnotationPadding = imgui.ImVec2(cround(gs*2), cround(gs*2))
+                style_p.PlotDefaultSize = imgui.ImVec2(cround(gs*400), cround(gs*300))
+                style_p.PlotMinSize = imgui.ImVec2(cround(gs*200), cround(gs*150))
+
             backend_m.lock()
             self_m.unlock()
-            # Process input events.
-            # Doesn't need imgui mutex.
+            # Process input events (needs imgui mutex and backend mutex)
+            # Doesn't need viewport mutex.
             # if wait_for_input is set, can take a long time
             current_time_s = self.last_t_before_event_handling * 1e-9
             target_timeout_ms = (self._target_refresh_time - current_time_s) * 1000.
             target_timeout_ms = max(0., ceil(target_timeout_ms))
+            # TODO: we really want to not have imgui_m locked here, but
+            # this is not really correct...
+            imgui_m.unlock()
             (<platformViewport*>self._platform).processEvents(<int>target_timeout_ms)
             if self.wait_for_input:
                 self._target_refresh_time = current_time_s + 5.
@@ -4218,12 +4230,10 @@ cdef class Viewport(baseItem):
         and want to show the update
         """
         cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] m2
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
+        lock_gil_friendly(m, self.mutex)
         if not self._initialized:
             return
-        (<platformViewport*>self._platform).wakeRendering()
+        (<platformViewport*>self._platform).wakeRendering() # doesn't need any mutex
 
     cdef void ask_refresh_after(self, double monotonic) noexcept nogil:
         """
@@ -4232,8 +4242,7 @@ cdef class Viewport(baseItem):
         still occur before the target, in which case, the function
         should be called again.
         """
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.context.imgui_mutex)
-        cdef unique_lock[DCGMutex] m2 = unique_lock[DCGMutex](self.mutex)
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._target_refresh_time = min(self._target_refresh_time, monotonic)
 
     cdef void force_present(self) noexcept nogil:
