@@ -339,11 +339,12 @@ cdef class FontMultiScales(baseFont):
         if self._stored_scales.size() < 10:
             self._stored_scales.resize(self._stored_scales.size() + 1)
 
-        for i in range(<int>self._stored_scales.size()-1):
-            if i == 0:
-                self._stored_scales[i] = global_scale
-            else:
-                self._stored_scales[i] = self._stored_scales[i-1]
+        # Shift elements to the right to make room at front
+        for i in range(<int>self._stored_scales.size() - 1, 0, -1):
+            self._stored_scales[i] = self._stored_scales[i-1]
+            
+        # Insert new scale at the front
+        self._stored_scales[0] = global_scale
 
         # Notify callbacks of new scale
         if not(self._callbacks.empty()):
