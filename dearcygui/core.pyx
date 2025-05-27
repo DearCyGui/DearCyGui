@@ -359,7 +359,7 @@ cdef class Context:
         return self._queue
 
     @queue.setter
-    def queue(self, queue):
+    def queue(self, queue): # TODO: thread safety
         """
         Set the Executor for managing thread-pooled callbacks.
         """
@@ -368,10 +368,11 @@ cdef class Context:
         # Check type
         if not(isinstance(queue, Executor)):
             raise TypeError("queue must be a subclass of concurrent.futures.Executor")
-        # Finish current queue
-        if self._queue is not None:
-            self._queue.shutdown(wait=True)
+        old_queue = self._queue
         self._queue = queue
+        # Finish previous queue
+        if old_queue is not None:
+            old_queue.shutdown(wait=True)
 
     @property
     def rendering_context(self) -> BackendRenderingContext:
