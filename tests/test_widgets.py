@@ -272,8 +272,8 @@ def test_slider_basic():
 def test_text_basic():
     """Test basic Text functionality"""
     ctx = dcg.Context()
-    text = dcg.Text(ctx, label="Test Text")
-    assert text.label == "Test Text"
+    text = dcg.Text(ctx, value="Test Text")
+    assert text.value == "Test Text"
     assert not text.bullet
     text.bullet = True
     assert text.bullet
