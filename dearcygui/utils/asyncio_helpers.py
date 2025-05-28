@@ -4,11 +4,68 @@ import dearcygui as dcg
 import inspect
 import threading
 import time
+import warnings
 
 from typing import Callable
 
+class _SimpleBarrier:
+    """
+    A simple barrier that can be set/checked only once,
+    and goes back to a pool after being checked.
+    """
+    def __init__(self, barrier_pool: list['_SimpleBarrier'], pool_mutex: threading.Lock):
+        self._set = False
+        self._checked = False
+        self._barrier_pool = barrier_pool
+        self._pool_mutex = pool_mutex
+
+    def _discard(self) -> None:
+        """
+        Discard the barrier, returning it to the pool.
+        This method is called when the barrier is no longer needed.
+        """
+        # Reset the barrier
+        self._set = False
+        self._checked = False
+        # Return the barrier to the pool
+        with self._pool_mutex:
+            self._barrier_pool.append(self)
+
+    def check_and_discard(self) -> bool:
+        """
+        Check if the barrier is set.
+        
+        Returns:
+            bool: True if the barrier is set, False otherwise.
+        """
+        value = self._set
+        if value:
+            self._discard()
+        else:
+            self._checked = True
+        return value
+
+    def set(self) -> None:
+        """
+        Set the barrier, allowing it to be checked.
+        """
+        if self._checked:
+            # The barrier has been checked already,
+            # no need to set it.
+            self._discard()
+            return
+        self._set = True
+        # Note: theorically, we could miss some _discard() calls here,
+        # as _checked and _value may modify concurrently.
+        # But this is not a problem as the barrier is meant to be used
+        # in a single-threaded context (the mutex being here mainly to
+        # protect the unlikely case it is not in this scenario).
+        # In the multithreaded we don't care what check_and_discard returns,
+        # and in the worst case, we will miss calling _discard and need
+        # to create a new barrier.
+
 async def _async_task(future: Future | asyncio.Future,
-                      barrier: threading.Event | None,
+                      barrier: _SimpleBarrier | None,
                       fn: Callable, args: tuple, kwargs: dict) -> None:
     """
     Internal function to run a callable in the asyncio event loop.
@@ -17,12 +74,12 @@ async def _async_task(future: Future | asyncio.Future,
 
     Args:
         future: A Future object to set the result or exception.
-        barrier: An optional threading.Event to control execution flow.
+        barrier: An optional _SimpleBarrier to control execution flow.
         fn: The callable to execute.
         args: Positional arguments to pass to the callable.
         kwargs: Keyword arguments to pass to the callable.
     """
-    if barrier is not None and not barrier.is_set():
+    if barrier is not None and not barrier.check_and_discard():
         # The barrier here is to shield ourselves from eager task execution,
         # as we don't want the function to run in the same
         # thread immediately (unsafe to change the item
@@ -74,7 +131,11 @@ class AsyncPoolExecutor(ThreadPoolExecutor):
             if self._loop is None:
                 raise RuntimeError("No event loop found. Please set an event loop before using AsyncPoolExecutor.")
         else:
+            if not isinstance(loop, asyncio.AbstractEventLoop):
+                raise TypeError("Expected an instance of asyncio.AbstractEventLoop.")
             self._loop = loop
+        self._barrier_pool = []
+        self._pool_mutex = threading.Lock()
 
     # Replace ThreadPoolExecutor completly to avoid using threads
     def __del__(self):
@@ -102,18 +163,17 @@ class AsyncPoolExecutor(ThreadPoolExecutor):
         # Create a future in the current event loop
         future = self._loop.create_future()
 
-        barrier = None
-        if self._loop.get_task_factory() is not None:
-            # If we are using eager task factory, we need to use a barrier
-            # to ensure the function is not executed immediately in the same thread
-            # (which would be unsafe if we are in the middle of rendering a frame)
-            barrier = threading.Event()
+        # If we are using eager task factory, we need to use a barrier
+        # to ensure the function is not executed immediately in the same thread
+        # (which would be unsafe if we are in the middle of rendering a frame)
+        with self._pool_mutex:
+            if self._barrier_pool:
+                barrier = self._barrier_pool.pop()
+            else:
+                barrier = _SimpleBarrier(self._barrier_pool, self._pool_mutex)
 
         # Schedule the coroutine execution in the event loop
         self._loop.create_task(_async_task(future, barrier, fn, args, kwargs))
-
-        if barrier is not None:
-            barrier.set()  # if we are here, the frame rendering can continue
 
         return future
 
@@ -132,7 +192,10 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
     enabling asyncio operations to run off the main thread.
     """
 
-    def __init__(self):
+    def __init__(self, loop_factory: Callable[[], asyncio.AbstractEventLoop] = None):
+        self.loop_factory = loop_factory or asyncio.new_event_loop
+        if not callable(self.loop_factory):
+            raise TypeError("loop_factory must be a callable that returns an asyncio.AbstractEventLoop instance.")
         self._thread_loop = None
         self._running = False
         self._thread = None
@@ -149,10 +212,28 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
     def _thread_worker(self) -> None:
         """Background thread that runs its own event loop."""
         # Create a new event loop for this thread
-        self._thread_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self._thread_loop)
-        # for speed, use eager task factory
-        self._thread_loop.set_task_factory(asyncio.eager_task_factory)
+        if self.loop_factory is not asyncio.new_event_loop:
+            self._thread_loop = self.loop_factory()
+            if self._thread_loop is None or not isinstance(self._thread_loop, asyncio.AbstractEventLoop):
+                warnings.warn(
+                    "The provided loop_factory did not return a valid asyncio event loop. "
+                    "Using asyncio.new_event_loop instead.",
+                    RuntimeWarning
+                )
+                self._thread_loop = asyncio.new_event_loop()
+            if self._thread_loop.is_running():
+                warnings.warn(
+                    "The provided loop_factory returned an already running event loop. "
+                    "Using asyncio.new_event_loop instead.",
+                    RuntimeWarning
+                )
+                self._thread_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._thread_loop)
+        else:
+            self._thread_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._thread_loop)
+            # for speed, use eager task factory
+            self._thread_loop.set_task_factory(asyncio.eager_task_factory)
 
         self._running = True
         try:
