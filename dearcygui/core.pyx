@@ -6229,7 +6229,7 @@ cdef class Window(uiItem):
         self._has_close_button = True
         self.state.cur.open = True
         self._collapse_update_requested = False
-        self._no_open_over_existing_popup = True
+        self._no_open_over_existing_popup = False
         self._on_close_callback = None
         self._min_size = make_Vec2(100., 100.)
         self._max_size = make_Vec2(30000., 30000.)
