@@ -179,7 +179,16 @@ class AsyncPoolExecutor(ThreadPoolExecutor):
         return future
 
 
-class BatchingEventLoop(asyncio.EventLoop):
+_DefaultEventLoop = asyncio.EventLoop
+
+try:
+    # If available, use uvloop for better performance
+    import uvloop
+    _DefaultEventLoop = uvloop.Loop
+except:
+    pass
+
+class BatchingEventLoop(_DefaultEventLoop):
     """
     Loop optimized for batching events and tasks.
 
@@ -222,17 +231,16 @@ class BatchingEventLoop(asyncio.EventLoop):
         """Override call_at to quantize the scheduling time."""
         now = self.time()
         delay = when - now
-        
+
         # Only quantize if the delay is above our threshold
         if delay < self.quantize_threshold:
             # For immediate or very short delays, don't quantize
             return super().call_at(when, callback, *args, **kwargs)
 
         quantized_when = math.ceil(when / self.time_slot) * self.time_slot
-            
+
         # Use the quantized time instead
         return super().call_at(quantized_when, callback, *args, **kwargs)
-        
     
     def call_later(self, delay, callback, *args, **kwargs):
         # Only quantize if the delay is above our threshold
@@ -240,11 +248,14 @@ class BatchingEventLoop(asyncio.EventLoop):
             return super().call_later(delay, callback, *args, **kwargs)
 
         # Quantize the target time
-        when = self.time() + delay
+        current_time = self.time()
+        when = current_time + delay
         quantized_when = math.ceil(when / self.time_slot) * self.time_slot
+        delay = quantized_when - current_time
 
         # Use the quantized time instead
-        return super().call_at(quantized_when, callback, *args, **kwargs)
+        return super().call_later(delay, callback, *args, **kwargs)
+
 
 class AsyncThreadPoolExecutor(ThreadPoolExecutor):
     """

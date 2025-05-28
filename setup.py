@@ -361,6 +361,7 @@ def setup_package():
         ext_modules = cythonize(extensions, compiler_directives={'language_level' : "3"}, nthreads=4),
         extras_require={
             'svg': ['skia-python'],  # For SVG rendering support in utils.image
+            'uvloop': ['uvloop'],    # For better asyncio performance
         }
     )
     metadata["package_data"] = {}
