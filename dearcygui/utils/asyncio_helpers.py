@@ -2,6 +2,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor, Future
 import dearcygui as dcg
 import inspect
+import math
 import threading
 import time
 import warnings
@@ -178,6 +179,73 @@ class AsyncPoolExecutor(ThreadPoolExecutor):
         return future
 
 
+class BatchingEventLoop(asyncio.EventLoop):
+    """
+    Loop optimized for batching events and tasks.
+
+    Used with AsyncThreadPoolExecutor, it can improve performance
+    when having many async callbacks with timed animations. It works
+    by quantizing the time at which tasks are scheduled, resulting in
+    tasks with close time deadlines being grouped together.
+    This reduces the overhead of thread context switching and GIL
+    contention.
+    """
+    
+    def __init__(self, time_slot=0.010):
+        """
+        Initialize the quantized event loop.
+        
+        Args:
+            time_slot: Time quantization in seconds (default: 0.010s = 10ms)
+        """
+        super().__init__()
+        self.time_slot = time_slot  # Time quantization in seconds
+        self.quantize_threshold = min(0.001, 0.1 * time_slot)  # Don't quantize delays shorter than this
+        self.set_task_factory(asyncio.eager_task_factory) # small perf gain
+    
+    @classmethod
+    def factory(cls, time_slot=0.010):
+        """
+        Returns a factory function that creates quantized event loops.
+
+        Args:
+            time_slot: Time quantization in seconds (default: 0.010s = 10ms)
+                
+        Returns:
+            Callable: A factory function that creates properly configured event loops
+        """
+        def create_loop():
+            return cls(time_slot)
+        return create_loop
+    
+    def call_at(self, when, callback, *args, **kwargs):
+        """Override call_at to quantize the scheduling time."""
+        now = self.time()
+        delay = when - now
+        
+        # Only quantize if the delay is above our threshold
+        if delay < self.quantize_threshold:
+            # For immediate or very short delays, don't quantize
+            return super().call_at(when, callback, *args, **kwargs)
+
+        quantized_when = math.ceil(when / self.time_slot) * self.time_slot
+            
+        # Use the quantized time instead
+        return super().call_at(quantized_when, callback, *args, **kwargs)
+        
+    
+    def call_later(self, delay, callback, *args, **kwargs):
+        # Only quantize if the delay is above our threshold
+        if delay < self.quantize_threshold:
+            return super().call_later(delay, callback, *args, **kwargs)
+
+        # Quantize the target time
+        when = self.time() + delay
+        quantized_when = math.ceil(when / self.time_slot) * self.time_slot
+
+        # Use the quantized time instead
+        return super().call_at(quantized_when, callback, *args, **kwargs)
+
 class AsyncThreadPoolExecutor(ThreadPoolExecutor):
     """
     A ThreadPoolExecutor that executes callbacks in a
@@ -190,10 +258,18 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
     This executor runs an asyncio event loop in a dedicated
     thread and forwards all submitted tasks to that loop,
     enabling asyncio operations to run off the main thread.
+
+    The default loop factory is
+    `dearcygui.utils.asyncio_helpers.BatchingEventLoop.factory()`,
+    a custom event loop that batches tasks by quantizing
+    the scheduling time (default accuracy is 10ms). It is an
+    optimized event loop when having many async callbacks
+    running with timed animations. The quantization only
+    affects operations such as `asyncio.sleep()`, etc.
     """
 
     def __init__(self, loop_factory: Callable[[], asyncio.AbstractEventLoop] = None):
-        self.loop_factory = loop_factory or asyncio.new_event_loop
+        self.loop_factory = loop_factory or BatchingEventLoop.factory()
         if not callable(self.loop_factory):
             raise TypeError("loop_factory must be a callable that returns an asyncio.AbstractEventLoop instance.")
         self._thread_loop = None
