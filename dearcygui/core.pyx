@@ -307,6 +307,8 @@ cdef class Context:
         """
         self.next_uuid.store(21)
         self._started = True
+        self.imgui_context = NULL
+        self.implot_context = NULL
         self.viewport = Viewport(self)
         imgui.IMGUI_CHECKVERSION()
         self.imgui_context = imgui.CreateContext()
@@ -2780,8 +2782,8 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self._mutex_backend) # To not release while we render a frame
-        ensure_correct_im_context(self.context)
         if self._platform != NULL:
+            ensure_correct_im_context(self.context)
             # Maybe just a warning ? Not sure how to solve this issue.
             #if not (<platformViewport*>self._platform).checkPrimaryThread():
             #    raise RuntimeError("Viewport deallocated from a different thread than the one it was created in")

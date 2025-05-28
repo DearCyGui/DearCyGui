@@ -6,6 +6,7 @@
 #include <GL/glext.h>
 #include <SDL3/SDL.h>
 #include "backend.h"
+#include <stdexcept>
 
 #include "implot.h"
 #include "imgui.h"
@@ -186,8 +187,7 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
 
     glGenTextures(1, &image_texture);
     if (glGetError() != GL_NO_ERROR) {
-        //releaseUploadContext();
-        return NULL;
+        throw std::runtime_error("Failed to generate OpenGL texture");
     }
     glBindTexture(GL_TEXTURE_2D, image_texture);
 
@@ -259,8 +259,9 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
 
     if (glGetError() != GL_NO_ERROR) {
         glDeleteTextures(1, &image_texture);
-        //releaseUploadContext();
-        return NULL;
+        std::string error_msg = "Failed to configure OpenGL texture (error code: " + 
+                               std::to_string(glGetError()) + ")";
+        throw std::runtime_error(error_msg);
     }
 
     // Unbind texture
@@ -327,13 +328,13 @@ bool SDLViewport::updateTexture(void* texture, unsigned width, unsigned height,
     }
 
     if(!valid_texture) {
-        return false;
+        throw std::runtime_error("Invalid or deleted texture handle");
     }
 
     // Validate texture parameters haven't changed
     if(info.width != width || info.height != height || 
        info.num_chans != num_chans || info.type != type) {
-        return false;
+        throw std::runtime_error("Texture parameters mismatch in update");
     }
 
     unsigned gl_format = GL_RGBA;
@@ -448,7 +449,9 @@ error:
     if(pboid != 0) {
         glDeleteBuffers(1, &pboid);
     }
-    return false;
+    std::string error_msg = "Failed to update texture (error code: " + 
+                           std::to_string(glGetError()) + ")";
+    throw std::runtime_error(error_msg);
 }
 
 bool SDLViewport::updateDynamicTexture(void* texture, unsigned width, unsigned height,
@@ -477,14 +480,15 @@ SDLViewport* SDLViewport::create(render_fun render,
 #else
         if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
 #endif
-            fprintf(stderr, "Error: SDL_Init(): %s\n", SDL_GetError());
-            return nullptr;
+            std::string error_msg = "Failed to initialize SDL: ";
+            error_msg += SDL_GetError();
+            SDL_ClearError();
+            throw std::runtime_error(error_msg);
         }
         sdlMainThreadId = SDL_GetCurrentThreadID();
         sdlInitialized = true;
     } else if (SDL_GetCurrentThreadID() != sdlMainThreadId) {
-        fprintf(stderr, "Error: Contexts creation must be performed in the same thread\n");
-        return nullptr;
+        throw std::runtime_error("Context creation must be performed in the thread that initialized the first Context");
     }
 
     auto viewport = new SDLViewport();
@@ -498,8 +502,13 @@ SDLViewport* SDLViewport::create(render_fun render,
     // Create secondary window/context
     viewport->uploadWindowHandle = SDL_CreateWindow("DearCyGui upload context", 
         640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_UTILITY);
-    if (viewport->uploadWindowHandle == nullptr)
-        return nullptr;
+    if (viewport->uploadWindowHandle == nullptr) {
+        delete viewport;
+        std::string error_msg = "Failed to create SDL upload window: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
+        throw std::runtime_error(error_msg);
+    }
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -515,10 +524,19 @@ SDLViewport* SDLViewport::create(render_fun render,
         viewport->uploadGLContext = SDL_GL_CreateContext(viewport->uploadWindowHandle);
     }
 
-    if (viewport->uploadGLContext == nullptr)
-        return nullptr;
-    if (gl3wInit() != GL3W_OK)
-        return nullptr;
+    if (viewport->uploadGLContext == nullptr){
+        std::string error_msg = "Failed to create OpenGL context: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
+        delete viewport;
+        throw std::runtime_error(error_msg);
+    }
+    
+    if (gl3wInit() != GL3W_OK) {
+        delete viewport;
+        throw std::runtime_error("Failed to initialize GL3W");
+    }
+    
     // Check for important extensions 
     viewport->has_texture_storage = SDL_GL_ExtensionSupported("GL_ARB_texture_storage");
     viewport->has_buffer_storage = SDL_GL_ExtensionSupported("GL_ARB_buffer_storage");
@@ -614,7 +632,10 @@ void SDLViewport::cleanup() {
 }
 
 bool SDLViewport::initialize() {
-    if (!checkPrimaryThread()) return false;
+    if (!checkPrimaryThread()) {
+        throw std::runtime_error("SDLViewport::initialize must be called from the main thread");
+    }
+    
     const char* glsl_version = "#version 150";
 
     SDL_WindowFlags creation_flags = 0;
@@ -660,7 +681,10 @@ bool SDLViewport::initialize() {
     if (windowHandle == nullptr) {
         SDL_GL_MakeCurrent(uploadWindowHandle, NULL);
         uploadContextLock.unlock();
-        return false;
+        std::string error_msg = "Failed to create SDL window: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
+        throw std::runtime_error(error_msg);
     }
 
     // Apply icon if we have one
@@ -673,7 +697,10 @@ bool SDLViewport::initialize() {
         SDL_DestroyWindow(windowHandle);
         SDL_GL_MakeCurrent(uploadWindowHandle, NULL);
         uploadContextLock.unlock();
-        return false;
+        std::string error_msg = "Failed to create OpenGL context for window: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
+        throw std::runtime_error(error_msg);
     }
 
     SDL_GL_MakeCurrent(windowHandle, NULL);
@@ -723,7 +750,8 @@ bool SDLViewport::initialize() {
     if (!hasSDL3Init) {
         SDL_GL_DestroyContext(glContext);
         SDL_DestroyWindow(windowHandle);
-        return false;
+        std::string error_msg = "Failed to initialize ImGui SDL3 backend";
+        throw std::runtime_error(error_msg);
     }
 
     // Setup rendering
@@ -733,7 +761,8 @@ bool SDLViewport::initialize() {
         hasSDL3Init = false;
         SDL_GL_DestroyContext(glContext);
         SDL_DestroyWindow(windowHandle);
-        return false;
+        std::string error_msg = "Failed to initialize ImGui OpenGL3 backend";
+        throw std::runtime_error(error_msg);
     }
 
     SDL_GL_MakeCurrent(windowHandle, NULL);
@@ -1103,7 +1132,10 @@ GLContext* SDLViewport::createSharedContext(int major, int minor) {
     if (!tempWindow) {
         SDL_GL_MakeCurrent(uploadWindowHandle, NULL);
         uploadContextLock.unlock();
-        return nullptr;
+        std::string error_msg = "Failed to create window for shared context: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
+        throw std::runtime_error(error_msg);
     }
 
     // Set context attributes
@@ -1122,7 +1154,10 @@ GLContext* SDLViewport::createSharedContext(int major, int minor) {
 
     if (!sharedContext) {
         SDL_DestroyWindow(tempWindow);
-        return nullptr;
+        std::string error_msg = "Failed to create shared OpenGL context: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
+        throw std::runtime_error(error_msg);
     }
 
     return new SDLGLContext(tempWindow, sharedContext);
@@ -1368,18 +1403,20 @@ bool SDLViewport::downloadTexture(void* texture,
                                   unsigned dst_stride)
 {
     GLuint tex_id = (GLuint)(size_t)texture;
-    if (!tex_id) return false;
+    if (!tex_id) {
+        throw std::runtime_error("Invalid texture handle for download");
+    }
 
     // Prevent writing outside bounds
     if (dst_stride < sub_width * num_chans * ((type == 1) ? 1 : 4)) {
-        return false;
+        throw std::runtime_error("Destination stride is too small for texture download");
     }
 
     // Check texture data matches
     std::lock_guard<std::recursive_mutex> lock(textureMutex);
     auto it = textureInfoMap.find(tex_id);
     if (it == textureInfoMap.end()) {
-        return false;
+        throw std::runtime_error("Texture not found in texture map");
     }
 
     // Wait for any pending writes before reading

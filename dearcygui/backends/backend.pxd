@@ -14,7 +14,7 @@ cdef extern from "backend.h" nogil:
     cdef cppclass platformViewport:        
         # Virtual methods
         void cleanup()
-        bint initialize() 
+        bint initialize() except +
         bint processEvents(int)
         bint renderFrame(bint)
         void present()
@@ -24,18 +24,18 @@ cdef extern from "backend.h" nogil:
         void wakeRendering()
         void makeUploadContextCurrent()
         void releaseUploadContext()
-        GLContext *createSharedContext(int, int)
+        GLContext *createSharedContext(int, int) except +
 
         # Texture methods
-        void* allocateTexture(unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned)
+        void* allocateTexture(unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned) except +
         void freeTexture(void*)
-        bint updateDynamicTexture(void*, unsigned, unsigned, unsigned, unsigned, void*, unsigned)
-        bint updateStaticTexture(void*, unsigned, unsigned, unsigned, unsigned, void*, unsigned)
+        bint updateDynamicTexture(void*, unsigned, unsigned, unsigned, unsigned, void*, unsigned) except +
+        bint updateStaticTexture(void*, unsigned, unsigned, unsigned, unsigned, void*, unsigned) except +
 
         bint downloadTexture(void*, int, int,
                              unsigned, unsigned, unsigned, unsigned,
-                             void*, unsigned)
-        bint backBufferToTexture(void*, unsigned, unsigned, unsigned, unsigned)
+                             void*, unsigned) except +
+        bint backBufferToTexture(void*, unsigned, unsigned, unsigned, unsigned) except +
 
         # Texture sync methods
         void beginExternalWrite(unsigned int)
@@ -98,6 +98,6 @@ cdef extern from "backend.h" nogil:
 
     cdef cppclass SDLViewport(platformViewport):
         @staticmethod
-        platformViewport* create(render_fun, on_resize_fun, on_close_fun, on_drop_fun, void*)
+        platformViewport* create(render_fun, on_resize_fun, on_close_fun, on_drop_fun, void*) except +
         void *getSDLWindowHandle()
 

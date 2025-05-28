@@ -34,6 +34,10 @@ public:
     virtual ~platformViewport() = default;
 
     virtual void cleanup() = 0;
+    /**
+     * Initialize the viewport with the specified settings.
+     * @throws std::runtime_error If initialization fails
+     */
     virtual bool initialize() = 0;
     virtual bool processEvents(int timeout_ms = 0) = 0;
     virtual bool renderFrame(bool can_skip_presenting) = 0;
@@ -54,25 +58,112 @@ public:
     virtual void wakeRendering() = 0;
     virtual void makeUploadContextCurrent() = 0;
     virtual void releaseUploadContext() = 0;
+    /**
+     * Create a shared OpenGL context.
+     * @param major OpenGL major version
+     * @param minor OpenGL minor version
+     * @return A GLContext pointer which the caller is responsible for deleting
+     * @throws std::runtime_error If context creation fails
+     */
     virtual GLContext* createSharedContext(int major, int minor) = 0;
+
+    /**
+     * Begin exclusive write access to a texture. Must be paired with endExternalWrite.
+     * Waits for any pending read operations to complete before allowing write access.
+     * The GL context must be current before calling this function.
+     * @param tex_id OpenGL texture identifier
+     */
     virtual void beginExternalWrite(GLuint tex_id) = 0;
+
+    /**
+     * End exclusive write access to a texture and place a fence sync.
+     * Must be called after beginExternalWrite once write operations are complete.
+     * The GL context must be current before calling this function.
+     * @param tex_id OpenGL texture identifier
+     */
     virtual void endExternalWrite(GLuint tex_id) = 0;
+
+    /**
+     * Begin read access to a texture. Must be paired with endExternalRead.
+     * Waits for any pending write operations to complete before allowing read access.
+     * The GL context must be current before calling this function.
+     * @param tex_id OpenGL texture identifier
+     */
     virtual void beginExternalRead(GLuint tex_id) = 0;
+
+    /**
+     * End read access to a texture and place a fence sync.
+     * Must be called after beginExternalRead once read operations are complete.
+     * The GL context must be current before calling this function.
+     * @param tex_id OpenGL texture identifier
+     */
     virtual void endExternalRead(GLuint tex_id) = 0;
 
-	// makeUploadContextCurrent must be called before any texture
-	// operations are performed, and releaseUploadContext must be
-	// called after the texture operations are done.
+    /**
+     * Allocate a new texture or reuse a cached one.
+     * The upload context must be current before calling this function.
+     * @param width Texture width in pixels
+     * @param height Texture height in pixels
+     * @param num_chans Number of color channels (1-4)
+     * @param dynamic Whether texture will be frequently updated
+     * @param type Pixel data type (1=byte, other=float)
+     * @param filtering_mode Texture filtering (0=linear, 1=nearest, 2=font, 3=antialias)
+     * @param repeat_mode Texture repeat mode flag (0=clamp, 1=repeat on x, 2=repeat on y, 3=repeat on both)
+     * @return void* Cast of GLuint texture ID, or nullptr on failure
+     * @throws std::runtime_error If texture allocation fails
+     */
     virtual void* allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
                                   unsigned dynamic, unsigned type, unsigned filtering_mode,
                                   unsigned repeat_mode) = 0;
+
+    /**
+     * Mark a texture for deletion and cache reuse.
+     * Thread-safe, can be called from any thread.
+     * No GL context is required as actual deletion is deferred.
+     * @param texture void* Cast of GLuint texture ID
+     */
     virtual void freeTexture(void* texture) = 0;
+
+    /**
+     * Update a dynamic texture with new content.
+     * The upload context must be current before calling this function.
+     * Uses PBO for efficient updates. PBO is created on first use.
+     * @param texture void* Cast of GLuint texture ID
+     * @param width Must match texture width
+     * @param height Must match texture height
+     * @param num_chans Must match texture channels
+     * @param type Must match texture type
+     * @param data Pointer to new pixel data
+     * @param src_stride Bytes per row in source data
+     * @return bool Success or failure
+     * @throws std::runtime_error If texture update fails
+     */
     virtual bool updateDynamicTexture(void* texture, unsigned width, unsigned height,
-                                   unsigned num_chans, unsigned type, void* data, 
-                                   unsigned src_stride) = 0;
+                                      unsigned num_chans, unsigned type, void* data, 
+                                      unsigned src_stride) = 0;
+
+    /**
+     * Update a static texture with new content.
+     * The upload context must be current before calling this function.
+     * Uses PBO for efficient uploads.
+     * @param texture void* Cast of GLuint texture ID 
+     * @param width Must match texture width
+     * @param height Must match texture height
+     * @param num_chans Must match texture channels
+     * @param type Must match texture type
+     * @param data Pointer to new pixel data
+     * @param src_stride Bytes per row in source data
+     * @return bool Success or failure
+     * @throws std::runtime_error If texture update fails
+     */
     virtual bool updateStaticTexture(void* texture, unsigned width, unsigned height,
-                                   unsigned num_chans, unsigned type, void* data, 
-                                   unsigned src_stride) = 0;
+                                     unsigned num_chans, unsigned type, void* data, 
+                                     unsigned src_stride) = 0;
+
+    /**
+     * Download texture content to CPU memory.
+     * @throws std::runtime_error If texture download fails
+     */
     virtual bool downloadTexture(void* texture,
                          int x,
                          int y,
@@ -206,6 +297,7 @@ public:
      * @param filtering_mode Texture filtering (0=linear, 1=nearest, 2=font, 3=antialias)
      * @param repeat_mode Texture repeat mode flag (0=clamp, 1=repeat on x, 2=repeat on y, 3=repeat on both)
      * @return void* Cast of GLuint texture ID, or nullptr on failure
+     * @throws std::runtime_error If texture allocation fails
      */
     virtual void* allocateTexture(unsigned width, unsigned height, unsigned num_chans, 
                                   unsigned dynamic, unsigned type, unsigned filtering_mode,
@@ -231,6 +323,7 @@ public:
      * @param data Pointer to new pixel data
      * @param src_stride Bytes per row in source data
      * @return bool Success or failure
+     * @throws std::runtime_error If texture update fails
      */
     virtual bool updateDynamicTexture(void* texture, unsigned width, unsigned height,
                                       unsigned num_chans, unsigned type, void* data, 
@@ -248,6 +341,7 @@ public:
      * @param data Pointer to new pixel data
      * @param src_stride Bytes per row in source data
      * @return bool Success or failure
+     * @throws std::runtime_error If texture update fails
      */
     virtual bool updateStaticTexture(void* texture, unsigned width, unsigned height,
                                      unsigned num_chans, unsigned type, void* data, 
