@@ -4046,8 +4046,8 @@ cdef class Viewport(baseItem):
             ensure_correct_im_context(self.context) # Doesn't really need the imgui mutex
             backend_m.lock()
             self_m.unlock()
-            current_time_s = self.last_t_before_event_handling * 1e-9
-            internal_timeout_ms = <int32_t>(ceil(self._target_refresh_time - current_time_s) * 1000.)
+            current_time_s = (<double>ctime.monotonic_ns()) * 1e-9
+            internal_timeout_ms = <int32_t>(ceil((self._target_refresh_time - current_time_s) * 1000.))
             internal_timeout_ms = max(0, internal_timeout_ms)
             timeout_ms = max(0, timeout_ms)
             if internal_timeout_ms <= timeout_ms:
@@ -4162,11 +4162,8 @@ cdef class Viewport(baseItem):
             # TODO: we really want to not have imgui_m locked here, but
             # this is not really correct...
             imgui_m.unlock()
-            (<platformViewport*>self._platform).processEvents(<int>target_timeout_ms)
-            if self.wait_for_input:
-                self._target_refresh_time = current_time_s + 5.
-            else:
-                self._target_refresh_time = 0
+            (<platformViewport*>self._platform).processEvents(
+                <int>target_timeout_ms if self.wait_for_input else 0)
             backend_m.unlock() # important to respect lock order
             # Core rendering - uses imgui and viewport
             imgui_m.lock()
@@ -4176,6 +4173,14 @@ cdef class Viewport(baseItem):
             
             #imgui.GetMainViewport().DpiScale = self.viewport.dpi
             #imgui.GetIO().FontGlobalScale = self.viewport.dpi
+            current_time_s = (<double>ctime.monotonic_ns()) * 1e-9
+            if current_time_s >= self._target_refresh_time:
+                # If we are past the target time, we should present
+                # to avoid blocking the viewport.
+                (<platformViewport*>self._platform).needsRefresh.store(True)
+                self._target_refresh_time = current_time_s + 5. # maximum time before next frame
+            else:
+                should_present = False
             should_present = \
                 (<platformViewport*>self._platform).renderFrame(not(self.always_submit_to_gpu))
             #self.last_t_after_rendering = ctime.monotonic_ns()
@@ -4208,7 +4213,7 @@ cdef class Viewport(baseItem):
             backend_m.unlock()
         if not(should_present) and (<platformViewport*>self._platform).hasVSync:
             # cap 'cpu' framerate when not presenting
-            python_time.sleep(0.005)
+            python_time.sleep(0.005) # TODO: use a timer instead and only wait if needed
         lock_gil_friendly(self_m, self.mutex)
         cdef long long current_time = ctime.monotonic_ns()
         self.delta_frame = 1e-9 * <float>(current_time - self.last_t_after_swapping)
