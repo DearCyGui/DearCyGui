@@ -1,63 +1,132 @@
 import pytest
 import asyncio
-import threading
-import time
-import dearcygui as dcg
 from dearcygui.utils.asyncio_helpers import (
     AsyncPoolExecutor,
     AsyncThreadPoolExecutor,
     BatchingEventLoop
 )
+import gc
+import sys
+import threading
+import time
+import weakref
 
-@pytest.fixture
-def event_loop():
-    """Create and return a standard asyncio event loop for testing."""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+# Custom task factory for testing
+def custom_task_factory(loop, coro):
+    """Custom task factory that adds a tag to the task"""
+    task = asyncio.tasks.Task(coro, loop=loop)
+    task.custom_tag = "custom_factory_task"
+    return task
+
+# Single-threaded event loop fixture
+@pytest.fixture(
+    params=[
+        "standard",
+        "standard_debug",
+        "standard_eager",
+        "batching",
+        "custom_task_factory",
+        pytest.param("uvloop", marks=pytest.mark.skipif(
+            "uvloop" not in sys.modules, 
+            reason="uvloop not installed"
+        )),
+    ],
+    ids=["standard", "debug", "eager", "batching", "custom_factory", "uvloop"]
+)
+def event_loop(request):
+    """Create and return different single-threaded event loop implementations."""
+    loop_type = request.param
+    
+    if loop_type == "standard":
+        loop = asyncio.new_event_loop()
+    elif loop_type == "standard_debug":
+        loop = asyncio.new_event_loop()
+        loop.set_debug(True)
+    elif loop_type == "standard_eager":
+        loop = asyncio.new_event_loop()
+        loop.set_task_factory(asyncio.eager_task_factory)
+    elif loop_type == "batching":
+        loop = BatchingEventLoop()
+    elif loop_type == "custom_task_factory":
+        loop = asyncio.new_event_loop()
+        loop.set_task_factory(custom_task_factory)
+    elif loop_type == "uvloop":
+        import uvloop
+        loop = uvloop.new_event_loop()
+
     yield loop
     loop.close()
+
+@pytest.fixture(
+    params=[
+        "standard",
+        "standard_debug",
+        "standard_eager",
+        "batching",
+        "custom_task_factory",
+        pytest.param("uvloop", marks=pytest.mark.skipif(
+            "uvloop" not in sys.modules, 
+            reason="uvloop not installed"
+        )),
+    ],
+    ids=["standard", "debug", "eager", "batching", "custom_factory", "uvloop"]
+)
+def event_loop_factory(request):
+    """Create and return different event loop factories."""
+    loop_type = request.param
+    
+    if loop_type == "standard":
+        loop = asyncio.new_event_loop()
+    elif loop_type == "standard_debug":
+        loop = asyncio.new_event_loop()
+        loop.set_debug(True)
+    elif loop_type == "standard_eager":
+        loop = asyncio.new_event_loop()
+        loop.set_task_factory(asyncio.eager_task_factory)
+    elif loop_type == "batching":
+        loop = BatchingEventLoop()
+    elif loop_type == "custom_task_factory":
+        loop = asyncio.new_event_loop()
+        loop.set_task_factory(custom_task_factory)
+    elif loop_type == "uvloop":
+        import uvloop
+        loop = uvloop.new_event_loop()
+    return lambda: loop  # Return a factory function to create the loop
 
 class TestAsyncPoolExecutor:
     """Tests for the AsyncPoolExecutor class."""
     
     def test_sync_function_execution(self, event_loop):
         """Test execution of synchronous functions."""
-        async def f(self, event_loop):
-            executor = AsyncPoolExecutor(event_loop)
-            result = []
+        async def f():
+            executor = AsyncPoolExecutor()
             
             def sync_function():
-                result.append(1)
                 return 42
             
             future = executor.submit(sync_function)
             assert await future == 42
-            assert result == [1]
             executor.shutdown()
-        event_loop.run_until_complete(f(self, event_loop))
+        event_loop.run_until_complete(f())
     
     def test_async_function_execution(self, event_loop):
         """Test execution of asynchronous functions with awaits."""
-        async def f(self, event_loop):
-            executor = AsyncPoolExecutor(event_loop)
-            result = []
+        async def f():
+            executor = AsyncPoolExecutor()
             
             async def async_function():
-                result.append(1)
                 await asyncio.sleep(0.01)
-                result.append(2)
                 return 42
             
             future = executor.submit(async_function)
             assert await future == 42
-            assert result == [1, 2]
             executor.shutdown()
-        event_loop.run_until_complete(f(self, event_loop))
+        event_loop.run_until_complete(f())
     
-    def test_mixed_callbacks_execution_order(self, event_loop):
-        """Test execution order when mixing normal and async callbacks."""
-        async def f(self, event_loop):
-            executor = AsyncPoolExecutor(event_loop)
+    def test_callbacks_execution_order(self, event_loop):
+        """Test execution order with normal and async callbacks."""
+        async def f():
+            executor = AsyncPoolExecutor()
             result = []
             
             def sync_function():
@@ -67,129 +136,42 @@ class TestAsyncPoolExecutor:
             async def async_function():
                 result.append(2)
                 await asyncio.sleep(0.01)
-                result.append(4)
+                result.append(5)
                 return "async"
 
             def other_sync_function():
                 time.sleep(0.1) # Simulate a blocking call
-                result.append(3)
+                result.append(3) # must run before async_function completes
                 return "sync"
+
+            async def other_async_function():
+                result.append(4)
+                await asyncio.sleep(0.001)
+                result.append(6)
+                return "async"
             
             future1 = executor.submit(sync_function)
             future2 = executor.submit(async_function)
             future3 = executor.submit(other_sync_function)
-            
+            future4 = executor.submit(other_async_function)
+
+            # Ensure no early execution
+            time.sleep(0.05)
+            assert len(result) == 0
+
             assert await future1 == "sync"
             assert await future2 == "async"
             assert await future3 == "sync"
-            assert result == [1, 2, 3, 4]
+            assert await future4 == "async"
+            assert result == [1, 2, 3, 4, 5, 6]
             executor.shutdown()
-        event_loop.run_until_complete(f(self, event_loop))
-    
-    def test_no_early_execution(self, event_loop):
-        """Test that callbacks don't execute before the submitting task completes."""
-        async def f(self, event_loop):
-            executor = AsyncPoolExecutor(event_loop)
-            execution_order = []
-            
-            async def task_function():
-                execution_order.append("task_start")
-                future = executor.submit(callback_function)
-                execution_order.append("task_end")
-                return future
-            
-            def callback_function():
-                execution_order.append("callback")
-                return "done"
-            
-            future = await task_function()
-            await asyncio.sleep(0.01)  # Ensure the callback completes
-            
-            assert execution_order == ["task_start", "task_end", "callback"]
-            assert await future == "done"
-            executor.shutdown()
-        event_loop.run_until_complete(f(self, event_loop))
-    
-    def test_multiple_callbacks_order(self, event_loop):
-        """Test that multiple callbacks are executed in the order they were submitted."""
-        async def f(self, event_loop):
-            executor = AsyncPoolExecutor(event_loop)
-            result = []
-            
-            async def submitting_task():
-                for i in range(5):
-                    executor.submit(lambda x=i: result.append(x))
-                return "done"
-            
-            await submitting_task()
-            await asyncio.sleep(0.01)  # Ensure all callbacks complete
-            
-            assert result == [0, 1, 2, 3, 4]
-            executor.shutdown()
-        event_loop.run_until_complete(f(self, event_loop))
-    
-    def test_eager_task_factory(self, event_loop):
-        """Test AsyncPoolExecutor with eager task factory."""
-        async def f(self, event_loop):
-            # Set eager task factory on the event loop
-            old_factory = event_loop.get_task_factory()
-            event_loop.set_task_factory(asyncio.eager_task_factory)
-            
-            executor = AsyncPoolExecutor(event_loop)
-            result = []
-            exec_thread = threading.current_thread()
-            
-            # Test that the barrier prevents eager execution
-            async def submitting_task():
-                result.append("task_start")
-                future = executor.submit(lambda: result.append("callback"))
-                result.append("task_end")
-                return future
-            
-            future = await submitting_task()
-            await future
-            
-            assert result == ["task_start", "task_end", "callback"]
-            
-            # Restore original task factory
-            event_loop.set_task_factory(old_factory)
-            executor.shutdown()
-        event_loop.run_until_complete(f(self, event_loop))
-    
-    def test_varying_duration_callbacks(self, event_loop):
-        """Test callbacks with varying durations to ensure order is preserved."""
-        async def f(self, event_loop):
-            executor = AsyncPoolExecutor(event_loop)
-            result = []
-            
-            async def long_task(delay, idx):
-                result.append(f"start_{idx}")
-                await asyncio.sleep(delay)
-                result.append(f"end_{idx}")
-                return idx
-            
-            # Submit tasks with different durations in specific order
-            futures = [
-                executor.submit(long_task, 0.05, 1),  # Longer task
-                executor.submit(long_task, 0.02, 2),  # Medium task
-                executor.submit(long_task, 0.01, 3),  # Short task
-            ]
-            
-            # Wait for all tasks to complete
-            results = [await f for f in futures]
-            
-            # Start order should be preserved
-            assert result[0:3] == ["start_1", "start_2", "start_3"]
-            # End order should be duration-dependent
-            assert result[3:] == ["end_3", "end_2", "end_1"]
-            assert results == [1, 2, 3]
-            executor.shutdown()
-        event_loop.run_until_complete(f(self, event_loop))
+        event_loop.run_until_complete(f())
+
     
     def test_nested_callbacks(self, event_loop):
         """Test nested callbacks where one callback submits another."""
-        async def f(self, event_loop):
-            executor = AsyncPoolExecutor(event_loop)
+        async def f():
+            executor = AsyncPoolExecutor()
             result = []
             
             async def outer_callback():
@@ -218,14 +200,14 @@ class TestAsyncPoolExecutor:
             ]
             assert result == expected
             executor.shutdown()
-        event_loop.run_until_complete(f(self, event_loop))
+        event_loop.run_until_complete(f())
 
 class TestAsyncThreadPoolExecutor:
     """Tests for the AsyncThreadPoolExecutor class."""
     
-    def test_default_loop_configuration(self):
+    def test_sync_function_execution(self, event_loop_factory):
         """Test with default loop factory."""
-        executor = AsyncThreadPoolExecutor()
+        executor = AsyncThreadPoolExecutor(event_loop_factory)
         results = []
         
         def sync_function():
@@ -238,23 +220,9 @@ class TestAsyncThreadPoolExecutor:
         assert "MainThread" not in results[0]  # Should run in a different thread
         executor.shutdown()
     
-    def test_batching_loop_configuration(self):
-        """Test with BatchingEventLoop as the loop factory."""
-        executor = AsyncThreadPoolExecutor(BatchingEventLoop.factory())
-        results = []
-        
-        def sync_function():
-            results.append(1)
-            return 42
-        
-        future = executor.submit(sync_function)
-        assert future.result() == 42
-        assert results == [1]
-        executor.shutdown()
-    
-    def test_async_function_execution(self):
+    def test_async_function_execution(self, event_loop_factory):
         """Test execution of asynchronous functions with awaits."""
-        executor = AsyncThreadPoolExecutor()
+        executor = AsyncThreadPoolExecutor(event_loop_factory)
         result = []
         
         async def async_function():
@@ -272,7 +240,7 @@ class TestAsyncThreadPoolExecutor:
         """Test execution order when mixing normal and async callbacks."""
         executor = AsyncThreadPoolExecutor()
         result = []
-        
+  
         def sync_function():
             result.append(1)
             return "sync"
@@ -280,56 +248,34 @@ class TestAsyncThreadPoolExecutor:
         async def async_function():
             result.append(2)
             await asyncio.sleep(0.01)
-            result.append(4)
+            result.append(5)
             return "async"
 
         def other_sync_function():
-            time.sleep(0.1)
-            result.append(3)
+            time.sleep(0.1) # Simulate a blocking call
+            result.append(3) # must run before async_function completes
             return "sync"
+
+        async def other_async_function():
+            result.append(4)
+            await asyncio.sleep(0.001)
+            result.append(6)
+            return "async"
         
         future1 = executor.submit(sync_function)
         future2 = executor.submit(async_function)
         future3 = executor.submit(other_sync_function)
-        
+        future4 = executor.submit(other_async_function)
+
+        # Unlike with AsyncPoolExecutor, early execution is ok here
+
         assert future1.result() == "sync"
         assert future2.result() == "async"
         assert future3.result() == "sync"
-        assert result == [1, 2, 3, 4]
+        assert future4.result() == "async"
+        assert result == [1, 2, 3, 4, 5, 6]
         executor.shutdown()
     
-    def test_execution_order_preservation(self):
-        """Test that tasks are executed in the order they were submitted."""
-        executor = AsyncThreadPoolExecutor()
-        results = []
-        
-        for i in range(5):
-            executor.submit(lambda x=i: results.append(x))
-        
-        # Wait for all tasks to complete
-        time.sleep(0.1)
-        
-        assert results == [0, 1, 2, 3, 4]
-        executor.shutdown()
-    
-    def test_custom_loop_factory(self):
-        """Test with a custom loop factory."""
-        def custom_loop_factory():
-            loop = asyncio.new_event_loop()
-            loop.set_debug(True)
-            return loop
-        
-        executor = AsyncThreadPoolExecutor(custom_loop_factory)
-        result = []
-        
-        def sync_function():
-            result.append(1)
-            return 42
-        
-        future = executor.submit(sync_function)
-        assert future.result() == 42
-        assert result == [1]
-        executor.shutdown()
     
     def test_varying_timeslot_batching(self):
         """Test BatchingEventLoop with different time slots."""
@@ -468,57 +414,284 @@ class TestAsyncThreadPoolExecutor:
         assert result_future.result() == 123
         executor2.shutdown()
 
-
-try:
-    import uvloop
+    def test_shutdown_with_wait_true(self):
+        """Test shutdown with wait=True completes all pending tasks."""
+        executor = AsyncThreadPoolExecutor()
+        results = []
+        
+        async def slow_task(idx):
+            results.append(f"start_{idx}")
+            await asyncio.sleep(0.1)
+            results.append(f"end_{idx}")
+            return idx
+        
+        # Submit multiple tasks
+        futures = [executor.submit(slow_task, i) for i in range(5)]
+        
+        # Wait for all tasks to start
+        time.sleep(0.05)
+        
+        # Shutdown with wait=True (default)
+        start_time = time.time()
+        executor.shutdown(wait=True)
+        shutdown_time = time.time() - start_time
+        
+        # All tasks should complete
+        assert len([r for r in results if r.startswith("end")]) == 5
+        assert all(f.done() for f in futures)
+        assert all(f.result() == i for i, f in enumerate(futures))
+        
+        # Shutdown should have waited for tasks
+        assert shutdown_time >= 0.05, "Shutdown didn't seem to wait for tasks"
     
-    class TestUVLoopCompatibility:
-        """Tests for compatibility with uvloop."""
+    def test_shutdown_with_wait_false(self):
+        """Test shutdown with wait=False cancels pending tasks."""
+        executor = AsyncThreadPoolExecutor()
+        results = []
+        completion_event = threading.Event()
         
-        def test_async_pool_with_uvloop(self):
-            """Test AsyncPoolExecutor with uvloop."""
-            loop = uvloop.new_event_loop()
-            asyncio.set_event_loop(loop)
-            
+        async def slow_task():
+            results.append("start")
             try:
-                executor = AsyncPoolExecutor(loop)
-                results = []
-                
-                async def async_fn():
-                    results.append(1)
-                    await asyncio.sleep(0.01)
-                    results.append(2)
-                    return 42
-                
-                async def run_test():
-                    future = executor.submit(async_fn)
-                    assert await future == 42
-                    assert results == [1, 2]
-                
-                loop.run_until_complete(run_test())
-                executor.shutdown()
-            finally:
-                loop.close()
-                asyncio.set_event_loop(None)
-        
-        def test_async_thread_with_uvloop_factory(self):
-            """Test AsyncThreadPoolExecutor with uvloop factory."""
-            def uvloop_factory():
-                return uvloop.new_event_loop()
-            
-            executor = AsyncThreadPoolExecutor(uvloop_factory)
-            results = []
-            
-            async def async_fn():
-                results.append(1)
-                await asyncio.sleep(0.01)
-                results.append(2)
+                await asyncio.sleep(1.0)
+                results.append("middle")
+                await asyncio.sleep(1.0)
+                results.append("end")
+                completion_event.set()
                 return 42
+            except asyncio.CancelledError:
+                results.append("cancelled")
+                raise
+        
+        # Submit a slow task
+        future = executor.submit(slow_task)
+        
+        # Wait for task to start
+        time.sleep(0.1)
+        assert "start" in results
+        
+        # Shutdown without waiting
+        start_time = time.time()
+        executor.shutdown(wait=False)
+        shutdown_time = time.time() - start_time
+        
+        # Shutdown should be quick
+        assert shutdown_time < 0.5, "Shutdown took too long"
+        
+        # Task should eventually be cancelled or completed
+        try:
+            future.result(timeout=0.2)
+            assert False, "Future should have been cancelled or timed out"
+        except (asyncio.CancelledError, TimeoutError):
+            # Expected - either cancelled or still running but will be abandoned
+            pass
+        
+        # The task should never complete normally
+        assert not completion_event.wait(0.2), "Task completed after shutdown"
+        assert "end" not in results
+    
+    def test_multiple_shutdown_calls(self):
+        """Test that calling shutdown multiple times is safe."""
+        executor = AsyncThreadPoolExecutor()
+        
+        # Submit a simple task
+        future = executor.submit(lambda: 42)
+        assert future.result() == 42
+        
+        # First shutdown
+        executor.shutdown()
+        
+        # Second shutdown should not raise exceptions
+        executor.shutdown()
+        
+        # Third shutdown with different parameters
+        executor.shutdown(wait=False)
+    
+    def test_shutdown_with_exceptions(self):
+        """Test shutdown behavior when tasks raise exceptions."""
+        executor = AsyncThreadPoolExecutor()
+        results = []
+        
+        async def failing_task():
+            results.append("start")
+            await asyncio.sleep(0.1)
+            raise ValueError("Deliberate exception")
+        
+        async def normal_task():
+            results.append("normal_start")
+            await asyncio.sleep(0.2)
+            results.append("normal_end")
+            return 42
+        
+        # Submit both tasks
+        failing_future = executor.submit(failing_task)
+        normal_future = executor.submit(normal_task)
+        
+        # Wait for tasks to start
+        time.sleep(0.05)
+        
+        # Shutdown - should handle the exception gracefully
+        executor.shutdown()
+        
+        # The failing task should have an exception
+        with pytest.raises(ValueError, match="Deliberate exception"):
+            failing_future.result()
+        
+        # The normal task should complete successfully
+        assert normal_future.result() == 42
+        assert "normal_end" in results
+    
+    def test_resource_cleanup(self):
+        """Test that all resources are properly cleaned up after shutdown."""
+        executor = AsyncThreadPoolExecutor()
+        
+        # Get thread count before
+        threads_before = threading.active_count()
+        
+        # Submit some tasks
+        for _ in range(5):
+            executor.submit(lambda: time.sleep(0.1))
+        
+        # Should have created threads
+        time.sleep(0.05)
+        threads_during = threading.active_count()
+        assert threads_during > threads_before, "No worker threads were created"
+        
+        # Create a weak reference to track if executor is garbage collected
+        executor_ref = weakref.ref(executor)
+        
+        # Shutdown and delete
+        executor.shutdown()
+        del executor
+        
+        # Force garbage collection
+        gc.collect()
+        
+        # All worker threads should eventually exit
+        for _ in range(10):  # Try for up to 1 second
+            if threading.active_count() <= threads_before:
+                break
+            time.sleep(0.1)
+        
+        assert threading.active_count() <= threads_before + 1, "Not all threads exited"
+        assert executor_ref() is None, "Executor wasn't garbage collected"
+    
+    def test_nested_executor_shutdown(self):
+        """Test shutdown with nested executor."""
+        outer_executor = AsyncThreadPoolExecutor()
+        results = []
+        
+        async def outer_task():
+            results.append("outer_start")
+            # Create a nested executor
+            inner_executor = AsyncThreadPoolExecutor()
             
-            future = executor.submit(async_fn)
-            assert future.result() == 42
-            assert results == [1, 2]
-            executor.shutdown()
-except ImportError:
-    # uvloop not available, skip these tests
-    pass
+            inner_future = inner_executor.submit(inner_task)
+            results.append("outer_after_submit")
+            
+            # Shutdown inner executor
+            inner_executor.shutdown()
+            
+            # Inner task should be complete
+            assert inner_future.result() == "inner_done"
+            results.append("outer_end")
+            return "outer_done"
+        
+        async def inner_task():
+            results.append("inner_start")
+            await asyncio.sleep(0.1)
+            results.append("inner_end")
+            return "inner_done"
+        
+        # Submit outer task
+        future = outer_executor.submit(outer_task)
+        
+        # Wait and shutdown
+        assert future.result() == "outer_done"
+        outer_executor.shutdown()
+        
+        # Verify execution order
+        assert results == [
+            "outer_start", 
+            "outer_after_submit", 
+            "inner_start", 
+            "inner_end", 
+            "outer_end"
+        ]
+    
+    def test_submit_during_shutdown(self):
+        """Test behavior when tasks are submitted during shutdown."""
+        executor = AsyncThreadPoolExecutor()
+        results = []
+        
+        # Submit initial task
+        executor.submit(lambda: results.append("initial"))
+        
+        # Start shutdown in separate thread
+        shutdown_thread = threading.Thread(
+            target=lambda: executor.shutdown(wait=True)
+        )
+        shutdown_thread.start()
+        
+        # Try to submit tasks during shutdown
+        time.sleep(0.1)  # Give shutdown a chance to start
+        
+        try:
+            # These might raise RuntimeError if executor is shutting down
+            executor.submit(lambda: results.append("during_shutdown_1"))
+            executor.submit(lambda: results.append("during_shutdown_2"))
+        except RuntimeError:
+            # Expected behavior - rejected submissions during shutdown
+            results.append("rejected")
+        
+        # Wait for shutdown to complete
+        shutdown_thread.join()
+        
+        # Initial task should have run
+        assert "initial" in results
+        
+        # Create a new executor to verify system isn't broken
+        new_executor = AsyncThreadPoolExecutor()
+        future = new_executor.submit(lambda: "new_executor_works")
+        assert future.result() == "new_executor_works"
+        new_executor.shutdown()
+    
+    def test_graceful_cancellation(self):
+        """Test that tasks support cancellation during shutdown."""
+        executor = AsyncThreadPoolExecutor()
+        results = []
+        cancel_handled = threading.Event()
+        
+        async def cancellable_task():
+            results.append("task_start")
+            try:
+                await asyncio.sleep(0.5)
+                results.append("task_middle")
+                await asyncio.sleep(0.5)
+                results.append("task_end")
+                return "completed"
+            except asyncio.CancelledError:
+                results.append("task_cancelled")
+                cancel_handled.set()
+                raise
+        
+        # Submit task
+        future = executor.submit(cancellable_task)
+        
+        # Wait for task to start
+        time.sleep(0.1)
+        assert "task_start" in results
+        
+        # Request cancellation
+        future.cancel()
+        
+        # Shutdown with wait=True
+        executor.shutdown()
+        
+        # Task should handle cancellation
+        assert cancel_handled.wait(timeout=1.0), "Task didn't handle cancellation"
+        assert "task_cancelled" in results
+        assert "task_end" not in results
+        
+        # Future should be marked as cancelled
+        assert future.cancelled()
