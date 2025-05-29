@@ -338,8 +338,8 @@ cdef class Context:
 
         #mvToolManager::Reset()
         #ClearItemRegistry(*GContext->itemRegistry)
-        if self._queue is not None:
-            self._queue.shutdown(wait=True)
+        #if self._queue is not None and hasattr(self._queue, 'shutdown') and callable(self._queue.shutdown):
+        #    self._queue.shutdown(wait=False) # Commented because the queue can do it itself in its __del__
 
     def __reduce__(self):
         """
@@ -372,11 +372,12 @@ cdef class Context:
         if not(isinstance(queue, Executor)) and \
             (not hasattr(queue, 'submit') and callable(queue.submit)):
             raise TypeError("queue must be a subclass of concurrent.futures.Executor or implement a 'submit' method")
-        old_queue = self._queue
+        #old_queue = self._queue
         self._queue = queue
-        # Finish previous queue
-        if old_queue is not None:
-            old_queue.shutdown(wait=True)
+        ## Finish previous queue
+        #if old_queue is not None and hasattr(old_queue, 'shutdown') and callable(old_queue.shutdown):
+        #    old_queue.shutdown(wait=False)
+        # Commented out to let the user reuse the queue if it wants to.
 
     @property
     def rendering_context(self) -> BackendRenderingContext:
@@ -776,6 +777,25 @@ cdef class Context:
                 self._queue.submit(callback, parent_item, target_item, (arg1, element_list))
             except Exception as e:
                 print(traceback.format_exc())
+
+    cdef void queue_callback(self, Callback callback, baseItem sender, baseItem item, object data) noexcept:
+        """
+        Queue a callback with an item and data of any type.
+
+        Parameters:
+        callback : Callback
+            The callback to be queued.
+        item : baseItem
+            The item associated with the callback.
+        data : object
+            Additional data to be passed to the callback.
+        """
+        if callback is None:
+            return
+        try:
+            self._queue.submit(callback, sender, item, data)
+        except Exception as e:
+            print(traceback.format_exc())
 
     cpdef void push_next_parent(self, baseItem next_parent):
         """

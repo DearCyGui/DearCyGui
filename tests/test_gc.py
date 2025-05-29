@@ -267,7 +267,6 @@ def test_memory_usage():
     process = psutil.Process(os.getpid())
     C = dcg.Context()
     gc.collect()
-    initial_memory = process.memory_info().rss
     
     # Create and destroy many items in a loop
     for _ in range(1000):
@@ -276,6 +275,17 @@ def test_memory_usage():
             dcg.Button(C, parent=window)
         del window
 
+    gc.collect()
+    # We measuse after allocating and deallocating in
+    # order to avoid impact of allocation caching
+    initial_memory = process.memory_info().rss
+
+    # Create and destroy many items in a loop
+    for _ in range(1000):
+        window = dcg.Window(C, attach=False)
+        for _ in range(1000):
+            dcg.Button(C, parent=window)
+        del window
     gc.collect()
     
     final_memory = process.memory_info().rss

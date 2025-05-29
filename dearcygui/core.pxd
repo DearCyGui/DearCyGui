@@ -107,6 +107,7 @@ cdef class Context:
     cdef void queue_callback_arg3long1int(self, Callback, baseItem, baseItem, int64_t, int64_t, int64_t, int32_t) noexcept nogil
     cdef void queue_callback_argdoubletriplet(self, Callback, baseItem, baseItem, double, double, double, double, double, double) noexcept nogil
     cdef void queue_callback_arg1int1stringvector(self, Callback, baseItem, baseItem, int32_t, DCGVector[DCGString]) noexcept nogil
+    cdef void queue_callback(self, Callback, baseItem, baseItem, object) noexcept
     cpdef void push_next_parent(self, baseItem next_parent)
     cpdef void pop_next_parent(self)
     cpdef object fetch_parent_queue_back(self)
