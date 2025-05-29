@@ -1,5 +1,6 @@
 import pytest
 import asyncio
+import concurrent.futures
 from dearcygui.utils.asyncio_helpers import (
     AsyncPoolExecutor,
     AsyncThreadPoolExecutor,
@@ -482,7 +483,7 @@ class TestAsyncThreadPoolExecutor:
         try:
             future.result(timeout=0.2)
             assert False, "Future should have been cancelled or timed out"
-        except (asyncio.CancelledError, TimeoutError):
+        except (concurrent.futures.CancelledError, TimeoutError):
             # Expected - either cancelled or still running but will be abandoned
             pass
         
@@ -543,10 +544,10 @@ class TestAsyncThreadPoolExecutor:
     
     def test_resource_cleanup(self):
         """Test that all resources are properly cleaned up after shutdown."""
-        executor = AsyncThreadPoolExecutor()
-        
         # Get thread count before
         threads_before = threading.active_count()
+
+        executor = AsyncThreadPoolExecutor()
         
         # Submit some tasks
         for _ in range(5):
@@ -555,7 +556,7 @@ class TestAsyncThreadPoolExecutor:
         # Should have created threads
         time.sleep(0.05)
         threads_during = threading.active_count()
-        assert threads_during > threads_before, "No worker threads were created"
+        assert threads_during == threads_before + 1, "No worker thread were created"
         
         # Create a weak reference to track if executor is garbage collected
         executor_ref = weakref.ref(executor)

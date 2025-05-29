@@ -65,7 +65,7 @@ class _SimpleBarrier:
         # and in the worst case, we will miss calling _discard and need
         # to create a new barrier.
 
-async def _async_task(future: Future | asyncio.Future,
+async def _async_task(future: Future | asyncio.Future | None,
                       barrier: _SimpleBarrier | None,
                       fn: Callable, args: tuple, kwargs: dict) -> None:
     """
@@ -98,21 +98,37 @@ async def _async_task(future: Future | asyncio.Future,
             if asyncio.iscoroutine(result):
                 result = await result
         # Set the result if not cancelled
-        if not future.cancelled():
+        if future and not future.cancelled():
             future.set_result(result)
     except Exception as exc:
-        if not future.cancelled():
+        if future and not future.cancelled():
             future.set_exception(exc)
 
 
 def _create_task(loop: asyncio.AbstractEventLoop,
-                 future: Future, fn: Callable, args: tuple,
+                 future: Future | None, fn: Callable, args: tuple,
                  kwargs: dict) -> asyncio.Task:
     """
     Helper function to instantiate an awaitable for the
     task in the asyncio event loop
     """
-    return loop.create_task(_async_task(future, None, fn, args, kwargs))
+    task = loop.create_task(_async_task(future, None, fn, args, kwargs))
+
+    if future is not None:
+        # Setup bi-directional cancellation propagation
+        future.add_done_callback(
+            lambda f: task.cancel() if f.cancelled() and not task.done() else None
+        )
+        
+        task.add_done_callback(
+            lambda t: future.cancel() if t.cancelled() and not future.done() else None
+        )
+        
+        # Prevent task from being garbage collected before completion
+        # Unsure if needed, as task is referenced in the lambda above
+        future.task = task
+    
+    return task
 
 
 class AsyncPoolExecutor(ThreadPoolExecutor):
@@ -137,6 +153,11 @@ class AsyncPoolExecutor(ThreadPoolExecutor):
             self._loop = loop
         self._barrier_pool = []
         self._pool_mutex = threading.Lock()
+        self._loop_thread_id = None
+        def _set_loop_thread_id():
+            """Set the thread ID of the loop to the current thread."""
+            self._loop_thread_id = threading.get_ident()
+        self._loop.call_soon(_set_loop_thread_id)
 
     # Replace ThreadPoolExecutor completly to avoid using threads
     def __del__(self):
@@ -151,16 +172,40 @@ class AsyncPoolExecutor(ThreadPoolExecutor):
     def __enter__(self):
         raise NotImplementedError("AsyncPoolExecutor cannot be used as a context manager.")
 
+    @property
+    def loop(self) -> asyncio.AbstractEventLoop:
+        """
+        Get the event loop associated with this executor.
+        
+        Returns:
+            asyncio.AbstractEventLoop: The event loop used by this executor.
+
+        This can be used to access the loop directly, for instance
+        by appending tasks from another thread (using `loop.call_soon_threadsafe()`).
+        """
+        return self._loop
+
     def submit(self, fn: Callable, *args, **kwargs) -> asyncio.Future:
         """
         Submit a callable to be executed in the asyncio event loop.
         
         Unlike the standard ThreadPoolExecutor, this doesn't actually use a thread
         but instead schedules the function to run in the asyncio event loop.
+
+        Since this call is meant to be run during frame rendering,
+        it guarantees that no eager execution of the task will happen.
+        In other words, the task is not started yet when this method returns.
         
         Returns:
             asyncio.Future: A future representing the execution of the callable.
         """
+        if self._loop_thread_id != threading.get_ident() and self._loop_thread_id is not None:
+            raise RuntimeError(
+                f"Cannot submit tasks from a different thread. "
+                f"Current thread ID: {threading.get_ident()}, "
+                f"Expected thread ID: {self._loop_thread_id}"
+            )
+
         # Create a future in the current event loop
         future = self._loop.create_future()
 
@@ -330,6 +375,29 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
             self._thread_loop.close()
             self._thread_loop = None
 
+    def _cancel_all_tasks(self) -> None:
+        """Cancel all tasks in the thread's event loop. Called in the thread"""
+        if self._thread_loop is None or self._thread is None:
+            return
+
+        # Cancel all tasks in the loop
+        tasks = asyncio.all_tasks(self._thread_loop)
+
+        # If we are in the thread itself,
+        # do not cancel ourselves
+        if threading.get_ident() == self._thread.ident:
+            current_task = asyncio.current_task(self._thread_loop)
+            tasks = [task for task in tasks if task is not current_task]
+
+        for task in tasks:
+            task.cancel()
+
+        # Shutdown async generators
+        async def run_shutdown():
+            await self._thread_loop.shutdown_asyncgens()
+        
+        self._thread_loop.create_task(run_shutdown())
+
     def _start_background_loop(self) -> None:
         """Start the background thread with its event loop."""
         if self._thread is not None:
@@ -343,10 +411,13 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
         self._thread.start()
 
         # Wait for the thread loop to be ready
+        timer = time.monotonic()
         while self._thread_loop is None:
             if not self._thread.is_alive():
                 raise RuntimeError("Background thread failed to start")
             time.sleep(0.)  # Avoid busy-waiting
+            if time.monotonic() - timer > 1.0:
+                raise RuntimeError("Background thread did not start within 1 second")
 
     def submit(self, fn: Callable, *args, **kwargs) -> Future:
         """
@@ -380,24 +451,59 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
         if not self._running or self._thread_loop is None:
             return
 
+        self._running = False
+
+        stop_executed = threading.Event()
+
+        def just_stop():
+            """Just stop the loop without waiting for tasks."""
+            self._thread_loop.stop()
+            stop_executed.set()
+
+        # Wait for tasks to complete when wait=True
+        def wait_for_tasks_and_stop():
+            # Get all tasks except our own current task
+            current_task = asyncio.current_task(self._thread_loop)
+            tasks = [t for t in asyncio.all_tasks(self._thread_loop) 
+                    if t is not current_task]
+            
+            if tasks:
+                # Create a future that completes when all tasks are done
+                future = asyncio.gather(*tasks, return_exceptions=True)
+                future.add_done_callback(lambda _: self._thread_loop.stop())
+            else:
+                # No tasks to wait for, stop immediately
+                self._thread_loop.stop()
+            stop_executed.set()
+
         # Cancel any pending tasks in the loop
         def cancel_all_tasks():
-            for task in asyncio.all_tasks(self._thread_loop):
-                task.cancel()
+            self._cancel_all_tasks()
             # Add a final callback to stop the loop after tasks have a chance to cancel
-            self._thread_loop.call_soon(self._thread_loop.stop)
+            self._thread_loop.call_soon(just_stop)
 
-        # Schedule task cancellation in the thread's event loop
+        # Schedule task handling in the thread's event loop
         if not wait:
             self._thread_loop.call_soon_threadsafe(cancel_all_tasks)
         else:
-            self._thread_loop.call_soon_threadsafe(self._thread_loop.stop)
+            self._thread_loop.call_soon_threadsafe(wait_for_tasks_and_stop)
+
+        stop_executed.wait(timeout=10.0)
+        if not stop_executed.is_set():
+            warnings.warn("Executor shutdown timed out, some tasks may not have completed.", RuntimeWarning)
 
         # Wait for the thread to finish for proper cleanup
-        if self._thread is not None:
-            self._thread.join()
+        # (unless we are in the thread itself)
+        if self._thread is not None and self._thread.is_alive() and\
+           self._thread.ident != threading.get_ident():
+            if wait:
+                # If we are waiting, we can safely join the thread
+                self._thread.join(timeout=1.0)
+            else:
+                # If not waiting, we just ensure the thread is not running
+                self._thread.join(timeout=0.1)
 
-        self._thread = None
+            self._thread = None
 
     def __del__(self):
         """Ensure resources are cleaned up when the executor is garbage collected."""
