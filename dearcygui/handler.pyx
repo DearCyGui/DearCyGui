@@ -1130,6 +1130,9 @@ cdef class KeyDownHandler(baseHandler):
         self._key = imgui.ImGuiKey_Enter
     @property
     def key(self):
+        """
+        The key that this handler is monitoring.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Key(self._key)
@@ -1157,6 +1160,7 @@ cdef class KeyDownHandler(baseHandler):
         if key_info.Down:
             self.context.queue_callback_arg1key1float(self._callback, self, item, self._key, key_info.DownDuration)
 
+
 cdef class KeyPressHandler(baseHandler):
     """
     Handler that triggers when a key is initially pressed.
@@ -1174,6 +1178,9 @@ cdef class KeyPressHandler(baseHandler):
 
     @property
     def key(self):
+        """
+        The key that this handler is monitoring.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Key(self._key)
@@ -1186,6 +1193,12 @@ cdef class KeyPressHandler(baseHandler):
         self._key = <int>value
     @property
     def repeat(self):
+        """
+        Whether to trigger repeatedly while a key is held down.
+
+        When True, the callback will be called multiple times as keys remain pressed.
+        When False, the callback is only called once when the key is initially pressed.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._repeat
@@ -1221,6 +1234,9 @@ cdef class KeyReleaseHandler(baseHandler):
 
     @property
     def key(self):
+        """
+        The key that this handler is monitoring.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Key(self._key)
@@ -1245,6 +1261,183 @@ cdef class KeyReleaseHandler(baseHandler):
         if imgui.IsKeyReleased(<imgui.ImGuiKey>self._key):
             self.context.queue_callback_arg1key(self._callback, self, item, self._key)
 
+cdef inline tuple build_keys_tuple(DCGVector[int32_t] &keys_array):
+    """Builds a tuple out of a key array"""
+    cdef int i
+    cdef list keys = []
+    for i in range(<int>keys_array.size()):
+        try:
+            keys.append(Key(keys_array[i]))
+        except: # key not found or invalid
+            pass
+    return tuple(keys)
+
+cdef class AnyKeyPressHandler(baseHandler):
+    """
+    Handler that triggers when any keyboard key is pressed.
+    
+    This handler monitors all keys simultaneously
+    without creating individual handlers for each key.
+    
+    Properties:
+        repeat (bool): Whether to trigger repeatedly while keys are held down
+    
+    Callback receives:
+        - data: A tuple of Key objects that were pressed this frame
+    """
+    def __cinit__(self):
+        self._repeat = False
+        
+    @property
+    def repeat(self):
+        """
+        Whether to trigger repeatedly while a key is held down.
+
+        When True, the callback will be called multiple times as keys remain pressed.
+        When False, the callback is only called once when the key is initially pressed.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._repeat
+        
+    @repeat.setter
+    def repeat(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._repeat = value
+    
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        # Check if any key is pressed
+        cdef int32_t key
+        for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
+            if imgui.IsKeyPressed(<imgui.ImGuiKey>key, self._repeat):
+                return True
+        return False
+    
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+            
+        cdef int32_t key, i
+        
+        # Clear previous keys and collect all pressed keys
+        self._keys_vector.clear()
+        for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
+            if imgui.IsKeyPressed(<imgui.ImGuiKey>key, self._repeat):
+                self._keys_vector.push_back(key)
+
+        # If we found any pressed keys, convert to Python tuple and queue callback
+        if not self._keys_vector.empty():
+            with gil:
+                # Convert to Python objects
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    build_keys_tuple(self._keys_vector))
+
+
+cdef class AnyKeyReleaseHandler(baseHandler):
+    """
+    Handler that triggers when any key is released.
+    
+    This handler monitors all keys simultaneously
+    without creating individual handlers for each key.
+    
+    Callback receives:
+        - data: A tuple of Key objects that were released this frame
+    """
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        cdef int key
+        for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
+            if imgui.IsKeyReleased(<imgui.ImGuiKey>key):
+                return True
+        return False
+    
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+            
+        # Clear and populate the vector with released keys
+        self._keys_vector.clear()
+        cdef int key, i
+        for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
+            if imgui.IsKeyReleased(<imgui.ImGuiKey>key):
+                self._keys_vector.push_back(<int32_t>key)
+
+        # If we found any released keys, send in a single callback
+        if not self._keys_vector.empty():
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    build_keys_tuple(self._keys_vector))
+
+
+cdef inline tuple build_keys_durations_tuple(DCGVector[int32_t] &keys_array,
+                                             DCGVector[float] &durations_array):
+    """Builds a tuple of tuples from keys and durations arrays"""
+    cdef int i
+    cdef list keys_durations = []
+    for i in range(<int>keys_array.size()):
+        try:
+            keys_durations.append((Key(keys_array[i]), durations_array[i]))
+        except: # key not found or invalid
+            pass
+    return tuple(keys_durations)
+
+
+cdef class AnyKeyDownHandler(baseHandler):
+    """
+    Handler that triggers when any key is held down.
+    
+    This native implementation efficiently monitors all keys simultaneously
+    without creating individual handlers for each key.
+    
+    Callback receives:
+        - data: A tuple of tuples, each containing (Key, duration), where:
+          - Key: The specific key being held down
+          - duration: How long the key has been held (in seconds)
+    """   
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        cdef imgui.ImGuiKeyData *key_data
+        cdef int key
+        for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
+            key_data = imgui.GetKeyData(<imgui.ImGuiKey>key)
+            if key_data.Down:
+                return True
+        return False
+    
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+            
+        cdef imgui.ImGuiKeyData *key_data
+        
+        # Clear and populate vectors with currently held keys and durations
+        self._keys_vector.clear()
+        self._durations_vector.clear()
+        cdef int key, i
+        
+        for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
+            key_data = imgui.GetKeyData(<imgui.ImGuiKey>key)
+            if key_data.Down:
+                self._keys_vector.push_back(<int32_t>key)
+                self._durations_vector.push_back(key_data.DownDuration)
+                
+        # If we found any keys being held down, send in a single callback
+        if not self._keys_vector.empty():
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    build_keys_durations_tuple(self._keys_vector, self._durations_vector))
+
 
 cdef class MouseClickHandler(baseHandler):
     """
@@ -1262,6 +1455,9 @@ cdef class MouseClickHandler(baseHandler):
         self._repeat = False
     @property
     def button(self):
+        """
+        The mouse button that this handler is monitoring.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._button
@@ -1274,6 +1470,12 @@ cdef class MouseClickHandler(baseHandler):
         self._button = value
     @property
     def repeat(self):
+        """
+        Whether to trigger repeatedly while a mouse button is held down.
+
+        When True, the callback will be called multiple times as the button remains pressed.
+        When False, the callback is only called once when the button is initially clicked.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._repeat
@@ -1310,6 +1512,9 @@ cdef class MouseDoubleClickHandler(baseHandler):
         self._button = MouseButton.LEFT
     @property
     def button(self):
+        """
+        The button this handler monitors.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._button
@@ -1350,6 +1555,9 @@ cdef class MouseDownHandler(baseHandler):
 
     @property
     def button(self):
+        """
+        The button this handler monitors.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._button
@@ -1394,6 +1602,9 @@ cdef class MouseDragHandler(baseHandler):
 
     @property
     def button(self):
+        """
+        The button this handler monitors.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._button
@@ -1406,6 +1617,10 @@ cdef class MouseDragHandler(baseHandler):
         self._button = value
     @property
     def threshold(self):
+        """
+        The movement threshold to trigger a drag.
+        If negative, uses the default threshold.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._threshold
@@ -1428,6 +1643,7 @@ cdef class MouseDragHandler(baseHandler):
         if imgui.IsMouseDragging(<int>self._button, self._threshold):
             delta = imgui.GetMouseDragDelta(<int>self._button, self._threshold)
             self.context.queue_callback_arg1button2float(self._callback, self, item, <int>self._button, delta.x, delta.y)
+
 
 cdef class MouseMoveHandler(baseHandler):
     """
@@ -1476,6 +1692,9 @@ cdef class MouseReleaseHandler(baseHandler):
 
     @property
     def button(self):
+        """
+        The button this handler monitors.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._button
@@ -1555,6 +1774,7 @@ cdef class MouseWheelHandler(baseHandler):
             if abs(io.MouseWheel) > 0.:
                 self.context.queue_callback_arg1float(self._callback, self, item, io.MouseWheel)
 
+
 cdef class MouseInRect(baseHandler):
     """
     Handler that triggers when the mouse is inside a predefined rectangle.
@@ -1615,3 +1835,210 @@ cdef class MouseInRect(baseHandler):
            self._y2 > io.MousePos.y:
             self.context.queue_callback_arg2float(self._callback, self, item, io.MousePos.x, io.MousePos.y)
 
+
+cdef inline tuple build_buttons_tuple(DCGVector[int32_t] &buttons_array):
+    """Builds a tuple out of a button array"""
+    cdef int i
+    cdef list buttons = []
+    for i in range(<int>buttons_array.size()):
+        try:
+            buttons.append(MouseButton(buttons_array[i]))
+        except: # button not found or invalid
+            pass
+    return tuple(buttons)
+
+
+cdef class AnyMouseClickHandler(baseHandler):
+    """
+    Handler that triggers when any mouse button is clicked.
+    
+    This handler monitors all mouse buttons simultaneously
+    without creating individual handlers for each button.
+    
+    Properties:
+        repeat (bool): Whether to trigger repeatedly while buttons are held
+    
+    Callback receives:
+        - data: A tuple of MouseButton objects that were clicked this frame
+    """
+    def __cinit__(self):
+        self._repeat = False
+        
+    @property
+    def repeat(self):
+        """
+        Whether to trigger repeatedly while a button is held down.
+        
+        When True, the callback will be called multiple times as buttons remain pressed.
+        When False, the callback is only called once when the button is initially pressed.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._repeat
+        
+    @repeat.setter
+    def repeat(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._repeat = value
+    
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        # Check if any mouse button is clicked
+        cdef int button
+        # Check all standard mouse buttons (LEFT, RIGHT, MIDDLE, X1, X2)
+        for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+            if imgui.IsMouseClicked(button, self._repeat):
+                return True
+        return False
+    
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+            
+        # Clear and collect all clicked buttons
+        self._buttons_vector.clear()
+        cdef int button, i
+        for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+            if imgui.IsMouseClicked(button, self._repeat):
+                self._buttons_vector.push_back(<int32_t>button)
+
+        # If we found any clicked buttons, send to the callback
+        if not self._buttons_vector.empty():
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    build_buttons_tuple(self._buttons_vector))
+
+
+cdef class AnyMouseDoubleClickHandler(baseHandler):
+    """
+    Handler that triggers when any mouse button is double-clicked.
+    
+    This handler monitors all mouse buttons simultaneously
+    without creating individual handlers for each button.
+    
+    Callback receives:
+        - data: A tuple of MouseButton objects that were double-clicked this frame
+    """
+    
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        cdef int button
+        for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+            if imgui.IsMouseDoubleClicked(button):
+                return True
+        return False
+    
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+            
+        self._buttons_vector.clear()
+        cdef int button, i
+        for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+            if imgui.IsMouseDoubleClicked(button):
+                self._buttons_vector.push_back(<int32_t>button)
+
+        if not self._buttons_vector.empty():
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    build_buttons_tuple(self._buttons_vector))
+
+
+cdef class AnyMouseReleaseHandler(baseHandler):
+    """
+    Handler that triggers when any mouse button is released.
+    
+    This handler monitors all mouse buttons simultaneously
+    without creating individual handlers for each button.
+    
+    Callback receives:
+        - data: A tuple of MouseButton objects that were released this frame
+    """
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        cdef int button
+        for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+            if imgui.IsMouseReleased(button):
+                return True
+        return False
+    
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+            
+        self._buttons_vector.clear()
+        cdef int button, i
+        for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+            if imgui.IsMouseReleased(button):
+                self._buttons_vector.push_back(<int32_t>button)
+
+        if not self._buttons_vector.empty():
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    build_buttons_tuple(self._buttons_vector))
+
+
+cdef inline tuple build_buttons_durations_tuple(DCGVector[int32_t] &buttons_array,
+                                                DCGVector[float] &durations_array):
+    """Builds a tuple of tuples from buttons and durations arrays"""
+    cdef int i
+    cdef list buttons_durations = []
+    for i in range(<int>buttons_array.size()):
+        try:
+            buttons_durations.append((MouseButton(buttons_array[i]), durations_array[i]))
+        except: # button not found or invalid
+            pass
+    return tuple(buttons_durations)
+
+
+cdef class AnyMouseDownHandler(baseHandler):
+    """
+    Handler that triggers when any mouse button is held down.
+    
+    This handler monitors all mouse buttons simultaneously
+    without creating individual handlers for each button.
+    
+    Callback receives:
+        - data: A tuple of tuples, each containing (MouseButton, duration), where:
+          - MouseButton: The specific button being held down
+          - duration: How long the button has been held (in seconds)
+    """
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        cdef int button
+        for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+            if imgui.IsMouseDown(button):
+                return True
+        return False
+    
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+            
+        self._buttons_vector.clear()
+        self._durations_vector.clear()
+        cdef int button, i
+        cdef imgui.ImGuiIO io = imgui.GetIO()
+        
+        for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+            if imgui.IsMouseDown(button):
+                self._buttons_vector.push_back(<int32_t>button)
+                self._durations_vector.push_back(io.MouseDownDuration[button])
+                
+        if not self._buttons_vector.empty():
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    build_buttons_durations_tuple(self._buttons_vector, self._durations_vector))

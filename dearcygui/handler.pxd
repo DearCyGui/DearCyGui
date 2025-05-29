@@ -1,5 +1,6 @@
 from libc.stdint cimport int32_t
 from .core cimport baseHandler, baseItem
+from .c_types cimport DCGVector
 from .types cimport MouseButton, Positioning, HandlerListOP, MouseCursor
 
 cdef class CustomHandler(baseHandler):
@@ -154,57 +155,96 @@ cdef class MouseCursorHandler(baseHandler):
 
 cdef class KeyDownHandler(baseHandler):
     cdef int32_t _key
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class KeyPressHandler(baseHandler):
     cdef int32_t _key
     cdef bint _repeat
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class KeyReleaseHandler(baseHandler):
     cdef int32_t _key
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class AnyKeyPressHandler(baseHandler):
+    cdef bint _repeat
+    cdef DCGVector[int32_t] _keys_vector
+    cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class AnyKeyReleaseHandler(baseHandler):
+    cdef DCGVector[int32_t] _keys_vector
+    cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class AnyKeyDownHandler(baseHandler):
+    cdef DCGVector[int32_t] _keys_vector
+    cdef DCGVector[float] _durations_vector
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseClickHandler(baseHandler):
     cdef MouseButton _button
     cdef bint _repeat
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseDoubleClickHandler(baseHandler):
     cdef MouseButton _button
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseDownHandler(baseHandler):
     cdef MouseButton _button
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseDragHandler(baseHandler):
     cdef MouseButton _button
     cdef float _threshold
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseMoveHandler(baseHandler):
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseInRect(baseHandler):
     cdef double _x1, _y1, _x2, _y2
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseReleaseHandler(baseHandler):
     cdef MouseButton _button
-    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseWheelHandler(baseHandler):
     cdef bint _horizontal
+    cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class AnyMouseClickHandler(baseHandler):
+    cdef bint _repeat
+    cdef DCGVector[int32_t] _buttons_vector
+    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class AnyMouseDoubleClickHandler(baseHandler):
+    cdef DCGVector[int32_t] _buttons_vector
+    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class AnyMouseReleaseHandler(baseHandler):
+    cdef DCGVector[int32_t] _buttons_vector
+    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class AnyMouseDownHandler(baseHandler):
+    cdef DCGVector[int32_t] _buttons_vector
+    cdef DCGVector[float] _durations_vector
     cdef bint check_state(self, baseItem item) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil

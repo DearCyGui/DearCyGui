@@ -358,6 +358,7 @@ class AsyncThreadPoolExecutor(Executor):
         if not callable(self.loop_factory):
             raise TypeError("loop_factory must be a callable that returns an asyncio.AbstractEventLoop instance.")
         self._thread_loop = None
+        self._shutdown = False
         self._running = False
         self._thread = None
         self._start_background_loop()
@@ -460,6 +461,9 @@ class AsyncThreadPoolExecutor(Executor):
         Returns:
             concurrent.futures.Future: A future representing the execution of the callable.
         """
+        if self._shutdown:
+            raise RuntimeError("Cannot schedule new futures after shutdown")
+
         if not self._running:
             raise RuntimeError(f"Executor is not running, cannot submit {fn}, args={args}, kwargs={kwargs}")
 
@@ -470,24 +474,40 @@ class AsyncThreadPoolExecutor(Executor):
 
         return future
 
-    def shutdown(self, wait: bool = True, *args, **kwargs) -> None:
+    def shutdown(self, wait: bool = True, *args, cancel_futures=False, **kwargs) -> None:
         """
         Shutdown the executor, stopping the background thread and event loop.
 
         Args:
-            wait: If True, wait for the background thread to finish.
+            wait: If True, blocks until all pending futures are done.
+            cancel_futures: If True, cancels all pending futures that haven't started.
+
+        After shutdown, calls to submit() will raise RuntimeError.
+        
+        This method is thread-safe and can be called multiple times.
+        It can also be called from within a task running in the executor, in which
+        case the wait parameter is ignored.
         """
+        if self._shutdown:
+            return # Already shut down
+        self._shutdown = True
+
         if not self._running or self._thread_loop is None:
             return
 
-        self._running = False
+        # Check if we're calling from the executor's own thread
+        in_executor_thread = (self._thread is not None and 
+                              threading.get_ident() == self._thread.ident)
+        in_executor = False
+        if in_executor_thread:
+            try:
+                in_executor = asyncio.get_running_loop() == self._thread_loop
+            except RuntimeError:
+                # __del__ can be called from the executor thread
+                # when the loop is not running, so we ignore this
+                pass
 
         stop_executed = threading.Event()
-
-        def just_stop():
-            """Just stop the loop without waiting for tasks."""
-            self._thread_loop.stop()
-            stop_executed.set()
 
         # Wait for tasks to complete when wait=True
         def wait_for_tasks_and_stop():
@@ -500,22 +520,33 @@ class AsyncThreadPoolExecutor(Executor):
                 # Create a future that completes when all tasks are done
                 future = asyncio.gather(*tasks, return_exceptions=True)
                 future.add_done_callback(lambda _: self._thread_loop.stop())
+                future.add_done_callback(lambda _: stop_executed.set())
             else:
                 # No tasks to wait for, stop immediately
                 self._thread_loop.stop()
-            stop_executed.set()
-
-        # Cancel any pending tasks in the loop
-        def cancel_all_tasks():
-            self._cancel_all_tasks()
-            # Add a final callback to stop the loop after tasks have a chance to cancel
-            self._thread_loop.call_soon(just_stop)
+                stop_executed.set()
 
         # Schedule task handling in the thread's event loop
-        if not wait:
-            self._thread_loop.call_soon_threadsafe(cancel_all_tasks)
+         # Cancel any pending tasks in the loop
+        if cancel_futures:
+            print("Cancelling all pending tasks in AsyncThreadPoolExecutor...")
+            if in_executor:
+                # If we are in the executor, we can cancel tasks directly
+                self._cancel_all_tasks()
+            else:
+                self._thread_loop.call_soon_threadsafe(self._cancel_all_tasks)
+
+        print("Shutting down AsyncThreadPoolExecutor...", in_executor, in_executor_thread)
+
+        if in_executor_thread:
+            # Don't wait if we're in the executor thread (deadlock)
+            self._thread_loop.call_soon_threadsafe(wait_for_tasks_and_stop)
+            stop_executed.set()
+        elif wait:
+            self._thread_loop.call_soon_threadsafe(wait_for_tasks_and_stop)
         else:
             self._thread_loop.call_soon_threadsafe(wait_for_tasks_and_stop)
+            stop_executed.set() # do not wait for tasks to complete
 
         stop_executed.wait(timeout=10.0)
         if not stop_executed.is_set():
@@ -523,15 +554,9 @@ class AsyncThreadPoolExecutor(Executor):
 
         # Wait for the thread to finish for proper cleanup
         # (unless we are in the thread itself)
-        if self._thread is not None and self._thread.is_alive() and\
-           self._thread.ident != threading.get_ident():
-            if wait:
-                # If we are waiting, we can safely join the thread
-                self._thread.join(timeout=1.0)
-            else:
-                # If not waiting, we just ensure the thread is not running
-                self._thread.join(timeout=0.1)
-
+        if wait and self._thread is not None and self._thread.is_alive() and not in_executor_thread:
+            print("Waiting for background thread to finish...")
+            self._thread.join(timeout=1.0)
             self._thread = None
 
     def __del__(self):
