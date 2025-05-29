@@ -369,8 +369,9 @@ cdef class Context:
         if queue is self._queue:
             return
         # Check type
-        if not(isinstance(queue, Executor)):
-            raise TypeError("queue must be a subclass of concurrent.futures.Executor")
+        if not(isinstance(queue, Executor)) and \
+            (not hasattr(queue, 'submit') and callable(queue.submit)):
+            raise TypeError("queue must be a subclass of concurrent.futures.Executor or implement a 'submit' method")
         old_queue = self._queue
         self._queue = queue
         # Finish previous queue

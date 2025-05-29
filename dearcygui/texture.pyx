@@ -419,6 +419,7 @@ cdef class Texture(baseItem):
                         # rendering can take some time, fortunately we avoid holding the gil
                         self.context.imgui_mutex.lock()
                         m2.lock()
+                        # Note: we maintained a lock on _write_mutex, thus the texture hasn't changed.
                     (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
                     holds_upload_mutex = True
                     previous_texture = self.allocated_texture
