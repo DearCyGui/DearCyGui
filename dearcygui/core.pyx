@@ -296,8 +296,9 @@ cdef class Context:
         if queue is None:
             self._queue = ThreadPoolExecutor(max_workers=1)
         else:
-            if not(isinstance(queue, Executor)):
-                raise TypeError("queue must be a subclass of concurrent.futures.Executor")
+            if not(isinstance(queue, Executor)) and \
+                (not hasattr(queue, 'submit') and callable(queue.submit)):
+                raise TypeError("queue must be a subclass of concurrent.futures.Executor or implement a 'submit' method")
             self._queue = queue
         C = self
 

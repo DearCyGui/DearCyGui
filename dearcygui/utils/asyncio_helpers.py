@@ -1,5 +1,5 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import Executor, Future
 import dearcygui as dcg
 import inspect
 import math
@@ -131,9 +131,9 @@ def _create_task(loop: asyncio.AbstractEventLoop,
     return task
 
 
-class AsyncPoolExecutor(ThreadPoolExecutor):
+class AsyncPoolExecutor:
     """
-    A ThreadPoolExecutor implementation that executes callbacks
+    A ThreadPoolExecutor-line implementation that executes callbacks
     in the asyncio event loop.
     
     This executor forwards all submitted tasks to the asyncio
@@ -159,7 +159,6 @@ class AsyncPoolExecutor(ThreadPoolExecutor):
             self._loop_thread_id = threading.get_ident()
         self._loop.call_soon(_set_loop_thread_id)
 
-    # Replace ThreadPoolExecutor completly to avoid using threads
     def __del__(self):
         return
 
@@ -328,9 +327,9 @@ class BatchingEventLoop(_DefaultEventLoop):
         return super().call_later(delay, callback, *args, **kwargs)
 
 
-class AsyncThreadPoolExecutor(ThreadPoolExecutor):
+class AsyncThreadPoolExecutor(Executor):
     """
-    A ThreadPoolExecutor that executes callbacks in a
+    A threaded concurrent.future.Executor that executes callbacks in a
     single secondary thread with its own event loop.
 
     It can be used as a drop-in replacement of the default
@@ -340,6 +339,10 @@ class AsyncThreadPoolExecutor(ThreadPoolExecutor):
     This executor runs an asyncio event loop in a dedicated
     thread and forwards all submitted tasks to that loop,
     enabling asyncio operations to run off the main thread.
+
+    If available, uvloop is used as the event loop implementation,
+    in which case performance of normal callbacks are very similar
+    to that of the default ThreadPoolExecutor queue.
 
     The default loop factory is
     `dearcygui.utils.asyncio_helpers.BatchingEventLoop.factory()`,
