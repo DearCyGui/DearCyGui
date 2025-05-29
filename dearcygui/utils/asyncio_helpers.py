@@ -223,6 +223,32 @@ class AsyncPoolExecutor(ThreadPoolExecutor):
 
         return future
 
+    def submit_threadsafe(self, fn: Callable, *args, **kwargs) -> Future:
+        """
+        Submit a callable to be executed in the asyncio event loop
+        represented by this `AsyncPoolExecutor`.
+        
+        The `submit` method can only be called from the thread
+        running the event loop. It returns an `asyncio.Future`.
+        
+        Two alternatives are available to submit tasks from other threads:
+        - Use the `loop` property and `loop.call_soon_threadsafe()` to
+            schedule a task in the event loop.
+        - Call `submit_threadsafe()`. For convenience, this method
+            is a drop-in replacement for the standard `ThreadPoolExecutor.submit()`
+            method, and thus returns a `concurrent.futures.Future`.
+
+        One use case of scheduling tasks in the `AsyncPoolExecutor` from another thread
+        is if you need to run functions that require to be in the thread
+        running the event loop (such as creating a new context and some `dcg.os` functions),
+        """
+
+        future = Future()
+
+        self._loop.call_soon_threadsafe(_create_task, self._loop, future, fn, args, kwargs)
+
+        return future
+
 
 _DefaultEventLoop = asyncio.EventLoop
 
