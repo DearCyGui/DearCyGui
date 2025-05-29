@@ -119,9 +119,10 @@ cdef class Texture(baseItem):
     def antialiased(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if self.allocated_texture != NULL and \
-           (((self._filtering_mode == 3) and value) or ((self._filtering_mode == 0) and not value)):
-            raise PermissionError("antialiased cannot be changed after texture allocation")
+        if self.allocated_texture != NULL:
+            if (((self._filtering_mode == 3) and not value) or ((self._filtering_mode == 0) and value)):
+                raise PermissionError("antialiased cannot be changed after texture allocation")
+            return
         if value:
             self._filtering_mode = 3
         elif self._filtering_mode == 3:
@@ -144,9 +145,10 @@ cdef class Texture(baseItem):
     def nearest_neighbor_upsampling(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if self.allocated_texture != NULL and \
-           (((self._filtering_mode == 0) and value) or ((self._filtering_mode == 1) and not value)):
-            raise PermissionError("nearest_neighbor_upsampling cannot be changed after texture allocation")
+        if self.allocated_texture != NULL:
+            if (((self._filtering_mode == 0) and value) or ((self._filtering_mode == 1) and not value)):
+                raise PermissionError("nearest_neighbor_upsampling cannot be changed after texture allocation")
+            return
         self._filtering_mode = 1 if value else 0
 
     @property

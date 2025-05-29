@@ -1108,6 +1108,12 @@ cdef object parse_texture(src):
     cdef int32_t element_int
     cdef float element_float
     cdef bint bound_error = False
+    # convert 1D texture to 2D texture
+    try:
+        if len(src) > 0 and not hasattr(src[0], "__len__"):
+            src = [src]
+    except:
+        pass
     # Check all items are of the same size
     try:
         num_rows = len(src)
