@@ -75,8 +75,10 @@ cdef class Texture(baseItem):
         if self.allocated_texture != NULL and self.context is not None \
            and self.context.viewport is not None:
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
-            (<platformViewport*>self.context.viewport._platform).freeTexture(self.allocated_texture)
-            (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+            try:
+                (<platformViewport*>self.context.viewport._platform).freeTexture(self.allocated_texture)
+            finally:
+                (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
 
     @property
     def hint_dynamic(self):
@@ -143,7 +145,7 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self.allocated_texture != NULL and \
-           (((self._filtering_mode == 1) and value) or ((self._filtering_mode == 0) and not value)):
+           (((self._filtering_mode == 0) and value) or ((self._filtering_mode == 1) and not value)):
             raise PermissionError("nearest_neighbor_upsampling cannot be changed after texture allocation")
         self._filtering_mode = 1 if value else 0
 
@@ -166,7 +168,7 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self.allocated_texture != NULL and \
-           ((self._repeat_mode & 1) != 0) == value:
+           ((self._repeat_mode & 1) != 0) != value:
             raise PermissionError("wrap_x cannot be changed after texture allocation")
         self._repeat_mode &= ~1
         if value:
@@ -191,7 +193,7 @@ cdef class Texture(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self.allocated_texture != NULL and \
-           ((self._repeat_mode & 2) != 0) == value:
+           ((self._repeat_mode & 2) != 0) != value:
             raise PermissionError("wrap_y cannot be changed after texture allocation")
         self._repeat_mode &= ~2
         if value:
@@ -285,23 +287,25 @@ cdef class Texture(baseItem):
         with nogil:
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
             self.mutex.lock()
-            self.allocated_texture = \
-                (<platformViewport*>self.context.viewport._platform).allocateTexture(width,
-                                                                    height,
-                                                                    num_chans,
-                                                                    self._dynamic,
-                                                                    buffer_type,
-                                                                    self._filtering_mode,
-                                                                    self._repeat_mode)
-            (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
-            success = self.allocated_texture != NULL
-            if success:
-                self.width = width
-                self.height = height
-                self.num_chans = num_chans
-                self._buffer_type = buffer_type
-                self._no_realloc = no_realloc
-            self.mutex.unlock()
+            try:
+                self.allocated_texture = \
+                    (<platformViewport*>self.context.viewport._platform).allocateTexture(width,
+                                                                        height,
+                                                                        num_chans,
+                                                                        self._dynamic,
+                                                                        buffer_type,
+                                                                        self._filtering_mode,
+                                                                        self._repeat_mode)
+            finally:
+                (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+                success = self.allocated_texture != NULL
+                if success:
+                    self.width = width
+                    self.height = height
+                    self.num_chans = num_chans
+                    self._buffer_type = buffer_type
+                    self._no_realloc = no_realloc
+                self.mutex.unlock()
         if not(success):
             raise MemoryError("Failed to allocate target texture")
 
@@ -399,72 +403,84 @@ cdef class Texture(baseItem):
             cpython.PyBuffer_Release(&buf_info)
             raise ValueError("Texture cannot be reallocated and upload data is not of the same size/type as the texture")
 
-        with nogil:
-            if self.allocated_texture != NULL and not(reuse):
-                # We must wait there is no rendering since the current rendering might reference the texture
-                # Release current lock to not block rendering
-                # Wait we can prevent rendering
-                if not(self.context.imgui_mutex.try_lock()):
-                    m2.unlock()
-                    # rendering can take some time, fortunately we avoid holding the gil
-                    self.context.imgui_mutex.lock()
-                    m2.lock()
-                (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
-                (<platformViewport*>self.context.viewport._platform).freeTexture(self.allocated_texture)
-                self.allocated_texture = NULL
-                self.context.imgui_mutex.unlock()
-            else:
-                m2.unlock()
-                (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
-                m2.lock()
+        cdef bint holds_upload_mutex = False
+        cdef void* previous_texture = NULL
 
-            # Note we don't need the imgui mutex to create or upload textures.
-            # In the case of GL, as only one thread can access GL data at a single
-            # time, MakeUploadContextCurrent and ReleaseUploadContext enable
-            # to upload/create textures from various threads. They hold a mutex.
-            # That mutex is held in the relevant parts of frame rendering.
-
-            self.width = width
-            self.height = height
-            self.num_chans = num_chans
-            self._buffer_type = buffer_type
-
-            if not(reuse):
-                self._dynamic = self._hint_dynamic
-                self.allocated_texture = \
-                    (<platformViewport*>self.context.viewport._platform).allocateTexture(width,
-                                                                    height,
-                                                                    num_chans,
-                                                                    self._dynamic,
-                                                                    buffer_type,
-                                                                    self._filtering_mode,
-                                                                    self._repeat_mode)
-
-            success = self.allocated_texture != NULL
-            if success:
-                if self._dynamic:
-                    success = \
-                        (<platformViewport*>self.context.viewport._platform).updateDynamicTexture(
-                                                     self.allocated_texture,
-                                                     width,
-                                                     height,
-                                                     num_chans,
-                                                     buffer_type,
-                                                     buf_info.buf,
-                                                     stride)
+        try:
+            with nogil:
+                if self.allocated_texture != NULL and not(reuse):
+                    # We must wait there is no rendering since the current rendering might reference the texture
+                    # Release current lock to not block rendering
+                    # Wait we can prevent rendering
+                    if not(self.context.imgui_mutex.try_lock()):
+                        m2.unlock()
+                        # rendering can take some time, fortunately we avoid holding the gil
+                        self.context.imgui_mutex.lock()
+                        m2.lock()
+                    (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
+                    holds_upload_mutex = True
+                    previous_texture = self.allocated_texture
+                    self.allocated_texture = NULL
+                    (<platformViewport*>self.context.viewport._platform).freeTexture(previous_texture)
+                    self.context.imgui_mutex.unlock()
                 else:
-                    success = (<platformViewport*>self.context.viewport._platform).updateStaticTexture(
-                                                    self.allocated_texture,
-                                                    width,
-                                                    height,
-                                                    num_chans,
-                                                    buffer_type,
-                                                    buf_info.buf,
-                                                    stride)
-            (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
-            m.unlock()
-            m2.unlock() # Release before we get gil again
-        cpython.PyBuffer_Release(&buf_info)
+                    m2.unlock()
+                    (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
+                    holds_upload_mutex = True
+                    m2.lock()
+
+                # Note we don't need the imgui mutex to create or upload textures.
+                # In the case of GL, as only one thread can access GL data at a single
+                # time, MakeUploadContextCurrent and ReleaseUploadContext enable
+                # to upload/create textures from various threads. They hold a mutex.
+                # That mutex is held in the relevant parts of frame rendering.
+
+                self.width = width
+                self.height = height
+                self.num_chans = num_chans
+                self._buffer_type = buffer_type
+
+                if not(reuse):
+                    self._dynamic = self._hint_dynamic
+                    self.allocated_texture = \
+                        (<platformViewport*>self.context.viewport._platform).allocateTexture(width,
+                                                                        height,
+                                                                        num_chans,
+                                                                        self._dynamic,
+                                                                        buffer_type,
+                                                                        self._filtering_mode,
+                                                                        self._repeat_mode)
+
+                success = self.allocated_texture != NULL
+                if success:
+                    if self._dynamic:
+                        success = \
+                            (<platformViewport*>self.context.viewport._platform).updateDynamicTexture(
+                                                        self.allocated_texture,
+                                                        width,
+                                                        height,
+                                                        num_chans,
+                                                        buffer_type,
+                                                        buf_info.buf,
+                                                        stride)
+                    else:
+                        success = (<platformViewport*>self.context.viewport._platform).updateStaticTexture(
+                                                        self.allocated_texture,
+                                                        width,
+                                                        height,
+                                                        num_chans,
+                                                        buffer_type,
+                                                        buf_info.buf,
+                                                        stride)
+                (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+                holds_upload_mutex = False
+                m.unlock()
+                m2.unlock() # Release before we get gil again
+        finally:
+            if holds_upload_mutex:
+                # If we held the upload mutex, we must release it
+                (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+            cpython.PyBuffer_Release(&buf_info)
         if not(success):
             raise MemoryError("Failed to upload target texture")
 
@@ -495,8 +511,8 @@ cdef class Texture(baseItem):
         cdef int32_t height = self.height
         cdef int32_t num_chans = self.num_chans
         cdef int32_t buffer_type = self._buffer_type
-        cdef int32_t crop_width_ = crop_width if crop_width > 0 else width
-        cdef int32_t crop_height_ = crop_height if crop_height > 0 else height
+        cdef int32_t crop_width_ = width if crop_width == 0 else crop_width
+        cdef int32_t crop_height_ = height if crop_height == 0 else crop_height
         
         # Validate crop coordinates
         if x0 < 0:
@@ -533,11 +549,13 @@ cdef class Texture(baseItem):
             m.unlock()
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
             m.lock()
-            success = \
-                (<platformViewport*>self.context.viewport._platform).downloadTexture(self.allocated_texture,
-                                x0, y0, crop_width_, crop_height_, num_chans,
-                                self._buffer_type, data, stride)
-            (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+            try:
+                success = \
+                    (<platformViewport*>self.context.viewport._platform).downloadTexture(self.allocated_texture,
+                                    x0, y0, crop_width_, crop_height_, num_chans,
+                                    self._buffer_type, data, stride)
+            finally:
+                (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
         if not(success):
             raise ValueError("Failed to read the texture")
         return array
