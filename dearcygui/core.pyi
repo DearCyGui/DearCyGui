@@ -162,6 +162,255 @@ class ActiveHandler(baseHandler):
         ...
 
 
+class AnyKeyDownHandler(baseHandler):
+    """
+    Handler that triggers when any key is held down.
+
+    This native implementation efficiently monitors all keys simultaneously
+    without creating individual handlers for each key.
+
+    Callback receives:
+        - data: A tuple of tuples, each containing (Key, duration), where:
+          - Key: The specific key being held down
+          - duration: How long the key has been held (in seconds)
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+class AnyKeyPressHandler(baseHandler):
+    """
+    Handler that triggers when any keyboard key is pressed.
+
+    This handler monitors all keys simultaneously
+    without creating individual handlers for each key.
+
+    Properties:
+        repeat (bool): Whether to trigger repeatedly while keys are held down
+
+    Callback receives:
+        - data: A tuple of Key objects that were pressed this frame
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether to trigger repeatedly while a key is held down.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    @property
+    def repeat(self) -> bool:
+        """
+        Whether to trigger repeatedly while a key is held down.
+
+        When True, the callback will be called multiple times as keys remain pressed.
+        When False, the callback is only called once when the key is initially pressed.
+
+        """
+        ...
+
+
+    @repeat.setter
+    def repeat(self, value : bool):
+        ...
+
+
+class AnyKeyReleaseHandler(baseHandler):
+    """
+    Handler that triggers when any key is released.
+
+    This handler monitors all keys simultaneously
+    without creating individual handlers for each key.
+
+    Callback receives:
+        - data: A tuple of Key objects that were released this frame
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+class AnyMouseClickHandler(baseHandler):
+    """
+    Handler that triggers when any mouse button is clicked.
+
+    This handler monitors all mouse buttons simultaneously
+    without creating individual handlers for each button.
+
+    Properties:
+        repeat (bool): Whether to trigger repeatedly while buttons are held
+
+    Callback receives:
+        - data: A tuple of MouseButton objects that were clicked this frame
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether to trigger repeatedly while a button is held down.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    @property
+    def repeat(self) -> bool:
+        """
+        Whether to trigger repeatedly while a button is held down.
+
+        When True, the callback will be called multiple times as buttons remain pressed.
+        When False, the callback is only called once when the button is initially pressed.
+
+        """
+        ...
+
+
+    @repeat.setter
+    def repeat(self, value : bool):
+        ...
+
+
+class AnyMouseDoubleClickHandler(baseHandler):
+    """
+    Handler that triggers when any mouse button is double-clicked.
+
+    This handler monitors all mouse buttons simultaneously
+    without creating individual handlers for each button.
+
+    Callback receives:
+        - data: A tuple of MouseButton objects that were double-clicked this frame
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+class AnyMouseDownHandler(baseHandler):
+    """
+    Handler that triggers when any mouse button is held down.
+
+    This handler monitors all mouse buttons simultaneously
+    without creating individual handlers for each button.
+
+    Callback receives:
+        - data: A tuple of tuples, each containing (MouseButton, duration), where:
+          - MouseButton: The specific button being held down
+          - duration: How long the button has been held (in seconds)
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+class AnyMouseReleaseHandler(baseHandler):
+    """
+    Handler that triggers when any mouse button is released.
+
+    This handler monitors all mouse buttons simultaneously
+    without creating individual handlers for each button.
+
+    Callback receives:
+        - data: A tuple of MouseButton objects that were released this frame
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class AutoFont(FontMultiScales):
     """
     A self-managing font container that automatically creates and caches fonts at different scales.
@@ -3799,7 +4048,7 @@ class DrawArc(drawingItem):
     Negative radius values are interpreted in screen space rather than coordinate space.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3920,7 +4169,7 @@ class DrawArc(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -3932,7 +4181,7 @@ class DrawArc(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -4036,7 +4285,7 @@ class DrawArrow(drawingItem):
     or visualizing vectors in coordinate space.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4107,7 +4356,7 @@ class DrawArrow(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -4119,7 +4368,7 @@ class DrawArrow(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -4169,7 +4418,7 @@ class DrawBezierCubic(drawingItem):
     with higher values creating smoother curves at the cost of performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4277,7 +4526,7 @@ class DrawBezierCubic(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -4289,7 +4538,7 @@ class DrawBezierCubic(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -4339,7 +4588,7 @@ class DrawBezierQuadratic(drawingItem):
     with higher values creating smoother curves at the cost of performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4429,7 +4678,7 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -4441,7 +4690,7 @@ class DrawBezierQuadratic(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -4493,7 +4742,7 @@ class DrawCircle(drawingItem):
     create a more perfect circle at the cost of rendering performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4568,7 +4817,7 @@ class DrawCircle(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -4580,7 +4829,7 @@ class DrawCircle(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -4655,7 +4904,7 @@ class DrawEllipse(drawingItem):
         segments (int): Number of segments used to approximate the ellipse
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4713,7 +4962,7 @@ class DrawEllipse(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -4725,7 +4974,7 @@ class DrawEllipse(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -5901,7 +6150,7 @@ class DrawLine(drawingItem):
     allowing for consistent visual size regardless of zoom level.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6029,7 +6278,7 @@ class DrawLine(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the line.
 
@@ -6041,7 +6290,7 @@ class DrawLine(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -6074,7 +6323,7 @@ class DrawPolygon(drawingItem):
     is drawn instead of the exact polygon shape.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6149,7 +6398,7 @@ class DrawPolygon(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -6161,7 +6410,7 @@ class DrawPolygon(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -6211,7 +6460,7 @@ class DrawPolyline(drawingItem):
     property, the last point will be connected back to the first, forming a closed shape.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6268,7 +6517,7 @@ class DrawPolyline(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the lines.
 
@@ -6280,7 +6529,7 @@ class DrawPolyline(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -6333,7 +6582,7 @@ class DrawQuad(drawingItem):
     with proper orientation handling to ensure correct anti-aliasing.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6457,7 +6706,7 @@ class DrawQuad(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -6469,7 +6718,7 @@ class DrawQuad(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -6504,7 +6753,7 @@ class DrawRect(drawingItem):
     specified for each corner of the rectangle.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6639,7 +6888,7 @@ class DrawRect(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -6651,7 +6900,7 @@ class DrawRect(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -6740,7 +6989,7 @@ class DrawRegularPolygon(drawingItem):
     with different colors and thicknesses.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6852,7 +7101,7 @@ class DrawRegularPolygon(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -6864,7 +7113,7 @@ class DrawRegularPolygon(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -6935,7 +7184,7 @@ class DrawStar(drawingItem):
     or screen space (negative values) to maintain consistent visual size regardless of zoom level.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7066,7 +7315,7 @@ class DrawStar(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -7078,7 +7327,7 @@ class DrawStar(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -7248,7 +7497,7 @@ class DrawTriangle(drawingItem):
     The shape can be both filled with a solid color and outlined with a different color and thickness.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Any = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7357,7 +7606,7 @@ class DrawTriangle(drawingItem):
 
 
     @property
-    def pattern(self):
+    def pattern(self) -> Pattern | None:
         """
         Pattern of the outline.
 
@@ -7369,7 +7618,7 @@ class DrawTriangle(drawingItem):
 
 
     @pattern.setter
-    def pattern(self, value):
+    def pattern(self, value : Pattern | None):
         ...
 
 
@@ -9978,6 +10227,7 @@ class KeyDownHandler(baseHandler):
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
+        - key: The key that this handler is monitoring.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
@@ -9989,6 +10239,10 @@ class KeyDownHandler(baseHandler):
 
     @property
     def key(self) -> Key:
+        """
+        The key that this handler is monitoring.
+
+        """
         ...
 
 
@@ -10018,9 +10272,11 @@ class KeyPressHandler(baseHandler):
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
+        - key: The key that this handler is monitoring.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether to trigger repeatedly while a key is held down.
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
@@ -10029,6 +10285,10 @@ class KeyPressHandler(baseHandler):
 
     @property
     def key(self) -> Key:
+        """
+        The key that this handler is monitoring.
+
+        """
         ...
 
 
@@ -10039,6 +10299,13 @@ class KeyPressHandler(baseHandler):
 
     @property
     def repeat(self) -> bool:
+        """
+        Whether to trigger repeatedly while a key is held down.
+
+        When True, the callback will be called multiple times as keys remain pressed.
+        When False, the callback is only called once when the key is initially pressed.
+
+        """
         ...
 
 
@@ -10067,6 +10334,7 @@ class KeyReleaseHandler(baseHandler):
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
+        - key: The key that this handler is monitoring.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
@@ -10078,6 +10346,10 @@ class KeyReleaseHandler(baseHandler):
 
     @property
     def key(self) -> Key:
+        """
+        The key that this handler is monitoring.
+
+        """
         ...
 
 
@@ -11267,12 +11539,14 @@ class MouseClickHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The mouse button that this handler is monitoring.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether to trigger repeatedly while a mouse button is held down.
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
@@ -11281,6 +11555,10 @@ class MouseClickHandler(baseHandler):
 
     @property
     def button(self) -> MouseButton:
+        """
+        The mouse button that this handler is monitoring.
+
+        """
         ...
 
 
@@ -11291,6 +11569,13 @@ class MouseClickHandler(baseHandler):
 
     @property
     def repeat(self) -> bool:
+        """
+        Whether to trigger repeatedly while a mouse button is held down.
+
+        When True, the callback will be called multiple times as the button remains pressed.
+        When False, the callback is only called once when the button is initially clicked.
+
+        """
         ...
 
 
@@ -11360,6 +11645,7 @@ class MouseDoubleClickHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The button this handler monitors.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -11374,6 +11660,10 @@ class MouseDoubleClickHandler(baseHandler):
 
     @property
     def button(self) -> MouseButton:
+        """
+        The button this handler monitors.
+
+        """
         ...
 
 
@@ -11400,6 +11690,7 @@ class MouseDownHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The button this handler monitors.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -11414,6 +11705,10 @@ class MouseDownHandler(baseHandler):
 
     @property
     def button(self) -> MouseButton:
+        """
+        The button this handler monitors.
+
+        """
         ...
 
 
@@ -11443,6 +11738,7 @@ class MouseDragHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The button this handler monitors.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -11450,6 +11746,7 @@ class MouseDragHandler(baseHandler):
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
         - show: Alias for the enabled property provided for backward compatibility.
+        - threshold: The movement threshold to trigger a drag.
         - user_data: User data of any type.
         """
         ...
@@ -11457,6 +11754,10 @@ class MouseDragHandler(baseHandler):
 
     @property
     def button(self) -> MouseButton:
+        """
+        The button this handler monitors.
+
+        """
         ...
 
 
@@ -11467,6 +11768,11 @@ class MouseDragHandler(baseHandler):
 
     @property
     def threshold(self) -> float:
+        """
+        The movement threshold to trigger a drag.
+        If negative, uses the default threshold.
+
+        """
         ...
 
 
@@ -11602,6 +11908,7 @@ class MouseReleaseHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The button this handler monitors.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -11616,6 +11923,10 @@ class MouseReleaseHandler(baseHandler):
 
     @property
     def button(self) -> MouseButton:
+        """
+        The button this handler monitors.
+
+        """
         ...
 
 
@@ -23289,11 +23600,12 @@ class Viewport(baseItem):
     It is decorated by the operating system and can be minimized/maximized/made fullscreen.
 
     """
-    def __init__(self, context : Context, always_on_top : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Parameters
         ----------
         - always_on_top: Whether the viewport window stays above other windows.
+        - always_submit_to_gpu: By default DearCyGui attemps to skip submitting to the GPU
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -23339,7 +23651,7 @@ class Viewport(baseItem):
         ...
 
 
-    def initialize(self, always_on_top : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
+    def initialize(self, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Initialize the viewport for rendering and show it.
 
@@ -23358,6 +23670,7 @@ class Viewport(baseItem):
         Parameters
         ----------
         - always_on_top: Whether the viewport window stays above other windows.
+        - always_submit_to_gpu: By default DearCyGui attemps to skip submitting to the GPU
         - children: List of all the children of the item, from first rendered, to last rendered.
         - clear_color: Color used to clear the viewport background.
         - close_callback: Callback to be issued when the viewport is closed.
@@ -23397,7 +23710,7 @@ class Viewport(baseItem):
         ...
 
 
-    def render_frame(self, can_skip_presenting=False):
+    def render_frame(self):
         """
 Render one frame of the application.
 
@@ -23405,18 +23718,10 @@ Render one frame of the application.
         1. Mouse/Keyboard events are processed (wait_for_input applies here)
         2. The viewport and entire rendering tree are traversed to prepare
         rendering commands using ImGui and ImPlot
-        3. Rendering commands are submitted to the GPU
-        4. The submission is passed to the OS for window update, including
-        vsync if applicable
-
-        Parameters
-        ----------
-        can_skip_presenting : bool, default=False
-            If True, rendering will occur (handlers checked, etc.) but the backend
-            might decide not to submit rendering commands to the GPU and refresh
-            the window. Useful to avoid GPU usage for simple mouse motions.
-            Only set this if you haven't updated any screen content.
-            Note that wake() will force a redraw on the next frame.
+        3. Rendering commands are submitted to the GPU, if a change was detected
+           (unless always_submit_to_gpu is set, in which case it is always submitted.)
+        4. If submitted to the GPU, a window update is requested to the OS, using
+            vsync if applicable
 
         Returns
         -------
@@ -23485,6 +23790,25 @@ Render one frame of the application.
 
     @always_on_top.setter
     def always_on_top(self, value : bool):
+        ...
+
+
+    @property
+    def always_submit_to_gpu(self) -> bool:
+        """
+        By default DearCyGui attemps to skip submitting to the GPU
+        frames when no change have been detected during the CPU preparation
+        of the frame.
+
+        However some cases may be missed. This state is available in order to
+        have a fallback in case issues are met.
+
+        """
+        ...
+
+
+    @always_submit_to_gpu.setter
+    def always_submit_to_gpu(self, value : bool):
         ...
 
 
@@ -24188,7 +24512,7 @@ class Window(uiItem):
     menu bars can be attached using menubar items.
 
     """
-    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = True, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
         """
         Parameters
         ----------

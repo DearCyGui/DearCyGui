@@ -209,7 +209,8 @@ hardcoded = {
     "callbacks" : "Sequence[DCGCallable]",
     "color" : "Color",
     "fill" : "Color",
-    "texture" : "Texture | None"
+    "texture" : "Texture | None",
+    "pattern" : "Pattern | None"
 }
 
 
