@@ -91,12 +91,24 @@ async def _async_task(future: Future | asyncio.Future | None,
         # If it's a coroutine function, await it directly
         if inspect.iscoroutinefunction(fn):
             result = await fn(*args, **kwargs)
-        else:
+        elif callable(fn):
             # For regular functions, call them and handle returned coroutines
             result = fn(*args, **kwargs)
             # If the function returned a coroutine, await it
             if asyncio.iscoroutine(result):
                 result = await result
+        elif asyncio.iscoroutine(fn):
+            if len(args) > 0 or len(kwargs) > 0:
+                warnings.warn(
+                    "Coroutine passed directly to submit with args or kwargs. "
+                    "Ignoring args and kwargs.",
+                    RuntimeWarning
+                )
+            # If the function is a coroutine, await it directly
+            result = await fn
+        else:
+            raise TypeError(f"Unsupported callable type: {type(fn)}. "
+                            "Must be a coroutine function, regular function, or coroutine.")
         # Set the result if not cancelled
         if future and not future.cancelled():
             future.set_result(result)

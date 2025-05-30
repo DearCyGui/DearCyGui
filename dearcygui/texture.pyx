@@ -813,7 +813,7 @@ cdef class Pattern(baseItem):
         if upscale_factor < 1:
             raise ValueError("upscale_factor must be at least 1")
         
-        cdef Pattern pattern = Pattern(context, **kwargs)
+        cdef Pattern pattern = Pattern(context)
         cdef cpython.Py_buffer buf_info
         cdef bint buffer_acquired = False
         cdef cython_array upscaled_arr
@@ -982,6 +982,12 @@ cdef class Pattern(baseItem):
             # Configure pattern
             pattern.texture = texture
             pattern.scale_factor = 1.0 / dst_width
+
+            for key, value in kwargs.items():
+                if hasattr(pattern, key):
+                    setattr(pattern, key, value)
+                else:
+                    raise AttributeError(f"Unknown parameter '{key}' for Pattern")
             
             return pattern
         
