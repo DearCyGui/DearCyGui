@@ -2888,8 +2888,12 @@ cdef class Viewport(baseItem):
     def clear_color(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef float[4] color
-        unparse_color((<platformViewport*>self._platform).clearColor, parse_color(value))
+        cdef uint32_t color = parse_color(value)
+        if color & 0xFF000000 != 0xFF000000:
+            if self._initialized and not((<platformViewport*>self._platform).isTransparent):
+                raise ValueError("Transparency requires setting transparent before init")
+            (<platformViewport*>self._platform).isTransparent = True
+        unparse_color((<platformViewport*>self._platform).clearColor, color)
 
     @property
     def icon(self):
@@ -2984,6 +2988,26 @@ cdef class Viewport(baseItem):
                 # Free buffer resources
                 if buf_info.buf != NULL:
                     PyBuffer_Release(&buf_info)
+
+    @property
+    def transparent(self):
+        """
+        Whether the window is created with a back buffer allowing for transparent windows
+
+        This attribute must be set before or during initialize()
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (<platformViewport*>self._platform).isTransparent
+
+    @transparent.setter
+    def transparent(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if (<platformViewport*>self._platform).isTransparent == value:
+            return
+        self.__check_not_initialized()
+        (<platformViewport*>self._platform).isTransparent = value
 
     @property
     def x_pos(self):

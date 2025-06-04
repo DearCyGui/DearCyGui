@@ -49,6 +49,7 @@ cdef extern from "backend.h" nogil:
         bint isMinimized
         bint isMaximized
         bint isVisible
+        bint isTransparent
 
         bint shouldFullscreen
         bint shouldMinimize

@@ -183,6 +183,7 @@ public:
     bool isMinimized = false;
     bool isMaximized = false;
     bool isVisible = true;
+    bool isTransparent = false; // cannot change after init
 
     // Window requested state changes
     bool shouldFullscreen = false;

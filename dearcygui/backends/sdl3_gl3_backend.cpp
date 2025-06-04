@@ -649,6 +649,8 @@ bool SDLViewport::initialize() {
         creation_flags |= SDL_WINDOW_MINIMIZED;
     if (!windowDecorated)
         creation_flags |= SDL_WINDOW_BORDERLESS;
+    if (isTransparent)
+        creation_flags |= SDL_WINDOW_TRANSPARENT;
 
     // Create window with graphics context
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
