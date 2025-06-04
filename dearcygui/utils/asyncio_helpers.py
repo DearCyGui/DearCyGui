@@ -128,8 +128,12 @@ def _create_task(loop: asyncio.AbstractEventLoop,
 
     if future is not None:
         # Setup bi-directional cancellation propagation
+        def cancel_task_if_not_done(task=task):
+            if not task.done():
+                task.cancel()
+
         future.add_done_callback(
-            lambda f: task.cancel() if f.cancelled() and not task.done() else None
+            lambda f: loop.call_soon_threadsafe(cancel_task_if_not_done) if f.cancelled() else None
         )
         
         task.add_done_callback(
@@ -454,7 +458,7 @@ class AsyncThreadPoolExecutor(Executor):
 
         # Wait for the thread loop to be ready
         timer = time.monotonic()
-        while self._thread_loop is None:
+        while not(self._running):
             if not self._thread.is_alive():
                 raise RuntimeError("Background thread failed to start")
             time.sleep(0.)  # Avoid busy-waiting
