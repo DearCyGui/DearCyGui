@@ -32,7 +32,7 @@ from .core cimport baseHandler, drawingItem, uiItem, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector, \
     draw_drawing_children, draw_menubar_children, \
     draw_ui_children, button_area, \
-    draw_tab_children, Callback, \
+    draw_tab_children, Callback, ItemStateView, \
     Context, SharedValue, update_current_mouse_states
 from .c_types cimport unique_lock, DCGMutex, Vec2, Vec4, \
     DCGString, string_to_str, string_from_str, string_from_bytes,\
@@ -244,122 +244,6 @@ cdef class DrawInvisibleButton(drawingItem):
         append_obj_vector(self._handlers, items)
 
     @property
-    def activated(self):
-        """
-        Readonly attribute: has the button just been pressed
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.active and not(self.state.prev.active)
-
-    @property
-    def active(self):
-        """
-        Readonly attribute: is the button held
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.active
-
-    @property
-    def clicked(self):
-        """
-        Readonly attribute: has the item just been clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return tuple(self.state.cur.clicked)
-
-    @property
-    def double_clicked(self):
-        """
-        Readonly attribute: has the item just been double-clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.double_clicked
-
-    @property
-    def deactivated(self):
-        """
-        Readonly attribute: has the button just been unpressed
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.prev.active and not(self.state.cur.active)
-
-    @property
-    def hovered(self):
-        """
-        Readonly attribute: Is the mouse inside area
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.hovered
-
-    @property
-    def pos_to_viewport(self):
-        """
-        Readonly attribute:
-        Current screen-space position of the top left
-        of the item's rectangle. Basically the coordinate relative
-        to the top left of the viewport.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.pos_to_viewport)
-
-    @property
-    def pos_to_window(self):
-        """
-        Readonly attribute:
-        Relative position to the window's starting inner
-        content area.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.pos_to_window)
-
-    @property
-    def pos_to_parent(self):
-        """
-        Readonly attribute:
-        Relative position to latest non-drawing parent
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.pos_to_parent)
-
-    @property
-    def rect_size(self):
-        """
-        Readonly attribute: actual (width, height) in pixels of the item on screen
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.rect_size)
-
-    @property
-    def resized(self):
-        """
-        Readonly attribute: has the item size just changed
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.rect_size.x != self.state.prev.rect_size.x or \
-               self.state.cur.rect_size.y != self.state.prev.rect_size.y
-
-    @property
     def no_input(self):
         """
         Writable attribute: If enabled, this item will not
@@ -404,6 +288,19 @@ cdef class DrawInvisibleButton(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._capture_mouse = value
+
+    @property
+    def state(self):
+        """
+        The current state of the button
+        
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
+
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
+        """
+        return ItemStateView.create(self)
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
@@ -4473,7 +4370,7 @@ cdef class Tooltip(uiItem):
                 # We are in a popup window
                 pos_w = ImVec2Vec2(imgui.GetCursorScreenPos())
                 pos_p = pos_w
-                self._content_pos = pos_w
+                self.state.cur.content_pos = pos_w
                 swap_Vec2(pos_w, self.context.viewport.window_pos)
                 swap_Vec2(pos_p, self.context.viewport.parent_pos)
                 parent_size_backup = self.context.viewport.parent_size
@@ -5469,7 +5366,7 @@ cdef class CollapsingHeader(uiItem):
         # TODO: rect_size from group ?
         return not(was_open) and self.state.cur.open
 
-cdef class ChildWindow(uiItem):
+cdef class ChildWindow(uiItem): # TODO: remove label
     """
     A child window container that enables hierarchical UI layout.
     
@@ -5848,7 +5745,7 @@ cdef class ChildWindow(uiItem):
             self.state.cur.content_region_size = ImVec2Vec2(imgui.GetContentRegionAvail())
             pos_p = ImVec2Vec2(imgui.GetCursorScreenPos())
             pos_w = pos_p
-            self._content_pos = pos_p
+            self.state.cur.content_pos = pos_p
             swap_Vec2(pos_p, self.context.viewport.parent_pos)
             swap_Vec2(pos_w, self.context.viewport.window_pos)
             parent_size_backup = self.context.viewport.parent_size

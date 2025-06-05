@@ -4448,6 +4448,402 @@ cdef class PlaceHolderParent(baseItem):
 States used by many items
 """
 
+cdef class ItemStateView:
+    """
+    View class for accessing UI item state properties.
+    
+    This class provides a consolidated interface to access state properties
+    of UI items, such as whether they are hovered, active, focused, etc.
+    Each property is checked against the item's capabilities to ensure
+    it supports that state.
+    
+    The view references the original item and uses its mutex for thread safety.
+    """
+    @staticmethod
+    cdef ItemStateView create(baseItem item):
+        if item.p_state is NULL:
+            raise AttributeError("Cannot create a state view for an item without state")
+            
+        cdef ItemStateView view = ItemStateView.__new__(ItemStateView)
+        view._item = item
+        return view
+
+    def __dir__(self):
+        default_dir = dir(type(self))
+        if hasattr(self, '__dict__'): # Can happen with python subclassing
+            default_dir += list(self.__dict__.keys())
+        # Remove invalid ones
+        results = set()
+        for e in default_dir:
+            if hasattr(self, e):
+                results.add(e)
+        return sorted(list(results))
+    
+    @property
+    def active(self):
+        """
+        Whether the item is in an active state.
+        
+        Active states vary by item type: for buttons it means pressed; for tabs,
+        selected; for input fields, being edited. This state is tracked between
+        frames to enable interactive behaviors.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_active):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.active
+    
+    @property
+    def activated(self):
+        """
+        Whether the item just transitioned to the active state this frame.
+        
+        This property is only true during the frame when the item becomes active,
+        making it useful for one-time actions. For persistent monitoring, use 
+        event handlers instead as they provide more robust state tracking.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_active):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.active and not(self._item.p_state.prev.active)
+    
+    @property
+    def clicked(self):
+        """
+        Whether any mouse button was clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the click occurs.
+        For consistent event handling across frames, use click handlers instead.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_clicked):
+            raise AttributeError("Field undefined for this item type")
+        return tuple(self._item.p_state.cur.clicked)
+    
+    @property
+    def double_clicked(self):
+        """
+        Whether any mouse button was double-clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the double-click occurs.
+        For consistent event handling across frames, use click handlers instead.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_clicked):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.double_clicked
+    
+    @property
+    def deactivated(self):
+        """
+        Whether the item just transitioned from active to inactive this frame.
+        
+        This property is only true during the frame when deactivation occurs.
+        For persistent monitoring across frames, use event handlers instead
+        as they provide more robust state tracking.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_active):
+            raise AttributeError("Field undefined for this item type")
+        return not(self._item.p_state.cur.active) and self._item.p_state.prev.active
+    
+    @property
+    def deactivated_after_edited(self):
+        """
+        Whether the item was edited and then deactivated in this frame.
+        
+        Useful for detecting when user completes an edit operation, such as
+        finishing text input or adjusting a value. This property is only true
+        for the frame when the deactivation occurs after editing.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_deactivated_after_edited):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.deactivated_after_edited
+    
+    @property
+    def edited(self):
+        """
+        Whether the item's value was modified this frame.
+        
+        This flag indicates that the user has made a change to the item's value,
+        such as typing in an input field or adjusting a slider. It is only true
+        for the frame when the edit occurs.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_edited):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.edited
+    
+    @property
+    def focused(self):
+        """
+        Whether this item has input focus.
+        
+        For windows, focus means the window is at the top of the stack. For
+        input items, focus means keyboard inputs are directed to this item.
+        Unlike hover state, focus persists until explicitly changed or lost.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_focused):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.focused
+    
+    @property
+    def hovered(self):
+        """
+        Whether the mouse cursor is currently positioned over this item.
+
+        Only one element can be hovered at a time in the UI hierarchy. When
+        elements overlap, the topmost item (typically a child item rather than
+        a parent) receives the hover state.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_hovered):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.hovered
+    
+    @property
+    def resized(self):
+        """
+        Whether the item's size changed this frame.
+        
+        This property is true only for the frame when the size change occurs.
+        It can detect both user-initiated resizing (like dragging a window edge)
+        and programmatic size changes.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.has_rect_size):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.rect_size.x != self._item.p_state.prev.rect_size.x or \
+               self._item.p_state.cur.rect_size.y != self._item.p_state.prev.rect_size.y
+    
+    @property
+    def toggled(self):
+        """
+        Whether the item was just toggled open this frame.
+        
+        Applies to items that can be expanded or collapsed, such as tree nodes,
+        collapsing headers, or menus. This property is only true during the frame
+        when the toggle from closed to open occurs.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.can_be_toggled):
+            raise AttributeError("Field undefined for this item type")
+        return self._item.p_state.cur.open and not(self._item.p_state.prev.open)
+    
+    @property
+    def visible(self):
+        """
+        Whether the item was rendered in the current frame.
+        
+        An item is visible when it and all its ancestors have show=True and are
+        within the visible region of their containers. Invisible items skip
+        rendering and event handling entirely.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        return self._item.p_state.cur.rendered
+    
+    # Position and size properties
+    
+    @property
+    def rect_size(self):
+        """
+        Actual pixel size of the element including margins.
+        
+        This property represents the width and height of the rectangle occupied
+        by the item in the layout. The rectangle's top-left corner is at the
+        position given by the relevant position property.
+        
+        Note that this size refers only to the item within its parent window and
+        does not include any popup or child windows that might be spawned by
+        this item.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.has_rect_size):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._item.p_state.cur.rect_size)
+    
+    @property
+    def pos_to_viewport(self):
+        """
+        Position relative to the viewport's top-left corner.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.has_position):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._item.p_state.cur.pos_to_viewport)
+    
+    @property
+    def pos_to_window(self):
+        """
+        Position relative to the containing window's content area.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.has_position):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._item.p_state.cur.pos_to_window)
+    
+    @property
+    def pos_to_parent(self):
+        """
+        Position relative to the parent item's content area.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.has_position):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._item.p_state.cur.pos_to_parent)
+    
+    @property
+    def pos_to_default(self):
+        """
+        Offset from the item's default layout position.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.has_position):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._item.p_state.cur.pos_to_default)
+    
+    @property
+    def content_region_avail(self):
+        """
+        Available space for child items.
+        
+        For container items like windows, child windows, this
+        property represents the available space for placing child items. This is
+        the item's inner area after accounting for padding, borders, and other
+        non-content elements.
+        
+        Areas that require scrolling to see are not included in this measurement.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.has_content_region):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._item.p_state.cur.content_region_size)
+
+    @property
+    def content_pos(self):
+        """
+        Position of the content area's top-left corner.
+        
+        This property provides the viewport-relative coordinates of the starting
+        point for an item's content area. This is where child elements begin to be
+        placed by default.
+        
+        Used together with content_region_avail, this defines the rectangle
+        available for child elements.
+        """
+        if self._item is None:
+            raise ValueError("Item has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self._item.mutex)
+        if self._item.p_state is NULL:
+            raise ValueError("Item state is not available")
+        if not(self._item.p_state.cap.has_content_region):
+            raise AttributeError("Field undefined for type {}".format(type(self)))
+        return Coord.build_v(self._item.p_state.cur.content_pos)
+
+    # Accessor
+    @property
+    def item(self):
+        """
+        item from which the states are extracted.
+        """
+        return self._item
+
+
 cdef void update_current_mouse_states(itemState& state) noexcept nogil:
     """
     Helper to fill common states. Must be called after the hovered state is updated
@@ -5090,7 +5486,7 @@ cdef class uiItem(baseItem):
         self.can_be_disabled = True
         #self.location = -1
         # next frame triggers
-        self._focus_update_requested = False
+        self.focus_requested = False
         self._show_update_requested = True
         self.pos_update_requested = False
         self._enabled_update_requested = False
@@ -5113,8 +5509,19 @@ cdef class uiItem(baseItem):
         self._dropCallback = None
         self._value = SharedValue(self.context) # To be changed by class
 
+    def __init__(self, C, *args, **kwargs):
+        self.focus_requested = kwargs.pop('focused', False)
+        baseItem.__init__(self, C, *args, **kwargs)
+
     def __dealloc__(self):
         clear_obj_vector(self._callbacks)
+
+    def configure(self, **kwargs):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self.focus_requested = kwargs.pop('focused', self.focus_requested)
+        m.unlock()
+        return baseItem.configure(self, **kwargs)
 
     cdef void update_current_state(self) noexcept nogil:
         """
@@ -5192,193 +5599,21 @@ cdef class uiItem(baseItem):
                 results.add(e)
         return list(results)
 
-    @property
-    def active(self):
+    def focus(self) -> None:
         """
-        Whether the item is in an active state.
-        
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-        """
-        if not(self.state.cap.can_be_active):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.active
+        Request focus for this item.
 
-    @property
-    def activated(self):
-        """
-        Whether the item just transitioned to the active state this frame.
-        
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use 
-        event handlers instead as they provide more robust state tracking.
-        """
-        if not(self.state.cap.can_be_active):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.active and not(self.state.prev.active)
+        This methods requests keyboard focus for the item. The focus
+        request will be processed in the next frame. It is the same
+        as requested focused=True during __init__ or configure().
 
-    @property
-    def clicked(self):
-        """
-        Whether any mouse button was clicked on this item this frame.
-        
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-        """
-        if not(self.state.cap.can_be_clicked):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return tuple(self.state.cur.clicked)
-
-    @property
-    def double_clicked(self):
-        """
-        Whether any mouse button was double-clicked on this item this frame.
-        
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-        """
-        if not(self.state.cap.can_be_clicked):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.double_clicked
-
-    @property
-    def deactivated(self):
-        """
-        Whether the item just transitioned from active to inactive this frame.
-        
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-        """
-        if not(self.state.cap.can_be_active):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return not(self.state.cur.active) and self.state.prev.active
-
-    @property
-    def deactivated_after_edited(self):
-        """
-        Whether the item was edited and then deactivated in this frame.
-        
-        Useful for detecting when user completes an edit operation, such as
-        finishing text input or adjusting a value. This property is only true
-        for the frame when the deactivation occurs after editing.
-        """
-        if not(self.state.cap.can_be_deactivated_after_edited):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.deactivated_after_edited
-
-    @property
-    def edited(self):
-        """
-        Whether the item's value was modified this frame.
-        
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-        """
-        if not(self.state.cap.can_be_edited):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.edited
-
-    @property
-    def focused(self):
-        """
-        Whether this item has input focus.
-        
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
+        Raises ValueError if the item cannot be focused.
         """
         if not(self.state.cap.can_be_focused):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
+            raise ValueError("Items of type {} cannot be focused".format(type(self)))
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return self.state.cur.focused
-
-    @focused.setter
-    def focused(self, bint value):
-        if not(self.state.cap.can_be_focused):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self.state.cur.focused = value
-        self._focus_update_requested = True
-
-    @property
-    def hovered(self):
-        """
-        Whether the mouse cursor is currently positioned over this item.
-        
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-        """
-        if not(self.state.cap.can_be_hovered):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.hovered
-
-    @property
-    def resized(self):
-        """
-        Whether the item's size changed this frame.
-        
-        This property is true only for the frame when the size change occurs.
-        It can detect both user-initiated resizing (like dragging a window edge)
-        and programmatic size changes.
-        """
-        if not(self.state.cap.has_rect_size):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.rect_size.x != self.state.prev.rect_size.x or \
-               self.state.cur.rect_size.y != self.state.prev.rect_size.y
-
-    @property
-    def toggled(self):
-        """
-        Whether the item was just toggled open this frame.
-        
-        Applies to items that can be expanded or collapsed, such as tree nodes,
-        collapsing headers, or menus. This property is only true during the frame
-        when the toggle from closed to open occurs.
-        """
-        if not(self.state.cap.can_be_toggled):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.open and not(self.state.prev.open)
-
-    @property
-    def visible(self):
-        """
-        Whether the item was rendered in the current frame.
-        
-        An item is visible when it and all its ancestors have show=True and are
-        within the visible region of their containers. Invisible items skip
-        rendering and event handling entirely.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.rendered
+        self.focus_requested = True
 
     @property
     def callbacks(self):
@@ -5573,6 +5808,19 @@ cdef class uiItem(baseItem):
         self._show = value
 
     @property
+    def state(self):
+        """
+        The current state of the item
+        
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
+
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
+        """
+        return ItemStateView.create(self)
+
+    @property
     def handlers(self):
         """
         List of event handlers attached to this item.
@@ -5755,61 +6003,6 @@ cdef class uiItem(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_default)
-
-    @property
-    def rect_size(self):
-        """
-        Actual pixel size of the element including margins.
-        
-        This property represents the width and height of the rectangle occupied
-        by the item in the layout. The rectangle's top-left corner is at the
-        position given by the relevant position property.
-        
-        Note that this size refers only to the item within its parent window and
-        does not include any popup or child windows that might be spawned by
-        this item.
-        """
-        if not(self.state.cap.has_rect_size):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.rect_size)
-
-    @property
-    def content_region_avail(self):
-        """
-        Available space for child items.
-        
-        For container items like windows, child windows, this
-        property represents the available space for placing child items. This is
-        the item's inner area after accounting for padding, borders, and other
-        non-content elements.
-        
-        Areas that require scrolling to see are not included in this measurement.
-        """
-        if not(self.state.cap.has_content_region):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.content_region_size)
-
-    @property
-    def content_pos(self):
-        """
-        Position of the content area's top-left corner.
-        
-        This property provides the viewport-relative coordinates of the starting
-        point for an item's content area. This is where child elements begin to be
-        placed by default.
-        
-        Used together with content_region_avail, this defines the rectangle
-        available for child elements.
-        """
-        if not(self.state.cap.has_content_region):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self._content_pos)
 
     ### Positioning and size requests
 
@@ -6080,10 +6273,9 @@ cdef class uiItem(baseItem):
 
         self.set_previous_states()
 
-        if self._focus_update_requested:
-            if self.state.cur.focused:
-                imgui.SetKeyboardFocusHere(0)
-            self._focus_update_requested = False
+        if self.focus_requested:
+            imgui.SetKeyboardFocusHere(0)
+            self.focus_requested = False
 
         cdef float indent = self._indent
         if indent > 0.:
@@ -6908,8 +7100,7 @@ cdef class Window(uiItem):
         cdef Window next = None
         while w is not None:
             lock_gil_friendly(m3, w.mutex)
-            w.state.cur.focused = True
-            w._focus_update_requested = True
+            w.focus_requested = True
             next = w.prev_sibling
             # TODO: previous code did restore previous states on each window. Figure out why
             w = next
@@ -6970,11 +7161,10 @@ cdef class Window(uiItem):
 
         self.set_previous_states()
 
-        cdef bint focus_update_requested = self._focus_update_requested
-        if focus_update_requested:
-            if self.state.cur.focused:
-                imgui.SetNextWindowFocus()
-            self._focus_update_requested = False
+        cdef bint focus_requested = self.focus_requested
+        if focus_requested:
+            imgui.SetNextWindowFocus()
+            self.focus_requested = False
 
         cdef Positioning[2] policy = self.pos_policy
         cdef Vec2 cursor_pos_backup = self.context.viewport.window_cursor
@@ -7071,7 +7261,7 @@ cdef class Window(uiItem):
         cdef bint visible = True
         # Modal/Popup windows must be manually opened
         if self._modal or self._popup:
-            if (self._show_update_requested or focus_update_requested)\
+            if (self._show_update_requested or focus_requested)\
                and self._show:
                 self._show_update_requested = False
                 imgui.OpenPopup(self._imgui_label.c_str(),
@@ -7109,7 +7299,7 @@ cdef class Window(uiItem):
             self.state.cur.content_region_size = ImVec2Vec2(imgui.GetContentRegionAvail())
             # Draw the window content
             self.context.viewport.window_pos = ImVec2Vec2(imgui.GetCursorScreenPos())
-            self._content_pos = self.context.viewport.window_pos
+            self.state.cur.content_pos = self.context.viewport.window_pos
             self.context.viewport.parent_pos = self.context.viewport.window_pos # should we restore after ? TODO
             parent_size_backup = self.context.viewport.parent_size
             self.context.viewport.parent_size = self.state.cur.content_region_size
@@ -7492,8 +7682,11 @@ cdef class baseTheme(baseItem):
         self.can_have_sibling = True
         self._enabled = True
     def configure(self, **kwargs):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         self._enabled = kwargs.pop("enabled", self._enabled)
         self._enabled = kwargs.pop("show", self._enabled)
+        m.unlock()
         baseItem.configure(self, **kwargs)
     @property
     def enabled(self):

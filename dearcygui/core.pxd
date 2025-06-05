@@ -242,6 +242,7 @@ cdef struct itemStateValues:
     Vec2 pos_to_default
     Vec2 rect_size # size on screen in pixels
     Vec2 content_region_size # size available to the children in pixels
+    Vec2 content_pos
     bint rendered # No optimization due to parent menu not open or clipped
 
 cdef struct itemState:
@@ -250,6 +251,15 @@ cdef struct itemState:
     ### Read-only public variables - updated in draw() and when attached/detached ###
     itemStateValues prev # state on the previous frame
     itemStateValues cur # state on the current frame
+
+
+cdef class ItemStateView:
+    cdef baseItem _item  # Reference to the original item
+
+    # Factory method to create a view for a specific item
+    @staticmethod
+    cdef ItemStateView create(baseItem item)
+
 
 cdef void update_current_mouse_states(itemState&) noexcept nogil
 
@@ -554,7 +564,7 @@ cdef class uiItem(baseItem):
     cdef Positioning[2] pos_policy
     cdef bint no_newline
     cdef bint pos_update_requested
-    cdef bint _focus_update_requested
+    cdef bint focus_requested
     cdef ValueOrItem requested_width
     cdef ValueOrItem requested_height
     ### Set by subclass (but has default value) ###
@@ -575,7 +585,6 @@ cdef class uiItem(baseItem):
     cdef baseTheme _theme
     cdef DCGVector[PyObject*] _callbacks # type Callback
     cdef float _scaling_factor
-    cdef Vec2 _content_pos
 
     cdef void update_current_state(self) noexcept nogil
     cdef void update_current_state_subset(self) noexcept nogil

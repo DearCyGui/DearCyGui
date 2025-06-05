@@ -29,7 +29,7 @@ from cython.operator cimport dereference, preincrement
 
 from .core cimport baseItem, baseHandler, uiItem, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector, \
-    update_current_mouse_states
+    update_current_mouse_states, ItemStateView
 from .c_types cimport DCGMutex, unique_lock, string_to_str,\
     string_from_str, Vec2
 from .imgui_types cimport unparse_color, parse_color, Vec2ImVec2, \
@@ -1382,57 +1382,17 @@ cdef class TableColConfig(baseItem):
         self._dpi_scaling = True
 
     @property
-    def clicked(self):
+    def state(self):
         """
-        Whether the column header has just been clicked.
+        The current state of the column header
         
-        Returns a tuple of length 5 containing the individual test for each mouse
-        button. The value is reset at the beginning of the next frame, so it's 
-        generally better to use handlers to react to clicks.
-        """
-        if not(self.state.cap.can_be_clicked):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return tuple(self.state.cur.clicked)
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
 
-    @property
-    def double_clicked(self):
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
         """
-        Whether the column header has just been double-clicked.
-        
-        Returns a tuple of length 5 containing the individual test for each mouse
-        button. The value is reset at the beginning of the next frame, so it's 
-        generally better to use handlers to react to double-clicks.
-        """
-        if not(self.state.cap.can_be_clicked):
-            raise AttributeError("Field undefined for type {}".format(type(self)))
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.double_clicked
-
-    @property
-    def hovered(self):
-        """
-        Whether the mouse is currently over the column header.
-        
-        Only one element is hovered at a time, so subitems/subwindows 
-        take priority over their parent.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.hovered
-
-    @property
-    def visible(self):
-        """
-        Whether the column is currently visible on screen.
-        
-        A column is visible when it's not clipped and is enabled.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.rendered
+        return ItemStateView.create(self)
 
     @property
     def show(self):

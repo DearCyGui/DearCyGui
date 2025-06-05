@@ -27,7 +27,7 @@ from .core cimport baseHandler, baseItem, uiItem, AxisTag, \
     draw_drawing_children, \
     draw_ui_children, baseFont, plotElement, \
     update_current_mouse_states, \
-    draw_plot_element_children, itemState
+    draw_plot_element_children, itemState, ItemStateView
 from .c_types cimport unique_lock, DCGMutex, DCGString, DCGVector,\
     string_to_str, string_from_str, get_object_from_1D_array_view,\
     get_object_from_2D_array_view, DCG_DOUBLE, DCG_INT32, DCG_FLOAT,\
@@ -716,29 +716,17 @@ cdef class PlotAxisConfig(baseItem):
             self._flags |= implot.ImPlotAxisFlags_LockMax
 
     @property
-    def hovered(self):
+    def state(self):
         """
-        Whether the mouse is hovering over the axis label area.
+        The current state of the item
         
-        Useful for implementing custom hover effects or tooltips for axis
-        elements. This state updates automatically during rendering.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.hovered
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
 
-    @property
-    def clicked(self):
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
         """
-        Whether the axis was clicked in the current frame.
-        
-        Returns a tuple containing the clicked state for each mouse button.
-        This state is reset on the next frame, so it's recommended to use
-        handlers to respond to click events rather than polling this property.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return tuple(self.state.cur.clicked)
+        return ItemStateView.create(self)
 
     @property
     def mouse_coord(self):
@@ -1924,7 +1912,7 @@ cdef class Plot(uiItem):
             self.state.cur.hovered = implot.IsPlotHovered()
             update_current_mouse_states(self.state)
             self.state.cur.content_region_size =ImVec2Vec2( implot.GetPlotSize())
-            self._content_pos = ImVec2Vec2(implot.GetPlotPos())
+            self.state.cur.content_pos = ImVec2Vec2(implot.GetPlotPos())
 
             self._X1.after_setup(implot.ImAxis_X1)
             self._X2.after_setup(implot.ImAxis_X2)
@@ -2136,17 +2124,17 @@ cdef class plotElementWithLegend(plotElement):
         append_obj_vector(self._handlers, items)
 
     @property
-    def legend_hovered(self):
+    def legend_state(self):
         """
-        Whether the legend entry for this element is currently hovered.
+        The current state of the legend
         
-        Indicates if the mouse cursor is currently over this element's entry
-        in the plot legend. Useful for implementing hover effects or tooltips
-        specific to the legend entry.
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
+
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
         """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.hovered
+        return ItemStateView.create(self)
 
     cdef void draw(self) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
