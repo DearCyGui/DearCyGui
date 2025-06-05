@@ -314,12 +314,14 @@ cdef class Context:
         imgui.IMGUI_CHECKVERSION()
         self.imgui_context = imgui.CreateContext()
         self.implot_context = implot.CreateContext()
+        ensure_correct_im_context(self)
 
     def __dealloc__(self):
         """
         Deallocate resources for Context.
         """
         self._started = True
+        ensure_correct_im_context(self)
         if self.implot_context != NULL:
             implot.DestroyContext(<implot.ImPlotContext*>self.implot_context)
         if self.imgui_context != NULL:
@@ -871,7 +873,7 @@ cdef class Context:
         if keymod is not None and not(isinstance(keymod, KeyMod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
         cdef imgui.ImGuiKey keycode = key
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         if keymod is not None and (<int>keymod & imgui.ImGuiMod_Mask_) != imgui.GetIO().KeyMods:
             return False
@@ -902,7 +904,7 @@ cdef class Context:
         if keymod is not None and not(isinstance(keymod, KeyMod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
         cdef imgui.ImGuiKey keycode = key
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         if keymod is not None and (<int>keymod & imgui.ImGuiMod_Mask_) != imgui.GetIO().KeyMods:
             return False
@@ -931,7 +933,7 @@ cdef class Context:
         if keymod is not None and not(isinstance(keymod, KeyMod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
         cdef imgui.ImGuiKey keycode = key
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         if keymod is not None and (<int>keymod & imgui.GetIO().KeyMods) != keymod:
             return True
@@ -955,7 +957,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.IsMouseDown(<int>button)
 
@@ -979,7 +981,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.IsMouseClicked(<int>button, repeat)
 
@@ -998,7 +1000,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.IsMouseDoubleClicked(<int>button)
 
@@ -1020,7 +1022,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.GetMouseClickedCount(<int>button)
 
@@ -1042,7 +1044,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.IsMouseReleased(<int>button)
 
@@ -1066,7 +1068,7 @@ cdef class Context:
             If there is no mouse.
         """
         cdef unique_lock[DCGMutex] m
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         cdef imgui.ImVec2 pos = imgui.GetMousePos()
         if not(imgui.IsMousePosValid(&pos)):
@@ -1094,7 +1096,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.IsMouseDragging(<int>button, lock_threshold)
 
@@ -1118,7 +1120,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         cdef imgui.ImVec2 delta =  imgui.GetMouseDragDelta(<int>button, lock_threshold)
         cdef double[2] coord = [delta.x, delta.y]
@@ -1135,7 +1137,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.ResetMouseDragDelta(<int>button)
 
@@ -1151,7 +1153,7 @@ cdef class Context:
         if key is None or not(isinstance(key, Key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         cdef imgui.ImGuiKey keycode = key
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddKeyEvent(keycode, True)
 
@@ -1167,7 +1169,7 @@ cdef class Context:
         if key is None or not(isinstance(key, Key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         cdef imgui.ImGuiKey keycode = key
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddKeyEvent(keycode, False)
 
@@ -1182,7 +1184,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMouseButtonEvent(<int>button, True)
 
@@ -1197,7 +1199,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMouseButtonEvent(<int>button, False)
 
@@ -1212,7 +1214,7 @@ cdef class Context:
             Vertical wheel movement in pixels.
         """
         cdef unique_lock[DCGMutex] m
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMouseWheelEvent(wheel_x, wheel_y)
 
@@ -1227,7 +1229,7 @@ cdef class Context:
             Y position of the mouse in pixels.
         """
         cdef unique_lock[DCGMutex] m
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMousePosEvent(x, y)
 
@@ -1258,7 +1260,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if not(self.viewport._initialized):
             return ""
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return str(imgui.GetClipboardText())
 
@@ -1268,7 +1270,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if not(self.viewport._initialized):
             return
-        ensure_correct_imgui_context(self)
+        ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.SetClipboardText(value_str.c_str())
 
@@ -2861,10 +2863,12 @@ cdef class Viewport(baseItem):
         """
 
     cdef void __check_initialized(self):
+        ensure_correct_im_context(self.context)
         if not(self._initialized):
             raise RuntimeError("The viewport must be initialized before being used")
 
     cdef void __check_not_initialized(self):
+        ensure_correct_im_context(self.context)
         if self._initialized:
             raise RuntimeError("The viewport must be not be initialized to set this field")
 
@@ -3959,6 +3963,7 @@ cdef class Viewport(baseItem):
         cdef bint any_change = False
         self.last_t_before_rendering = ctime.monotonic_ns()
         # Initialize drawing state
+        ensure_correct_im_context(self.context)
         imgui.SetMouseCursor(self._cursor)
         self._cursor = imgui.ImGuiMouseCursor_Arrow
         self.set_previous_states()
@@ -4229,8 +4234,10 @@ cdef class Viewport(baseItem):
                 self._target_refresh_time = current_time_s + 5. # maximum time before next frame
             else:
                 should_present = False
+            ensure_correct_im_context(self.context)
             should_present = \
                 (<platformViewport*>self._platform).renderFrame(not(self.always_submit_to_gpu))
+            ensure_correct_im_context(self.context)
             #self.last_t_after_rendering = ctime.monotonic_ns()
             backend_m.unlock()
             self_m.unlock()
