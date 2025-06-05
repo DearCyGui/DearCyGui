@@ -7018,26 +7018,6 @@ cdef class Window(uiItem):
         self._on_close_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
     @property
-    def on_drop(self):
-        """
-        Callback triggered when items are drag-dropped onto the window.
-        
-        This callback is invoked when the user drags external content (files or text)
-        and drops it onto the window. The callback receives source, target, and data
-        parameters, where data is a tuple containing the drop type (0=text, 1=files)
-        and a list of strings with the actual content.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._on_drop_callback
-
-    @on_drop.setter
-    def on_drop(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._on_drop_callback = value if isinstance(value, Callback) or value is None else Callback(value)
-
-    @property
     def primary(self):
         """
         Controls whether this window serves as the primary application window.

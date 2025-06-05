@@ -640,7 +640,6 @@ cdef class Window(uiItem):
     cdef bint _no_background
     cdef bint _no_open_over_existing_popup
     cdef Callback _on_close_callback
-    cdef Callback _on_drop_callback
     cdef Vec2 _min_size
     cdef Vec2 _max_size
     cdef float _scroll_x
