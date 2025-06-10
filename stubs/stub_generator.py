@@ -210,7 +210,11 @@ hardcoded = {
     "color" : "Color",
     "fill" : "Color",
     "texture" : "Texture | None",
-    "pattern" : "Pattern | None"
+    "pattern" : "Pattern | None",
+    "width": "float | str | baseSizing",
+    "height": "float | str | baseSizing",
+    "x": "float | str | baseSizing",
+    "y": "float | str | baseSizing",
 }
 
 
@@ -419,6 +423,8 @@ def generate_docstring_for_class(object_class, instance):
                         doc = indent(doc, trim_start=True, short=True)
                         kwargs_docs.append(f"{level2}- {prop}: {doc}")
                     v = default_values[prop]
+                    if isinstance(v, dcg.baseSizing):
+                        v = float(v)
                     v_type = typename(object_class, instance, prop, v)
                     if v_type is None:
                         v_type = "Any"

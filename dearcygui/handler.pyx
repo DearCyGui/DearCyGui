@@ -862,8 +862,8 @@ cdef class MotionHandler(baseHandler):
             prev_pos.x = state.prev.pos_to_viewport.x
             cur_pos.x = state.cur.pos_to_viewport.x
         elif self._positioning[0] == Positioning.REL_DEFAULT:
-            prev_pos.x = state.prev.pos_to_default.x
-            cur_pos.x = state.cur.pos_to_default.x
+            prev_pos.x = 0.
+            cur_pos.x = 0.
         else:
             prev_pos.x = 0.
             cur_pos.x = 0.
@@ -877,8 +877,8 @@ cdef class MotionHandler(baseHandler):
             prev_pos.y = state.prev.pos_to_viewport.y
             cur_pos.y = state.cur.pos_to_viewport.y
         elif self._positioning[1] == Positioning.REL_DEFAULT:
-            prev_pos.y = state.prev.pos_to_default.y
-            cur_pos.y = state.cur.pos_to_default.y
+            prev_pos.y = 0.
+            cur_pos.y = 0.
         else:
             prev_pos.y = 0.
             cur_pos.y = 0.

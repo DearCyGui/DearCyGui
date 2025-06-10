@@ -19,6 +19,16 @@ cdef class baseSizing:
     @staticmethod
     cdef baseSizing Size(value)
 
+cdef class RefX1(baseSizing):
+    cdef uiItem _ref
+    cdef void register(self, uiItem target)
+    cdef float _update_value(self, uiItem target) noexcept nogil
+
+cdef class RefY1(baseSizing):
+    cdef uiItem _ref
+    cdef void register(self, uiItem target)
+    cdef float _update_value(self, uiItem target) noexcept nogil
+
 cdef class RefWidth(baseSizing):
     cdef uiItem _ref
     cdef float _update_value(self, uiItem target) noexcept nogil

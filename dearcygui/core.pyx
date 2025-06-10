@@ -31,10 +31,10 @@ cimport dearcygui.backends.time as ctime
 from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t, string_to_str,\
     set_composite_label, set_uuid_label, string_from_str, Vec2, make_Vec2
 from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color
-from .sizing cimport resolve_size, set_size, RefWidth, RefHeight
+from .sizing cimport resolve_size, set_size, RefX1, RefY1, RefWidth, RefHeight
 from .texture cimport Texture
-from .types cimport Vec2, MouseButton, child_type, check_Positioning,\
-    Coord, MouseCursor, make_Positioning, parse_texture, Display
+from .types cimport Vec2, MouseButton, child_type,\
+    Coord, MouseCursor, parse_texture, Display
 from .wrapper cimport imgui, implot
 
 from concurrent.futures import Executor, ThreadPoolExecutor
@@ -1420,8 +1420,6 @@ cdef class baseItem:
 
         # items for which we want to avoid setattr
         whitelist = set([
-            "pos_to_parent", "pos_to_viewport", "pos_to_window",
-            "pos_to_default", "pos_policy"
         ])
 
         pending_test = dict()
@@ -3984,7 +3982,6 @@ cdef class Viewport(baseItem):
         self.parent_size = make_Vec2((<platformViewport*>self._platform).frameWidth,
                                      (<platformViewport*>self._platform).frameHeight)
         self.window_pos = make_Vec2(0., 0.)
-        self.window_cursor = make_Vec2(0., 0.)
         imgui.PushID(self.uuid)
         draw_menubar_children(self)
         draw_window_children(self)
@@ -4448,6 +4445,7 @@ cdef class PlaceHolderParent(baseItem):
 States used by many items
 """
 
+@cython.freelist(8)
 cdef class ItemStateView:
     """
     View class for accessing UI item state properties.
@@ -4463,7 +4461,19 @@ cdef class ItemStateView:
     cdef ItemStateView create(baseItem item):
         if item.p_state is NULL:
             raise AttributeError("Cannot create a state view for an item without state")
-            
+
+        if (not(item.p_state.cap.can_be_active) and
+            not(item.p_state.cap.can_be_clicked) and
+            not(item.p_state.cap.can_be_deactivated_after_edited) and
+            not(item.p_state.cap.can_be_dragged) and
+            not(item.p_state.cap.can_be_edited) and
+            not(item.p_state.cap.can_be_focused) and
+            not(item.p_state.cap.can_be_hovered) and
+            not(item.p_state.cap.can_be_toggled) and
+            not(item.p_state.cap.has_position) and
+            not(item.p_state.cap.has_rect_size) and
+            not(item.p_state.cap.has_content_region)):
+            raise AttributeError("Item does not support any state view properties")
         cdef ItemStateView view = ItemStateView.__new__(ItemStateView)
         view._item = item
         return view
@@ -5446,10 +5456,8 @@ cdef class uiItem(baseItem):
         - pos_to_viewport: Position relative to viewport top-left
         - pos_to_window: Position relative to containing window 
         - pos_to_parent: Position relative to parent item
-        - pos_to_default: Position relative to default layout flow
         - rect_size: Current size in pixels including padding
         - content_region_avail: Available content area within item for children
-        - pos_policy: How the item should be positioned
         - height/width: Requested size of the item
         - indent: Left indentation amount
         - no_newline: Don't advance position after item
@@ -5469,8 +5477,7 @@ cdef class uiItem(baseItem):
     ----------------
     Items use a combination of absolute and relative positioning:
         - Default flow places items vertically with automatic width
-        - pos_policy controls how position attributes are enforced
-        - Positions can be relative to viewport, window, parent or flow
+        - Positions can be relative to viewport, window, parent (see string specifications)
         - Size can be fixed, automatic, or stretch to fill space
         - indent and no_newline provide fine-grained layout control
 
@@ -5488,19 +5495,17 @@ cdef class uiItem(baseItem):
         # next frame triggers
         self.focus_requested = False
         self._show_update_requested = True
-        self.pos_update_requested = False
         self._enabled_update_requested = False
         # mvAppItemConfig
         #self.filter = b""
         #self.alias = b""
-        self._dpi_scaling = True
+        #self._dpi_scaling = True
         self._indent = 0.
         self.can_have_sibling = True
         self.element_child_category = child_type.cat_widget
         self.state.cap.has_position = True # ALL widgets have position
         self.state.cap.has_rect_size = True # ALL items have a rectangle size
         self.p_state = &self.state
-        self.pos_policy = [Positioning.DEFAULT, Positioning.DEFAULT]
         #self.size_policy = [Sizing.AUTO, Sizing.AUTO]
         self._scaling_factor = 1.0
         #self.trackOffset = 0.5 # 0.0f:top, 0.5f:center, 1.0f:bottom
@@ -5881,26 +5886,6 @@ cdef class uiItem(baseItem):
         lock_gil_friendly(m, self.mutex)
         self._theme = value
 
-    @property
-    def no_scaling(self):
-        """
-        Whether DPI scaling should be disabled for this item.
-        
-        When True, the item ignores the global scaling factor that normally
-        adjusts UI elements based on screen DPI and viewport settings. This can
-        be useful for elements that should maintain specific pixel dimensions
-        regardless of display resolution or scaling settings.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return not(self._dpi_scaling)
-
-    @no_scaling.setter
-    def no_scaling(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._dpi_scaling = not(value)
-
     @property 
     def scaling_factor(self):
         """
@@ -5931,15 +5916,7 @@ cdef class uiItem(baseItem):
         Position relative to the viewport's top-left corner.
         
         This coordinate represents the position of the item's top-left corner
-        relative to the entire viewport. Setting this property automatically
-        switches the positioning mode to REL_VIEWPORT for the affected axis.
-        
-        The item remains subject to the parent's clipping region, so positioning
-        an item outside its parent's boundaries may make it invisible despite
-        having valid coordinates.
-        
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
+        relative to the entire viewport.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5951,15 +5928,7 @@ cdef class uiItem(baseItem):
         Position relative to the containing window's content area.
         
         This coordinate represents the position of the item's top-left corner
-        relative to the inner content area of the containing window. Setting
-        this property automatically switches the positioning mode to REL_WINDOW
-        for the affected axis.
-        
-        The position can place the item outside the parent's content region,
-        which would make the item invisible.
-        
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
+        relative to the inner content area of the containing window.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -5971,65 +5940,96 @@ cdef class uiItem(baseItem):
         Position relative to the parent item's content area.
         
         This coordinate represents the position of the item's top-left corner
-        relative to its parent's content area. Setting this property automatically
-        switches the positioning mode to REL_PARENT for the affected axis.
-        
-        The position can place the item outside the parent's content region,
-        which would make the item invisible.
-        
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
+        relative to its parent's content area.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return Coord.build_v(self.state.cur.pos_to_parent)
 
-    @property
-    def pos_to_default(self):
-        """
-        Offset from the item's default layout position.
-        
-        This coordinate represents an offset from the position where the item
-        would naturally appear in the layout flow. Setting this property
-        automatically switches the positioning mode to REL_DEFAULT for the 
-        affected axis.
-        
-        This provides a way to fine-tune positioning while still mostly
-        respecting the normal layout flow.
-        
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.pos_to_default)
-
     ### Positioning and size requests
 
     @property
-    def pos_policy(self):
+    def x(self):
         """
-        Positioning strategy for placing the item in the layout.
+        Requested horizontal position of the item.
         
-        This property controls how the item's position is determined:
-            - DEFAULT: Placed at ImGui's cursor position, which advances vertically
-            after each item is rendered.
-            - REL_DEFAULT: Placed at the default position plus an offset specified
-            by pos_to_default.
-            - REL_PARENT: Positioned at coordinates specified by pos_to_parent
-            relative to the parent's content area.
-            - REL_WINDOW: Positioned at coordinates specified by pos_to_window
-            relative to the containing window's content area.
-            - REL_VIEWPORT: Positioned at absolute viewport coordinates specified
-            by pos_to_viewport.
-        
-        Items using DEFAULT or REL_DEFAULT advance the layout cursor, while other
-        policies do not. Each axis (horizontal and vertical) has its own policy.
-        
-        All position fields are updated when the item is rendered, but only the
-        position corresponding to the active policy is guaranteed to remain stable.
+        This property specifies the desired horizontal position of the item.
+
+        By default, items are positioned inside their parent container,
+        from top to bottom, left-aligned. In other words the default
+        position for the item is below the previous one. This default is
+        altered by the `no_newline` property (applied on the previous item),
+        which will place the item after the previous one on the same
+        horizontal line (with the theme's itemSpacing applied).
+
+        Special values:
+            - 0: Use default horizontal position (see explanation above).
+            - Positive values: Request a specific position in scaled pixels,
+                relative to the default horizontal position. For instance,
+                10 means "position 10 scaled pixels to the right of the
+                default position".
+            - Negative values: Unsupported for now
+            - string: A string specification to automatically position the item. See the
+                documentation for details on how to use this feature.
+
+        Note when a string specification is used, the cursor will not be changed.
+        If you want several items to be positioned next to each other at a specific
+        target position, position a Layout item.
         """
-        return (make_Positioning(self.pos_policy[0]), make_Positioning(self.pos_policy[1]))
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        try:
+            ref = RefX1(self)
+            if self.state.cap.has_position and \
+               self.state.cur.pos_to_viewport.x > 0:
+                ref.value = self.state.cur.pos_to_viewport.x
+            else:
+                ref.value = self.requested_x.get_value()
+            return ref
+        except TypeError:
+            pass
+        return self.requested_x.get_value()
+
+    @property
+    def y(self):
+        """
+        Requested vertical position of the item.
+        
+        This property specifies the desired vertical position of the item.
+
+        By default, items are positioned inside their parent container,
+        from top to bottom, left-aligned. In other words the default
+        position for the item is below the previous one (with the theme's
+        itemSpacing applied). This default is altered by the `no_newline`
+        property (applied on the previous item), which will place the item
+        after the previous one on the same horizontal line.
+
+        Special values:
+            - 0: Use default vertical position (see explanation above).
+            - Positive values: Request a specific position in scaled pixels,
+                relative to the default vertical position. For instance,
+                10 means "position 10 scaled pixels below the default position".
+            - Negative values: Unsupported for now
+            - string: A string specification to automatically position the item. See the
+                documentation for details on how to use this feature.
+
+        Note when a string specification is used, the cursor will not be changed.
+        If you want several items to be positioned next to each other at a specific
+        target position, position a Layout item.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        try:
+            ref = RefY1(self)
+            if self.state.cap.has_position and \
+               self.state.cur.pos_to_viewport.y > 0:
+                ref.value = self.state.cur.pos_to_viewport.y
+            else:
+                ref.value = self.requested_y.get_value()
+            return ref
+        except TypeError:
+            pass
+        return self.requested_y.get_value()
 
     @property
     def height(self):
@@ -6060,6 +6060,7 @@ cdef class uiItem(baseItem):
                 ref.value = self.state.cur.rect_size.y
             else:
                 ref.value = self.requested_height.get_value()
+            return ref
         except TypeError:
             pass
         return self.requested_height.get_value()
@@ -6093,6 +6094,7 @@ cdef class uiItem(baseItem):
                 ref.value = self.state.cur.rect_size.x
             else:
                 ref.value = self.requested_width.get_value()
+            return ref
         except TypeError:
             pass
         return self.requested_width.get_value()
@@ -6118,7 +6120,7 @@ cdef class uiItem(baseItem):
         """
         Controls whether to advance to the next line after rendering.
         
-        When True, the cursor position (DEFAULT positioning) does not advance
+        When True, the cursor position does not advance
         to the next line after this item is drawn, allowing the next item to
         appear on the same line. When False, the cursor advances as normal,
         placing the next item on a new line.
@@ -6132,77 +6134,21 @@ cdef class uiItem(baseItem):
 
     ## setters
 
-    @pos_to_viewport.setter
-    def pos_to_viewport(self, value):
+    @y.setter
+    def y(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if len(value) != 2:
-            raise ValueError("Expected tuple for pos: (x, y)")
-        (x, y) = value
-        if x is not None:
-            self.state.cur.pos_to_viewport.x = x
-            self.pos_policy[0] = Positioning.REL_VIEWPORT
-        if y is not None:
-            self.state.cur.pos_to_viewport.y = y
-            self.pos_policy[1] = Positioning.REL_VIEWPORT
-        self.pos_update_requested = True # TODO remove ?
+        if isinstance(value, (int, float)) and float(value) < 0:
+            raise ValueError("Negative y values are not supported. Use a string specification instead.")
+        set_size(self.requested_y, value)
 
-    @pos_to_window.setter
-    def pos_to_window(self, value):
+    @x.setter
+    def x(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if len(value) != 2:
-            raise ValueError("Expected tuple for pos: (x, y)")
-        (x, y) = value
-        if x is not None:
-            self.state.cur.pos_to_window.x = x
-            self.pos_policy[0] = Positioning.REL_WINDOW
-        if y is not None:
-            self.state.cur.pos_to_window.y = y
-            self.pos_policy[1] = Positioning.REL_WINDOW
-        self.pos_update_requested = True
-
-    @pos_to_parent.setter
-    def pos_to_parent(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if len(value) != 2:
-            raise ValueError("Expected tuple for pos: (x, y)")
-        (x, y) = value
-        if x is not None:
-            self.state.cur.pos_to_parent.x = x
-            self.pos_policy[0] = Positioning.REL_PARENT
-        if y is not None:
-            self.state.cur.pos_to_parent.y = y
-            self.pos_policy[1] = Positioning.REL_PARENT
-        self.pos_update_requested = True
-
-    @pos_to_default.setter
-    def pos_to_default(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if len(value) != 2:
-            raise ValueError("Expected tuple for pos: (x, y)")
-        (x, y) = value
-        if x is not None:
-            self.state.cur.pos_to_default.x = x
-            self.pos_policy[0] = Positioning.REL_DEFAULT
-        if y is not None:
-            self.state.cur.pos_to_default.y = y
-            self.pos_policy[1] = Positioning.REL_DEFAULT
-        self.pos_update_requested = True
-
-    @pos_policy.setter
-    def pos_policy(self, value):
-        if PySequence_Check(value) > 0:
-            (x, y) = value
-            self.pos_policy[0] = check_Positioning(x)
-            self.pos_policy[1] = check_Positioning(y)
-            self.pos_update_requested = True
-        else:
-            self.pos_policy[0] = check_Positioning(value)
-            self.pos_policy[1] = check_Positioning(value)
-            self.pos_update_requested = True
+        if isinstance(value, (int, float)) and float(value) < 0:
+            raise ValueError("Negative x values are not supported. Use a string specification instead.")
+        set_size(self.requested_x, value)
 
     @height.setter
     def height(self, value):
@@ -6233,11 +6179,13 @@ cdef class uiItem(baseItem):
         cdef Vec2 requested_size
 
         cdef float global_scale = self.context.viewport.global_scale
-        if not(self._dpi_scaling):
-            global_scale = 1.
 
         requested_size.x = resolve_size(self.requested_width, self)
         requested_size.y = resolve_size(self.requested_height, self)
+
+        if self.requested_width.has_changed() or\
+           self.requested_height.has_changed():
+            self.context.viewport.force_present()
 
         # dpi scaling for the fast case of float value
         if not self.requested_width.is_item():
@@ -6286,29 +6234,30 @@ cdef class uiItem(baseItem):
             imgui.Indent(0)
 
         cdef Vec2 cursor_pos_backup = ImVec2Vec2(imgui.GetCursorScreenPos())
-
-        cdef Positioning[2] policy = self.pos_policy
         cdef Vec2 pos = cursor_pos_backup
+        cdef bint restore_cursor_x = False
+        cdef bint restore_cursor_y = False
 
-        if policy[0] == Positioning.REL_DEFAULT:
-            pos.x += self.state.cur.pos_to_default.x
-        elif policy[0] == Positioning.REL_PARENT:
-            pos.x = self.context.viewport.parent_pos.x + self.state.cur.pos_to_parent.x
-        elif policy[0] == Positioning.REL_WINDOW:
-            pos.x = self.context.viewport.window_pos.x + self.state.cur.pos_to_window.x
-        elif policy[0] == Positioning.REL_VIEWPORT:
-            pos.x = self.state.cur.pos_to_viewport.x
-        # else: DEFAULT
+        if not(self.requested_x.is_item()):
+            if self.requested_x.get_value() == 0:
+                pass # nothing to do, and most likely path
+            else:
+                pos.x = pos.x + cround(self.context.viewport.global_scale * self.requested_x.get_value())
+        else:
+            pos.x = cround(resolve_size(self.requested_x, self))
+            restore_cursor_x = True
 
-        if policy[1] == Positioning.REL_DEFAULT:
-            pos.y += self.state.cur.pos_to_default.y
-        elif policy[1] == Positioning.REL_PARENT:
-            pos.y = self.context.viewport.parent_pos.y + self.state.cur.pos_to_parent.y
-        elif policy[1] == Positioning.REL_WINDOW:
-            pos.y = self.context.viewport.window_pos.y + self.state.cur.pos_to_window.y
-        elif policy[1] == Positioning.REL_VIEWPORT:
-            pos.y = self.state.cur.pos_to_viewport.y
-        # else: DEFAULT
+        if not(self.requested_y.is_item()):
+            if self.requested_y.get_value() == 0:
+                pass # nothing to do, and most likely path
+            else:
+                pos.y = pos.y + cround(self.context.viewport.global_scale * self.requested_y.get_value())
+        else:
+            pos.y = cround(resolve_size(self.requested_y, self))
+            restore_cursor_y = True
+
+        if self.requested_x.has_changed() or self.requested_y.has_changed():
+            self.context.viewport.force_present()
 
         imgui.SetCursorScreenPos(Vec2ImVec2(pos))
 
@@ -6318,8 +6267,6 @@ cdef class uiItem(baseItem):
         self.state.cur.pos_to_window.y = self.state.cur.pos_to_viewport.y - self.context.viewport.window_pos.y
         self.state.cur.pos_to_parent.x = self.state.cur.pos_to_viewport.x - self.context.viewport.parent_pos.x
         self.state.cur.pos_to_parent.y = self.state.cur.pos_to_viewport.y - self.context.viewport.parent_pos.y
-        self.state.cur.pos_to_default.x = self.state.cur.pos_to_viewport.x - cursor_pos_backup.x
-        self.state.cur.pos_to_default.y = self.state.cur.pos_to_viewport.y - cursor_pos_backup.y
 
         # handle fonts
         if self._font is not None:
@@ -6351,15 +6298,13 @@ cdef class uiItem(baseItem):
         # Restore original scale
         self.context.viewport.global_scale = original_scale 
 
-        # Advance the cursor only for DEFAULT and REL_DEFAULT
-        pos = cursor_pos_backup
-        if policy[0] == Positioning.REL_DEFAULT or \
-           policy[0] == Positioning.DEFAULT:
-            pos.x = imgui.GetCursorScreenPos().x
+        # Advance the cursor only for default position (or offset to it)
+        pos = ImVec2Vec2(imgui.GetCursorScreenPos())
+        if restore_cursor_x:
+            pos.x = cursor_pos_backup.x
 
-        if policy[1] == Positioning.REL_DEFAULT or \
-           policy[1] == Positioning.DEFAULT:
-            pos.y = imgui.GetCursorScreenPos().y
+        if restore_cursor_y:
+            pos.y = cursor_pos_backup.y
 
         imgui.SetCursorScreenPos(Vec2ImVec2(pos))
 
@@ -6370,8 +6315,7 @@ cdef class uiItem(baseItem):
 
         # Note: not affected by the Unindent.
         if self.no_newline and \
-           (policy[1] == Positioning.REL_DEFAULT or \
-            policy[1] == Positioning.DEFAULT):
+           not(restore_cursor_y):
             imgui.SameLine(0., -1.)
 
         self.run_handlers()
@@ -6469,6 +6413,8 @@ cdef class Window(uiItem):
     menu bars can be attached using menubar items.
     """
     def __cinit__(self):
+        self.pos_update_requested = False
+        self.size_update_requested = False
         self._window_flags = imgui.ImGuiWindowFlags_None
         self._main_window = False
         self._modal = False
@@ -6480,9 +6426,6 @@ cdef class Window(uiItem):
         self._on_close_callback = None
         self._min_size = make_Vec2(100., 100.)
         self._max_size = make_Vec2(30000., 30000.)
-        # Default is the viewport for windows
-        self.pos_policy[0] = Positioning.REL_VIEWPORT
-        self.pos_policy[1] = Positioning.REL_VIEWPORT
         self._scroll_x = 0. # TODO
         self._scroll_y = 0.
         self._scroll_x_update_requested = False
@@ -6502,6 +6445,7 @@ cdef class Window(uiItem):
         self.element_child_category = child_type.cat_window
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_focused = True
+        self.state.cap.can_be_toggled = True
         self.state.cap.has_content_region = True
 
     @property
@@ -7050,7 +6994,11 @@ cdef class Window(uiItem):
         if value:
             # backup previous state
             self._backup_window_flags = self._window_flags
-            self._backup_pos = self.state.cur.pos_to_viewport
+            # Note: this means the window position will be reset
+            # regardless of user changes. We might want to actually
+            # use current state
+            self._backup_requested_x = self.requested_x
+            self._backup_requested_y = self.requested_y
             self._backup_requested_height = self.requested_height
             self._backup_requested_width = self.requested_width
             # Make primary
@@ -7061,15 +7009,16 @@ cdef class Window(uiItem):
                 imgui.ImGuiWindowFlags_NoCollapse | \
                 imgui.ImGuiWindowFlags_NoTitleBar | \
                 imgui.ImGuiWindowFlags_NoMove
-            self.state.cur.pos_to_viewport.x = 0
-            self.state.cur.pos_to_viewport.y = 0
-            set_size(self.requested_width, 0)
-            set_size(self.requested_height, 0)
+            self.requested_x.set_value(0)
+            self.requested_y.set_value(0)
+            self.requested_width.set_value(0)
+            self.requested_height.set_value(0)
             self.pos_update_requested = True
         else:
             # Restore previous state
             self._window_flags = self._backup_window_flags
-            self.state.cur.pos_to_viewport = self._backup_pos
+            self.requested_x = self._backup_requested_x
+            self.requested_y = self._backup_requested_y
             self.requested_width = self._backup_requested_width
             self.requested_height = self._backup_requested_height
             # Tell imgui to update the window shape
@@ -7125,6 +7074,170 @@ cdef class Window(uiItem):
         self._max_size.x = max(1, value[0])
         self._max_size.y = max(1, value[1])
 
+    # Copy of the uiItem propertties, but with some flags added
+    @property
+    def x(self):
+        """
+        Requested horizontal position of the item.
+        
+        This property specifies the desired horizontal position of the item.
+
+        By default, items are positioned inside their parent container,
+        from top to bottom, left-aligned. In other words the default
+        position for the item is below the previous one. This default is
+        altered by the `no_newline` property (applied on the previous item),
+        which will place the item after the previous one on the same
+        horizontal line (with the theme's itemSpacing applied).
+
+        Special values:
+            - 0: Use default horizontal position (see explanation above).
+            - Positive values: Request a specific position in scaled pixels,
+                relative to the default horizontal position. For instance,
+                10 means "position 10 scaled pixels to the right of the
+                default position".
+            - Negative values: Unsupported for now
+            - string: A string specification to automatically position the item. See the
+                documentation for details on how to use this feature.
+
+        Note when a string specification is used, the cursor will not be changed.
+        If you want several items to be positioned next to each other at a specific
+        target position, position a Layout item.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        ref = RefX1(self)
+        if self.state.cur.pos_to_viewport.x > 0:
+            ref.value = self.state.cur.pos_to_viewport.x
+        else:
+            ref.value = self.requested_x.get_value()
+        return ref
+
+    @property
+    def y(self):
+        """
+        Requested vertical position of the item.
+        
+        This property specifies the desired vertical position of the item.
+
+        By default, items are positioned inside their parent container,
+        from top to bottom, left-aligned. In other words the default
+        position for the item is below the previous one (with the theme's
+        itemSpacing applied). This default is altered by the `no_newline`
+        property (applied on the previous item), which will place the item
+        after the previous one on the same horizontal line.
+
+        Special values:
+            - 0: Use default vertical position (see explanation above).
+            - Positive values: Request a specific position in scaled pixels,
+                relative to the default vertical position. For instance,
+                10 means "position 10 scaled pixels below the default position".
+            - Negative values: Unsupported for now
+            - string: A string specification to automatically position the item. See the
+                documentation for details on how to use this feature.
+
+        Note when a string specification is used, the cursor will not be changed.
+        If you want several items to be positioned next to each other at a specific
+        target position, position a Layout item.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        ref = RefY1(self)
+        if self.state.cur.pos_to_viewport.y > 0:
+            ref.value = self.state.cur.pos_to_viewport.y
+        else:
+            ref.value = self.requested_y.get_value()
+        return ref
+
+    @property
+    def height(self):
+        """
+        Requested height for the item.
+        
+        This property specifies the desired height for the item, though the
+        actual height may differ depending on item type and constraints. 
+        
+        Special values:
+            - 0: Use default height. May trigger content-fitting for windows or
+                containers, or style-based sizing for other items.
+            - Positive values: Request a specific height in scaled pixels.
+            - Negative values: Request a height that fills the remaining parent space
+                minus the absolute value (e.g., -1 means "fill minus 1 scaled pixel").
+            - string: A string specification to automatically size the item. See the
+                documentation for details on how to use this feature.
+        
+        Some items may ignore this property or interpret it differently. The
+        actual final height in real pixels is available via the rect_size property.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        ref = RefHeight(self)
+        if self.state.cur.rect_size.y > 0:
+            ref.value = self.state.cur.rect_size.y
+        else:
+            ref.value = self.requested_height.get_value()
+        return ref
+
+    @property
+    def width(self):
+        """
+        Requested width for the item.
+        
+        This property specifies the desired width for the item, though the
+        actual width may differ depending on item type and constraints.
+        
+        Special values:
+            - 0: Use default width. May trigger content-fitting for windows or
+                containers, or style-based sizing for other items.
+            - Positive values: Request a specific width in scaled pixels.
+            - Negative values: Request a width that fills the remaining parent space
+                minus the absolute value (e.g., -1 means "fill minus 1 scaled pixel").
+            - string: A string specification to automatically size the item. See the
+                documentation for details on how to use this feature.
+        
+        Some items may ignore this property or interpret it differently. The
+        actual final width in real pixels is available via the rect_size property.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        ref = RefWidth(self)
+        if self.state.cur.rect_size.x > 0:
+            ref.value = self.state.cur.rect_size.x
+        else:
+            ref.value = self.requested_width.get_value()
+        return ref
+
+    @y.setter
+    def y(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if isinstance(value, (int, float)) and float(value) < 0:
+            raise ValueError("Negative y values are not supported. Use a string specification instead.")
+        set_size(self.requested_y, value)
+        self.pos_update_requested = True
+
+    @x.setter
+    def x(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if isinstance(value, (int, float)) and float(value) < 0:
+            raise ValueError("Negative x values are not supported. Use a string specification instead.")
+        set_size(self.requested_x, value)
+        self.pos_update_requested = True
+
+    @height.setter
+    def height(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        set_size(self.requested_height, value)
+        self.size_update_requested = True
+
+    @width.setter
+    def width(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        set_size(self.requested_width, value)
+        self.size_update_requested = True
+
     cdef void draw(self) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
@@ -7146,47 +7259,28 @@ cdef class Window(uiItem):
             imgui.SetNextWindowFocus()
             self.focus_requested = False
 
-        cdef Positioning[2] policy = self.pos_policy
-        cdef Vec2 cursor_pos_backup = self.context.viewport.window_cursor
-        cdef Vec2 pos = cursor_pos_backup
-
+        cdef Vec2 pos
         if self.pos_update_requested:
-            if self._main_window:
-                self.state.cur.pos_to_viewport.x = 0
-                self.state.cur.pos_to_viewport.y = 0
-                self.pos_policy[0] = Positioning.REL_VIEWPORT
-                self.pos_policy[1] = Positioning.REL_VIEWPORT
-                policy = self.pos_policy
-            # Note the parent may be a WindowLayout and it is
-            # considered a window (thus REL_WINDOW and REL_PARENT apply)
-            if policy[0] == Positioning.REL_DEFAULT:
-                pos.x += self.state.cur.pos_to_default.x
-            elif policy[0] == Positioning.REL_PARENT:
-                pos.x = self.context.viewport.parent_pos.x + self.state.cur.pos_to_parent.x
-            elif policy[0] == Positioning.REL_WINDOW:
-                pos.x = self.context.viewport.window_pos.x + self.state.cur.pos_to_window.x
-            elif policy[0] == Positioning.REL_VIEWPORT:
-                pos.x = self.state.cur.pos_to_viewport.x
-            # else: DEFAULT
-
-            if policy[1] == Positioning.REL_DEFAULT:
-                pos.y += self.state.cur.pos_to_default.y
-            elif policy[1] == Positioning.REL_PARENT:
-                pos.y = self.context.viewport.parent_pos.y + self.state.cur.pos_to_parent.y
-            elif policy[1] == Positioning.REL_WINDOW:
-                pos.y = self.context.viewport.window_pos.y + self.state.cur.pos_to_window.y
-            elif policy[1] == Positioning.REL_VIEWPORT:
-                pos.y = self.state.cur.pos_to_viewport.y
+            pos.x = resolve_size(self.requested_x, self)
+            pos.y = resolve_size(self.requested_y, self)
+            if self.requested_x.has_changed() or self.requested_y.has_changed():
+                self.context.viewport.force_present()
             # else: DEFAULT
             imgui.SetNextWindowPos(Vec2ImVec2(pos), imgui.ImGuiCond_Always)
-            self.pos_update_requested = False
+            if not self.requested_x.is_item() and not self.requested_y.is_item() and\
+               (self._window_flags & imgui.ImGuiWindowFlags_NoMove) != imgui.ImGuiWindowFlags_None:
+                # Keep enforcing position when it is a string specification
+                # and the no_move attribute is set, at the intention of the dev
+                # is clear in this case. TODO: maybe better behaviour.
+                self.pos_update_requested = False
 
         cdef Vec2 requested_size = self.get_requested_size()
-        if self.requested_width.has_changed() or \
-           self.requested_height.has_changed():
-            self.requested_height.has_changed() # clear flag if the call was skipped
+        if self.size_update_requested:
             imgui.SetNextWindowSize(Vec2ImVec2(requested_size),
                                     imgui.ImGuiCond_Always)
+            if not self.requested_width.is_item() and not self.requested_height.is_item() and\
+               (self._window_flags & imgui.ImGuiWindowFlags_NoMove) != imgui.ImGuiWindowFlags_None:
+                self.size_update_requested = False
 
         if self._collapse_update_requested:
             imgui.SetNextWindowCollapsed(not(self.state.cur.open), imgui.ImGuiCond_Always)
@@ -7194,11 +7288,11 @@ cdef class Window(uiItem):
 
         cdef Vec2 min_size = self._min_size
         cdef Vec2 max_size = self._max_size
-        if self._dpi_scaling:
-            min_size.x *= self.context.viewport.global_scale
-            min_size.y *= self.context.viewport.global_scale
-            max_size.x *= self.context.viewport.global_scale
-            max_size.y *= self.context.viewport.global_scale
+        #if self._dpi_scaling:
+        min_size.x *= self.context.viewport.global_scale
+        min_size.y *= self.context.viewport.global_scale
+        max_size.x *= self.context.viewport.global_scale
+        max_size.y *= self.context.viewport.global_scale
         imgui.SetNextWindowSizeConstraints(
             Vec2ImVec2(min_size), Vec2ImVec2(max_size))
 
@@ -7308,16 +7402,6 @@ cdef class Window(uiItem):
             self.state.cur.pos_to_window.y = self.state.cur.pos_to_viewport.y - self.context.viewport.window_pos.y
             self.state.cur.pos_to_parent.x = self.state.cur.pos_to_viewport.x - self.context.viewport.parent_pos.x
             self.state.cur.pos_to_parent.y = self.state.cur.pos_to_viewport.y - self.context.viewport.parent_pos.y
-            self.state.cur.pos_to_default.x = self.state.cur.pos_to_viewport.x - cursor_pos_backup.x
-            self.state.cur.pos_to_default.y = self.state.cur.pos_to_viewport.y - cursor_pos_backup.y
-            if self.no_newline and \
-               (policy[1] == Positioning.REL_DEFAULT or \
-                policy[1] == Positioning.DEFAULT):
-                self.context.viewport.window_cursor.x = self.state.cur.pos_to_viewport.x + rect_size.x
-                self.context.viewport.window_cursor.y = self.state.cur.pos_to_viewport.y
-            else:
-                self.context.viewport.window_cursor.x = 0
-                self.context.viewport.window_cursor.y = self.state.cur.pos_to_viewport.y + rect_size.y
         else:
             # Window is hidden or closed
             self.set_hidden_no_handler_and_propagate_to_children_with_handlers()

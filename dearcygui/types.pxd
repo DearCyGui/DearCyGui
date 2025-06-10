@@ -66,7 +66,7 @@ cpdef enum class MouseCursor:
     Progress,
     NotAllowed
 
-#Class to describe the positioning policy of an item
+#Class that used to describe the positioning policy of an item (used now only by MotionHandler)
 cpdef enum class Positioning:
     DEFAULT, # Cursor position
     REL_DEFAULT, # Shift relative to the cursor position

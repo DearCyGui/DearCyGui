@@ -22,8 +22,9 @@ from libcpp.vector cimport vector
 
 from cpython.object cimport PyObject
 
-from .core cimport uiItem, lock_gil_friendly
+from .core cimport uiItem, lock_gil_friendly, Viewport
 from .c_types cimport DCGVector, unique_lock, DCGMutex
+from .types cimport Vec2
 
 import inspect
 
@@ -314,7 +315,7 @@ cdef class DPI(baseSizing):
     """
     Resolves to the current global scale factor.
     """
-    cdef float resolve(self, uiItem target) noexcept nogil:
+    cdef float _update_value(self, uiItem target) noexcept nogil:
         return target.context.viewport.global_scale
 
     def __repr__(self):
@@ -325,223 +326,6 @@ cdef class DPI(baseSizing):
         
     def __reduce__(self):
         return (self.__class__, (), {'_frozen': self._frozen})
-
-cdef class FillSizeX(baseSizing):
-    """
-    Fill available width.
-    """
-    cdef float _available_space
-
-    def __cinit__(self):
-        self._available_space = 0.0
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        cdef float available = target.context.viewport.parent_size.x
-        # Note: at this step cur is up to date
-        available -= target.state.cur.pos_to_parent.x
-
-        if available > self._available_space:
-            self._available_space = available
-
-    cdef float _update_value(self, uiItem target) noexcept nogil:
-        # Return available space
-        cdef float current_value = max(0.0, self._available_space)
-        # Reset available space
-        self._available_space = 0.0
-        return current_value
-
-    def __repr__(self):
-        return "FillSizeX()"
-    
-    def __str__(self):
-        return "fillx"
-        
-    def __reduce__(self):
-        return (self.__class__, (), 
-                {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class FillSizeY(baseSizing):
-    """
-    Fill available height.
-    """
-    cdef float _available_space
-
-    def __cinit__(self):
-        self._available_space = 0.0
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        cdef float available = target.context.viewport.parent_size.y
-        available -= target.state.cur.pos_to_parent.y
-
-        if available > self._available_space:
-            self._available_space = available
-
-    cdef float _update_value(self, uiItem target) noexcept nogil:
-        # Return available space
-        cdef float current_value = max(0.0, self._available_space)
-        # Reset available space
-        self._available_space = 0.0
-        return current_value
-
-    def __repr__(self):
-        return "FillSizeY()"
-    
-    def __str__(self):
-        return "filly"
-        
-    def __reduce__(self):
-        return (self.__class__, (), 
-                {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class FullSizeX(baseSizing):
-    """
-    Full parent width (no position offset subtraction).
-    """
-    cdef float _available_space
-
-    def __cinit__(self):
-        self._available_space = 0.0
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        cdef float available = target.context.viewport.parent_size.x
-
-        if available > self._available_space:
-            self._available_space = available
-
-    cdef float _update_value(self, uiItem target) noexcept nogil:
-        # Return available space
-        cdef float current_value = max(0.0, self._available_space)
-        # Reset available space
-        self._available_space = 0.0
-        return current_value
-
-    def __repr__(self):
-        return "FullSizeX()"
-    
-    def __str__(self):
-        return "fullx"
-        
-    def __reduce__(self):
-        return (self.__class__, (), 
-                {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class FullSizeY(baseSizing):
-    """
-    Full parent height (no position offset subtraction).
-    """
-    cdef float _available_space
-
-    def __cinit__(self):
-        self._available_space = 0.0
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        cdef float available = target.context.viewport.parent_size.y
-
-        if available > self._available_space:
-            self._available_space = available
-
-    cdef float _update_value(self, uiItem target) noexcept nogil:
-        # Return available space
-        cdef float current_value = max(0.0, self._available_space)
-        # Reset available space
-        self._available_space = 0.0
-        return current_value
-
-    def __repr__(self):
-        return "FullSizeY()"
-    
-    def __str__(self):
-        return "fully"
-        
-    def __reduce__(self):
-        return (self.__class__, (), 
-                {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class RefWidth(baseSizing):
-    """
-    References another item width.
-    """
-    def __cinit__(self, uiItem ref):
-        if ref is None:
-            raise ValueError("Cannot reference None")
-        if not ref.state.cap.has_rect_size:
-            raise TypeError("Cannot reference item without size")
-        self._ref = ref
-
-    cdef float _update_value(self, uiItem target) noexcept nogil:
-        return self._ref.state.cur.rect_size.x
-
-    def __repr__(self):
-        # Use ID to avoid circular references in repr
-        return f"RefWidth(<item-{id(self._ref):#x}>)"
-
-    def __str__(self):
-        return "other.width"
-
-cdef class RefHeight(baseSizing):
-    """
-    References another item height.
-    """
-    def __cinit__(self, uiItem ref):
-        if ref is None:
-            raise ValueError("Cannot reference None")
-        if not ref.state.cap.has_rect_size:
-            raise TypeError("Cannot reference item without size")
-        self._ref = ref
-
-    cdef float _update_value(self, uiItem target) noexcept nogil:
-        return self._ref.state.cur.rect_size.y
-
-    def __repr__(self):
-        # Use ID to avoid circular references in repr
-        return f"RefHeight(<item-{id(self._ref):#x}>)"
-
-    def __str__(self):
-        return "other.height"
-
-cdef class SelfWidth(baseSizing):
-    """
-    References the width of the item using this sizing.
-    """
-    cdef void register(self, uiItem target):
-        # Must have rect_size to compute size
-        if target is None or not target.state.cap.has_rect_size:
-            raise TypeError("Cannot reference item without size")
-        baseSizing.register(self, target)
-
-    cdef float resolve(self, uiItem target) noexcept nogil:
-        return target.state.cur.rect_size.x
-
-    def __repr__(self):
-        return "SelfWidth()"
-    
-    def __str__(self):
-        return "self.width"
-        
-    def __reduce__(self):
-        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class SelfHeight(baseSizing):
-    """
-    References the height of the item using this sizing.
-    """
-    cdef void register(self, uiItem target):
-        # Must have rect_size to compute size
-        if target is None or not target.state.cap.has_rect_size:
-            raise TypeError("Cannot reference item without size")
-        baseSizing.register(self, target)
-
-    cdef float resolve(self, uiItem target) noexcept nogil:
-        return target.state.cur.rect_size.y
-
-    def __repr__(self):
-        return "SelfHeight()"
-    
-    def __str__(self):
-        return f"self.height"
-        
-    def __reduce__(self):
-        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
 
 cdef class binarySizeOp(baseSizing):
     """
@@ -746,11 +530,357 @@ cdef class AbsoluteSize(baseSizing):
         return (self.__class__, (self._operand,), 
                 {'_frozen': self._frozen, '_current_value': self._current_value})
 
+# Dynamic value based on another item
+
+cdef class FillSizeX(baseSizing):
+    """
+    Fill available content width.
+    """
+    cdef float _available_space
+
+    def __cinit__(self):
+        self._available_space = 0.0
+        
+    cdef void _push(self, uiItem target) noexcept nogil:
+        cdef float available = target.context.viewport.parent_size.x
+        # Note: at this step cur is up to date
+        available -= target.state.cur.pos_to_parent.x
+
+        if available > self._available_space:
+            self._available_space = available
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Return available space
+        cdef float current_value = max(0.0, self._available_space)
+        # Reset available space
+        self._available_space = 0.0
+        return current_value
+
+    def __repr__(self):
+        return "FillSizeX()"
+    
+    def __str__(self):
+        return "fillx"
+        
+    def __reduce__(self):
+        return (self.__class__, (), 
+                {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class FillSizeY(baseSizing):
+    """
+    Fill available content height.
+    """
+    cdef float _available_space
+
+    def __cinit__(self):
+        self._available_space = 0.0
+        
+    cdef void _push(self, uiItem target) noexcept nogil:
+        cdef float available = target.context.viewport.parent_size.y
+        available -= target.state.cur.pos_to_parent.y
+
+        if available > self._available_space:
+            self._available_space = available
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Return available space
+        cdef float current_value = max(0.0, self._available_space)
+        # Reset available space
+        self._available_space = 0.0
+        return current_value
+
+    def __repr__(self):
+        return "FillSizeY()"
+    
+    def __str__(self):
+        return "filly"
+        
+    def __reduce__(self):
+        return (self.__class__, (), 
+                {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class FullSizeX(baseSizing):
+    """
+    Full parent content width (no position offset subtraction).
+    """
+    cdef float _available_space
+
+    def __cinit__(self):
+        self._available_space = 0.0
+        
+    cdef void _push(self, uiItem target) noexcept nogil:
+        cdef float available = target.context.viewport.parent_size.x
+
+        if available > self._available_space:
+            self._available_space = available
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Return available space
+        cdef float current_value = max(0.0, self._available_space)
+        # Reset available space
+        self._available_space = 0.0
+        return current_value
+
+    def __repr__(self):
+        return "FullSizeX()"
+    
+    def __str__(self):
+        return "fullx"
+        
+    def __reduce__(self):
+        return (self.__class__, (), 
+                {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class FullSizeY(baseSizing):
+    """
+    Full parent content height (no position offset subtraction).
+    """
+    cdef float _available_space
+
+    def __cinit__(self):
+        self._available_space = 0.0
+        
+    cdef void _push(self, uiItem target) noexcept nogil:
+        cdef float available = target.context.viewport.parent_size.y
+
+        if available > self._available_space:
+            self._available_space = available
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Return available space
+        cdef float current_value = max(0.0, self._available_space)
+        # Reset available space
+        self._available_space = 0.0
+        return current_value
+
+    def __repr__(self):
+        return "FullSizeY()"
+    
+    def __str__(self):
+        return "fully"
+        
+    def __reduce__(self):
+        return (self.__class__, (), 
+                {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class ParentHeight(baseSizing):
+    """
+    Parent height. Use fully instead for parent content height
+    """
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Note: when called, the lock is maintaned on target and all its parents.
+        if target.parent is target.context.viewport:
+            return target.context.viewport.get_size().y
+        if target.parent is None or target.parent.p_state is NULL:
+            return 0. # Shouldn't happen, but just in case
+        return target.parent.p_state.cur.rect_size.y
+
+    def __repr__(self):
+        return "ParentHeight()"
+    
+    def __str__(self):
+        return "parent.height"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen})
+
+cdef class ParentWidth(baseSizing):
+    """
+    Parent width. Use fullx instead for parent content width
+    """
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Note: when called, the lock is maintaned on target and all its parents.
+        if target.parent is target.context.viewport:
+            return target.context.viewport.get_size().x
+        if target.parent is None or target.parent.p_state is NULL:
+            return 0. # Shouldn't happen, but just in case
+        return target.parent.p_state.cur.rect_size.x
+
+    def __repr__(self):
+        return "ParentWidth()"
+    
+    def __str__(self):
+        return "parent.width"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen})
+
+cdef class ParentX1(baseSizing):
+    """
+    Parent left x coordinate (x1).
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Note: when called, the lock is maintaned on target and all its parents.
+        if target.parent is target.context.viewport:
+            return 0.0
+        if target.parent is None or target.parent.p_state is NULL:
+            return 0.0 # Shouldn't happen, but just in case
+        return target.parent.p_state.cur.pos_to_viewport.x
+
+    def __repr__(self):
+        return "ParentX1()"
+    
+    def __str__(self):
+        return "parent.x1"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen})
+
+cdef class ParentX2(baseSizing):
+    """
+    Parent right x coordinate (x2).
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Note: when called, the lock is maintaned on target and all its parents.
+        if target.parent is target.context.viewport:
+            return target.context.viewport.get_size().x
+        if target.parent is None or target.parent.p_state is NULL:
+            return 0.0 # Shouldn't happen, but just in case
+        return target.parent.p_state.cur.pos_to_viewport.x + target.parent.p_state.cur.rect_size.x
+
+    def __repr__(self):
+        return "ParentX2()"
+    
+    def __str__(self):
+        return "parent.x2"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen})
+
+cdef class ParentXC(baseSizing):
+    """
+    Parent x center coordinate.
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Note: when called, the lock is maintaned on target and all its parents.
+        if target.parent is target.context.viewport:
+            return target.context.viewport.get_size().x * 0.5
+        if target.parent is None or target.parent.p_state is NULL:
+            return 0.0 # Shouldn't happen, but just in case
+        return (target.parent.p_state.cur.pos_to_viewport.x + 
+                (target.parent.p_state.cur.rect_size.x * 0.5))
+
+    def __repr__(self):
+        return "ParentXC()"
+    
+    def __str__(self):
+        return "parent.xc"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen})
+
+cdef class ParentY1(baseSizing):
+    """
+    Parent top y coordinate (y1).
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Note: when called, the lock is maintaned on target and all its parents.
+        if target.parent is target.context.viewport:
+            return 0.0
+        if target.parent is None or target.parent.p_state is NULL:
+            return 0.0 # Shouldn't happen, but just in case
+        return target.parent.p_state.cur.pos_to_viewport.y
+
+    def __repr__(self):
+        return "ParentY1()"
+    
+    def __str__(self):
+        return "parent.y1"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen})
+
+cdef class ParentY2(baseSizing):
+    """
+    Parent bottom y coordinate (y2).
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Note: when called, the lock is maintaned on target and all its parents.
+        if target.parent is target.context.viewport:
+            return target.context.viewport.get_size().y
+        if target.parent is None or target.parent.p_state is NULL:
+            return 0.0 # Shouldn't happen, but just in case
+        return target.parent.p_state.cur.pos_to_viewport.y + target.parent.p_state.cur.rect_size.y
+
+    def __repr__(self):
+        return "ParentY2()"
+    
+    def __str__(self):
+        return "parent.y2"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen})
+
+cdef class ParentYC(baseSizing):
+    """
+    Parent y center coordinate.
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        # Note: when called, the lock is maintaned on target and all its parents.
+        if target.parent is target.context.viewport:
+            return target.context.viewport.get_size().y * 0.5
+        if target.parent is None or target.parent.p_state is NULL:
+            return 0.0 # Shouldn't happen, but just in case
+        return (target.parent.p_state.cur.pos_to_viewport.y + 
+                (target.parent.p_state.cur.rect_size.y * 0.5))
+
+    def __repr__(self):
+        return "ParentYC()"
+    
+    def __str__(self):
+        return "parent.yc"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen})
+
+cdef class RefHeight(baseSizing):
+    """
+    References another item height.
+    """
+    def __cinit__(self, uiItem ref):
+        if ref is None:
+            raise ValueError("Cannot reference None")
+        if not ref.state.cap.has_rect_size:
+            raise TypeError("Cannot reference item without size")
+        self._ref = ref
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return self._ref.state.cur.rect_size.y
+
+    def __repr__(self):
+        # Use ID to avoid circular references in repr
+        return f"RefHeight(<item-{id(self._ref):#x}>)"
+
+    def __str__(self):
+        return "other.height"
+
+cdef class RefWidth(baseSizing):
+    """
+    References another item width.
+    """
+    def __cinit__(self, uiItem ref):
+        if ref is None:
+            raise ValueError("Cannot reference None")
+        if not ref.state.cap.has_rect_size:
+            raise TypeError("Cannot reference item without size")
+        self._ref = ref
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return self._ref.state.cur.rect_size.x
+
+    def __repr__(self):
+        # Use ID to avoid circular references in repr
+        return f"RefWidth(<item-{id(self._ref):#x}>)"
+
+    def __str__(self):
+        return "other.width"
+
 cdef class RefX1(baseSizing):
     """
     References another item's left x coordinate (x1).
     """
-    cdef uiItem _ref
 
     def __cinit__(self, uiItem ref):
         self._ref = ref
@@ -762,7 +892,7 @@ cdef class RefX1(baseSizing):
         baseSizing.register(self, target)
 
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        return self._ref.state.cur.pos_to_parent.x
+        return self._ref.state.cur.pos_to_viewport.x
 
     def __repr__(self):
         # Use ID to avoid circular references in repr
@@ -786,7 +916,7 @@ cdef class RefX2(baseSizing):
         baseSizing.register(self, target)
 
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        return self._ref.state.cur.pos_to_parent.x + self._ref.state.cur.rect_size.x
+        return self._ref.state.cur.pos_to_viewport.x + self._ref.state.cur.rect_size.x
 
     def __repr__(self):
         # Use ID to avoid circular references in repr
@@ -795,12 +925,34 @@ cdef class RefX2(baseSizing):
     def __str__(self):
         return "other.x2"
 
+cdef class RefXC(baseSizing):
+    """
+    References another item's x center coordinate.
+    """
+    cdef uiItem _ref
+
+    def __cinit__(self, uiItem ref):
+        self._ref = ref
+
+    cdef void register(self, uiItem target):
+        if not target.state.cap.has_position:
+            raise TypeError("Cannot reference item without position and size")
+        baseSizing.register(self, target)
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return self._ref.state.cur.pos_to_viewport.x + (self._ref.state.cur.rect_size.x * 0.5)
+
+    def __repr__(self):
+        # Use ID to avoid circular references in repr
+        return f"RefXC(<item-{id(self._ref):#x}>)"
+    
+    def __str__(self):
+        return "other.xc"
+
 cdef class RefY1(baseSizing):
     """
     References another item's top y coordinate (y1).
     """
-    cdef uiItem _ref
-
     def __cinit__(self, uiItem ref):
         self._ref = ref
 
@@ -810,7 +962,7 @@ cdef class RefY1(baseSizing):
         baseSizing.register(self, target)
 
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        return self._ref.state.cur.pos_to_parent.y
+        return self._ref.state.cur.pos_to_viewport.y
 
     def __repr__(self):
         # Use ID to avoid circular references in repr
@@ -834,7 +986,7 @@ cdef class RefY2(baseSizing):
         baseSizing.register(self, target)
 
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        return self._ref.state.cur.pos_to_parent.y + self._ref.state.cur.rect_size.y
+        return self._ref.state.cur.pos_to_viewport.y + self._ref.state.cur.rect_size.y
 
     def __repr__(self):
         # Use ID to avoid circular references in repr
@@ -842,94 +994,6 @@ cdef class RefY2(baseSizing):
     
     def __str__(self):
         return "other.y2"
-
-cdef class SelfX1(baseSizing):
-    """
-    References the left x coordinate (x1) of the item using this sizing.
-    """
-    cdef float resolve(self, uiItem target) noexcept nogil:
-        return target.state.cur.pos_to_parent.x
-
-    def __repr__(self):
-        return "SelfX1()"
-    
-    def __str__(self):
-        return "self.x1"
-        
-    def __reduce__(self):
-        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class SelfX2(baseSizing):
-    """
-    References the right x coordinate (x2) of the item using this sizing.
-    """
-    cdef float resolve(self, uiItem target) noexcept nogil:
-        return target.state.cur.pos_to_parent.x + target.state.cur.rect_size.x
-
-    def __repr__(self):
-        return "SelfX2()"
-    
-    def __str__(self):
-        return "self.x2"
-        
-    def __reduce__(self):
-        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class SelfY1(baseSizing):
-    """
-    References the top y coordinate (y1) of the item using this sizing.
-    """
-    cdef float resolve(self, uiItem target) noexcept nogil:
-        return target.state.cur.pos_to_parent.y
-
-    def __repr__(self):
-        return "SelfY1()"
-    
-    def __str__(self):
-        return "self.y1"
-        
-    def __reduce__(self):
-        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class SelfY2(baseSizing):
-    """
-    References the bottom y coordinate (y2) of the item using this sizing.
-    """
-    cdef float resolve(self, uiItem target) noexcept nogil:
-        return target.state.cur.pos_to_parent.y + target.state.cur.rect_size.y
-
-    def __repr__(self):
-        return "SelfY2()"
-    
-    def __str__(self):
-        return "self.y2"
-        
-    def __reduce__(self):
-        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
-
-cdef class RefXC(baseSizing):
-    """
-    References another item's x center coordinate.
-    """
-    cdef uiItem _ref
-
-    def __cinit__(self, uiItem ref):
-        self._ref = ref
-
-    cdef void register(self, uiItem target):
-        if not target.state.cap.has_position:
-            raise TypeError("Cannot reference item without position and size")
-        baseSizing.register(self, target)
-
-    cdef float _update_value(self, uiItem target) noexcept nogil:
-        return self._ref.state.cur.pos_to_parent.x + (self._ref.state.cur.rect_size.x * 0.5)
-
-    def __repr__(self):
-        # Use ID to avoid circular references in repr
-        return f"RefXC(<item-{id(self._ref):#x}>)"
-    
-    def __str__(self):
-        return "other.xc"
 
 cdef class RefYC(baseSizing):
     """
@@ -946,7 +1010,7 @@ cdef class RefYC(baseSizing):
         baseSizing.register(self, target)
 
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        return self._ref.state.cur.pos_to_parent.y + (self._ref.state.cur.rect_size.y * 0.5)
+        return self._ref.state.cur.pos_to_viewport.y + (self._ref.state.cur.rect_size.y * 0.5)
 
     def __repr__(self):
         # Use ID to avoid circular references in repr
@@ -955,12 +1019,88 @@ cdef class RefYC(baseSizing):
     def __str__(self):
         return "other.yc"
 
+cdef class SelfHeight(baseSizing):
+    """
+    References the height of the item using this sizing.
+    """
+    cdef void register(self, uiItem target):
+        # Must have rect_size to compute size
+        if target is None or not target.state.cap.has_rect_size:
+            raise TypeError("Cannot reference item without size")
+        baseSizing.register(self, target)
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return target.state.cur.rect_size.y
+
+    def __repr__(self):
+        return "SelfHeight()"
+    
+    def __str__(self):
+        return f"self.height"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class SelfWidth(baseSizing):
+    """
+    References the width of the item using this sizing.
+    """
+    cdef void register(self, uiItem target):
+        # Must have rect_size to compute size
+        if target is None or not target.state.cap.has_rect_size:
+            raise TypeError("Cannot reference item without size")
+        baseSizing.register(self, target)
+
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return target.state.cur.rect_size.x
+
+    def __repr__(self):
+        return "SelfWidth()"
+    
+    def __str__(self):
+        return "self.width"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class SelfX1(baseSizing):
+    """
+    References the left x coordinate (x1) of the item using this sizing.
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return target.state.cur.pos_to_viewport.x
+
+    def __repr__(self):
+        return "SelfX1()"
+    
+    def __str__(self):
+        return "self.x1"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class SelfX2(baseSizing):
+    """
+    References the right x coordinate (x2) of the item using this sizing.
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return target.state.cur.pos_to_viewport.x + target.state.cur.rect_size.x
+
+    def __repr__(self):
+        return "SelfX2()"
+    
+    def __str__(self):
+        return "self.x2"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
 cdef class SelfXC(baseSizing):
     """
     References the x center coordinate of the item using this sizing.
     """
-    cdef float resolve(self, uiItem target) noexcept nogil:
-        return target.state.cur.pos_to_parent.x + (target.state.cur.rect_size.x * 0.5)
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return target.state.cur.pos_to_viewport.x + (target.state.cur.rect_size.x * 0.5)
 
     def __repr__(self):
         return "SelfXC()"
@@ -971,12 +1111,44 @@ cdef class SelfXC(baseSizing):
     def __reduce__(self):
         return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
 
+cdef class SelfY1(baseSizing):
+    """
+    References the top y coordinate (y1) of the item using this sizing.
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return target.state.cur.pos_to_viewport.y
+
+    def __repr__(self):
+        return "SelfY1()"
+    
+    def __str__(self):
+        return "self.y1"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class SelfY2(baseSizing):
+    """
+    References the bottom y coordinate (y2) of the item using this sizing.
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return target.state.cur.pos_to_viewport.y + target.state.cur.rect_size.y
+
+    def __repr__(self):
+        return "SelfY2()"
+    
+    def __str__(self):
+        return "self.y2"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
 cdef class SelfYC(baseSizing):
     """
     References the y center coordinate of the item using this sizing.
     """
-    cdef float resolve(self, uiItem target) noexcept nogil:
-        return target.state.cur.pos_to_parent.y + (target.state.cur.rect_size.y * 0.5)
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        return target.state.cur.pos_to_viewport.y + (target.state.cur.rect_size.y * 0.5)
 
     def __repr__(self):
         return "SelfYC()"
@@ -986,6 +1158,41 @@ cdef class SelfYC(baseSizing):
         
     def __reduce__(self):
         return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class ViewportHeight(baseSizing):
+    """
+    References the viewport's height.
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        cdef Vec2 size = target.context.viewport.get_size()
+        return size.y
+
+    def __repr__(self):
+        return "ViewportHeight()"
+    
+    def __str__(self):
+        return "viewport.height"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
+cdef class ViewportWidth(baseSizing):
+    """
+    References the viewport's width.
+    """
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        cdef Vec2 size = target.context.viewport.get_size()
+        return size.x
+
+    def __repr__(self):
+        return "ViewportWidth()"
+    
+    def __str__(self):
+        return "viewport.width"
+        
+    def __reduce__(self):
+        return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
+
 
 cdef extern from * namespace "DearCyGui" nogil:
     """
@@ -1020,24 +1227,34 @@ cdef extern from * namespace "DearCyGui" nogil:
         // Keywords are specific identifiers with predefined meanings
         enum class KeywordType {
             NONE,           // Not a keyword
-            FILLX,          // Fill available width
-            FILLY,          // Fill available height
-            FULLX,          // Full parent width (no position offset)
-            FULLY,          // Full parent height (no position offset)
             DPI,            // Device pixel ratio / global scale
             SELF,           // Reference to the current item
             MIN,            // Minimum function
             MAX,            // Maximum function
             ABS,            // Absolute value function
             MEAN,           // Mean function (average)
-            SELF_WIDTH,     // Reference to current item's width (self.width)
+            FILLX,          // Fill available width
+            FILLY,          // Fill available height
+            FULLX,          // Full parent width (no position offset)
+            FULLY,          // Full parent height (no position offset)
+            PARENT_HEIGHT,  // Reference to parent's height
+            PARENT_WIDTH,   // Reference to parent's width
+            PARENT_X1,      // Reference to parent's left x coordinate
+            PARENT_X2,      // Reference to parent's right x coordinate
+            PARENT_XC,      // Reference to parent's x center coordinate
+            PARENT_Y1,      // Reference to parent's top y coordinate
+            PARENT_Y2,      // Reference to parent's bottom y coordinate
+            PARENT_YC,      // Reference to parent's y center coordinate
             SELF_HEIGHT,     // Reference to current item's height (self.height)
+            SELF_WIDTH,     // Reference to current item's width (self.width)
             SELF_X1,        // Reference to current item's left x coordinate
             SELF_X2,        // Reference to current item's right x coordinate
+            SELF_XC,        // Reference to current item's x center coordinate
             SELF_Y1,        // Reference to current item's top y coordinate
             SELF_Y2,        // Reference to current item's bottom y coordinate
-            SELF_XC,        // Reference to current item's x center coordinate
-            SELF_YC         // Reference to current item's y center coordinate
+            SELF_YC,         // Reference to current item's y center coordinate
+            VIEWPORT_HEIGHT,// Reference to viewport's height
+            VIEWPORT_WIDTH, // Reference to viewport's width
         };
 
         // Token structure representing a single token in the input
@@ -1095,6 +1312,18 @@ cdef extern from * namespace "DearCyGui" nogil:
                 if (id == "self.y2") return KeywordType::SELF_Y2;
                 if (id == "self.xc") return KeywordType::SELF_XC;
                 if (id == "self.yc") return KeywordType::SELF_YC;
+                if (id == "parent.width") return KeywordType::PARENT_WIDTH;
+                if (id == "parent.height") return KeywordType::PARENT_HEIGHT;
+                if (id == "parent.x1") return KeywordType::PARENT_X1;
+                if (id == "parent.x2") return KeywordType::PARENT_X2;
+                if (id == "parent.y1") return KeywordType::PARENT_Y1;
+                if (id == "parent.y2") return KeywordType::PARENT_Y2;
+                if (id == "parent.xc") return KeywordType::PARENT_XC;
+                if (id == "parent.yc") return KeywordType::PARENT_YC;
+                if (id == "viewport.width") return KeywordType::VIEWPORT_WIDTH;
+                if (id == "viewport.height") return KeywordType::VIEWPORT_HEIGHT;
+                
+                
                 
                 return KeywordType::NONE;
             }
@@ -1199,7 +1428,17 @@ cdef extern from * namespace "DearCyGui" nogil:
                         keyword == KeywordType::SELF_Y1 ||
                         keyword == KeywordType::SELF_Y2 ||
                         keyword == KeywordType::SELF_XC ||
-                        keyword == KeywordType::SELF_YC) {
+                        keyword == KeywordType::SELF_YC ||
+                        keyword == KeywordType::PARENT_WIDTH ||
+                        keyword == KeywordType::PARENT_HEIGHT ||
+                        keyword == KeywordType::PARENT_X1 ||
+                        keyword == KeywordType::PARENT_X2 ||
+                        keyword == KeywordType::PARENT_Y1 ||
+                        keyword == KeywordType::PARENT_Y2 ||
+                        keyword == KeywordType::PARENT_XC ||
+                        keyword == KeywordType::PARENT_YC ||
+                        keyword == KeywordType::VIEWPORT_WIDTH ||
+                        keyword == KeywordType::VIEWPORT_HEIGHT) {
                         return {TokenType::IDENTIFIER, value, keyword};
                     }
                     // For item.width patterns, extract the item name only
@@ -1307,24 +1546,34 @@ cdef extern from * namespace "DearCyGui" nogil:
     
     enum class KeywordType:
         NONE
-        FILLX
-        FILLY
-        FULLX
-        FULLY
         DPI
         SELF
         MIN
         MAX
         ABS
         MEAN
-        SELF_WIDTH
+        FILLX
+        FILLY
+        FULLX
+        FULLY
+        PARENT_HEIGHT
+        PARENT_WIDTH
+        PARENT_X1
+        PARENT_X2
+        PARENT_XC
+        PARENT_Y1
+        PARENT_Y2
+        PARENT_YC
         SELF_HEIGHT
+        SELF_WIDTH
         SELF_X1
         SELF_X2
+        SELF_XC
         SELF_Y1
         SELF_Y2
-        SELF_XC
         SELF_YC
+        VIEWPORT_HEIGHT
+        VIEWPORT_WIDTH
 
     # C++ struct definitions
     struct Token:
@@ -1363,8 +1612,15 @@ cdef class CythonParser:
         cdef int i
         cdef bint identifier_found = False
         for i in range(<int>self.tokens.size()):
-            if self.tokens[i].type == TokenType.IDENT_WIDTH or \
-               self.tokens[i].type == TokenType.IDENT_HEIGHT:
+            if self.tokens[i].type in [
+                TokenType.IDENT_WIDTH,
+                TokenType.IDENT_HEIGHT,
+                TokenType.IDENT_X1,
+                TokenType.IDENT_X2,
+                TokenType.IDENT_XC,
+                TokenType.IDENT_Y1,
+                TokenType.IDENT_Y2,
+                TokenType.IDENT_YC]:
                 identifier_found = True
                 break
 
@@ -1784,6 +2040,26 @@ cdef class CythonParser:
                 return SelfXC()
             elif keyword == KeywordType.SELF_YC:
                 return SelfYC()
+            elif keyword == KeywordType.PARENT_WIDTH:
+                return ParentWidth()
+            elif keyword == KeywordType.PARENT_HEIGHT:
+                return ParentHeight()
+            elif keyword == KeywordType.PARENT_X1:
+                return ParentX1()
+            elif keyword == KeywordType.PARENT_X2:
+                return ParentX2()
+            elif keyword == KeywordType.PARENT_Y1:
+                return ParentY1()
+            elif keyword == KeywordType.PARENT_Y2:
+                return ParentY2()
+            elif keyword == KeywordType.PARENT_XC:
+                return ParentXC()
+            elif keyword == KeywordType.PARENT_YC:
+                return ParentYC()
+            elif keyword == KeywordType.VIEWPORT_WIDTH:
+                return ViewportWidth()
+            elif keyword == KeywordType.VIEWPORT_HEIGHT:
+                return ViewportHeight()
             
             # Handle function calls (min/max/mean)
             elif keyword == KeywordType.MIN or keyword == KeywordType.MAX or keyword == KeywordType.MEAN:
@@ -1869,19 +2145,24 @@ cpdef baseSizing parse_size(str size_str):
         "0.8*my_button.width": MultiplySize(RefWidth(my_button), 0.8)
 
     The following keywords are supported:
-    - fillx: Fill available width
-    - filly: Fill available height
-    - fullx: Full parent width (no position offset)
-    - fully: Full parent height (no position offset)
-    - min: Take minimum of two size values
-    - max: Take maximum of two size values
-    - mean: Calculate the mean (average) of two or more size values
-    - dpi: Current global scale factor
-    - self.width: Reference to the width of the current item
-    - self.height: Reference to the height of the current item
-    - item.width/item.height: Reference to another item's size (item must be in globals()/locals())
-    - +, -, *, /, //, %, **: Arithmetic operators. Parentheses can be used for grouping.
-    - abs(): Absolute value function
+    - `fillx`: Fill available width
+    - `filly`: Fill available height
+    - `fullx`: Full parent content width (no position offset)
+    - `fully`: Full parent content height (no position offset)
+    - `parent.width`: Width of the parent item (larger than fullx as contains parent borders)
+    - `parent.height`: Height of the parent item (larger than fully as contains parent borders)
+    - `viewport.width`: Width of the viewport (application window)
+    - `viewport.height`: Height of the viewport (application window)
+    - `min`: Take minimum of two size values
+    - `max`: Take maximum of two size values
+    - `mean`: Calculate the mean (average) of two or more size values
+    - `dpi`: Current global scale factor
+    - `self.width`: Reference to the width of the current item
+    - `self.height`: Reference to the height of the current item
+    - `item.width`/`item.height`: Reference to another item's size (item must be in globals()/locals())
+    - `{self, parent, item}.{x1, x2, xc, y1, y2, yc}`: Reference to left/center/right/top/bottom of the current, parent, or a target item.
+    - `+`, `-`, `*`, `/`, `//`, `%`, `**`: Arithmetic operators. Parentheses can be used for grouping.
+    - `abs()`: Absolute value function
     - Numbers: Fixed size in pixels (NOT dpi scaled. Use dpi keyword for that)
 
     Returns:
@@ -2016,7 +2297,87 @@ class Size:
             baseSizing: Size object relative to the reference item's height
         """
         return RefHeight(item)
+
+    @staticmethod
+    def PARENT_WIDTH():
+        """
+        Create a size that references the parent's width.
+        
+        Returns:
+            ParentWidth: Size object referencing the parent's width
+        """
+        return ParentWidth()
     
+    @staticmethod
+    def PARENT_HEIGHT():
+        """
+        Create a size that references the parent's height.
+        
+        Returns:
+            ParentHeight: Size object referencing the parent's height
+        """
+        return ParentHeight()
+    
+    @staticmethod
+    def PARENT_X1():
+        """
+        Create a size that references the parent's left x coordinate.
+        
+        Returns:
+            ParentX1: Size object referencing the parent's x1
+        """
+        return ParentX1()
+    
+    @staticmethod
+    def PARENT_X2():
+        """
+        Create a size that references the parent's right x coordinate.
+        
+        Returns:
+            ParentX2: Size object referencing the parent's x2
+        """
+        return ParentX2()
+    
+    @staticmethod
+    def PARENT_Y1():
+        """
+        Create a size that references the parent's top y coordinate.
+        
+        Returns:
+            ParentY1: Size object referencing the parent's y1
+        """
+        return ParentY1()
+    
+    @staticmethod
+    def PARENT_Y2():
+        """
+        Create a size that references the parent's bottom y coordinate.
+        
+        Returns:
+            ParentY2: Size object referencing the parent's y2
+        """
+        return ParentY2()
+    
+    @staticmethod
+    def PARENT_XC():
+        """
+        Create a size that references the parent's x center coordinate.
+        
+        Returns:
+            ParentXC: Size object referencing the parent's x center
+        """
+        return ParentXC()
+    
+    @staticmethod
+    def PARENT_YC():
+        """
+        Create a size that references the parent's y center coordinate.
+        
+        Returns:
+            ParentYC: Size object referencing the parent's y center
+        """
+        return ParentYC()
+
     @staticmethod
     def SELF_WIDTH():
         """
@@ -2044,6 +2405,26 @@ class Size:
             baseSizing: Size object relative to the item's own height
         """
         return SelfHeight()
+
+    @staticmethod
+    def VIEWPORT_WIDTH():
+        """
+        Create a size that references the viewport's width.
+        
+        Returns:
+            ViewportWidth: Size object referencing the viewport's width
+        """
+        return ViewportWidth()
+    
+    @staticmethod
+    def VIEWPORT_HEIGHT():
+        """
+        Create a size that references the viewport's height.
+        
+        Returns:
+            ViewportHeight: Size object referencing the viewport's height
+        """
+        return ViewportHeight()
 
     @staticmethod
     def MIN(first, second, *args):

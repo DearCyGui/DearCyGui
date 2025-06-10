@@ -25,6 +25,7 @@ cdef class DrawInWindow(uiItem):
     cdef bint button
     cdef bint invert_y
     cdef bint relative_scaling
+    cdef bint _no_global_scale
     cdef bint draw_item(self) noexcept nogil
 
 cdef class SimplePlot(uiItem):
@@ -135,6 +136,7 @@ cdef class Image(uiItem):
     cdef uint32_t _background_color # imgui.ImU32
     cdef bint _button
     cdef Texture _texture
+    cdef bint _no_global_scale
     cdef bint draw_item(self) noexcept nogil
 
 
@@ -263,13 +265,3 @@ cdef class SharedTime:
     cdef tm get(self) noexcept nogil
     cdef void set(self, tm) noexcept nogil
 """
-
-cdef class TableColumnConfig(baseItem):
-    cdef itemState state
-    cdef int32_t _flags # ImGuiTableColumnFlags_
-    cdef bint _stretch
-    cdef bint _fixed
-    cdef float _width
-    cdef float _stretch_weight
-    cdef bint _dpi_scaling
-    cdef int32_t _bg_color # imgui.U32

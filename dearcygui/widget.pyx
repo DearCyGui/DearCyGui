@@ -632,6 +632,29 @@ cdef class DrawInWindow(uiItem):
         self.relative_scaling = value
 
     @property
+    def no_global_scaling(self):
+        """
+        Disables the global dpi scale.
+
+        When enabled, one unit in drawing space corresponds to exactly
+        one pixel on the screen, rather than to one scaled pixel (scaled
+        to be dpi invariant).
+
+        In additions, outline thickness in screen space (items with negative
+        thickness) will not be scaled when this setting is set. Unlike the
+        previous statement, this also applies when relative is set to True.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._no_global_scale
+
+    @no_global_scaling.setter
+    def no_global_scaling(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._no_global_scale = value
+
+    @property
     def invert_y(self):
         """
         Controls the direction of the Y coordinate axis.
@@ -692,11 +715,11 @@ cdef class DrawInWindow(uiItem):
             scale_y = clip_height / self.scale_y
             scale = min(scale_x, scale_y)
         else:
-            scale = <double>self.context.viewport.global_scale if self._dpi_scaling else 1.
+            scale = 1. if self._no_global_scale else <double>self.context.viewport.global_scale
             scale_x = self.scale_x * scale
             scale_y = self.scale_y * scale
         self.context.viewport.scales = [scale_x, scale_y]
-        self.context.viewport.thickness_multiplier =  <double>self.context.viewport.global_scale if self._dpi_scaling else 1.
+        self.context.viewport.thickness_multiplier = 1. if self._no_global_scale else <double>self.context.viewport.global_scale
         self.context.viewport.size_multiplier = scale_x #min(scale_x, scale_y) -> scale_x for compatibility with plots
 
         if self.invert_y:
@@ -3326,7 +3349,8 @@ cdef class Text(uiItem):
         if self._wrap == 0:
             imgui.PushTextWrapPos(0.)
         elif self._wrap > 0:
-            imgui.PushTextWrapPos(imgui.GetCursorPosX() + <float>self._wrap * (self.context.viewport.global_scale if self._dpi_scaling else 1.))
+            imgui.PushTextWrapPos(imgui.GetCursorPosX() + <float>self._wrap * self.context.viewport.global_scale)
+            # <float>self._wrap * (self.context.viewport.global_scale if self._dpi_scaling else 1.)) # TODO dpi scaling control
         if self._bullet:
             imgui.BeginGroup()
         if self._bullet:
@@ -3918,6 +3942,30 @@ cdef class Image(uiItem):
         lock_gil_friendly(m, self.mutex)
         self._button = value
 
+    @property
+    def no_global_scaling(self):
+        """
+        Disables the global dpi scale.
+
+        When the size of this widget is not specified, it defaults
+        to the texture size.
+
+        When enabled this state is enabled, the texture size will
+        not be scaled by the global dpi scaling factor.
+        That is, one pixel of the texture will match exactly to
+        one pixel on the screen, rather than to one scaled pixel (scaled
+        to be dpi invariant).
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._no_global_scale
+
+    @no_global_scaling.setter
+    def no_global_scaling(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._no_global_scale = value
+
     cdef bint draw_item(self) noexcept nogil:
         cdef Vec2 size = self.get_requested_size()
         if self._texture is None:
@@ -3931,9 +3979,9 @@ cdef class Image(uiItem):
             return False
 
         if size.x == 0.:
-            size.x = self._texture.width * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
+            size.x = self._texture.width * (1. if self._no_global_scale else self.context.viewport.global_scale)
         if size.y == 0.:
-            size.y = self._texture.height * (self.context.viewport.global_scale if self._dpi_scaling else 1.)
+            size.y = self._texture.height * (1. if self._no_global_scale else self.context.viewport.global_scale)
 
         cdef bint activated
         imgui.PushID(self.uuid)

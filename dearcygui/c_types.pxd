@@ -1446,6 +1446,10 @@ cdef extern from *:
                 Py_INCREF(_item);
             }
         }
+        void set_item_o(PyObject* item) {
+            // Variant that gets an object
+            set_item(item);
+        }
         // Called to inform about the item
         // resolved value.
         inline void set_item_value(float value) {
@@ -1478,6 +1482,7 @@ cdef extern from *:
         ValueOrItem(const ValueOrItem&) except +
         void set_value(float)
         void set_item(PyObject*)
+        void set_item_o(object)
         void set_item_value(float) noexcept nogil
         PyObject* get_item() noexcept nogil
         float get_value() noexcept nogil

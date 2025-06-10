@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from typing import Protocol, TypeVar
 from .types import *
 from .core import *
+from .sizing import baseSizing
 
 Sender = TypeVar('Sender', baseHandler, uiItem, covariant=True)
 Target = TypeVar('Target', baseItem, covariant=True)
@@ -111,6 +112,228 @@ try:
 except ImportError:
     Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any]
     pass
+
+class ItemStateView:
+    """
+    View class for accessing UI item state properties.
+    
+    This class provides a consolidated interface to access state properties
+    of UI items, such as whether they are hovered, active, focused, etc.
+    Each property is checked against the item's capabilities to ensure
+    it supports that state.
+    
+    The view references the original item and uses its mutex for thread safety.
+    """
+    
+    @property
+    def active(self) -> bool:
+        """
+        Whether the item is in an active state.
+        
+        Active states vary by item type: for buttons it means pressed; for tabs,
+        selected; for input fields, being edited. This state is tracked between
+        frames to enable interactive behaviors.
+        """
+        ...
+    
+    @property
+    def activated(self) -> bool:
+        """
+        Whether the item just transitioned to the active state this frame.
+        
+        This property is only true during the frame when the item becomes active,
+        making it useful for one-time actions. For persistent monitoring, use 
+        event handlers instead as they provide more robust state tracking.
+        """
+        ...
+    
+    @property
+    def clicked(self) -> tuple[bool, bool, bool, bool, bool]:
+        """
+        Whether any mouse button was clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the click occurs.
+        For consistent event handling across frames, use click handlers instead.
+        """
+        ...
+    
+    @property
+    def double_clicked(self) -> tuple[bool, bool, bool, bool, bool]:
+        """
+        Whether any mouse button was double-clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the double-click occurs.
+        For consistent event handling across frames, use click handlers instead.
+        """
+        ...
+    
+    @property
+    def deactivated(self) -> bool:
+        """
+        Whether the item just transitioned from active to inactive this frame.
+        
+        This property is only true during the frame when deactivation occurs.
+        For persistent monitoring across frames, use event handlers instead
+        as they provide more robust state tracking.
+        """
+        ...
+    
+    @property
+    def deactivated_after_edited(self) -> bool:
+        """
+        Whether the item was edited and then deactivated in this frame.
+        
+        Useful for detecting when user completes an edit operation, such as
+        finishing text input or adjusting a value. This property is only true
+        for the frame when the deactivation occurs after editing.
+        """
+        ...
+    
+    @property
+    def edited(self) -> bool:
+        """
+        Whether the item's value was modified this frame.
+        
+        This flag indicates that the user has made a change to the item's value,
+        such as typing in an input field or adjusting a slider. It is only true
+        for the frame when the edit occurs.
+        """
+        ...
+    
+    @property
+    def focused(self) -> bool:
+        """
+        Whether this item has input focus.
+        
+        For windows, focus means the window is at the top of the stack. For
+        input items, focus means keyboard inputs are directed to this item.
+        Unlike hover state, focus persists until explicitly changed or lost.
+        """
+        ...
+    
+    @property
+    def hovered(self) -> bool:
+        """
+        Whether the mouse cursor is currently positioned over this item.
+
+        Only one element can be hovered at a time in the UI hierarchy. When
+        elements overlap, the topmost item (typically a child item rather than
+        a parent) receives the hover state.
+        """
+        ...
+    
+    @property
+    def resized(self) -> bool:
+        """
+        Whether the item's size changed this frame.
+        
+        This property is true only for the frame when the size change occurs.
+        It can detect both user-initiated resizing (like dragging a window edge)
+        and programmatic size changes.
+        """
+        ...
+    
+    @property
+    def toggled(self) -> bool:
+        """
+        Whether the item was just toggled open this frame.
+        
+        Applies to items that can be expanded or collapsed, such as tree nodes,
+        collapsing headers, or menus. This property is only true during the frame
+        when the toggle from closed to open occurs.
+        """
+        ...
+    
+    @property
+    def visible(self) -> bool:
+        """
+        Whether the item was rendered in the current frame.
+        
+        An item is visible when it and all its ancestors have show=True and are
+        within the visible region of their containers. Invisible items skip
+        rendering and event handling entirely.
+        """
+        ...
+    
+    @property
+    def rect_size(self) -> Coord:
+        """
+        Actual pixel size of the element including margins.
+        
+        This property represents the width and height of the rectangle occupied
+        by the item in the layout. The rectangle's top-left corner is at the
+        position given by the relevant position property.
+        
+        Note that this size refers only to the item within its parent window and
+        does not include any popup or child windows that might be spawned by
+        this item.
+        """
+        ...
+    
+    @property
+    def pos_to_viewport(self) -> Coord:
+        """
+        Position relative to the viewport's top-left corner.
+        """
+        ...
+    
+    @property
+    def pos_to_window(self) -> Coord:
+        """
+        Position relative to the containing window's content area.
+        """
+        ...
+    
+    @property
+    def pos_to_parent(self) -> Coord:
+        """
+        Position relative to the parent item's content area.
+        """
+        ...
+    
+    @property
+    def pos_to_default(self) -> Coord:
+        """
+        Offset from the item's default layout position.
+        """
+        ...
+    
+    @property
+    def content_region_avail(self) -> Coord:
+        """
+        Available space for child items.
+        
+        For container items like windows, child windows, this
+        property represents the available space for placing child items. This is
+        the item's inner area after accounting for padding, borders, and other
+        non-content elements.
+        
+        Areas that require scrolling to see are not included in this measurement.
+        """
+        ...
+    
+    @property
+    def content_pos(self) -> Coord:
+        """
+        Position of the content area's top-left corner.
+        
+        This property provides the viewport-relative coordinates of the starting
+        point for an item's content area. This is where child elements begin to be
+        placed by default.
+        
+        Used together with content_region_avail, this defines the rectangle
+        available for child elements.
+        """
+        ...
+    
+    @property
+    def item(self):
+        """
+        item from which the states are extracted.
+        """
+        ...
 class ActivatedHandler(baseHandler):
     """
     Handler for when the target item turns from
@@ -637,7 +860,7 @@ class Button(uiItem):
     is stored in a SharedBool value that tracks whether it's active.
 
     """
-    def __init__(self, context : Context, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -649,7 +872,6 @@ class Button(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -657,13 +879,7 @@ class Button(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - repeat: Whether the button generates repeated events when held down.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
@@ -674,32 +890,8 @@ class Button(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -739,76 +931,6 @@ class Button(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -889,7 +1011,7 @@ class Checkbox(uiItem):
     If a label is provided, it will be displayed at the right of the checkbox.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -900,7 +1022,6 @@ class Checkbox(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -908,13 +1029,7 @@ class Checkbox(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -923,6 +1038,8 @@ class Checkbox(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -945,63 +1062,6 @@ class Checkbox(uiItem):
         ...
 
 
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
-        ...
-
-
 class ChildWindow(uiItem):
     """
     A child window container that enables hierarchical UI layout.
@@ -1016,7 +1076,7 @@ class ChildWindow(uiItem):
     structured layouts.
 
     """
-    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, focused : bool = False, font : Font = None, frame_style : bool = False, handlers : list = [], height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1035,7 +1095,6 @@ class ChildWindow(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
         - flattened_navigation: Share focus scope with parent window for keyboard/gamepad navigation.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - frame_style: Style the child window like a framed item instead of a window.
         - handlers: List of event handlers attached to this item.
@@ -1046,15 +1105,9 @@ class ChildWindow(uiItem):
         - menubar: Enable a menu bar at the top of the child window.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_scroll_with_mouse: Forward mouse wheel events to parent instead of scrolling this window.
         - no_scrollbar: Hide scrollbars but still allow scrolling with mouse/keyboard.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - resizable_x: Allow the user to resize the window width by dragging the right border.
         - resizable_y: Allow the user to resize the window height by dragging the bottom border.
@@ -1065,6 +1118,8 @@ class ChildWindow(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -1219,64 +1274,6 @@ class ChildWindow(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def content_pos(self) -> Coord:
-        """
-        (Read-only) Position of the content area's top-left corner.
-
-        This property provides the viewport-relative coordinates of the starting
-        point for an item's content area. This is where child elements begin to be
-        placed by default.
-
-        Used together with content_region_avail, this defines the rectangle
-        available for child elements.
-
-        """
-        ...
-
-
-    @property
-    def content_region_avail(self) -> Coord:
-        """
-        (Read-only) Available space for child items.
-
-        For container items like windows, child windows, this
-        property represents the available space for placing child items. This is
-        the item's inner area after accounting for padding, borders, and other
-        non-content elements.
-
-        Areas that require scrolling to see are not included in this measurement.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def flattened_navigation(self) -> bool:
         """
         Share focus scope with parent window for keyboard/gamepad navigation.
@@ -1292,24 +1289,6 @@ class ChildWindow(uiItem):
 
     @flattened_navigation.setter
     def flattened_navigation(self, value : bool):
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
         ...
 
 
@@ -1348,19 +1327,6 @@ class ChildWindow(uiItem):
 
     @horizontal_scrollbar.setter
     def horizontal_scrollbar(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -1553,7 +1519,7 @@ class CollapsingHeader(uiItem):
     space in complex interfaces.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1566,7 +1532,6 @@ class CollapsingHeader(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - closable: Whether the header displays a close button.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -1575,15 +1540,9 @@ class CollapsingHeader(uiItem):
         - leaf: Whether the header is displayed without expansion controls.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - open_on_arrow: Whether the header opens only when clicking the arrow.
         - open_on_double_click: Whether a double-click is required to open the header.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -1592,32 +1551,8 @@ class CollapsingHeader(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -1662,19 +1597,6 @@ class CollapsingHeader(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def closable(self) -> bool:
         """
         Whether the header displays a close button.
@@ -1690,63 +1612,6 @@ class CollapsingHeader(uiItem):
 
     @closable.setter
     def closable(self, value : bool):
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -1812,19 +1677,6 @@ class CollapsingHeader(uiItem):
         ...
 
 
-    @property
-    def toggled(self) -> bool:
-        """
-        (Read-only) Whether the item was just toggled open this frame.
-
-        Applies to items that can be expanded or collapsed, such as tree nodes,
-        collapsing headers, or menus. This property is only true during the frame
-        when the toggle from closed to open occurs.
-
-        """
-        ...
-
-
 class ColorButton(uiItem):
     """
     A button that displays a color preview and opens a color picker when clicked.
@@ -1842,7 +1694,7 @@ class ColorButton(uiItem):
     integrate color selection into interfaces with limited space.
 
     """
-    def __init__(self, context : Context, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1855,7 +1707,6 @@ class ColorButton(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - data_type: The data type used for color representation.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -1866,14 +1717,8 @@ class ColorButton(uiItem):
         - no_border: Whether to disable the default border around the color button.
         - no_drag_drop: Whether to disable drag and drop functionality for the button.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_tooltip: Whether to disable the default tooltip when hovering.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -1882,32 +1727,8 @@ class ColorButton(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -1953,19 +1774,6 @@ class ColorButton(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def data_type(self) -> str:
         """
         The data type used for color representation.
@@ -1983,63 +1791,6 @@ class ColorButton(uiItem):
 
     @data_type.setter
     def data_type(self, value : str):
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -2136,7 +1887,7 @@ class ColorEdit(uiItem):
     drag-and-drop functionality for transferring colors between compatible widgets.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], hdr : bool = False, height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_scaling : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], hdr : bool = False, height : float | str | baseSizing = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2151,7 +1902,6 @@ class ColorEdit(uiItem):
         - data_type: The data type used for color representation.
         - display_mode: The color display format for the input fields.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - hdr: Whether to support HDR (High Dynamic Range) colors.
@@ -2167,15 +1917,9 @@ class ColorEdit(uiItem):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_options: Whether to disable the right-click options menu.
         - no_picker: Whether to disable the color picker popup when clicking the color square.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_small_preview: Whether to hide the color square preview next to the inputs.
         - no_tooltip: Whether to disable the tooltip when hovering the preview.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -2184,32 +1928,8 @@ class ColorEdit(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -2274,19 +1994,6 @@ class ColorEdit(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def data_type(self) -> str:
         """
         The data type used for color representation.
@@ -2304,19 +2011,6 @@ class ColorEdit(uiItem):
 
     @data_type.setter
     def data_type(self, value : str):
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
         ...
 
 
@@ -2343,37 +2037,6 @@ class ColorEdit(uiItem):
 
 
     @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
     def hdr(self) -> bool:
         """
         Whether to support HDR (High Dynamic Range) colors.
@@ -2389,19 +2052,6 @@ class ColorEdit(uiItem):
 
     @hdr.setter
     def hdr(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -2597,7 +2247,7 @@ class ColorPicker(uiItem):
     value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_scaling : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2612,7 +2262,6 @@ class ColorPicker(uiItem):
         - data_type: The data type used for color representation.
         - display_mode: The color display format for the input fields.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -2624,17 +2273,11 @@ class ColorPicker(uiItem):
         - no_inputs: Whether to hide the input sliders and text fields.
         - no_label: Whether to hide the text label next to the color picker.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_side_preview: Whether to disable the large color preview on the picker's side.
         - no_small_preview: Whether to hide the color square preview next to the inputs.
         - no_tooltip: Whether to disable the tooltip when hovering the preview.
         - parent: Parent of the item in the rendering tree.
         - picker_mode: The visual style of the color picker control.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -2643,32 +2286,8 @@ class ColorPicker(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -2733,19 +2352,6 @@ class ColorPicker(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def data_type(self) -> str:
         """
         The data type used for color representation.
@@ -2763,19 +2369,6 @@ class ColorPicker(uiItem):
 
     @data_type.setter
     def data_type(self, value : str):
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
         ...
 
 
@@ -2798,50 +2391,6 @@ class ColorPicker(uiItem):
 
     @display_mode.setter
     def display_mode(self, value : str):
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -3018,7 +2567,7 @@ class Combo(uiItem):
     to the currently selected item in the dropdown list.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -3030,7 +2579,6 @@ class Combo(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
         - fit_width: Makes the combo resize to fit the width of its content.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -3042,14 +2590,8 @@ class Combo(uiItem):
         - no_arrow_button: Hides the dropdown arrow button on the combo widget.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_preview: Disables the preview of the selected item in the combo button.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
         - popup_align_left: Aligns the dropdown popup with the left edge of the combo button.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -3058,32 +2600,8 @@ class Combo(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -3107,71 +2625,6 @@ class Combo(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def deactivated_after_edited(self) -> bool:
-        """
-        (Read-only) Whether the item was edited and then deactivated in this frame.
-
-        Useful for detecting when user completes an edit operation, such as
-        finishing text input or adjusting a value. This property is only true
-        for the frame when the deactivation occurs after editing.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
     def fit_width(self) -> bool:
         """
         Makes the combo resize to fit the width of its content.
@@ -3190,24 +2643,6 @@ class Combo(uiItem):
 
 
     @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
     def height_mode(self) -> str:
         """
         Controls the height of the dropdown portion of the combo.
@@ -3222,19 +2657,6 @@ class Combo(uiItem):
 
     @height_mode.setter
     def height_mode(self, value : str):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -3309,19 +2731,6 @@ class Combo(uiItem):
 
     @popup_align_left.setter
     def popup_align_left(self, value : bool):
-        ...
-
-
-    @property
-    def toggled(self) -> bool:
-        """
-        (Read-only) Whether the item was just toggled open this frame.
-
-        Applies to items that can be expanded or collapsed, such as tree nodes,
-        collapsing headers, or menus. This property is only true during the frame
-        when the toggle from closed to open occurs.
-
-        """
         ...
 
 
@@ -5061,7 +4470,7 @@ class DrawImage(drawingItem):
     space (negative values), allowing for consistent visual sizes regardless of zoom level.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float | str | baseSizing = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -5151,7 +4560,7 @@ class DrawImage(drawingItem):
 
 
     @property
-    def height(self) -> float:
+    def height(self) -> float | str | baseSizing:
         """
         Height of the image.
 
@@ -5164,7 +4573,7 @@ class DrawImage(drawingItem):
 
 
     @height.setter
-    def height(self, value : float):
+    def height(self, value : float | str | baseSizing):
         ...
 
 
@@ -5414,7 +4823,7 @@ class DrawImage(drawingItem):
 
 
     @property
-    def width(self) -> float:
+    def width(self) -> float | str | baseSizing:
         """
         Width of the image.
 
@@ -5427,7 +4836,7 @@ class DrawImage(drawingItem):
 
 
     @width.setter
-    def width(self, value : float):
+    def width(self, value : float | str | baseSizing):
         ...
 
 
@@ -5515,7 +4924,7 @@ class DrawInWindow(uiItem):
     maintained and thus do not have a callback.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -5535,16 +4944,11 @@ class DrawInWindow(uiItem):
         - invert_y: Controls the direction of the Y coordinate axis.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
+        - no_global_scaling: Disables the global dpi scale.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - orig_x: The starting X coordinate inside the item (top-left).
         - orig_y: The starting Y coordinate inside the item (top-left).
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - relative: Determines if scaling is relative to the item's dimensions.
         - scale_x: The X scaling factor for items inside the drawing area.
@@ -5556,32 +4960,8 @@ class DrawInWindow(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -5623,45 +5003,6 @@ class DrawInWindow(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def frame(self) -> bool:
         """
         Controls whether the item has a visual frame.
@@ -5675,19 +5016,6 @@ class DrawInWindow(uiItem):
 
     @frame.setter
     def frame(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -5707,6 +5035,28 @@ class DrawInWindow(uiItem):
 
     @invert_y.setter
     def invert_y(self, value : bool):
+        ...
+
+
+    @property
+    def no_global_scaling(self) -> bool:
+        """
+        Disables the global dpi scale.
+
+        When enabled, one unit in drawing space corresponds to exactly
+        one pixel on the screen, rather than to one scaled pixel (scaled
+        to be dpi invariant).
+
+        In additions, outline thickness in screen space (items with negative
+        thickness) will not be scaled when this setting is set. Unlike the
+        previous statement, this also applies when relative is set to True.
+
+        """
+        ...
+
+
+    @no_global_scaling.setter
+    def no_global_scaling(self, value : bool):
         ...
 
 
@@ -5871,24 +5221,6 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Readonly attribute: has the button just been pressed
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Readonly attribute: is the button held
-
-        """
-        ...
-
-
-    @property
     def button(self) -> MouseButtonMask:
         """
         Mouse button mask that makes the invisible button
@@ -5938,41 +5270,6 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Readonly attribute: has the item just been clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Readonly attribute: has the button just been unpressed
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Readonly attribute: has the item just been double-clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-
-        """
-        ...
-
-
-    @property
     def handlers(self) -> list:
         """
         Writable attribute: bound handlers for the item.
@@ -5986,15 +5283,6 @@ class DrawInvisibleButton(drawingItem):
 
     @handlers.setter
     def handlers(self, value : list):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Readonly attribute: Is the mouse inside area
-
-        """
         ...
 
 
@@ -6085,53 +5373,15 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def pos_to_parent(self) -> Coord:
+    def state(self) -> ItemStateView:
         """
-        (Read-only) Readonly attribute:
-        Relative position to latest non-drawing parent
+        (Read-only) The current state of the button
 
-        """
-        ...
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
 
-
-    @property
-    def pos_to_viewport(self) -> Coord:
-        """
-        (Read-only) Readonly attribute:
-        Current screen-space position of the top left
-        of the item's rectangle. Basically the coordinate relative
-        to the top left of the viewport.
-
-        """
-        ...
-
-
-    @property
-    def pos_to_window(self) -> Coord:
-        """
-        (Read-only) Readonly attribute:
-        Relative position to the window's starting inner
-        content area.
-
-        """
-        ...
-
-
-    @property
-    def rect_size(self) -> Coord:
-        """
-        (Read-only) Readonly attribute: actual (width, height) in pixels of the item on screen
-
-        """
-        ...
-
-
-    @property
-    def resized(self) -> bool:
-        """
-        (Read-only) Readonly attribute: has the item size just changed
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
 
         """
         ...
@@ -8570,7 +7820,7 @@ class HorizontalLayout(Layout):
     how items overflow when they exceed available width.
 
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0, wrap_x : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8582,7 +7832,6 @@ class HorizontalLayout(Layout):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -8590,14 +7839,8 @@ class HorizontalLayout(Layout):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_wrap: Controls whether items wrap to the next row when exceeding available width.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - positions: X positions for items when using MANUAL alignment mode.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
@@ -8608,6 +7851,8 @@ class HorizontalLayout(Layout):
         - value: Main value associated with this item.
         - width: Requested width for the item.
         - wrap_x: X position from which items start on wrapped rows.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -8761,7 +8006,7 @@ class Image(uiItem):
     affected by FramePadding (style) and FrameRounding (style).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8775,21 +8020,15 @@ class Image(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color_multiplier: Color tint applied to the image texture.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
+        - no_global_scaling: Disables the global dpi scale.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -8800,6 +8039,8 @@ class Image(uiItem):
         - uv: UV coordinates defining the region of the texture to display.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -8865,19 +8106,6 @@ class Image(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def color_multiplier(self) -> list:
         """
         Color tint applied to the image texture.
@@ -8899,46 +8127,25 @@ class Image(uiItem):
 
 
     @property
-    def double_clicked(self) -> list:
+    def no_global_scaling(self) -> bool:
         """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
+        Disables the global dpi scale.
 
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
+        When the size of this widget is not specified, it defaults
+        to the texture size.
 
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
+        When enabled this state is enabled, the texture size will
+        not be scaled by the global dpi scaling factor.
+        That is, one pixel of the texture will match exactly to
+        one pixel on the screen, rather than to one scaled pixel (scaled
+        to be dpi invariant).
 
         """
         ...
 
 
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
+    @no_global_scaling.setter
+    def no_global_scaling(self, value : bool):
         ...
 
 
@@ -8997,7 +8204,7 @@ class InputText(uiItem):
     area instead of a single-line field.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9014,7 +8221,6 @@ class InputText(uiItem):
         - decimal: Restricts input to decimal numeric characters (0-9, +, -, .).
         - enabled: Whether the item is interactive and fully styled.
         - escape_clears_all: Makes Escape key clear the field's content instead of reverting changes.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -9027,16 +8233,10 @@ class InputText(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_horizontal_scroll: Prevents automatic horizontal scrolling as text is entered.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_spaces: Prevents spaces and tabs from being entered into the field.
         - no_undo_redo: Disables the undo/redo functionality for this input field.
         - parent: Parent of the item in the rendering tree.
         - password: Hides the input text by displaying asterisks and disables text copying.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - readonly: Makes the input field non-editable by the user.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
@@ -9049,11 +8249,13 @@ class InputText(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Configure the InputText widget with provided keyword arguments.
 
@@ -9073,7 +8275,6 @@ class InputText(uiItem):
         - decimal: Restricts input to decimal numeric characters (0-9, +, -, .).
         - enabled: Whether the item is interactive and fully styled.
         - escape_clears_all: Makes Escape key clear the field's content instead of reverting changes.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -9086,16 +8287,10 @@ class InputText(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_horizontal_scroll: Prevents automatic horizontal scrolling as text is entered.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_spaces: Prevents spaces and tabs from being entered into the field.
         - no_undo_redo: Disables the undo/redo functionality for this input field.
         - parent: Parent of the item in the rendering tree.
         - password: Hides the input text by displaying asterisks and disables text copying.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - readonly: Makes the input field non-editable by the user.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
@@ -9108,32 +8303,8 @@ class InputText(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -9214,19 +8385,6 @@ class InputText(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def ctrl_enter_for_new_line(self) -> bool:
         """
         Reverses Enter and Ctrl+Enter behavior in multiline mode.
@@ -9241,32 +8399,6 @@ class InputText(uiItem):
 
     @ctrl_enter_for_new_line.setter
     def ctrl_enter_for_new_line(self, value : bool):
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def deactivated_after_edited(self) -> bool:
-        """
-        (Read-only) Whether the item was edited and then deactivated in this frame.
-
-        Useful for detecting when user completes an edit operation, such as
-        finishing text input or adjusting a value. This property is only true
-        for the frame when the deactivation occurs after editing.
-
-        """
         ...
 
 
@@ -9289,32 +8421,6 @@ class InputText(uiItem):
 
 
     @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
     def escape_clears_all(self) -> bool:
         """
         Makes Escape key clear the field's content instead of reverting changes.
@@ -9330,24 +8436,6 @@ class InputText(uiItem):
 
     @escape_clears_all.setter
     def escape_clears_all(self, value : bool):
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
         ...
 
 
@@ -9385,19 +8473,6 @@ class InputText(uiItem):
 
     @hint.setter
     def hint(self, value : str):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -9599,7 +8674,7 @@ class InputValue(uiItem):
     to multi-dimensional vector editing.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9617,7 +8692,6 @@ class InputValue(uiItem):
         - empty_if_zero: Displays an empty field when the value is zero.
         - enabled: Whether the item is interactive and fully styled.
         - escape_clears_all: Makes Escape key clear the field's content.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - format: Format of the input data type.
         - handlers: List of event handlers attached to this item.
@@ -9630,15 +8704,9 @@ class InputValue(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_horizontal_scroll: Disables automatic horizontal scrolling during input.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_undo_redo: Disables the undo/redo functionality for this input field.
         - parent: Parent of the item in the rendering tree.
         - password: Hides the input by displaying asterisks and disables copying.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - print_format: Format string for displaying the numeric value.
         - readonly: Makes the input field non-editable by the user.
@@ -9653,11 +8721,13 @@ class InputValue(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_scaling : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Configure the InputValue widget with provided keyword arguments.
 
@@ -9679,7 +8749,6 @@ class InputValue(uiItem):
         - empty_if_zero: Displays an empty field when the value is zero.
         - enabled: Whether the item is interactive and fully styled.
         - escape_clears_all: Makes Escape key clear the field's content.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - format: Format of the input data type.
         - handlers: List of event handlers attached to this item.
@@ -9692,15 +8761,9 @@ class InputValue(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_horizontal_scroll: Disables automatic horizontal scrolling during input.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_undo_redo: Disables the undo/redo functionality for this input field.
         - parent: Parent of the item in the rendering tree.
         - password: Hides the input by displaying asterisks and disables copying.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - print_format: Format string for displaying the numeric value.
         - readonly: Makes the input field non-editable by the user.
@@ -9715,32 +8778,8 @@ class InputValue(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -9818,32 +8857,6 @@ class InputValue(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
     def decimal(self) -> bool:
         """
         Restricts input to decimal numeric characters.
@@ -9857,32 +8870,6 @@ class InputValue(uiItem):
 
     @decimal.setter
     def decimal(self, value : bool):
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
         ...
 
 
@@ -9941,24 +8928,6 @@ class InputValue(uiItem):
 
 
     @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
     def format(self) -> str:
         """
         Format of the input data type.
@@ -9991,19 +8960,6 @@ class InputValue(uiItem):
 
     @hexadecimal.setter
     def hexadecimal(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -10378,12 +9334,15 @@ class Layout(uiItem):
     content area available locally within the window, or if the last item has
     changed.
 
-    The layout item works by changing the positioning policy and the target
-    position of its children, and thus there is no guarantee that the user set
-    positioning and position states of the children are preserved.
+    The layout item works by changing the x, y and no_newline fields
+    of its children, and thus there is no guarantee that the user set
+    x, y and no_newline fields of the children are preserved.
+
+    If an item is moved out of the layout, the user has to manually
+    set the x, y and no_newline fields of the item to their new desired values.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -10394,7 +9353,6 @@ class Layout(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -10402,13 +9360,7 @@ class Layout(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -10417,6 +9369,8 @@ class Layout(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -10434,32 +9388,6 @@ class Layout(uiItem):
 
 
     @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
-        """
-        ...
-
-
-    @property
     def callback(self) -> DCGCallable | None:
         """
         List of callbacks to invoke when the item's value changes.
@@ -10474,147 +9402,6 @@ class Layout(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def content_pos(self) -> Coord:
-        """
-        (Read-only) Position of the content area's top-left corner.
-
-        This property provides the viewport-relative coordinates of the starting
-        point for an item's content area. This is where child elements begin to be
-        placed by default.
-
-        Used together with content_region_avail, this defines the rectangle
-        available for child elements.
-
-        """
-        ...
-
-
-    @property
-    def content_region_avail(self) -> Coord:
-        """
-        (Read-only) Available space for child items.
-
-        For container items like windows, child windows, this
-        property represents the available space for placing child items. This is
-        the item's inner area after accounting for padding, borders, and other
-        non-content elements.
-
-        Areas that require scrolling to see are not included in this measurement.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def deactivated_after_edited(self) -> bool:
-        """
-        (Read-only) Whether the item was edited and then deactivated in this frame.
-
-        Useful for detecting when user completes an edit operation, such as
-        finishing text input or adjusting a value. This property is only true
-        for the frame when the deactivation occurs after editing.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
-        ...
-
-
-    @property
-    def toggled(self) -> bool:
-        """
-        (Read-only) Whether the item was just toggled open this frame.
-
-        Applies to items that can be expanded or collapsed, such as tree nodes,
-        collapsing headers, or menus. This property is only true during the frame
-        when the toggle from closed to open occurs.
-
-        """
         ...
 
 
@@ -10632,7 +9419,7 @@ class ListBox(uiItem):
     the text of the selected item.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -10643,7 +9430,6 @@ class ListBox(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -10652,14 +9438,8 @@ class ListBox(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - num_items_shown_when_open: Number of items visible in the listbox before scrolling is required.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -10668,6 +9448,8 @@ class ListBox(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -10687,76 +9469,6 @@ class ListBox(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -10909,7 +9621,7 @@ A Menu creates a menu container within a menu bar.
     Menus must be created within a MenuBar or as a child of another Menu.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -10920,7 +9632,6 @@ A Menu creates a menu container within a menu bar.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -10928,13 +9639,7 @@ A Menu creates a menu container within a menu bar.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -10943,32 +9648,8 @@ A Menu creates a menu container within a menu bar.
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -10988,89 +9669,6 @@ A Menu creates a menu container within a menu bar.
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
-        ...
-
-
-    @property
-    def toggled(self) -> bool:
-        """
-        (Read-only) Whether the item was just toggled open this frame.
-
-        Applies to items that can be expanded or collapsed, such as tree nodes,
-        collapsing headers, or menus. This property is only true during the frame
-        when the toggle from closed to open occurs.
-
-        """
         ...
 
 
@@ -11092,7 +9690,7 @@ class MenuBar(uiItem):
     window, it creates a local menu bar for that window.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11103,7 +9701,6 @@ class MenuBar(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -11111,13 +9708,7 @@ class MenuBar(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -11126,6 +9717,8 @@ class MenuBar(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -11148,95 +9741,6 @@ class MenuBar(uiItem):
         ...
 
 
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def content_pos(self) -> Coord:
-        """
-        (Read-only) Position of the content area's top-left corner.
-
-        This property provides the viewport-relative coordinates of the starting
-        point for an item's content area. This is where child elements begin to be
-        placed by default.
-
-        Used together with content_region_avail, this defines the rectangle
-        available for child elements.
-
-        """
-        ...
-
-
-    @property
-    def content_region_avail(self) -> Coord:
-        """
-        (Read-only) Available space for child items.
-
-        For container items like windows, child windows, this
-        property represents the available space for placing child items. This is
-        the item's inner area after accounting for padding, borders, and other
-        non-content elements.
-
-        Areas that require scrolling to see are not included in this measurement.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
-        ...
-
-
 class MenuItem(uiItem):
     """
     A clickable menu item that can be used inside Menu components.
@@ -11251,7 +9755,7 @@ class MenuItem(uiItem):
     SharedBool value.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11263,7 +9767,6 @@ class MenuItem(uiItem):
         - check: Whether the menu item displays a checkmark.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -11271,13 +9774,7 @@ class MenuItem(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -11287,32 +9784,8 @@ class MenuItem(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -11351,102 +9824,6 @@ class MenuItem(uiItem):
 
     @check.setter
     def check(self, value : bool):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def deactivated_after_edited(self) -> bool:
-        """
-        (Read-only) Whether the item was edited and then deactivated in this frame.
-
-        Useful for detecting when user completes an edit operation, such as
-        finishing text input or adjusting a value. This property is only true
-        for the frame when the deactivation occurs after editing.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -12373,7 +10750,7 @@ class Plot(uiItem):
     and can appear in the legend.
 
     """
-    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_scaling : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -12408,16 +10785,10 @@ class Plot(uiItem):
         - no_menus: Whether to disable context menus.
         - no_mouse_pos: Whether to hide the mouse position text.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_title: Whether to hide the plot title.
         - pan_button: Mouse button used for panning the plot.
         - pan_mod: Keyboard modifier required for panning the plot.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -12429,6 +10800,8 @@ class Plot(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         - zoom_mod: Keyboard modifier required for mouse wheel zooming.
         - zoom_rate: Zooming speed when using the mouse wheel.
         """
@@ -12575,51 +10948,6 @@ class Plot(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def content_pos(self) -> Coord:
-        """
-        (Read-only) Position of the content area's top-left corner.
-
-        This property provides the viewport-relative coordinates of the starting
-        point for an item's content area. This is where child elements begin to be
-        placed by default.
-
-        Used together with content_region_avail, this defines the rectangle
-        available for child elements.
-
-        """
-        ...
-
-
-    @property
-    def content_region_avail(self) -> Coord:
-        """
-        (Read-only) Available space for child items.
-
-        For container items like windows, child windows, this
-        property represents the available space for placing child items. This is
-        the item's inner area after accounting for padding, borders, and other
-        non-content elements.
-
-        Areas that require scrolling to see are not included in this measurement.
-
-        """
-        ...
-
-
-    @property
     def crosshairs(self) -> bool:
         """
         Whether to display crosshair lines at the mouse position.
@@ -12634,19 +10962,6 @@ class Plot(uiItem):
 
     @crosshairs.setter
     def crosshairs(self, value : bool):
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
         ...
 
 
@@ -12683,19 +10998,6 @@ class Plot(uiItem):
 
     @fit_button.setter
     def fit_button(self, value : MouseButton):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -12997,7 +11299,7 @@ class PlotAnnotation(plotElement):
     background colors, offsets, and clamping behavior to ensure visibility.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float = 0.0, y : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -13098,7 +11400,7 @@ class PlotAnnotation(plotElement):
 
 
     @property
-    def x(self) -> float:
+    def x(self) -> float | str | baseSizing:
         """
         X coordinate of the annotation in plot units.
 
@@ -13111,12 +11413,12 @@ class PlotAnnotation(plotElement):
 
 
     @x.setter
-    def x(self, value : float):
+    def x(self, value : float | str | baseSizing):
         ...
 
 
     @property
-    def y(self) -> float:
+    def y(self) -> float | str | baseSizing:
         """
         Y coordinate of the annotation in plot units.
 
@@ -13129,7 +11431,7 @@ class PlotAnnotation(plotElement):
 
 
     @y.setter
-    def y(self, value : float):
+    def y(self, value : float | str | baseSizing):
         ...
 
 
@@ -13221,19 +11523,6 @@ class PlotAxisConfig(baseItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether the axis was clicked in the current frame.
-
-        Returns a tuple containing the clicked state for each mouse button.
-        This state is reset on the next frame, so it's recommended to use
-        handlers to respond to click events rather than polling this property.
-
-        """
-        ...
-
-
-    @property
     def constraint_max(self) -> float:
         """
         Maximum allowed value for the axis maximum.
@@ -13319,18 +11608,6 @@ class PlotAxisConfig(baseItem):
 
     @handlers.setter
     def handlers(self, value : list):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse is hovering over the axis label area.
-
-        Useful for implementing custom hover effects or tooltips for axis
-        elements. This state updates automatically during rendering.
-
-        """
         ...
 
 
@@ -13718,6 +11995,21 @@ class PlotAxisConfig(baseItem):
 
     @scale.setter
     def scale(self, value : AxisScale):
+        ...
+
+
+    @property
+    def state(self) -> ItemStateView:
+        """
+        (Read-only) The current state of the item
+
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
+
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
+
+        """
         ...
 
 
@@ -15034,7 +13326,7 @@ class PlotPieChart(plotElementWithLegend):
     proportions of the values as provided.
 
     """
-    def __init__(self, context : Context, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float = 0.0, y : float = 0.0):
+    def __init__(self, context : Context, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15195,7 +13487,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @property
-    def x(self) -> float:
+    def x(self) -> float | str | baseSizing:
         """
         X coordinate of pie chart center in plot units.
 
@@ -15207,12 +13499,12 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @x.setter
-    def x(self, value : float):
+    def x(self, value : float | str | baseSizing):
         ...
 
 
     @property
-    def y(self) -> float:
+    def y(self) -> float | str | baseSizing:
         """
         Y coordinate of pie chart center in plot units.
 
@@ -15224,7 +13516,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @y.setter
-    def y(self, value : float):
+    def y(self, value : float | str | baseSizing):
         ...
 
 
@@ -15464,7 +13756,7 @@ class ProgressBar(uiItem):
     inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15475,7 +13767,6 @@ class ProgressBar(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -15483,14 +13774,8 @@ class ProgressBar(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - overlay: Optional text to display centered in the progress bar.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -15499,6 +13784,8 @@ class ProgressBar(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -15518,63 +13805,6 @@ class ProgressBar(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -15597,7 +13827,7 @@ class ProgressBar(uiItem):
 
 
 class RadioButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15608,7 +13838,6 @@ class RadioButton(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -15618,13 +13847,7 @@ class RadioButton(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -15633,32 +13856,8 @@ class RadioButton(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -15682,89 +13881,6 @@ class RadioButton(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def deactivated_after_edited(self) -> bool:
-        """
-        (Read-only) Whether the item was edited and then deactivated in this frame.
-
-        Useful for detecting when user completes an edit operation, such as
-        finishing text input or adjusting a value. This property is only true
-        for the frame when the deactivation occurs after editing.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
     def horizontal(self) -> bool:
         """
         Writable attribute: Horizontal vs vertical placement
@@ -15775,19 +13891,6 @@ class RadioButton(uiItem):
 
     @horizontal.setter
     def horizontal(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -15875,7 +13978,7 @@ class Selectable(uiItem):
     property.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15888,7 +13991,6 @@ class Selectable(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - disable_popup_close: Controls whether clicking the selectable will close parent popup windows.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -15897,13 +13999,7 @@ class Selectable(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -15913,32 +14009,8 @@ class Selectable(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -15981,45 +14053,6 @@ class Selectable(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def deactivated_after_edited(self) -> bool:
-        """
-        (Read-only) Whether the item was edited and then deactivated in this frame.
-
-        Useful for detecting when user completes an edit operation, such as
-        finishing text input or adjusting a value. This property is only true
-        for the frame when the deactivation occurs after editing.
-
-        """
-        ...
-
-
-    @property
     def disable_popup_close(self) -> bool:
         """
         Controls whether clicking the selectable will close parent popup windows.
@@ -16039,50 +14072,6 @@ class Selectable(uiItem):
 
 
     @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
     def highlighted(self) -> bool:
         """
         Controls whether the selectable appears highlighted regardless of hover state.
@@ -16098,19 +14087,6 @@ class Selectable(uiItem):
 
     @highlighted.setter
     def highlighted(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -16145,7 +14121,7 @@ class Separator(uiItem):
     creating a section header. Without a label, it renders as a simple line.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16163,13 +14139,7 @@ class Separator(uiItem):
         - label: Text to display centered on the separator line.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -16178,6 +14148,8 @@ class Separator(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -17042,7 +15014,7 @@ class SimplePlot(uiItem):
     and modified through the value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17054,7 +15026,6 @@ class SimplePlot(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -17063,14 +15034,8 @@ class SimplePlot(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - overlay: Text to display as an overlay on the plot.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scale_max: The maximum value of the plot's vertical scale.
         - scale_min: The minimum value of the plot's vertical scale.
@@ -17081,32 +15046,8 @@ class SimplePlot(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -17148,63 +15089,6 @@ class SimplePlot(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
     def histogram(self) -> bool:
         """
         Determines if the plot displays data as a histogram.
@@ -17218,19 +15102,6 @@ class SimplePlot(uiItem):
 
     @histogram.setter
     def histogram(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -17302,7 +15173,7 @@ class Slider(uiItem):
     different display formats.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17315,7 +15186,6 @@ class Slider(uiItem):
         - clamped: Whether the slider value should be clamped even when set via keyboard.
         - drag: Whether to use a 'drag' slider rather than a regular one.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - format: Format of the slider's data type.
         - handlers: List of event handlers attached to this item.
@@ -17328,13 +15198,7 @@ class Slider(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_input: Whether to disable keyboard input for the slider.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - print_format: Format string for converting the slider value to text for display.
         - round_to_format: Whether to round values according to the print_format.
@@ -17348,11 +15212,13 @@ class Slider(uiItem):
         - value: Main value associated with this item.
         - vertical: Whether to display the slider vertically instead of horizontally.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Configure the slider with the provided keyword arguments.
 
@@ -17369,7 +15235,6 @@ class Slider(uiItem):
         - clamped: Whether the slider value should be clamped even when set via keyboard.
         - drag: Whether to use a 'drag' slider rather than a regular one.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - format: Format of the slider's data type.
         - handlers: List of event handlers attached to this item.
@@ -17382,13 +15247,7 @@ class Slider(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_input: Whether to disable keyboard input for the slider.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - print_format: Format string for converting the slider value to text for display.
         - round_to_format: Whether to round values according to the print_format.
@@ -17402,32 +15261,8 @@ class Slider(uiItem):
         - value: Main value associated with this item.
         - vertical: Whether to display the slider vertically instead of horizontally.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -17469,45 +15304,6 @@ class Slider(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def drag(self) -> bool:
         """
         Whether to use a 'drag' slider rather than a regular one.
@@ -17527,37 +15323,6 @@ class Slider(uiItem):
 
 
     @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
     def format(self) -> str:
         """
         Format of the slider's data type.
@@ -17573,19 +15338,6 @@ class Slider(uiItem):
 
     @format.setter
     def format(self, value : str):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -17768,7 +15520,7 @@ class Spacer(uiItem):
     of the precise requested size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17786,13 +15538,7 @@ class Spacer(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -17801,6 +15547,8 @@ class Spacer(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -17837,7 +15585,7 @@ class Subplots(uiItem):
     order by default, but can be changed to column-major ordering as needed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_scaling : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17861,14 +15609,8 @@ class Subplots(uiItem):
         - no_menus: Whether to disable subplot context menus.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_resize: Whether to disable subplot resize splitters.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_title: Whether to hide subplot titles.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - row_ratios: Size ratios for subplot rows.
         - rows: Number of subplot rows in the grid.
@@ -17880,6 +15622,8 @@ class Subplots(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -17899,19 +15643,6 @@ class Subplots(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
         ...
 
 
@@ -17967,32 +15698,6 @@ class Subplots(uiItem):
 
     @cols.setter
     def cols(self, value : int):
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -18158,7 +15863,7 @@ class Tab(uiItem):
     addition to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18170,7 +15875,6 @@ class Tab(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - closable: Whether the tab displays a close button.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -18180,14 +15884,8 @@ class Tab(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_reorder: Whether tab reordering is disabled for this tab.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_tooltip: Whether tooltips are disabled for this tab.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -18197,32 +15895,8 @@ class Tab(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -18246,19 +15920,6 @@ class Tab(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def closable(self) -> bool:
         """
         Whether the tab displays a close button.
@@ -18274,63 +15935,6 @@ class Tab(uiItem):
 
     @closable.setter
     def closable(self, value : bool):
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -18393,19 +15997,6 @@ class Tab(uiItem):
 
 
     @property
-    def toggled(self) -> bool:
-        """
-        (Read-only) Whether the item was just toggled open this frame.
-
-        Applies to items that can be expanded or collapsed, such as tree nodes,
-        collapsing headers, or menus. This property is only true during the frame
-        when the toggle from closed to open occurs.
-
-        """
-        ...
-
-
-    @property
     def trailing(self) -> bool:
         """
         Whether the tab is positioned at the right side of the tab bar.
@@ -18443,7 +16034,7 @@ class TabBar(uiItem):
     hidden until selected.
 
     """
-    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scaling : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18456,7 +16047,6 @@ class TabBar(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -18465,16 +16055,10 @@ class TabBar(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_close_with_middle_mouse_button: Whether closing tabs with middle mouse button is disabled.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_scrolling_button: Whether scrolling buttons are hidden when tabs exceed the visible area.
         - no_tab_list_popup_button: Whether the popup button for the tab list is disabled.
         - no_tooltip: Whether tooltips are disabled for all tabs in this tab bar.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - reorderable: Whether tabs can be manually dragged to reorder them.
         - resize_to_fit: Whether tabs should resize when they don't fit the available space.
@@ -18486,32 +16070,8 @@ class TabBar(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -18569,76 +16129,6 @@ class TabBar(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -18792,7 +16282,7 @@ class TabButton(uiItem):
     using themes.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_scaling : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18803,7 +16293,6 @@ class TabButton(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -18813,14 +16302,8 @@ class TabButton(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_reorder: Prevents this tab button from being reordered or crossed over.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_tooltip: Disables the tooltip that would appear when hovering over the tab button.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -18830,32 +16313,8 @@ class TabButton(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -18875,102 +16334,6 @@ class TabButton(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def deactivated_after_edited(self) -> bool:
-        """
-        (Read-only) Whether the item was edited and then deactivated in this frame.
-
-        Useful for detecting when user completes an edit operation, such as
-        finishing text input or adjusting a value. This property is only true
-        for the frame when the deactivation occurs after editing.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def edited(self) -> bool:
-        """
-        (Read-only) Whether the item's value was modified this frame.
-
-        This flag indicates that the user has made a change to the item's value,
-        such as typing in an input field or adjusting a slider. It is only true
-        for the frame when the edit occurs.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -19064,7 +16427,7 @@ Table widget with advanced display and interaction capabilities.
     and behavior can be customized through column and row configurations.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float | str | baseSizing = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -19085,17 +16448,11 @@ Table widget with advanced display and interaction capabilities.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - num_cols_frozen: Number of columns with scroll frozen.
         - num_cols_visible: Override the number of visible columns in the table.
         - num_rows_frozen: Number of rows with scroll frozen.
         - num_rows_visible: Override the number of visible rows in the table.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -19104,6 +16461,8 @@ Table widget with advanced display and interaction capabilities.
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -19131,19 +16490,6 @@ Table widget with advanced display and interaction capabilities.
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def col_config(self) -> TableColConfigView:
         """(Read-only) Access interface for column configurations.
 
@@ -19153,19 +16499,6 @@ Table widget with advanced display and interaction capabilities.
 
         The view supports both indexing (col_config[0]) and attribute setting
         (col_config(0, 'width', 100)).
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
 
         """
         ...
@@ -19211,19 +16544,6 @@ Table widget with advanced display and interaction capabilities.
 
     @header.setter
     def header(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -19278,7 +16598,7 @@ class TableColConfig(baseItem):
     - HoveredHandler to detect when the user hovers over the column
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -19314,19 +16634,6 @@ class TableColConfig(baseItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether the column header has just been clicked.
-
-        Returns a tuple of length 5 containing the individual test for each mouse
-        button. The value is reset at the beginning of the next frame, so it's
-        generally better to use handlers to react to clicks.
-
-        """
-        ...
-
-
-    @property
     def default_sort(self) -> bool:
         """
         Whether the column is set as the default sorting column.
@@ -19340,19 +16647,6 @@ class TableColConfig(baseItem):
 
     @default_sort.setter
     def default_sort(self, value : bool):
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether the column header has just been double-clicked.
-
-        Returns a tuple of length 5 containing the individual test for each mouse
-        button. The value is reset at the beginning of the next frame, so it's
-        generally better to use handlers to react to double-clicks.
-
-        """
         ...
 
 
@@ -19388,18 +16682,6 @@ class TableColConfig(baseItem):
 
     @handlers.setter
     def handlers(self, value : list):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse is currently over the column header.
-
-        Only one element is hovered at a time, so subitems/subwindows
-        take priority over their parent.
-
-        """
         ...
 
 
@@ -19640,6 +16922,21 @@ class TableColConfig(baseItem):
 
 
     @property
+    def state(self) -> ItemStateView:
+        """
+        (Read-only) The current state of the column header
+
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
+
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
+
+        """
+        ...
+
+
+    @property
     def stretch(self):
         """
         The column's sizing behavior.
@@ -19677,18 +16974,7 @@ class TableColConfig(baseItem):
 
 
     @property
-    def visible(self) -> bool:
-        """
-        (Read-only) Whether the column is currently visible on screen.
-
-        A column is visible when it's not clipped and is enabled.
-
-        """
-        ...
-
-
-    @property
-    def width(self) -> float:
+    def width(self) -> float | str | baseSizing:
         """
         The fixed width of the column in pixels.
 
@@ -19702,23 +16988,7 @@ class TableColConfig(baseItem):
 
 
     @width.setter
-    def width(self, value : float):
-        ...
-
-
-class TableColumnConfig(baseItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
-        """
-        Parameters
-        ----------
-        - attach: Whether to attach the item to a parent. Default is None (auto)
-        - before: Attach the item just before the target item. Default is None (disabled)
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - next_sibling: Child of the parent rendered just after this item.
-        - parent: Parent of the item in the rendering tree.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - user_data: User data of any type.
-        """
+    def width(self, value : float | str | baseSizing):
         ...
 
 
@@ -19861,7 +17131,7 @@ class Text(uiItem):
     selectable.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float = 0.0, wrap : int = -1):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -19874,20 +17144,13 @@ class Text(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the text displayed by the widget.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - indent: Horizontal indentation applied to the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -19897,32 +17160,8 @@ class Text(uiItem):
         - value: Main value associated with this item.
         - width: Requested width for the item.
         - wrap: Width in pixels at which to wrap the text.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -19964,19 +17203,6 @@ class Text(uiItem):
 
 
     @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
     def color(self) -> Color:
         """
         Color of the text displayed by the widget.
@@ -19991,63 +17217,6 @@ class Text(uiItem):
 
     @color.setter
     def color(self, value : Color):
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -20091,7 +17260,7 @@ class TextValue(uiItem):
     to control precision, alignment, and presentation.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -20109,13 +17278,7 @@ class TextValue(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - print_format: The format string used to convert values to display text.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
@@ -20125,6 +17288,8 @@ class TextValue(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -20144,45 +17309,6 @@ class TextValue(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -20407,7 +17533,7 @@ class Texture(baseItem):
 
 
     @property
-    def height(self) -> int:
+    def height(self) -> float | str | baseSizing:
         """
         (Read-only) Height of the current texture content in pixels.
 
@@ -20476,7 +17602,7 @@ class Texture(baseItem):
 
 
     @property
-    def width(self) -> int:
+    def width(self) -> float | str | baseSizing:
         """
         (Read-only) Width of the current texture content in pixels.
 
@@ -22848,7 +19974,7 @@ class TimeWatcher(uiItem):
     GPU data, etc), not to GPU rendering time.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -22866,13 +19992,7 @@ class TimeWatcher(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -22881,6 +20001,8 @@ class TimeWatcher(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -22982,7 +20104,7 @@ class Tooltip(uiItem):
     can be customized with properties like delay time and activity-based hiding.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23003,13 +20125,7 @@ class Tooltip(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -23019,6 +20135,8 @@ class Tooltip(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -23061,38 +20179,6 @@ class Tooltip(uiItem):
 
     @condition_from_handler.setter
     def condition_from_handler(self, value):
-        ...
-
-
-    @property
-    def content_pos(self) -> Coord:
-        """
-        (Read-only) Position of the content area's top-left corner.
-
-        This property provides the viewport-relative coordinates of the starting
-        point for an item's content area. This is where child elements begin to be
-        placed by default.
-
-        Used together with content_region_avail, this defines the rectangle
-        available for child elements.
-
-        """
-        ...
-
-
-    @property
-    def content_region_avail(self) -> Coord:
-        """
-        (Read-only) Available space for child items.
-
-        For container items like windows, child windows, this
-        property represents the available space for placing child items. This is
-        the item's inner area after accounting for padding, borders, and other
-        non-content elements.
-
-        Areas that require scrolling to see are not included in this measurement.
-
-        """
         ...
 
 
@@ -23181,7 +20267,7 @@ class TreeNode(uiItem):
     to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23193,7 +20279,6 @@ class TreeNode(uiItem):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -23202,15 +20287,9 @@ class TreeNode(uiItem):
         - leaf: Whether the node is displayed as a leaf with no expand/collapse control.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - open_on_arrow: Whether the node opens only when clicking the arrow.
         - open_on_double_click: Whether a double-click is required to open the node.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - selectable: Whether the TreeNode appears selected when opened.
@@ -23222,32 +20301,8 @@ class TreeNode(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def activated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned to the active state this frame.
-
-        This property is only true during the frame when the item becomes active,
-        making it useful for one-time actions. For persistent monitoring, use
-        event handlers instead as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def active(self) -> bool:
-        """
-        (Read-only) Whether the item is in an active state.
-
-        Active states vary by item type: for buttons it means pressed; for tabs,
-        selected; for input fields, being edited. This state is tracked between
-        frames to enable interactive behaviors.
-
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -23288,76 +20343,6 @@ class TreeNode(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def clicked(self) -> tuple:
-        """
-        (Read-only) Whether any mouse button was clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def deactivated(self) -> bool:
-        """
-        (Read-only) Whether the item just transitioned from active to inactive this frame.
-
-        This property is only true during the frame when deactivation occurs.
-        For persistent monitoring across frames, use event handlers instead
-        as they provide more robust state tracking.
-
-        """
-        ...
-
-
-    @property
-    def double_clicked(self) -> list:
-        """
-        (Read-only) Whether any mouse button was double-clicked on this item this frame.
-
-        Returns a tuple of five boolean values, one for each possible mouse button.
-        This property is only true during the frame when the double-click occurs.
-        For consistent event handling across frames, use click handlers instead.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -23478,34 +20463,21 @@ class TreeNode(uiItem):
         ...
 
 
-    @property
-    def toggled(self) -> bool:
-        """
-        (Read-only) Whether the item was just toggled open this frame.
-
-        Applies to items that can be expanded or collapsed, such as tree nodes,
-        collapsing headers, or menus. This property is only true during the frame
-        when the toggle from closed to open occurs.
-
-        """
-        ...
-
-
 class VerticalLayout(Layout):
     """
     A layout that organizes items vertically from top to bottom.
 
     VerticalLayout arranges child elements in a column, with customizable
-    alignment modes, spacing, and positioning options. It can align items to
+    alignment modes, spacing, and wrapping options. It can align items to
     the top or bottom edge, center them, distribute them evenly using the
     justified mode, or position them manually.
 
     The layout automatically tracks content height changes and repositions
-    children when needed. Different alignment modes can be used to control
-    how items are positioned within the available vertical space.
+    children when needed. Wrapping behavior can be customized to control
+    how items overflow when they exceed available height.
 
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23517,7 +20489,6 @@ class VerticalLayout(Layout):
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
@@ -23525,13 +20496,7 @@ class VerticalLayout(Layout):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - positions: Y positions for items when using MANUAL alignment mode.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
@@ -23541,6 +20506,10 @@ class VerticalLayout(Layout):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - wrap: Controls whether items wrap to the next column when exceeding available height.
+        - wrap_y: Y position from which items start on wrapped columns.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -23558,7 +20527,7 @@ class VerticalLayout(Layout):
         MANUAL: items are positioned at the requested positions
 
         For TOP/BOTTOM/CENTER, ItemSpacing's style can be used to control
-        spacing between items. Default is TOP.
+        spacing between the items. Default is TOP.
 
         """
         ...
@@ -23593,6 +20562,43 @@ class VerticalLayout(Layout):
         ...
 
 
+    @property
+    def wrap(self) -> bool:
+        """
+        Controls whether items wrap to the next column when exceeding available height.
+
+        When set to False (default), items will continue in the same column even if they exceed
+        the layout's height. When True, items that don't fit will
+        continue in the next column.
+
+        """
+        ...
+
+
+    @wrap.setter
+    def wrap(self, value : bool):
+        ...
+
+
+    @property
+    def wrap_y(self) -> float:
+        """
+        Y position from which items start on wrapped columns.
+
+        When items wrap to a second or later column, this value determines the
+        vertical offset from the starting position. The value is in pixels
+        and must be scaled if needed. The position is clamped to ensure items
+        always start at a position >= 0 relative to the window content area.
+
+        """
+        ...
+
+
+    @wrap_y.setter
+    def wrap_y(self, value : float):
+        ...
+
+
 class Viewport(baseItem):
     """
     The viewport corresponds to the main item containing all the visuals.
@@ -23600,7 +20606,7 @@ class Viewport(baseItem):
     It is decorated by the operating system and can be minimized/maximized/made fullscreen.
 
     """
-    def __init__(self, context : Context, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Parameters
         ----------
@@ -23636,6 +20642,7 @@ class Viewport(baseItem):
         - scale: Multiplicative scale applied on top of the system DPI scaling.
         - theme: Global theme applied to all elements within the viewport.
         - title: Text displayed in the viewport window's title bar.
+        - transparent: Whether the window is created with a back buffer allowing for transparent windows
         - user_data: User data of any type.
         - visible: State to control whether the viewport is associated to a window.
         - vsync: Whether vertical synchronization is enabled.
@@ -23651,7 +20658,7 @@ class Viewport(baseItem):
         ...
 
 
-    def initialize(self, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : int = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : int = 853, x_pos : int = 100, y_pos : int = 100):
+    def initialize(self, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Initialize the viewport for rendering and show it.
 
@@ -23699,6 +20706,7 @@ class Viewport(baseItem):
         - scale: Multiplicative scale applied on top of the system DPI scaling.
         - theme: Global theme applied to all elements within the viewport.
         - title: Text displayed in the viewport window's title bar.
+        - transparent: Whether the window is created with a back buffer allowing for transparent windows
         - user_data: User data of any type.
         - visible: State to control whether the viewport is associated to a window.
         - vsync: Whether vertical synchronization is enabled.
@@ -23989,7 +20997,7 @@ Render one frame of the application.
 
 
     @property
-    def height(self) -> int:
+    def height(self) -> float | str | baseSizing:
         """
         DPI invariant height of the viewport window.
 
@@ -24003,7 +21011,7 @@ Render one frame of the application.
 
 
     @height.setter
-    def height(self, value : int):
+    def height(self, value : float | str | baseSizing):
         ...
 
 
@@ -24329,6 +21337,22 @@ Render one frame of the application.
 
 
     @property
+    def transparent(self) -> bool:
+        """
+        Whether the window is created with a back buffer allowing for transparent windows
+
+        This attribute must be set before or during initialize()
+
+        """
+        ...
+
+
+    @transparent.setter
+    def transparent(self, value : bool):
+        ...
+
+
+    @property
     def visible(self) -> bool:
         """
         State to control whether the viewport is associated to a window.
@@ -24399,7 +21423,7 @@ Render one frame of the application.
 
 
     @property
-    def width(self) -> int:
+    def width(self) -> float | str | baseSizing:
         """
         DPI invariant width of the viewport window.
 
@@ -24413,7 +21437,7 @@ Render one frame of the application.
 
 
     @width.setter
-    def width(self, value : int):
+    def width(self, value : float | str | baseSizing):
         ...
 
 
@@ -24512,7 +21536,7 @@ class Window(uiItem):
     menu bars can be attached using menubar items.
 
     """
-    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, focused : bool = False, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scaling : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., on_drop : Any = ..., parent : Viewport | None = None, popup : bool = False, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -24527,7 +21551,6 @@ class Window(uiItem):
         - children: List of all the children of the item, from first rendered, to last rendered.
         - collapsed: Controls and reflects the collapsed state of the window.
         - enabled: Whether the item is interactive and fully styled.
-        - focused: Whether this item has input focus.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - has_close_button: Controls whether the window displays a close button in its title bar.
@@ -24551,19 +21574,12 @@ class Window(uiItem):
         - no_open_over_existing_popup: Prevents opening if another popup is already visible.
         - no_resize: Disables resizing of the window by the user.
         - no_saved_settings: Prevents the window from saving its position and size between sessions.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - no_scroll_with_mouse: Disables scrolling the window content with the mouse wheel.
         - no_scrollbar: Hides the scrollbars when content overflows.
         - no_title_bar: Hides the title bar of the window.
         - on_close: Callback that will be triggered when the window is closed.
-        - on_drop: Callback triggered when items are drag-dropped onto the window.
         - parent: Parent of the item in the rendering tree.
         - popup: Makes the window a popup that closes when clicking outside it.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - primary: Controls whether this window serves as the primary application window.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
@@ -24574,6 +21590,8 @@ class Window(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -24670,56 +21688,6 @@ class Window(uiItem):
 
 
     @property
-    def content_pos(self) -> Coord:
-        """
-        (Read-only) Position of the content area's top-left corner.
-
-        This property provides the viewport-relative coordinates of the starting
-        point for an item's content area. This is where child elements begin to be
-        placed by default.
-
-        Used together with content_region_avail, this defines the rectangle
-        available for child elements.
-
-        """
-        ...
-
-
-    @property
-    def content_region_avail(self) -> Coord:
-        """
-        (Read-only) Available space for child items.
-
-        For container items like windows, child windows, this
-        property represents the available space for placing child items. This is
-        the item's inner area after accounting for padding, borders, and other
-        non-content elements.
-
-        Areas that require scrolling to see are not included in this measurement.
-
-        """
-        ...
-
-
-    @property
-    def focused(self) -> bool:
-        """
-        Whether this item has input focus.
-
-        For windows, focus means the window is at the top of the stack. For
-        input items, focus means keyboard inputs are directed to this item.
-        Unlike hover state, focus persists until explicitly changed or lost.
-
-        """
-        ...
-
-
-    @focused.setter
-    def focused(self, value : bool):
-        ...
-
-
-    @property
     def has_close_button(self) -> bool:
         """
         Controls whether the window displays a close button in its title bar.
@@ -24752,19 +21720,6 @@ class Window(uiItem):
 
     @horizontal_scrollbar.setter
     def horizontal_scrollbar(self, value : bool):
-        ...
-
-
-    @property
-    def hovered(self) -> bool:
-        """
-        (Read-only) Whether the mouse cursor is currently positioned over this item.
-
-        Only one element can be hovered at a time in the UI hierarchy. When
-        elements overlap, the topmost item (typically a child item rather than
-        a parent) receives the hover state.
-
-        """
         ...
 
 
@@ -25090,25 +22045,6 @@ class Window(uiItem):
 
 
     @property
-    def on_drop(self):
-        """
-        Callback triggered when items are drag-dropped onto the window.
-
-        This callback is invoked when the user drags external content (files or text)
-        and drops it onto the window. The callback receives source, target, and data
-        parameters, where data is a tuple containing the drop type (0=text, 1=files)
-        and a list of strings with the actual content.
-
-        """
-        ...
-
-
-    @on_drop.setter
-    def on_drop(self, value):
-        ...
-
-
-    @property
     def popup(self) -> bool:
         """
         Makes the window a popup that closes when clicking outside it.
@@ -25165,123 +22101,6 @@ class Window(uiItem):
         ...
 
 
-class WindowHorizontalLayout(WindowLayout):
-    """
-    Layout to organize windows horizontally.
-
-    Similar to HorizontalLayout but handles window positioning.
-    Windows will be arranged left-to-right with customizable alignment
-    and spacing options.
-
-    Windows can be aligned to the left or right edge, centered, distributed
-    evenly using justified mode, or positioned manually. The layout
-    automatically tracks content width changes and repositions windows
-    when needed.
-
-    """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
-        """
-        Parameters
-        ----------
-        - alignment_mode: Horizontal alignment mode of the windows.
-        - attach: Whether to attach the item to a parent. Default is None (auto)
-        - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callbacks: List of callbacks to invoke when the item's value changes.
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - enabled: Whether the item is interactive and fully styled.
-        - font: Font used for rendering text in this item and its children.
-        - handlers: List of event handlers attached to this item.
-        - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
-        - label: Text label displayed with or within the item.
-        - next_sibling: Child of the parent rendered just after this item.
-        - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
-        - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
-        - positions: X positions for windows when using MANUAL alignment mode.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - scaling_factor: Additional scaling multiplier applied to this item and its children.
-        - shareable_value: Reference to the underlying value that can be shared between items.
-        - show: Whether the item should be rendered and process events.
-        - theme: Visual styling applied to this item and its children.
-        - user_data: User data of any type.
-        - value: Main value associated with this item.
-        - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def alignment_mode(self) -> Alignment:
-        """
-        Horizontal alignment mode of the windows.
-
-        LEFT: windows are appended from the left
-        RIGHT: windows are appended from the right
-        CENTER: windows are centered
-        JUSTIFIED: spacing is organized such that windows start at the left
-            and end at the right
-        MANUAL: windows are positioned at the requested positions
-
-        The default is LEFT.
-
-        """
-        ...
-
-
-    @alignment_mode.setter
-    def alignment_mode(self, value : Alignment):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def positions(self) -> list:
-        """
-        X positions for windows when using MANUAL alignment mode.
-
-        When in MANUAL mode, these are the x positions from the top left of this
-        layout at which to place the windows.
-
-        Values between 0 and 1 are interpreted as percentages relative to the
-        available viewport width. Negative values are interpreted as relative to
-        the right edge rather than the left.
-
-        Setting this property automatically sets alignment_mode to MANUAL.
-
-        """
-        ...
-
-
-    @positions.setter
-    def positions(self, value : list):
-        ...
-
-
 class WindowLayout(uiItem):
     """
     Same as Layout, but for windows.
@@ -25290,7 +22109,7 @@ class WindowLayout(uiItem):
     for the position and rect size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -25308,13 +22127,7 @@ class WindowLayout(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -25323,6 +22136,8 @@ class WindowLayout(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -25346,140 +22161,6 @@ class WindowLayout(uiItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def content_pos(self) -> Coord:
-        """
-        (Read-only) Position of the content area's top-left corner.
-
-        This property provides the viewport-relative coordinates of the starting
-        point for an item's content area. This is where child elements begin to be
-        placed by default.
-
-        Used together with content_region_avail, this defines the rectangle
-        available for child elements.
-
-        """
-        ...
-
-
-    @property
-    def content_region_avail(self) -> Coord:
-        """
-        (Read-only) Available space for child items.
-
-        For container items like windows, child windows, this
-        property represents the available space for placing child items. This is
-        the item's inner area after accounting for padding, borders, and other
-        non-content elements.
-
-        Areas that require scrolling to see are not included in this measurement.
-
-        """
-        ...
-
-
-class WindowVerticalLayout(WindowLayout):
-    """
-    Layout to organize windows vertically.
-
-    Similar to VerticalLayout but handles window positioning.
-    Windows will be arranged top-to-bottom with customizable alignment
-    and spacing options. It can align windows to the top or bottom edge,
-    center them, distribute them evenly using the justified mode, or position
-    them manually.
-
-    The layout automatically tracks content height changes and repositions
-    windows when needed. Different alignment modes can be used to control
-    how windows are positioned within the available vertical space.
-
-    """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
-        """
-        Parameters
-        ----------
-        - alignment_mode: Vertical alignment mode of the windows.
-        - attach: Whether to attach the item to a parent. Default is None (auto)
-        - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callbacks: List of callbacks to invoke when the item's value changes.
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - enabled: Whether the item is interactive and fully styled.
-        - font: Font used for rendering text in this item and its children.
-        - handlers: List of event handlers attached to this item.
-        - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
-        - label: Text label displayed with or within the item.
-        - next_sibling: Child of the parent rendered just after this item.
-        - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
-        - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
-        - positions: Y positions for windows when using MANUAL alignment mode.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - scaling_factor: Additional scaling multiplier applied to this item and its children.
-        - shareable_value: Reference to the underlying value that can be shared between items.
-        - show: Whether the item should be rendered and process events.
-        - theme: Visual styling applied to this item and its children.
-        - user_data: User data of any type.
-        - value: Main value associated with this item.
-        - width: Requested width for the item.
-        """
-        ...
-
-
-    @property
-    def alignment_mode(self) -> Alignment:
-        """
-        Vertical alignment mode of the windows.
-
-        TOP: windows are appended from the top
-        BOTTOM: windows are appended from the bottom
-        CENTER: windows are centered
-        JUSTIFIED: spacing is organized such that windows start at the top
-            and end at the bottom
-        MANUAL: windows are positioned at the requested positions
-
-        For TOP/BOTTOM/CENTER, ItemSpacing's style can be used to control
-        spacing between the windows. Default is TOP.
-
-        """
-        ...
-
-
-    @alignment_mode.setter
-    def alignment_mode(self, value : Alignment):
-        ...
-
-
-    @property
-    def positions(self) -> list:
-        """
-        Y positions for windows when using MANUAL alignment mode.
-
-        When in MANUAL mode, these are the y positions from the top left of this
-        layout at which to place the windows.
-
-        Values between 0 and 1 are interpreted as percentages relative to the
-        layout height. Negative values are interpreted as relative to the bottom
-        edge rather than the top. Windows are still top-aligned to the target
-        position.
-
-        Setting this property automatically sets alignment_mode to MANUAL.
-
-        """
-        ...
-
-
-    @positions.setter
-    def positions(self, value : list):
         ...
 
 
@@ -26008,7 +22689,7 @@ class baseTable(uiItem):
     is done by the derived classes.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -26026,17 +22707,11 @@ class baseTable(uiItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - num_cols_frozen: Number of columns with scroll frozen.
         - num_cols_visible: Override the number of visible columns in the table.
         - num_rows_frozen: Number of rows with scroll frozen.
         - num_rows_visible: Override the number of visible rows in the table.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -26045,6 +22720,8 @@ class baseTable(uiItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -26781,13 +23458,15 @@ class plotElementWithLegend(plotElement):
 
 
     @property
-    def legend_hovered(self) -> bool:
+    def legend_state(self) -> ItemStateView:
         """
-        (Read-only) Whether the legend entry for this element is currently hovered.
+        (Read-only) The current state of the legend
 
-        Indicates if the mouse cursor is currently over this element's entry
-        in the plot legend. Useful for implementing hover effects or tooltips
-        specific to the legend entry.
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
+
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
 
         """
         ...
@@ -27038,10 +23717,8 @@ class uiItem(baseItem):
         - pos_to_viewport: Position relative to viewport top-left
         - pos_to_window: Position relative to containing window
         - pos_to_parent: Position relative to parent item
-        - pos_to_default: Position relative to default layout flow
         - rect_size: Current size in pixels including padding
         - content_region_avail: Available content area within item for children
-        - pos_policy: How the item should be positioned
         - height/width: Requested size of the item
         - indent: Left indentation amount
         - no_newline: Don't advance position after item
@@ -27061,15 +23738,14 @@ class uiItem(baseItem):
     ----------------
     Items use a combination of absolute and relative positioning:
         - Default flow places items vertically with automatic width
-        - pos_policy controls how position attributes are enforced
-        - Positions can be relative to viewport, window, parent or flow
+        - Positions can be relative to viewport, window, parent (see string specifications)
         - Size can be fixed, automatic, or stretch to fill space
         - indent and no_newline provide fine-grained layout control
 
     All attributes are protected by mutexes to enable thread-safe access.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scaling : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., pos_to_default : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_parent : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_viewport : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pos_to_window : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -27087,13 +23763,7 @@ class uiItem(baseItem):
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
-        - no_scaling: Whether DPI scaling should be disabled for this item.
         - parent: Parent of the item in the rendering tree.
-        - pos_policy: Positioning strategy for placing the item in the layout.
-        - pos_to_default: Offset from the item's default layout position.
-        - pos_to_parent: Position relative to the parent item's content area.
-        - pos_to_viewport: Position relative to the viewport's top-left corner.
-        - pos_to_window: Position relative to the containing window's content area.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -27102,6 +23772,53 @@ class uiItem(baseItem):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: List of callbacks to invoke when the item's value changes.
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - indent: Horizontal indentation applied to the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def focus(self) -> None:
+        """
+        Request focus for this item.
+
+        This methods requests keyboard focus for the item. The focus
+        request will be processed in the next frame. It is the same
+        as requested focused=True during __init__ or configure().
+
+        Raises ValueError if the item cannot be focused.
+
         """
         ...
 
@@ -27199,7 +23916,7 @@ class uiItem(baseItem):
 
 
     @property
-    def height(self) -> float:
+    def height(self) -> float | str | baseSizing:
         """
         Requested height for the item.
 
@@ -27223,7 +23940,7 @@ class uiItem(baseItem):
 
 
     @height.setter
-    def height(self, value : float):
+    def height(self, value : float | str | baseSizing):
         ...
 
 
@@ -27271,7 +23988,7 @@ class uiItem(baseItem):
         """
         Controls whether to advance to the next line after rendering.
 
-        When True, the cursor position (DEFAULT positioning) does not advance
+        When True, the cursor position does not advance
         to the next line after this item is drawn, allowing the next item to
         appear on the same line. When False, the cursor advances as normal,
         placing the next item on a new line.
@@ -27289,180 +24006,36 @@ class uiItem(baseItem):
 
 
     @property
-    def no_scaling(self) -> bool:
-        """
-        Whether DPI scaling should be disabled for this item.
-
-        When True, the item ignores the global scaling factor that normally
-        adjusts UI elements based on screen DPI and viewport settings. This can
-        be useful for elements that should maintain specific pixel dimensions
-        regardless of display resolution or scaling settings.
-
-        """
-        ...
-
-
-    @no_scaling.setter
-    def no_scaling(self, value : bool):
-        ...
-
-
-    @property
-    def pos_policy(self) -> tuple[Positioning, Positioning]:
-        """
-        Positioning strategy for placing the item in the layout.
-
-        This property controls how the item's position is determined:
-            - DEFAULT: Placed at ImGui's cursor position, which advances vertically
-            after each item is rendered.
-            - REL_DEFAULT: Placed at the default position plus an offset specified
-            by pos_to_default.
-            - REL_PARENT: Positioned at coordinates specified by pos_to_parent
-            relative to the parent's content area.
-            - REL_WINDOW: Positioned at coordinates specified by pos_to_window
-            relative to the containing window's content area.
-            - REL_VIEWPORT: Positioned at absolute viewport coordinates specified
-            by pos_to_viewport.
-
-        Items using DEFAULT or REL_DEFAULT advance the layout cursor, while other
-        policies do not. Each axis (horizontal and vertical) has its own policy.
-
-        All position fields are updated when the item is rendered, but only the
-        position corresponding to the active policy is guaranteed to remain stable.
-
-        """
-        ...
-
-
-    @pos_policy.setter
-    def pos_policy(self, value : tuple[Positioning, Positioning]):
-        ...
-
-
-    @property
-    def pos_to_default(self) -> Coord:
-        """
-        Offset from the item's default layout position.
-
-        This coordinate represents an offset from the position where the item
-        would naturally appear in the layout flow. Setting this property
-        automatically switches the positioning mode to REL_DEFAULT for the
-        affected axis.
-
-        This provides a way to fine-tune positioning while still mostly
-        respecting the normal layout flow.
-
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
-
-        """
-        ...
-
-
-    @pos_to_default.setter
-    def pos_to_default(self, value : Sequence[float] | tuple[float, float] | Coord):
-        ...
-
-
-    @property
     def pos_to_parent(self) -> Coord:
         """
-        Position relative to the parent item's content area.
+        (Read-only) Position relative to the parent item's content area.
 
         This coordinate represents the position of the item's top-left corner
-        relative to its parent's content area. Setting this property automatically
-        switches the positioning mode to REL_PARENT for the affected axis.
-
-        The position can place the item outside the parent's content region,
-        which would make the item invisible.
-
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
+        relative to its parent's content area.
 
         """
-        ...
-
-
-    @pos_to_parent.setter
-    def pos_to_parent(self, value : Sequence[float] | tuple[float, float] | Coord):
         ...
 
 
     @property
     def pos_to_viewport(self) -> Coord:
         """
-        Position relative to the viewport's top-left corner.
+        (Read-only) Position relative to the viewport's top-left corner.
 
         This coordinate represents the position of the item's top-left corner
-        relative to the entire viewport. Setting this property automatically
-        switches the positioning mode to REL_VIEWPORT for the affected axis.
-
-        The item remains subject to the parent's clipping region, so positioning
-        an item outside its parent's boundaries may make it invisible despite
-        having valid coordinates.
-
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
+        relative to the entire viewport.
 
         """
-        ...
-
-
-    @pos_to_viewport.setter
-    def pos_to_viewport(self, value : Sequence[float] | tuple[float, float] | Coord):
         ...
 
 
     @property
     def pos_to_window(self) -> Coord:
         """
-        Position relative to the containing window's content area.
+        (Read-only) Position relative to the containing window's content area.
 
         This coordinate represents the position of the item's top-left corner
-        relative to the inner content area of the containing window. Setting
-        this property automatically switches the positioning mode to REL_WINDOW
-        for the affected axis.
-
-        The position can place the item outside the parent's content region,
-        which would make the item invisible.
-
-        When setting this property, you can use None for either component to
-        leave that coordinate unchanged.
-
-        """
-        ...
-
-
-    @pos_to_window.setter
-    def pos_to_window(self, value : Sequence[float] | tuple[float, float] | Coord):
-        ...
-
-
-    @property
-    def rect_size(self) -> Coord:
-        """
-        (Read-only) Actual pixel size of the element including margins.
-
-        This property represents the width and height of the rectangle occupied
-        by the item in the layout. The rectangle's top-left corner is at the
-        position given by the relevant position property.
-
-        Note that this size refers only to the item within its parent window and
-        does not include any popup or child windows that might be spawned by
-        this item.
-
-        """
-        ...
-
-
-    @property
-    def resized(self) -> bool:
-        """
-        (Read-only) Whether the item's size changed this frame.
-
-        This property is true only for the frame when the size change occurs.
-        It can detect both user-initiated resizing (like dragging a window edge)
-        and programmatic size changes.
+        relative to the inner content area of the containing window.
 
         """
         ...
@@ -27526,6 +24099,21 @@ class uiItem(baseItem):
 
 
     @property
+    def state(self) -> ItemStateView:
+        """
+        (Read-only) The current state of the item
+
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
+
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
+
+        """
+        ...
+
+
+    @property
     def theme(self):
         """
         Visual styling applied to this item and its children.
@@ -27564,20 +24152,7 @@ class uiItem(baseItem):
 
 
     @property
-    def visible(self) -> bool:
-        """
-        (Read-only) Whether the item was rendered in the current frame.
-
-        An item is visible when it and all its ancestors have show=True and are
-        within the visible region of their containers. Invisible items skip
-        rendering and event handling entirely.
-
-        """
-        ...
-
-
-    @property
-    def width(self) -> float:
+    def width(self) -> float | str | baseSizing:
         """
         Requested width for the item.
 
@@ -27601,6 +24176,79 @@ class uiItem(baseItem):
 
 
     @width.setter
-    def width(self, value : float):
+    def width(self, value : float | str | baseSizing):
+        ...
+
+
+    @property
+    def x(self) -> float | str | baseSizing:
+        """
+        Requested horizontal position of the item.
+
+        This property specifies the desired horizontal position of the item.
+
+        By default, items are positioned inside their parent container,
+        from top to bottom, left-aligned. In other words the default
+        position for the item is below the previous one. This default is
+        altered by the `no_newline` property (applied on the previous item),
+        which will place the item after the previous one on the same
+        horizontal line (with the theme's itemSpacing applied).
+
+        Special values:
+            - 0: Use default horizontal position (see explanation above).
+            - Positive values: Request a specific position in scaled pixels,
+                relative to the default horizontal position. For instance,
+                10 means "position 10 scaled pixels to the right of the
+                default position".
+            - Negative values: Unsupported for now
+            - string: A string specification to automatically position the item. See the
+                documentation for details on how to use this feature.
+
+        Note when a string specification is used, the cursor will not be changed.
+        If you want several items to be positioned next to each other at a specific
+        target position, position a Layout item.
+
+        """
+        ...
+
+
+    @x.setter
+    def x(self, value : float | str | baseSizing):
+        ...
+
+
+    @property
+    def y(self) -> float | str | baseSizing:
+        """
+        Requested vertical position of the item.
+
+        This property specifies the desired vertical position of the item.
+
+        By default, items are positioned inside their parent container,
+        from top to bottom, left-aligned. In other words the default
+        position for the item is below the previous one (with the theme's
+        itemSpacing applied). This default is altered by the `no_newline`
+        property (applied on the previous item), which will place the item
+        after the previous one on the same horizontal line.
+
+        Special values:
+            - 0: Use default vertical position (see explanation above).
+            - Positive values: Request a specific position in scaled pixels,
+                relative to the default vertical position. For instance,
+                10 means "position 10 scaled pixels below the default position".
+            - Negative values: Unsupported for now
+            - string: A string specification to automatically position the item. See the
+                documentation for details on how to use this feature.
+
+        Note when a string specification is used, the cursor will not be changed.
+        If you want several items to be positioned next to each other at a specific
+        target position, position a Layout item.
+
+        """
+        ...
+
+
+    @y.setter
+    def y(self, value : float | str | baseSizing):
         ...
 

@@ -6,7 +6,7 @@ from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 
 from .c_types cimport DCGMutex, DCGVector, DCGString, ValueOrItem,\
     unique_lock, defer_lock_t
-from .types cimport Vec2, Positioning
+from .types cimport Vec2
 
 """
 Thread safety:
@@ -239,7 +239,6 @@ cdef struct itemStateValues:
     Vec2 pos_to_viewport
     Vec2 pos_to_window
     Vec2 pos_to_parent
-    Vec2 pos_to_default
     Vec2 rect_size # size on screen in pixels
     Vec2 content_region_size # size available to the children in pixels
     Vec2 content_pos
@@ -291,7 +290,6 @@ cdef class Viewport(baseItem):
     cdef Vec2 window_pos # Coordinates (Viewport space) of the parent window
     cdef Vec2 parent_pos # Coordinates (Viewport space) of the direct parent (skipping drawing item parents)
     cdef Vec2 parent_size # Content region size (in pixels) of the direct parent
-    cdef Vec2 window_cursor # Position of the next window (Window layout specific)
     cdef bint in_plot # Current rendering occurs withing a plot
     cdef bint plot_fit # Current plot is fitting the axes to the data
     cdef float thickness_multiplier # scale for the thickness of all lines (Draw*)
@@ -561,10 +559,10 @@ cdef class uiItem(baseItem):
     # '....._requested' must be set to True.
     cdef itemState state
     # Variables below are maintained by uiItem but can be set externally.
-    cdef Positioning[2] pos_policy
     cdef bint no_newline
-    cdef bint pos_update_requested
     cdef bint focus_requested
+    cdef ValueOrItem requested_x
+    cdef ValueOrItem requested_y
     cdef ValueOrItem requested_width
     cdef ValueOrItem requested_height
     ### Set by subclass (but has default value) ###
@@ -577,7 +575,7 @@ cdef class uiItem(baseItem):
     cdef bint _show_update_requested # Filled by uiItem on show value change 
     cdef bint _enabled # Needs can_be_disabled. Contrary to show, the item is rendered, but if False is unactive.
     cdef bint _enabled_update_requested # Filled by uiItem on enabled value change 
-    cdef bint _dpi_scaling # Whether to apply the global scale on the requested size.
+    #cdef bint _dpi_scaling # Whether to apply the global scale on the requested size. -> defaulted to True. Can be skipped with string specifications.
     cdef float _indent
     cdef Callback _dragCallback
     cdef Callback _dropCallback
@@ -623,6 +621,8 @@ cdef class TimeWatcher(uiItem):
     pass
 
 cdef class Window(uiItem):
+    cdef bint pos_update_requested
+    cdef bint size_update_requested
     cdef int32_t _window_flags # imgui.ImGuiWindowFlags
     cdef bint _main_window
     cdef bint _resized
@@ -650,7 +650,8 @@ cdef class Window(uiItem):
     cdef bint _scroll_x_update_requested
     cdef bint _scroll_y_update_requested
     cdef int32_t _backup_window_flags # imgui.ImGuiWindowFlags
-    cdef Vec2 _backup_pos
+    cdef ValueOrItem _backup_requested_x
+    cdef ValueOrItem _backup_requested_y
     cdef ValueOrItem _backup_requested_width
     cdef ValueOrItem _backup_requested_height
     cdef void draw(self) noexcept nogil
