@@ -860,7 +860,7 @@ class Button(uiItem):
     is stored in a SharedBool value that tracks whether it's active.
 
     """
-    def __init__(self, context : Context, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -875,7 +875,6 @@ class Button(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -1011,7 +1010,7 @@ class Checkbox(uiItem):
     If a label is provided, it will be displayed at the right of the checkbox.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1025,7 +1024,6 @@ class Checkbox(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -1076,7 +1074,7 @@ class ChildWindow(uiItem):
     structured layouts.
 
     """
-    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1100,7 +1098,6 @@ class ChildWindow(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - horizontal_scrollbar: Enable horizontal scrolling and show horizontal scrollbar.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - menubar: Enable a menu bar at the top of the child window.
         - next_sibling: Child of the parent rendered just after this item.
@@ -1519,7 +1516,7 @@ class CollapsingHeader(uiItem):
     space in complex interfaces.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1535,7 +1532,6 @@ class CollapsingHeader(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - leaf: Whether the header is displayed without expansion controls.
         - next_sibling: Child of the parent rendered just after this item.
@@ -1694,7 +1690,7 @@ class ColorButton(uiItem):
     integrate color selection into interfaces with limited space.
 
     """
-    def __init__(self, context : Context, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1710,7 +1706,6 @@ class ColorButton(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_alpha: Whether to ignore the Alpha component of the color.
@@ -1887,7 +1882,7 @@ class ColorEdit(uiItem):
     drag-and-drop functionality for transferring colors between compatible widgets.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], hdr : bool = False, height : float | str | baseSizing = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], hdr : bool = False, height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1906,7 +1901,6 @@ class ColorEdit(uiItem):
         - handlers: List of event handlers attached to this item.
         - hdr: Whether to support HDR (High Dynamic Range) colors.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - input_mode: The color input format for editing operations.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
@@ -2247,7 +2241,7 @@ class ColorPicker(uiItem):
     value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2265,7 +2259,6 @@ class ColorPicker(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - input_mode: The color input format for editing operations.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
@@ -2567,7 +2560,7 @@ class Combo(uiItem):
     to the currently selected item in the dropdown list.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2583,7 +2576,6 @@ class Combo(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - height_mode: Controls the height of the dropdown portion of the combo.
-        - indent: Horizontal indentation applied to the item.
         - items: List of text values to select from in the combo dropdown.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
@@ -4924,7 +4916,7 @@ class DrawInWindow(uiItem):
     maintained and thus do not have a callback.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -4940,7 +4932,6 @@ class DrawInWindow(uiItem):
         - frame: Controls whether the item has a visual frame.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - invert_y: Controls the direction of the Y coordinate axis.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
@@ -7820,7 +7811,7 @@ class HorizontalLayout(Layout):
     how items overflow when they exceed available width.
 
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -7835,7 +7826,6 @@ class HorizontalLayout(Layout):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -8006,7 +7996,7 @@ class Image(uiItem):
     affected by FramePadding (style) and FrameRounding (style).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8023,7 +8013,6 @@ class Image(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_global_scaling: Disables the global dpi scale.
@@ -8204,7 +8193,7 @@ class InputText(uiItem):
     area instead of a single-line field.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8226,7 +8215,6 @@ class InputText(uiItem):
         - height: Requested height for the item.
         - hexadecimal: Restricts input to hexadecimal characters (0-9, A-F, a-f).
         - hint: Placeholder text shown when the input field is empty.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - max_characters: Maximum number of characters allowed in the input field.
         - multiline: Whether the input field accepts multiple lines of text.
@@ -8255,7 +8243,7 @@ class InputText(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", indent : float = 0.0, label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Configure the InputText widget with provided keyword arguments.
 
@@ -8280,7 +8268,6 @@ class InputText(uiItem):
         - height: Requested height for the item.
         - hexadecimal: Restricts input to hexadecimal characters (0-9, A-F, a-f).
         - hint: Placeholder text shown when the input field is empty.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - max_characters: Maximum number of characters allowed in the input field.
         - multiline: Whether the input field accepts multiple lines of text.
@@ -8674,7 +8661,7 @@ class InputValue(uiItem):
     to multi-dimensional vector editing.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8697,7 +8684,6 @@ class InputValue(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - hexadecimal: Restricts input to hexadecimal characters.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - max_value: Maximum value the input will be clamped to.
         - min_value: Minimum value the input will be clamped to.
@@ -8727,7 +8713,7 @@ class InputValue(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, indent : float = 0.0, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Configure the InputValue widget with provided keyword arguments.
 
@@ -8754,7 +8740,6 @@ class InputValue(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - hexadecimal: Restricts input to hexadecimal characters.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - max_value: Maximum value the input will be clamped to.
         - min_value: Minimum value the input will be clamped to.
@@ -9321,7 +9306,7 @@ class Layout(uiItem):
     The layout states correspond to the OR of all the item states, and the rect
     size corresponds to the minimum rect containing all the items. The position
     of the layout is used to initialize the default position for the first item.
-    For example setting indent will shift all the items of the Layout.
+    An indentation will shift all the items of the Layout.
 
     Subclassing Layout:
     For custom layouts, you can use Layout with a callback. The callback is
@@ -9342,7 +9327,7 @@ class Layout(uiItem):
     set the x, y and no_newline fields of the item to their new desired values.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9356,7 +9341,6 @@ class Layout(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -9419,7 +9403,7 @@ class ListBox(uiItem):
     the text of the selected item.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9433,7 +9417,6 @@ class ListBox(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - items: List of text values from which the user can select.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
@@ -9621,7 +9604,7 @@ A Menu creates a menu container within a menu bar.
     Menus must be created within a MenuBar or as a child of another Menu.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9635,7 +9618,6 @@ A Menu creates a menu container within a menu bar.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -9690,7 +9672,7 @@ class MenuBar(uiItem):
     window, it creates a local menu bar for that window.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9704,7 +9686,6 @@ class MenuBar(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -9755,7 +9736,7 @@ class MenuItem(uiItem):
     SharedBool value.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9770,7 +9751,6 @@ class MenuItem(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -10750,7 +10730,7 @@ class Plot(uiItem):
     and can appear in the legend.
 
     """
-    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -10773,7 +10753,6 @@ class Plot(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - legend_config: Configuration for the plot legend.
         - menu_button: Mouse button used to open context menus.
@@ -13756,7 +13735,7 @@ class ProgressBar(uiItem):
     inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -13770,7 +13749,6 @@ class ProgressBar(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -13827,7 +13805,7 @@ class ProgressBar(uiItem):
 
 
 class RadioButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, indent : float = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -13842,7 +13820,6 @@ class RadioButton(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - horizontal: Writable attribute: Horizontal vs vertical placement
-        - indent: Horizontal indentation applied to the item.
         - items: Writable attribute: List of text values to select
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
@@ -13978,7 +13955,7 @@ class Selectable(uiItem):
     property.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -13995,7 +13972,6 @@ class Selectable(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - highlighted: Controls whether the selectable appears highlighted regardless of hover state.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -14121,7 +14097,7 @@ class Separator(uiItem):
     creating a section header. Without a label, it renders as a simple line.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -14135,7 +14111,6 @@ class Separator(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text to display centered on the separator line.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -15014,7 +14989,7 @@ class SimplePlot(uiItem):
     and modified through the value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, histogram : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, histogram : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15030,7 +15005,6 @@ class SimplePlot(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - histogram: Determines if the plot displays data as a histogram.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -15173,7 +15147,7 @@ class Slider(uiItem):
     different display formats.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15190,7 +15164,6 @@ class Slider(uiItem):
         - format: Format of the slider's data type.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - logarithmic: Whether the slider should use logarithmic scaling.
         - max_value: Maximum value the slider will be clamped to.
@@ -15218,7 +15191,7 @@ class Slider(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Configure the slider with the provided keyword arguments.
 
@@ -15239,7 +15212,6 @@ class Slider(uiItem):
         - format: Format of the slider's data type.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - logarithmic: Whether the slider should use logarithmic scaling.
         - max_value: Maximum value the slider will be clamped to.
@@ -15520,7 +15492,7 @@ class Spacer(uiItem):
     of the precise requested size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15534,7 +15506,6 @@ class Spacer(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -15585,7 +15556,7 @@ class Subplots(uiItem):
     order by default, but can be changed to column-major ordering as needed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15602,7 +15573,6 @@ class Subplots(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_align: Whether to disable subplot edge alignment.
@@ -15863,7 +15833,7 @@ class Tab(uiItem):
     addition to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15878,7 +15848,6 @@ class Tab(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - leading: Whether the tab is positioned at the left side of the tab bar.
         - next_sibling: Child of the parent rendered just after this item.
@@ -16034,7 +16003,7 @@ class TabBar(uiItem):
     hidden until selected.
 
     """
-    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16050,7 +16019,6 @@ class TabBar(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_close_with_middle_mouse_button: Whether closing tabs with middle mouse button is disabled.
@@ -16282,7 +16250,7 @@ class TabButton(uiItem):
     using themes.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16296,7 +16264,6 @@ class TabButton(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - leading: Positions the tab button at the left side of the tab bar.
         - next_sibling: Child of the parent rendered just after this item.
@@ -16427,7 +16394,7 @@ Table widget with advanced display and interaction capabilities.
     and behavior can be customized through column and row configurations.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float | str | baseSizing = 0.0, indent : float = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float | str | baseSizing = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16443,7 +16410,6 @@ Table widget with advanced display and interaction capabilities.
         - handlers: List of event handlers attached to this item.
         - header: Whether to display a table header row.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - inner_width: Width of the table content when horizontal scrolling is enabled.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
@@ -17131,7 +17097,7 @@ class Text(uiItem):
     selectable.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17147,7 +17113,6 @@ class Text(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - parent: Parent of the item in the rendering tree.
@@ -17260,7 +17225,7 @@ class TextValue(uiItem):
     to control precision, alignment, and presentation.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17274,7 +17239,6 @@ class TextValue(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -17664,861 +17628,861 @@ class ThemeColorImGui(baseThemeColor):
     If a is missing, it defaults to 255.
 
     Keyword Arguments:
-        Text: Color for text rendering
-        TextDisabled: Color for the text of disabled items
-        WindowBg: Background of normal windows
-        ChildBg:  Background of child windows
-        PopupBg: Background of popups, menus, tooltips windows
-        Border: Color of borders
-        BorderShadow: Color of border shadows
-        FrameBg: Background of checkbox, radio button, plot, slider, text input
-        FrameBgHovered: Color of FrameBg when the item is hovered
-        FrameBgActive: Color of FrameBg when the item is active
-        TitleBg: Title bar
-        TitleBgActive: Title bar when focused
-        TitleBgCollapsed: Title bar when collapsed
-        MenuBarBg: Background color of the menu bar
-        ScrollbarBg: Background color of the scroll bar
-        ScrollbarGrab: Color of the scroll slider
-        ScrollbarGrabHovered: Color of the scroll slider when hovered
-        ScrollbarGrabActive: Color of the scroll slider when selected
-        CheckMark: Checkbox tick and RadioButton circle
-        SliderGrab: Color of sliders
-        SliderGrabActive: Color of selected sliders
-        Button: Color of buttons
-        ButtonHovered: Color of buttons when hovered
-        ButtonActive: Color of buttons when selected
-        Header: Header* colors are used for CollapsingHeader, TreeNode, Selectable, MenuItem
-        HeaderHovered: Header color when hovered
-        HeaderActive: Header color when clicked
-        Separator: Color of separators
-        SeparatorHovered: Color of separator when hovered
-        SeparatorActive: Color of separator when active
-        ResizeGrip: Resize grip in lower-right and lower-left corners of windows.
-        ResizeGripHovered: ResizeGrip when hovered
-        ResizeGripActive: ResizeGrip when clicked
-        TabHovered: Tab background, when hovered
-        Tab: Tab background, when tab-bar is focused & tab is unselected
-        TabSelected: Tab background, when tab-bar is focused & tab is selected
-        TabSelectedOverline: Tab horizontal overline, when tab-bar is focused & tab is selected
-        TabDimmed: Tab background, when tab-bar is unfocused & tab is unselected
-        TabDimmedSelected: Tab background, when tab-bar is unfocused & tab is selected
-        TabDimmedSelectedOverline: ..horizontal overline, when tab-bar is unfocused & tab is selected
-        PlotLines: Color of SimplePlot lines
-        PlotLinesHovered: Color of SimplePlot lines when hovered
-        PlotHistogram: Color of SimplePlot histogram
-        PlotHistogramHovered: Color of SimplePlot histogram when hovered
-        TableHeaderBg: Table header background
-        TableBorderStrong: Table outer and header borders (prefer using Alpha=1.0 here)
-        TableBorderLight: Table inner borders (prefer using Alpha=1.0 here)
-        TableRowBg: Table row background (even rows)
-        TableRowBgAlt: Table row background (odd rows)
-        TextLink: Hyperlink color
-        TextSelectedBg: Color of the background of selected text
-        DragDropTarget: Rectangle highlighting a drop target
-        NavCursor: Gamepad/keyboard: current highlighted item
-        NavWindowingHighlight: Highlight window when using CTRL+TAB
-        NavWindowingDimBg: Darken/colorize entire screen behind the CTRL+TAB window list, when active
-        ModalWindowDimBg: Darken/colorize entire screen behind a modal window, when one is active
+        text: Color for text rendering
+        text_disabled: Color for the text of disabled items
+        window_bg: Background of normal windows
+        child_bg:  Background of child windows
+        popup_bg: Background of popups, menus, tooltips windows
+        border: Color of borders
+        border_shadow: Color of border shadows
+        frame_bg: Background of checkbox, radio button, plot, slider, text input
+        frame_bg_hovered: Color of FrameBg when the item is hovered
+        frame_bg_active: Color of FrameBg when the item is active
+        title_bg: Title bar
+        title_bg_active: Title bar when focused
+        title_bg_collapsed: Title bar when collapsed
+        menu_bar_bg: Background color of the menu bar
+        scrollbar_bg: Background color of the scroll bar
+        scrollbar_grab: Color of the scroll slider
+        scrollbar_grab_hovered: Color of the scroll slider when hovered
+        scrollbar_grab_active: Color of the scroll slider when selected
+        check_mark: Checkbox tick and RadioButton circle
+        slider_grab: Color of sliders
+        slider_grab_active: Color of selected sliders
+        button: Color of buttons
+        button_hovered: Color of buttons when hovered
+        button_active: Color of buttons when selected
+        header: Header* colors are used for CollapsingHeader, TreeNode, Selectable, MenuItem
+        header_hovered: Header color when hovered
+        header_active: Header color when clicked
+        separator: Color of separators
+        separator_hovered: Color of separator when hovered
+        separator_active: Color of separator when active
+        resize_grip: Resize grip in lower-right and lower-left corners of windows.
+        resize_grip_hovered: ResizeGrip when hovered
+        resize_grip_active: ResizeGrip when clicked
+        tab_hovered: Tab background, when hovered
+        tab: Tab background, when tab-bar is focused & tab is unselected
+        tab_selected: Tab background, when tab-bar is focused & tab is selected
+        tab_selected_overline: Tab horizontal overline, when tab-bar is focused & tab is selected
+        tab_dimmed: Tab background, when tab-bar is unfocused & tab is unselected
+        tab_dimmed_selected: Tab background, when tab-bar is unfocused & tab is selected
+        tab_dimmed_selected_overline: ..horizontal overline, when tab-bar is unfocused & tab is selected
+        plot_lines: Color of SimplePlot lines
+        plot_lines_hovered: Color of SimplePlot lines when hovered
+        plot_histogram: Color of SimplePlot histogram
+        plot_histogram_hovered: Color of SimplePlot histogram when hovered
+        table_header_bg: Table header background
+        table_border_strong: Table outer and header borders (prefer using Alpha=1.0 here)
+        table_border_light: Table inner borders (prefer using Alpha=1.0 here)
+        table_row_bg: Table row background (even rows)
+        table_row_bg_alt: Table row background (odd rows)
+        text_link: Hyperlink color
+        text_selected_bg: Color of the background of selected text
+        drag_drop_target: Rectangle highlighting a drop target
+        nav_cursor: Gamepad/keyboard: current highlighted item
+        nav_windowing_highlight: Highlight window when using CTRL+TAB
+        nav_windowing_dim_bg: Darken/colorize entire screen behind the CTRL+TAB window list, when active
+        modal_window_dim_bg: Darken/colorize entire screen behind a modal window, when one is active
 
     """
-    def __init__(self, context : Context, Border : Color| None = None, BorderShadow : Color| None = None, Button : Color| None = None, ButtonActive : Color| None = None, ButtonHovered : Color| None = None, CheckMark : Color| None = None, ChildBg : Color| None = None, DragDropTarget : Color| None = None, FrameBg : Color| None = None, FrameBgActive : Color| None = None, FrameBgHovered : Color| None = None, Header : Color| None = None, HeaderActive : Color| None = None, HeaderHovered : Color| None = None, MenuBarBg : Color| None = None, ModalWindowDimBg : Color| None = None, NavCursor : Color| None = None, NavWindowingDimBg : Color| None = None, NavWindowingHighlight : Color| None = None, PlotHistogram : Color| None = None, PlotHistogramHovered : Color| None = None, PlotLines : Color| None = None, PlotLinesHovered : Color| None = None, PopupBg : Color| None = None, ResizeGrip : Color| None = None, ResizeGripActive : Color| None = None, ResizeGripHovered : Color| None = None, ScrollbarBg : Color| None = None, ScrollbarGrab : Color| None = None, ScrollbarGrabActive : Color| None = None, ScrollbarGrabHovered : Color| None = None, Separator : Color| None = None, SeparatorActive : Color| None = None, SeparatorHovered : Color| None = None, SliderGrab : Color| None = None, SliderGrabActive : Color| None = None, Tab : Color| None = None, TabDimmed : Color| None = None, TabDimmedSelected : Color| None = None, TabDimmedSelectedOverline : Color| None = None, TabHovered : Color| None = None, TabSelected : Color| None = None, TabSelectedOverline : Color| None = None, TableBorderLight : Color| None = None, TableBorderStrong : Color| None = None, TableHeaderBg : Color| None = None, TableRowBg : Color| None = None, TableRowBgAlt : Color| None = None, Text : Color| None = None, TextDisabled : Color| None = None, TextLink : Color| None = None, TextSelectedBg : Color| None = None, TitleBg : Color| None = None, TitleBgActive : Color| None = None, TitleBgCollapsed : Color| None = None, WindowBg : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
+    def __init__(self, context : Context, attach : Color| None = None, before : Color| None = None, border : Color| None = None, border_shadow : Color| None = None, button : Color| None = None, button_active : Color| None = None, button_hovered : Color| None = None, check_mark : Color| None = None, child_bg : Color| None = None, children : None  = [], drag_drop_target : Color| None = None, enabled : bool = True, frame_bg : Color| None = None, frame_bg_active : Color| None = None, frame_bg_hovered : Color| None = None, header : Color| None = None, header_active : Color| None = None, header_hovered : Color| None = None, menu_bar_bg : Color| None = None, modal_window_dim_bg : Color| None = None, nav_cursor : Color| None = None, nav_windowing_dim_bg : Color| None = None, nav_windowing_highlight : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, plot_histogram : Color| None = None, plot_histogram_hovered : Color| None = None, plot_lines : Color| None = None, plot_lines_hovered : Color| None = None, popup_bg : Color| None = None, previous_sibling : baseItemSubCls | None = None, resize_grip : Color| None = None, resize_grip_active : Color| None = None, resize_grip_hovered : Color| None = None, scrollbar_bg : Color| None = None, scrollbar_grab : Color| None = None, scrollbar_grab_active : Color| None = None, scrollbar_grab_hovered : Color| None = None, separator : Color| None = None, separator_active : Color| None = None, separator_hovered : Color| None = None, slider_grab : Color| None = None, slider_grab_active : Color| None = None, tab : Color| None = None, tab_dimmed : Color| None = None, tab_dimmed_selected : Color| None = None, tab_dimmed_selected_overline : Color| None = None, tab_hovered : Color| None = None, tab_selected : Color| None = None, tab_selected_overline : Color| None = None, table_border_light : Color| None = None, table_border_strong : Color| None = None, table_header_bg : Color| None = None, table_row_bg : Color| None = None, table_row_bg_alt : Color| None = None, text : Color| None = None, text_disabled : Color| None = None, text_link : Color| None = None, text_selected_bg : Color| None = None, title_bg : Color| None = None, title_bg_active : Color| None = None, title_bg_collapsed : Color| None = None, user_data : Color| None = None, window_bg : Color| None = None):
         """
         Parameters
         ----------
-        - Border: Color of borders.
-        - BorderShadow: Color of border shadows.
-        - Button: Button color.
-        - ButtonActive: Button color when active.
-        - ButtonHovered: Button color when hovered.
-        - CheckMark: Checkmark color.
-        - ChildBg: Background of child windows.
-        - DragDropTarget: Rectangle highlighting a drop target.
-        - FrameBg: Background of checkbox, radio button, plot, slider, text input.
-        - FrameBgActive: Color of FrameBg when the item is active.
-        - FrameBgHovered: Color of FrameBg when the item is hovered.
-        - Header: Colors used for CollapsingHeader, TreeNode, Selectable, MenuItem.
-        - HeaderActive: Header colors when activated/clicked.
-        - HeaderHovered: Header colors when hovered.
-        - MenuBarBg: Menu bar background color.
-        - ModalWindowDimBg: Darken/colorize entire screen behind a modal window.
-        - NavCursor: Color of keyboard/gamepad navigation cursor/rectangle, when visible.
-        - NavWindowingDimBg: Darken/colorize entire screen behind CTRL+TAB window list.
-        - NavWindowingHighlight: Highlight window when using CTRL+TAB.
-        - PlotHistogram: Color of SimplePlot histogram.
-        - PlotHistogramHovered: Color of SimplePlot histogram when hovered.
-        - PlotLines: Color of SimplePlot lines.
-        - PlotLinesHovered: Color of SimplePlot lines when hovered.
-        - PopupBg: Background of popups, menus, tooltips windows.
-        - ResizeGrip: Resize grip in lower-right and lower-left corners of windows.
-        - ResizeGripActive: ResizeGrip color when clicked.
-        - ResizeGripHovered: ResizeGrip color when hovered.
-        - ScrollbarBg: Scrollbar background color.
-        - ScrollbarGrab: Scrollbar grab color.
-        - ScrollbarGrabActive: Scrollbar grab color when active.
-        - ScrollbarGrabHovered: Scrollbar grab color when hovered.
-        - Separator: Color of separating lines.
-        - SeparatorActive: Separator color when active.
-        - SeparatorHovered: Separator color when hovered.
-        - SliderGrab: Slider grab color.
-        - SliderGrabActive: Slider grab color when active.
-        - Tab: Tab background when tab-bar is focused & tab is unselected.
-        - TabDimmed: Tab background when tab-bar is unfocused & tab is unselected.
-        - TabDimmedSelected: Tab background when tab-bar is unfocused & tab is selected.
-        - TabDimmedSelectedOverline: Tab horizontal overline when tab-bar is unfocused & tab is selected.
-        - TabHovered: Tab background when hovered.
-        - TabSelected: Tab background when tab-bar is focused & tab is selected.
-        - TabSelectedOverline: Tab horizontal overline when tab-bar is focused & tab is selected.
-        - TableBorderLight: Table inner borders (prefer using Alpha=1.0 here).
-        - TableBorderStrong: Table outer borders and headers (prefer using Alpha=1.0 here).
-        - TableHeaderBg: Table header background.
-        - TableRowBg: Table row background (even rows).
-        - TableRowBgAlt: Table row background (odd rows).
-        - Text: Color for text rendering.
-        - TextDisabled: Color for the text of disabled items.
-        - TextLink: Hyperlink color.
-        - TextSelectedBg: Background color of selected text.
-        - TitleBg: Title bar color.
-        - TitleBgActive: Title bar color when focused.
-        - TitleBgCollapsed: Title bar color when collapsed.
-        - WindowBg: Background of normal windows.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - border: Color of borders.
+        - border_shadow: Color of border shadows.
+        - button: Button color.
+        - button_active: Button color when active.
+        - button_hovered: Button color when hovered.
+        - check_mark: Checkmark color.
+        - child_bg: Background of child windows.
         - children: List of all the children of the item, from first rendered, to last rendered.
+        - drag_drop_target: Rectangle highlighting a drop target.
         - enabled: Controls whether the theme is currently active.
+        - frame_bg: Background of checkbox, radio button, plot, slider, text input.
+        - frame_bg_active: Color of FrameBg when the item is active.
+        - frame_bg_hovered: Color of FrameBg when the item is hovered.
+        - header: Colors used for CollapsingHeader, TreeNode, Selectable, MenuItem.
+        - header_active: Header colors when activated/clicked.
+        - header_hovered: Header colors when hovered.
+        - menu_bar_bg: Menu bar background color.
+        - modal_window_dim_bg: Darken/colorize entire screen behind a modal window.
+        - nav_cursor: Color of keyboard/gamepad navigation cursor/rectangle, when visible.
+        - nav_windowing_dim_bg: Darken/colorize entire screen behind CTRL+TAB window list.
+        - nav_windowing_highlight: Highlight window when using CTRL+TAB.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - plot_histogram: Color of SimplePlot histogram.
+        - plot_histogram_hovered: Color of SimplePlot histogram when hovered.
+        - plot_lines: Color of SimplePlot lines.
+        - plot_lines_hovered: Color of SimplePlot lines when hovered.
+        - popup_bg: Background of popups, menus, tooltips windows.
         - previous_sibling: Child of the parent rendered just before this item.
+        - resize_grip: Resize grip in lower-right and lower-left corners of windows.
+        - resize_grip_active: ResizeGrip color when clicked.
+        - resize_grip_hovered: ResizeGrip color when hovered.
+        - scrollbar_bg: Scrollbar background color.
+        - scrollbar_grab: Scrollbar grab color.
+        - scrollbar_grab_active: Scrollbar grab color when active.
+        - scrollbar_grab_hovered: Scrollbar grab color when hovered.
+        - separator: Color of separating lines.
+        - separator_active: Separator color when active.
+        - separator_hovered: Separator color when hovered.
+        - slider_grab: Slider grab color.
+        - slider_grab_active: Slider grab color when active.
+        - tab: Tab background when tab-bar is focused & tab is unselected.
+        - tab_dimmed: Tab background when tab-bar is unfocused & tab is unselected.
+        - tab_dimmed_selected: Tab background when tab-bar is unfocused & tab is selected.
+        - tab_dimmed_selected_overline: Tab horizontal overline when tab-bar is unfocused & tab is selected.
+        - tab_hovered: Tab background when hovered.
+        - tab_selected: Tab background when tab-bar is focused & tab is selected.
+        - tab_selected_overline: Tab horizontal overline when tab-bar is focused & tab is selected.
+        - table_border_light: Table inner borders (prefer using Alpha=1.0 here).
+        - table_border_strong: Table outer borders and headers (prefer using Alpha=1.0 here).
+        - table_header_bg: Table header background.
+        - table_row_bg: Table row background (even rows).
+        - table_row_bg_alt: Table row background (odd rows).
+        - text: Color for text rendering.
+        - text_disabled: Color for the text of disabled items.
+        - text_link: Hyperlink color.
+        - text_selected_bg: Background color of selected text.
+        - title_bg: Title bar color.
+        - title_bg_active: Title bar color when focused.
+        - title_bg_collapsed: Title bar color when collapsed.
         - user_data: User data of any type.
+        - window_bg: Background of normal windows.
         """
         ...
 
 
     @property
-    def Border(self) -> Color| None:
+    def border(self) -> Color| None:
         """Color of borders.
         Default: (0.43, 0.43, 0.50, 0.50)
         """
         ...
 
 
-    @Border.setter
-    def Border(self, value : Color| None):
+    @border.setter
+    def border(self, value : Color| None):
         ...
 
 
     @property
-    def BorderShadow(self) -> Color| None:
+    def border_shadow(self) -> Color| None:
         """Color of border shadows.
         Default: (0.00, 0.00, 0.00, 0.00)
         """
         ...
 
 
-    @BorderShadow.setter
-    def BorderShadow(self, value : Color| None):
+    @border_shadow.setter
+    def border_shadow(self, value : Color| None):
         ...
 
 
     @property
-    def Button(self) -> Color| None:
+    def button(self) -> Color| None:
         """Button color.
         Default: (0.26, 0.59, 0.98, 0.40)
         """
         ...
 
 
-    @Button.setter
-    def Button(self, value : Color| None):
+    @button.setter
+    def button(self, value : Color| None):
         ...
 
 
     @property
-    def ButtonActive(self) -> Color| None:
+    def button_active(self) -> Color| None:
         """Button color when active.
         Default: (0.06, 0.53, 0.98, 1.00)
         """
         ...
 
 
-    @ButtonActive.setter
-    def ButtonActive(self, value : Color| None):
+    @button_active.setter
+    def button_active(self, value : Color| None):
         ...
 
 
     @property
-    def ButtonHovered(self) -> Color| None:
+    def button_hovered(self) -> Color| None:
         """Button color when hovered.
         Default: (0.26, 0.59, 0.98, 1.00)
         """
         ...
 
 
-    @ButtonHovered.setter
-    def ButtonHovered(self, value : Color| None):
+    @button_hovered.setter
+    def button_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def CheckMark(self) -> Color| None:
+    def check_mark(self) -> Color| None:
         """Checkmark color.
         Default: (0.26, 0.59, 0.98, 1.00)
         """
         ...
 
 
-    @CheckMark.setter
-    def CheckMark(self, value : Color| None):
+    @check_mark.setter
+    def check_mark(self, value : Color| None):
         ...
 
 
     @property
-    def ChildBg(self) -> Color| None:
+    def child_bg(self) -> Color| None:
         """Background of child windows.
         Default: (0.00, 0.00, 0.00, 0.00)
         """
         ...
 
 
-    @ChildBg.setter
-    def ChildBg(self, value : Color| None):
+    @child_bg.setter
+    def child_bg(self, value : Color| None):
         ...
 
 
     @property
-    def DragDropTarget(self) -> Color| None:
+    def drag_drop_target(self) -> Color| None:
         """Rectangle highlighting a drop target.
         Default: (1.00, 1.00, 0.00, 0.90)
         """
         ...
 
 
-    @DragDropTarget.setter
-    def DragDropTarget(self, value : Color| None):
+    @drag_drop_target.setter
+    def drag_drop_target(self, value : Color| None):
         ...
 
 
     @property
-    def FrameBg(self) -> Color| None:
+    def frame_bg(self) -> Color| None:
         """Background of checkbox, radio button, plot, slider, text input.
         Default: (0.16, 0.29, 0.48, 0.54)
         """
         ...
 
 
-    @FrameBg.setter
-    def FrameBg(self, value : Color| None):
+    @frame_bg.setter
+    def frame_bg(self, value : Color| None):
         ...
 
 
     @property
-    def FrameBgActive(self) -> Color| None:
+    def frame_bg_active(self) -> Color| None:
         """Color of FrameBg when the item is active.
         Default: (0.26, 0.59, 0.98, 0.67)
         """
         ...
 
 
-    @FrameBgActive.setter
-    def FrameBgActive(self, value : Color| None):
+    @frame_bg_active.setter
+    def frame_bg_active(self, value : Color| None):
         ...
 
 
     @property
-    def FrameBgHovered(self) -> Color| None:
+    def frame_bg_hovered(self) -> Color| None:
         """Color of FrameBg when the item is hovered.
         Default: (0.26, 0.59, 0.98, 0.40)
         """
         ...
 
 
-    @FrameBgHovered.setter
-    def FrameBgHovered(self, value : Color| None):
+    @frame_bg_hovered.setter
+    def frame_bg_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def Header(self) -> Color| None:
+    def header(self) -> Color| None:
         """Colors used for CollapsingHeader, TreeNode, Selectable, MenuItem.
         Default: (0.26, 0.59, 0.98, 0.31)
         """
         ...
 
 
-    @Header.setter
-    def Header(self, value : Color| None):
+    @header.setter
+    def header(self, value : Color| None):
         ...
 
 
     @property
-    def HeaderActive(self) -> Color| None:
+    def header_active(self) -> Color| None:
         """Header colors when activated/clicked.
         Default: (0.26, 0.59, 0.98, 1.00)
         """
         ...
 
 
-    @HeaderActive.setter
-    def HeaderActive(self, value : Color| None):
+    @header_active.setter
+    def header_active(self, value : Color| None):
         ...
 
 
     @property
-    def HeaderHovered(self) -> Color| None:
+    def header_hovered(self) -> Color| None:
         """Header colors when hovered.
         Default: (0.26, 0.59, 0.98, 0.80)
         """
         ...
 
 
-    @HeaderHovered.setter
-    def HeaderHovered(self, value : Color| None):
+    @header_hovered.setter
+    def header_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def MenuBarBg(self) -> Color| None:
+    def menu_bar_bg(self) -> Color| None:
         """Menu bar background color.
         Default: (0.14, 0.14, 0.14, 1.00)
         """
         ...
 
 
-    @MenuBarBg.setter
-    def MenuBarBg(self, value : Color| None):
+    @menu_bar_bg.setter
+    def menu_bar_bg(self, value : Color| None):
         ...
 
 
     @property
-    def ModalWindowDimBg(self) -> Color| None:
+    def modal_window_dim_bg(self) -> Color| None:
         """Darken/colorize entire screen behind a modal window.
         Default: (0.80, 0.80, 0.80, 0.35)
         """
         ...
 
 
-    @ModalWindowDimBg.setter
-    def ModalWindowDimBg(self, value : Color| None):
+    @modal_window_dim_bg.setter
+    def modal_window_dim_bg(self, value : Color| None):
         ...
 
 
     @property
-    def NavCursor(self) -> Color| None:
+    def nav_cursor(self) -> Color| None:
         """Color of keyboard/gamepad navigation cursor/rectangle, when visible.
         Default: Same as HeaderHovered (0.26, 0.59, 0.98, 1.00)
         """
         ...
 
 
-    @NavCursor.setter
-    def NavCursor(self, value : Color| None):
+    @nav_cursor.setter
+    def nav_cursor(self, value : Color| None):
         ...
 
 
     @property
-    def NavWindowingDimBg(self) -> Color| None:
+    def nav_windowing_dim_bg(self) -> Color| None:
         """Darken/colorize entire screen behind CTRL+TAB window list.
         Default: (0.80, 0.80, 0.80, 0.20)
         """
         ...
 
 
-    @NavWindowingDimBg.setter
-    def NavWindowingDimBg(self, value : Color| None):
+    @nav_windowing_dim_bg.setter
+    def nav_windowing_dim_bg(self, value : Color| None):
         ...
 
 
     @property
-    def NavWindowingHighlight(self) -> Color| None:
+    def nav_windowing_highlight(self) -> Color| None:
         """Highlight window when using CTRL+TAB.
         Default: (1.00, 1.00, 1.00, 0.70)
         """
         ...
 
 
-    @NavWindowingHighlight.setter
-    def NavWindowingHighlight(self, value : Color| None):
+    @nav_windowing_highlight.setter
+    def nav_windowing_highlight(self, value : Color| None):
         ...
 
 
     @property
-    def PlotHistogram(self) -> Color| None:
+    def plot_histogram(self) -> Color| None:
         """Color of SimplePlot histogram.
         Default: (0.90, 0.70, 0.00, 1.00)
         """
         ...
 
 
-    @PlotHistogram.setter
-    def PlotHistogram(self, value : Color| None):
+    @plot_histogram.setter
+    def plot_histogram(self, value : Color| None):
         ...
 
 
     @property
-    def PlotHistogramHovered(self) -> Color| None:
+    def plot_histogram_hovered(self) -> Color| None:
         """Color of SimplePlot histogram when hovered.
         Default: (1.00, 0.60, 0.00, 1.00)
         """
         ...
 
 
-    @PlotHistogramHovered.setter
-    def PlotHistogramHovered(self, value : Color| None):
+    @plot_histogram_hovered.setter
+    def plot_histogram_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def PlotLines(self) -> Color| None:
+    def plot_lines(self) -> Color| None:
         """Color of SimplePlot lines.
         Default: (0.61, 0.61, 0.61, 1.00)
         """
         ...
 
 
-    @PlotLines.setter
-    def PlotLines(self, value : Color| None):
+    @plot_lines.setter
+    def plot_lines(self, value : Color| None):
         ...
 
 
     @property
-    def PlotLinesHovered(self) -> Color| None:
+    def plot_lines_hovered(self) -> Color| None:
         """Color of SimplePlot lines when hovered.
         Default: (1.00, 0.43, 0.35, 1.00)
         """
         ...
 
 
-    @PlotLinesHovered.setter
-    def PlotLinesHovered(self, value : Color| None):
+    @plot_lines_hovered.setter
+    def plot_lines_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def PopupBg(self) -> Color| None:
+    def popup_bg(self) -> Color| None:
         """Background of popups, menus, tooltips windows.
         Default: (0.08, 0.08, 0.08, 0.94)
         """
         ...
 
 
-    @PopupBg.setter
-    def PopupBg(self, value : Color| None):
+    @popup_bg.setter
+    def popup_bg(self, value : Color| None):
         ...
 
 
     @property
-    def ResizeGrip(self) -> Color| None:
+    def resize_grip(self) -> Color| None:
         """Resize grip in lower-right and lower-left corners of windows.
         Default: (0.26, 0.59, 0.98, 0.20)
         """
         ...
 
 
-    @ResizeGrip.setter
-    def ResizeGrip(self, value : Color| None):
+    @resize_grip.setter
+    def resize_grip(self, value : Color| None):
         ...
 
 
     @property
-    def ResizeGripActive(self) -> Color| None:
+    def resize_grip_active(self) -> Color| None:
         """ResizeGrip color when clicked.
         Default: (0.26, 0.59, 0.98, 0.95)
         """
         ...
 
 
-    @ResizeGripActive.setter
-    def ResizeGripActive(self, value : Color| None):
+    @resize_grip_active.setter
+    def resize_grip_active(self, value : Color| None):
         ...
 
 
     @property
-    def ResizeGripHovered(self) -> Color| None:
+    def resize_grip_hovered(self) -> Color| None:
         """ResizeGrip color when hovered.
         Default: (0.26, 0.59, 0.98, 0.67)
         """
         ...
 
 
-    @ResizeGripHovered.setter
-    def ResizeGripHovered(self, value : Color| None):
+    @resize_grip_hovered.setter
+    def resize_grip_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def ScrollbarBg(self) -> Color| None:
+    def scrollbar_bg(self) -> Color| None:
         """Scrollbar background color.
         Default: (0.02, 0.02, 0.02, 0.53)
         """
         ...
 
 
-    @ScrollbarBg.setter
-    def ScrollbarBg(self, value : Color| None):
+    @scrollbar_bg.setter
+    def scrollbar_bg(self, value : Color| None):
         ...
 
 
     @property
-    def ScrollbarGrab(self) -> Color| None:
+    def scrollbar_grab(self) -> Color| None:
         """Scrollbar grab color.
         Default: (0.31, 0.31, 0.31, 1.00)
         """
         ...
 
 
-    @ScrollbarGrab.setter
-    def ScrollbarGrab(self, value : Color| None):
+    @scrollbar_grab.setter
+    def scrollbar_grab(self, value : Color| None):
         ...
 
 
     @property
-    def ScrollbarGrabActive(self) -> Color| None:
+    def scrollbar_grab_active(self) -> Color| None:
         """Scrollbar grab color when active.
         Default: (0.51, 0.51, 0.51, 1.00)
         """
         ...
 
 
-    @ScrollbarGrabActive.setter
-    def ScrollbarGrabActive(self, value : Color| None):
+    @scrollbar_grab_active.setter
+    def scrollbar_grab_active(self, value : Color| None):
         ...
 
 
     @property
-    def ScrollbarGrabHovered(self) -> Color| None:
+    def scrollbar_grab_hovered(self) -> Color| None:
         """Scrollbar grab color when hovered.
         Default: (0.41, 0.41, 0.41, 1.00)
         """
         ...
 
 
-    @ScrollbarGrabHovered.setter
-    def ScrollbarGrabHovered(self, value : Color| None):
+    @scrollbar_grab_hovered.setter
+    def scrollbar_grab_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def Separator(self) -> Color| None:
+    def separator(self) -> Color| None:
         """Color of separating lines.
         Default: Same as Border color (0.43, 0.43, 0.50, 0.50)
         """
         ...
 
 
-    @Separator.setter
-    def Separator(self, value : Color| None):
+    @separator.setter
+    def separator(self, value : Color| None):
         ...
 
 
     @property
-    def SeparatorActive(self) -> Color| None:
+    def separator_active(self) -> Color| None:
         """Separator color when active.
         Default: (0.10, 0.40, 0.75, 1.00)
         """
         ...
 
 
-    @SeparatorActive.setter
-    def SeparatorActive(self, value : Color| None):
+    @separator_active.setter
+    def separator_active(self, value : Color| None):
         ...
 
 
     @property
-    def SeparatorHovered(self) -> Color| None:
+    def separator_hovered(self) -> Color| None:
         """Separator color when hovered.
         Default: (0.10, 0.40, 0.75, 0.78)
         """
         ...
 
 
-    @SeparatorHovered.setter
-    def SeparatorHovered(self, value : Color| None):
+    @separator_hovered.setter
+    def separator_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def SliderGrab(self) -> Color| None:
+    def slider_grab(self) -> Color| None:
         """Slider grab color.
         Default: (0.24, 0.52, 0.88, 1.00)
         """
         ...
 
 
-    @SliderGrab.setter
-    def SliderGrab(self, value : Color| None):
+    @slider_grab.setter
+    def slider_grab(self, value : Color| None):
         ...
 
 
     @property
-    def SliderGrabActive(self) -> Color| None:
+    def slider_grab_active(self) -> Color| None:
         """Slider grab color when active.
         Default: (0.26, 0.59, 0.98, 1.00)
         """
         ...
 
 
-    @SliderGrabActive.setter
-    def SliderGrabActive(self, value : Color| None):
+    @slider_grab_active.setter
+    def slider_grab_active(self, value : Color| None):
         ...
 
 
     @property
-    def Tab(self) -> Color| None:
+    def tab(self) -> Color| None:
         """Tab background when tab-bar is focused & tab is unselected.
         Default: Value interpolated between Header and TitleBgActive colors with factor 0.80
         """
         ...
 
 
-    @Tab.setter
-    def Tab(self, value : Color| None):
+    @tab.setter
+    def tab(self, value : Color| None):
         ...
 
 
     @property
-    def TabDimmed(self) -> Color| None:
+    def tab_dimmed(self) -> Color| None:
         """Tab background when tab-bar is unfocused & tab is unselected.
         Default: Value interpolated between Tab and TitleBg colors with factor 0.80
         """
         ...
 
 
-    @TabDimmed.setter
-    def TabDimmed(self, value : Color| None):
+    @tab_dimmed.setter
+    def tab_dimmed(self, value : Color| None):
         ...
 
 
     @property
-    def TabDimmedSelected(self) -> Color| None:
+    def tab_dimmed_selected(self) -> Color| None:
         """Tab background when tab-bar is unfocused & tab is selected.
         Default: Value interpolated between TabSelected and TitleBg colors with factor 0.40
         """
         ...
 
 
-    @TabDimmedSelected.setter
-    def TabDimmedSelected(self, value : Color| None):
+    @tab_dimmed_selected.setter
+    def tab_dimmed_selected(self, value : Color| None):
         ...
 
 
     @property
-    def TabDimmedSelectedOverline(self) -> Color| None:
+    def tab_dimmed_selected_overline(self) -> Color| None:
         """Tab horizontal overline when tab-bar is unfocused & tab is selected.
         Default: (0.50, 0.50, 0.50, 1.00)
         """
         ...
 
 
-    @TabDimmedSelectedOverline.setter
-    def TabDimmedSelectedOverline(self, value : Color| None):
+    @tab_dimmed_selected_overline.setter
+    def tab_dimmed_selected_overline(self, value : Color| None):
         ...
 
 
     @property
-    def TabHovered(self) -> Color| None:
+    def tab_hovered(self) -> Color| None:
         """Tab background when hovered.
         Default: Same as HeaderHovered color
         """
         ...
 
 
-    @TabHovered.setter
-    def TabHovered(self, value : Color| None):
+    @tab_hovered.setter
+    def tab_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def TabSelected(self) -> Color| None:
+    def tab_selected(self) -> Color| None:
         """Tab background when tab-bar is focused & tab is selected.
         Default: Value interpolated between HeaderActive and TitleBgActive colors with factor 0.60
         """
         ...
 
 
-    @TabSelected.setter
-    def TabSelected(self, value : Color| None):
+    @tab_selected.setter
+    def tab_selected(self, value : Color| None):
         ...
 
 
     @property
-    def TabSelectedOverline(self) -> Color| None:
+    def tab_selected_overline(self) -> Color| None:
         """Tab horizontal overline when tab-bar is focused & tab is selected.
         Default: Same as HeaderActive color
         """
         ...
 
 
-    @TabSelectedOverline.setter
-    def TabSelectedOverline(self, value : Color| None):
+    @tab_selected_overline.setter
+    def tab_selected_overline(self, value : Color| None):
         ...
 
 
     @property
-    def TableBorderLight(self) -> Color| None:
+    def table_border_light(self) -> Color| None:
         """Table inner borders (prefer using Alpha=1.0 here).
         Default: (0.23, 0.23, 0.25, 1.00)
         """
         ...
 
 
-    @TableBorderLight.setter
-    def TableBorderLight(self, value : Color| None):
+    @table_border_light.setter
+    def table_border_light(self, value : Color| None):
         ...
 
 
     @property
-    def TableBorderStrong(self) -> Color| None:
+    def table_border_strong(self) -> Color| None:
         """Table outer borders and headers (prefer using Alpha=1.0 here).
         Default: (0.31, 0.31, 0.35, 1.00)
         """
         ...
 
 
-    @TableBorderStrong.setter
-    def TableBorderStrong(self, value : Color| None):
+    @table_border_strong.setter
+    def table_border_strong(self, value : Color| None):
         ...
 
 
     @property
-    def TableHeaderBg(self) -> Color| None:
+    def table_header_bg(self) -> Color| None:
         """Table header background.
         Default: (0.19, 0.19, 0.20, 1.00)
         """
         ...
 
 
-    @TableHeaderBg.setter
-    def TableHeaderBg(self, value : Color| None):
+    @table_header_bg.setter
+    def table_header_bg(self, value : Color| None):
         ...
 
 
     @property
-    def TableRowBg(self) -> Color| None:
+    def table_row_bg(self) -> Color| None:
         """Table row background (even rows).
         Default: (0.00, 0.00, 0.00, 0.00)
         """
         ...
 
 
-    @TableRowBg.setter
-    def TableRowBg(self, value : Color| None):
+    @table_row_bg.setter
+    def table_row_bg(self, value : Color| None):
         ...
 
 
     @property
-    def TableRowBgAlt(self) -> Color| None:
+    def table_row_bg_alt(self) -> Color| None:
         """Table row background (odd rows).
         Default: (1.00, 1.00, 1.00, 0.06)
         """
         ...
 
 
-    @TableRowBgAlt.setter
-    def TableRowBgAlt(self, value : Color| None):
+    @table_row_bg_alt.setter
+    def table_row_bg_alt(self, value : Color| None):
         ...
 
 
     @property
-    def Text(self) -> Color| None:
+    def text(self) -> Color| None:
         """Color for text rendering.
         Default: (1.00, 1.00, 1.00, 1.00)
         """
         ...
 
 
-    @Text.setter
-    def Text(self, value : Color| None):
+    @text.setter
+    def text(self, value : Color| None):
         ...
 
 
     @property
-    def TextDisabled(self) -> Color| None:
+    def text_disabled(self) -> Color| None:
         """Color for the text of disabled items.
         Default: (0.50, 0.50, 0.50, 1.00)
         """
         ...
 
 
-    @TextDisabled.setter
-    def TextDisabled(self, value : Color| None):
+    @text_disabled.setter
+    def text_disabled(self, value : Color| None):
         ...
 
 
     @property
-    def TextLink(self) -> Color| None:
+    def text_link(self) -> Color| None:
         """Hyperlink color.
         Default: Same as HeaderActive color
         """
         ...
 
 
-    @TextLink.setter
-    def TextLink(self, value : Color| None):
+    @text_link.setter
+    def text_link(self, value : Color| None):
         ...
 
 
     @property
-    def TextSelectedBg(self) -> Color| None:
+    def text_selected_bg(self) -> Color| None:
         """Background color of selected text.
         Default: (0.26, 0.59, 0.98, 0.35)
         """
         ...
 
 
-    @TextSelectedBg.setter
-    def TextSelectedBg(self, value : Color| None):
+    @text_selected_bg.setter
+    def text_selected_bg(self, value : Color| None):
         ...
 
 
     @property
-    def TitleBg(self) -> Color| None:
+    def title_bg(self) -> Color| None:
         """Title bar color.
         Default: (0.04, 0.04, 0.04, 1.00)
         """
         ...
 
 
-    @TitleBg.setter
-    def TitleBg(self, value : Color| None):
+    @title_bg.setter
+    def title_bg(self, value : Color| None):
         ...
 
 
     @property
-    def TitleBgActive(self) -> Color| None:
+    def title_bg_active(self) -> Color| None:
         """Title bar color when focused.
         Default: (0.16, 0.29, 0.48, 1.00)
         """
         ...
 
 
-    @TitleBgActive.setter
-    def TitleBgActive(self, value : Color| None):
+    @title_bg_active.setter
+    def title_bg_active(self, value : Color| None):
         ...
 
 
     @property
-    def TitleBgCollapsed(self) -> Color| None:
+    def title_bg_collapsed(self) -> Color| None:
         """Title bar color when collapsed.
         Default: (0.00, 0.00, 0.00, 0.51)
         """
         ...
 
 
-    @TitleBgCollapsed.setter
-    def TitleBgCollapsed(self, value : Color| None):
+    @title_bg_collapsed.setter
+    def title_bg_collapsed(self, value : Color| None):
         ...
 
 
     @property
-    def WindowBg(self) -> Color| None:
+    def window_bg(self) -> Color| None:
         """Background of normal windows.
         Default: (0.06, 0.06, 0.06, 0.94)
         """
         ...
 
 
-    @WindowBg.setter
-    def WindowBg(self, value : Color| None):
+    @window_bg.setter
+    def window_bg(self, value : Color| None):
         ...
 
 
@@ -18535,336 +18499,336 @@ class ThemeColorImPlot(baseThemeColor):
     If a is missing, it defaults to 255.
 
     Keyword Arguments:
-        Line: Plot line color. Auto - derived from Text color
-        Fill: Plot fill color. Auto - derived from Line color
-        MarkerOutline: Plot marker outline color. Auto - derived from Line color
-        MarkerFill: Plot marker fill color. Auto - derived from Line color
-        ErrorBar: Error bar color. Auto - derived from Text color
-        FrameBg: Plot frame background color. Auto - derived from FrameBg color
-        PlotBg: Plot area background color. Auto - derived from WindowBg color
-        PlotBorder: Plot area border color. Auto - derived from Border color
-        LegendBg: Legend background color. Auto - derived from PopupBg color
-        LegendBorder: Legend border color. Auto - derived from Border color
-        LegendText: Legend text color. Auto - derived from Text color
-        TitleText: Plot title text color. Auto - derived from Text color
-        InlayText: Color of text appearing inside plots. Auto - derived from Text color
-        AxisText: Axis text labels color. Auto - derived from Text color
-        AxisGrid: Axis grid color. Auto - derived from Text color with reduced alpha
-        AxisTick: Axis tick marks color. Auto - derived from AxisGrid color
-        AxisBg: Background color of axis hover region. Auto - transparent
-        AxisBgHovered: Axis background color when hovered. Auto - derived from ButtonHovered color
-        AxisBgActive: Axis background color when clicked. Auto - derived from ButtonActive color
-        Selection: Box-selection color. Default: (1.00, 1.00, 0.00, 1.00)
-        Crosshairs: Crosshairs color. Auto - derived from PlotBorder color
+        line: Plot line color. Auto - derived from Text color
+        fill: Plot fill color. Auto - derived from Line color
+        marker_outline: Plot marker outline color. Auto - derived from Line color
+        marker_fill: Plot marker fill color. Auto - derived from Line color
+        error_bar: Error bar color. Auto - derived from Text color
+        frame_bg: Plot frame background color. Auto - derived from FrameBg color
+        plot_bg: Plot area background color. Auto - derived from WindowBg color
+        plot_border: Plot area border color. Auto - derived from Border color
+        legend_bg: Legend background color. Auto - derived from PopupBg color
+        legend_border: Legend border color. Auto - derived from Border color
+        legend_text: Legend text color. Auto - derived from Text color
+        title_text: Plot title text color. Auto - derived from Text color
+        inlay_text: Color of text appearing inside plots. Auto - derived from Text color
+        axis_text: Axis text labels color. Auto - derived from Text color
+        axis_grid: Axis grid color. Auto - derived from Text color with reduced alpha
+        axis_tick: Axis tick marks color. Auto - derived from AxisGrid color
+        axis_bg: Background color of axis hover region. Auto - transparent
+        axis_bg_hovered: Axis background color when hovered. Auto - derived from ButtonHovered color
+        axis_bg_active: Axis background color when clicked. Auto - derived from ButtonActive color
+        selection: Box-selection color. Default: (1.00, 1.00, 0.00, 1.00)
+        crosshairs: Crosshairs color. Auto - derived from PlotBorder color
 
     """
-    def __init__(self, context : Context, AxisBg : Color| None = None, AxisBgActive : Color| None = None, AxisBgHovered : Color| None = None, AxisGrid : Color| None = None, AxisText : Color| None = None, AxisTick : Color| None = None, Crosshairs : Color| None = None, ErrorBar : Color| None = None, Fill : Color| None = None, FrameBg : Color| None = None, InlayText : Color| None = None, LegendBg : Color| None = None, LegendBorder : Color| None = None, LegendText : Color| None = None, Line : Color| None = None, MarkerFill : Color| None = None, MarkerOutline : Color| None = None, PlotBg : Color| None = None, PlotBorder : Color| None = None, Selection : Color| None = None, TitleText : Color| None = None, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
+    def __init__(self, context : Context, attach : Color| None = None, axis_bg : Color| None = None, axis_bg_active : Color| None = None, axis_bg_hovered : Color| None = None, axis_grid : Color| None = None, axis_text : Color| None = None, axis_tick : Color| None = None, before : Color| None = None, children : None  = [], crosshairs : Color| None = None, enabled : bool = True, error_bar : Color| None = None, fill : Color = None, frame_bg : Color| None = None, inlay_text : Color| None = None, legend_bg : Color| None = None, legend_border : Color| None = None, legend_text : Color| None = None, line : Color| None = None, marker_fill : Color| None = None, marker_outline : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, plot_bg : Color| None = None, plot_border : Color| None = None, previous_sibling : baseItemSubCls | None = None, selection : Color| None = None, title_text : Color| None = None, user_data : Color| None = None):
         """
         Parameters
         ----------
-        - AxisBg: Background color of axis hover region.
-        - AxisBgActive: Axis background color when clicked.
-        - AxisBgHovered: Axis background color when hovered.
-        - AxisGrid: Axis grid color.
-        - AxisText: Axis text labels color.
-        - AxisTick: Axis tick marks color.
-        - Crosshairs: Crosshairs color.
-        - ErrorBar: Error bar color.
-        - Fill: Plot fill color.
-        - FrameBg: Plot frame background color.
-        - InlayText: Color of text appearing inside of plots.
-        - LegendBg: Legend background color.
-        - LegendBorder: Legend border color.
-        - LegendText: Legend text color.
-        - Line: Plot line color.
-        - MarkerFill: Plot marker fill color.
-        - MarkerOutline: Plot marker outline color.
-        - PlotBg: Plot area background color.
-        - PlotBorder: Plot area border color.
-        - Selection: Box-selection color.
-        - TitleText: Plot title text color.
         - attach: Whether to attach the item to a parent. Default is None (auto)
+        - axis_bg: Background color of axis hover region.
+        - axis_bg_active: Axis background color when clicked.
+        - axis_bg_hovered: Axis background color when hovered.
+        - axis_grid: Axis grid color.
+        - axis_text: Axis text labels color.
+        - axis_tick: Axis tick marks color.
         - before: Attach the item just before the target item. Default is None (disabled)
         - children: List of all the children of the item, from first rendered, to last rendered.
+        - crosshairs: Crosshairs color.
         - enabled: Controls whether the theme is currently active.
+        - error_bar: Error bar color.
+        - fill: Plot fill color.
+        - frame_bg: Plot frame background color.
+        - inlay_text: Color of text appearing inside of plots.
+        - legend_bg: Legend background color.
+        - legend_border: Legend border color.
+        - legend_text: Legend text color.
+        - line: Plot line color.
+        - marker_fill: Plot marker fill color.
+        - marker_outline: Plot marker outline color.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
+        - plot_bg: Plot area background color.
+        - plot_border: Plot area border color.
         - previous_sibling: Child of the parent rendered just before this item.
+        - selection: Box-selection color.
+        - title_text: Plot title text color.
         - user_data: User data of any type.
         """
         ...
 
 
     @property
-    def AxisBg(self) -> Color| None:
+    def axis_bg(self) -> Color| None:
         """Background color of axis hover region.
         Default: transparent
         """
         ...
 
 
-    @AxisBg.setter
-    def AxisBg(self, value : Color| None):
+    @axis_bg.setter
+    def axis_bg(self, value : Color| None):
         ...
 
 
     @property
-    def AxisBgActive(self) -> Color| None:
+    def axis_bg_active(self) -> Color| None:
         """Axis background color when clicked.
         Default: Auto - derived from ButtonActive color
         """
         ...
 
 
-    @AxisBgActive.setter
-    def AxisBgActive(self, value : Color| None):
+    @axis_bg_active.setter
+    def axis_bg_active(self, value : Color| None):
         ...
 
 
     @property
-    def AxisBgHovered(self) -> Color| None:
+    def axis_bg_hovered(self) -> Color| None:
         """Axis background color when hovered.
         Default: Auto - derived from ButtonHovered color
         """
         ...
 
 
-    @AxisBgHovered.setter
-    def AxisBgHovered(self, value : Color| None):
+    @axis_bg_hovered.setter
+    def axis_bg_hovered(self, value : Color| None):
         ...
 
 
     @property
-    def AxisGrid(self) -> Color| None:
+    def axis_grid(self) -> Color| None:
         """Axis grid color.
         Default: Auto - derived from Text color
         """
         ...
 
 
-    @AxisGrid.setter
-    def AxisGrid(self, value : Color| None):
+    @axis_grid.setter
+    def axis_grid(self, value : Color| None):
         ...
 
 
     @property
-    def AxisText(self) -> Color| None:
+    def axis_text(self) -> Color| None:
         """Axis text labels color.
         Default: Auto - derived from Text color
         """
         ...
 
 
-    @AxisText.setter
-    def AxisText(self, value : Color| None):
+    @axis_text.setter
+    def axis_text(self, value : Color| None):
         ...
 
 
     @property
-    def AxisTick(self) -> Color| None:
+    def axis_tick(self) -> Color| None:
         """Axis tick marks color.
         Default: Auto - derived from AxisGrid color
         """
         ...
 
 
-    @AxisTick.setter
-    def AxisTick(self, value : Color| None):
+    @axis_tick.setter
+    def axis_tick(self, value : Color| None):
         ...
 
 
     @property
-    def Crosshairs(self) -> Color| None:
+    def crosshairs(self) -> Color| None:
         """Crosshairs color.
         Default: Auto - derived from PlotBorder color
         """
         ...
 
 
-    @Crosshairs.setter
-    def Crosshairs(self, value : Color| None):
+    @crosshairs.setter
+    def crosshairs(self, value : Color| None):
         ...
 
 
     @property
-    def ErrorBar(self) -> Color| None:
+    def error_bar(self) -> Color| None:
         """Error bar color.
         Default: Auto - derived from Text color
         """
         ...
 
 
-    @ErrorBar.setter
-    def ErrorBar(self, value : Color| None):
+    @error_bar.setter
+    def error_bar(self, value : Color| None):
         ...
 
 
     @property
-    def Fill(self) -> Color| None:
+    def fill(self) -> Color:
         """Plot fill color.
         Default: Auto - derived from Line color
         """
         ...
 
 
-    @Fill.setter
-    def Fill(self, value : Color| None):
+    @fill.setter
+    def fill(self, value : Color):
         ...
 
 
     @property
-    def FrameBg(self) -> Color| None:
+    def frame_bg(self) -> Color| None:
         """Plot frame background color.
         Default: Auto - derived from FrameBg color
         """
         ...
 
 
-    @FrameBg.setter
-    def FrameBg(self, value : Color| None):
+    @frame_bg.setter
+    def frame_bg(self, value : Color| None):
         ...
 
 
     @property
-    def InlayText(self) -> Color| None:
+    def inlay_text(self) -> Color| None:
         """Color of text appearing inside of plots.
         Default: Auto - derived from Text color
         """
         ...
 
 
-    @InlayText.setter
-    def InlayText(self, value : Color| None):
+    @inlay_text.setter
+    def inlay_text(self, value : Color| None):
         ...
 
 
     @property
-    def LegendBg(self) -> Color| None:
+    def legend_bg(self) -> Color| None:
         """Legend background color.
         Default: Auto - derived from PopupBg color
         """
         ...
 
 
-    @LegendBg.setter
-    def LegendBg(self, value : Color| None):
+    @legend_bg.setter
+    def legend_bg(self, value : Color| None):
         ...
 
 
     @property
-    def LegendBorder(self) -> Color| None:
+    def legend_border(self) -> Color| None:
         """Legend border color.
         Default: Auto - derived from Border color
         """
         ...
 
 
-    @LegendBorder.setter
-    def LegendBorder(self, value : Color| None):
+    @legend_border.setter
+    def legend_border(self, value : Color| None):
         ...
 
 
     @property
-    def LegendText(self) -> Color| None:
+    def legend_text(self) -> Color| None:
         """Legend text color.
         Default: Auto - derived from Text color
         """
         ...
 
 
-    @LegendText.setter
-    def LegendText(self, value : Color| None):
+    @legend_text.setter
+    def legend_text(self, value : Color| None):
         ...
 
 
     @property
-    def Line(self) -> Color| None:
+    def line(self) -> Color| None:
         """Plot line color.
         Default: Auto - derived from Text color
         """
         ...
 
 
-    @Line.setter
-    def Line(self, value : Color| None):
+    @line.setter
+    def line(self, value : Color| None):
         ...
 
 
     @property
-    def MarkerFill(self) -> Color| None:
+    def marker_fill(self) -> Color| None:
         """Plot marker fill color.
         Default: Auto - derived from Line color
         """
         ...
 
 
-    @MarkerFill.setter
-    def MarkerFill(self, value : Color| None):
+    @marker_fill.setter
+    def marker_fill(self, value : Color| None):
         ...
 
 
     @property
-    def MarkerOutline(self) -> Color| None:
+    def marker_outline(self) -> Color| None:
         """Plot marker outline color.
         Default: Auto - derived from Line color
         """
         ...
 
 
-    @MarkerOutline.setter
-    def MarkerOutline(self, value : Color| None):
+    @marker_outline.setter
+    def marker_outline(self, value : Color| None):
         ...
 
 
     @property
-    def PlotBg(self) -> Color| None:
+    def plot_bg(self) -> Color| None:
         """Plot area background color.
         Default: Auto - derived from WindowBg color
         """
         ...
 
 
-    @PlotBg.setter
-    def PlotBg(self, value : Color| None):
+    @plot_bg.setter
+    def plot_bg(self, value : Color| None):
         ...
 
 
     @property
-    def PlotBorder(self) -> Color| None:
+    def plot_border(self) -> Color| None:
         """Plot area border color.
         Default: Auto - derived from Border color
         """
         ...
 
 
-    @PlotBorder.setter
-    def PlotBorder(self, value : Color| None):
+    @plot_border.setter
+    def plot_border(self, value : Color| None):
         ...
 
 
     @property
-    def Selection(self) -> Color| None:
+    def selection(self) -> Color| None:
         """Box-selection color.
         Default: (1.00, 1.00, 0.00, 1.00)
         """
         ...
 
 
-    @Selection.setter
-    def Selection(self, value : Color| None):
+    @selection.setter
+    def selection(self, value : Color| None):
         ...
 
 
     @property
-    def TitleText(self) -> Color| None:
+    def title_text(self) -> Color| None:
         """Plot title text color.
         Default: Auto - derived from Text color
         """
         ...
 
 
-    @TitleText.setter
-    def TitleText(self, value : Color| None):
+    @title_text.setter
+    def title_text(self, value : Color| None):
         ...
 
 
@@ -18903,58 +18867,59 @@ class ThemeList(baseTheme):
 
 
 class ThemeStyleImGui(baseThemeStyle):
-    def __init__(self, context : Context, Alpha : float | None = None, ButtonTextAlign : tuple[float, float] | None = None, CellPadding : tuple[float, float] | None = None, ChildBorderSize : float | None = None, ChildRounding : float | None = None, DisabledAlpha : float | None = None, FrameBorderSize : float | None = None, FramePadding : tuple[float, float] | None = None, FrameRounding : float | None = None, GrabMinSize : float | None = None, GrabRounding : float | None = None, IndentSpacing : float | None = None, ItemInnerSpacing : tuple[float, float] | None = None, ItemSpacing : tuple[float, float] | None = None, PopupBorderSize : float | None = None, PopupRounding : float | None = None, ScrollbarRounding : float | None = None, ScrollbarSize : float | None = None, SelectableTextAlign : tuple[float, float] | None = None, SeparatorTextBorderSize : float | None = None, SeparatorTextPadding : tuple[float, float] | None = None, TabBarBorderSize : float | None = None, TabBarOverlineSize : float | None = None, TabBorderSize : float | None = None, TabRounding : float | None = None, TableAngledHeadersAngle : float | None = None, TableAngledHeadersTextAlign : tuple[float, float] | None = None, WindowBorderSize : float | None = None, WindowMinSize : tuple[float, float] | None = None, WindowPadding : tuple[float, float] | None = None, WindowRounding : float | None = None, WindowTitleAlign : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, alpha : float | None = None, attach : Any = ..., before : Any = ..., button_text_align : tuple[float, float] | None = None, cell_padding : tuple[float, float] | None = None, child_border_size : float | None = None, child_rounding : float | None = None, children : None  = [], disabled_alpha : float | None = None, enabled : bool = True, frame_border_size : float | None = None, frame_padding : tuple[float, float] | None = None, frame_rounding : float | None = None, grab_min_size : float | None = None, grab_rounding : float | None = None, indent_spacing : float | None = None, item_inner_spacing : tuple[float, float] | None = None, item_spacing : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, popup_border_size : float | None = None, popup_rounding : float | None = None, previous_sibling : baseItemSubCls | None = None, scrollbar_rounding : float | None = None, scrollbar_size : float | None = None, selectable_text_align : tuple[float, float] | None = None, separator_text_align : tuple[float, float] | None = None, separator_text_border_size : float | None = None, separator_text_padding : tuple[float, float] | None = None, tab_bar_border_size : float | None = None, tab_bar_overline_size : float | None = None, tab_border_size : float | None = None, tab_rounding : float | None = None, table_angled_headers_angle : float | None = None, table_angled_headers_text_align : tuple[float, float] | None = None, user_data : tuple[float, float] | None = None, window_border_size : float | None = None, window_min_size : tuple[float, float] | None = None, window_padding : tuple[float, float] | None = None, window_rounding : float | None = None, window_title_align : tuple[float, float] | None = None):
         """
         Parameters
         ----------
-        - Alpha: Global alpha applied to everything in Dear ImGui.
-        - ButtonTextAlign: Alignment of button text when button is larger than text.
-        - CellPadding: Tables: padding between cells.
-        - ChildBorderSize: Thickness of border around child windows. Generally set to 0.0f or 1.0f. Other values not well tested.
-        - ChildRounding: Radius of child window corners rounding. Set to 0.0 to have rectangular child windows.
-        - DisabledAlpha: Unused currently.
-        - FrameBorderSize: Thickness of border around frames (most widgets). Generally set to 0.0f or 1.0f. Other values not well tested.
-        - FramePadding: Padding within a framed rectangle (used by most widgets)
-        - FrameRounding: Radius of frame corners rounding. Set to 0.0 to have rectangular frame (most widgets).
-        - GrabMinSize: Minimum width/height of a grab box for slider/scrollbar.
-        - GrabRounding: Radius of grabs corners rounding. Set to 0.0f to have rectangular slider grabs.
-        - IndentSpacing: Default horizontal spacing for indentations. For instance when entering a tree node.
-        - ItemInnerSpacing: Horizontal and vertical spacing between elements inside of a composed widget.
-        - ItemSpacing: Horizontal and vertical spacing between widgets/lines.
-        - PopupBorderSize: Thickness of border around popup or tooltip windows. Generally set to 0.0f or 1.0f. Other values not well tested.
-        - PopupRounding: Radius of popup or tooltip window corners rounding. Set to 0.0 to have rectangular popup or tooltip windows.
-        - ScrollbarRounding: Radius of grab corners rounding for scrollbar.
-        - ScrollbarSize: Width of the vertical scrollbar, Height of the horizontal scrollbar
-        - SelectableTextAlign: Alignment of text within the separator in percentages.
-        - SeparatorTextBorderSize: Thickness of border in Separator() text.
-        - SeparatorTextPadding: Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
-        - TabBarBorderSize: Thickness of tab-bar separator, which takes on the tab active color to denote focus.
-        - TabBarOverlineSize: Thickness of tab-bar overline, which highlights the selected tab-bar.
-        - TabBorderSize: Thickness of borders around tabs.
-        - TabRounding: Radius of upper corners of a tab. Set to 0.0f to have rectangular tabs.
-        - TableAngledHeadersAngle: Tables: Angle of angled headers (supported values range from -50 degrees to +50 degrees).
-        - TableAngledHeadersTextAlign: Tables: Alignment (percentages) of angled headers within the cell
-        - WindowBorderSize: Thickness of border around windows. Generally set to 0.0 or 1.0f. Other values not well tested.
-        - WindowMinSize: Minimum window size
-        - WindowPadding: Padding within a window.
-        - WindowRounding: Radius of window corners rounding. Set to 0.0 to have rectangular windows. Large values tend to lead to variety of artifacts and are not recommended.
-        - WindowTitleAlign: Alignment for window title bar text in percentages
+        - alpha: Global alpha applied to everything in Dear ImGui.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button_text_align: Alignment of button text when button is larger than text.
+        - cell_padding: Tables: padding between cells.
+        - child_border_size: Thickness of border around child windows. Generally set to 0.0f or 1.0f. Other values not well tested.
+        - child_rounding: Radius of child window corners rounding. Set to 0.0 to have rectangular child windows.
         - children: List of all the children of the item, from first rendered, to last rendered.
+        - disabled_alpha: Unused currently.
         - enabled: Controls whether the theme is currently active.
+        - frame_border_size: Thickness of border around frames (most widgets). Generally set to 0.0f or 1.0f. Other values not well tested.
+        - frame_padding: Padding within a framed rectangle (used by most widgets)
+        - frame_rounding: Radius of frame corners rounding. Set to 0.0 to have rectangular frame (most widgets).
+        - grab_min_size: Minimum width/height of a grab box for slider/scrollbar.
+        - grab_rounding: Radius of grabs corners rounding. Set to 0.0f to have rectangular slider grabs.
+        - indent_spacing: Default horizontal spacing for indentations. For instance when entering a tree node.
+        - item_inner_spacing: Horizontal and vertical spacing between elements inside of a composed widget.
+        - item_spacing: Horizontal and vertical spacing between widgets/lines.
         - next_sibling: Child of the parent rendered just after this item.
         - no_rounding: boolean. Defaults to False.
         - no_scaling: boolean. Defaults to False.
         - parent: Parent of the item in the rendering tree.
+        - popup_border_size: Thickness of border around popup or tooltip windows. Generally set to 0.0f or 1.0f. Other values not well tested.
+        - popup_rounding: Radius of popup or tooltip window corners rounding. Set to 0.0 to have rectangular popup or tooltip windows.
         - previous_sibling: Child of the parent rendered just before this item.
+        - scrollbar_rounding: Radius of grab corners rounding for scrollbar.
+        - scrollbar_size: Width of the vertical scrollbar, Height of the horizontal scrollbar
+        - selectable_text_align: Alignment of selectable text (in percentages).
+        - separator_text_align: Alignment of text within the separator in percentages.
+        - separator_text_border_size: Thickness of border in Separator() text.
+        - separator_text_padding: Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
+        - tab_bar_border_size: Thickness of tab-bar separator, which takes on the tab active color to denote focus.
+        - tab_bar_overline_size: Thickness of tab-bar overline, which highlights the selected tab-bar.
+        - tab_border_size: Thickness of borders around tabs.
+        - tab_rounding: Radius of upper corners of a tab. Set to 0.0f to have rectangular tabs.
+        - table_angled_headers_angle: Tables: Angle of angled headers (supported values range from -50 degrees to +50 degrees).
+        - table_angled_headers_text_align: Tables: Alignment (percentages) of angled headers within the cell
         - user_data: User data of any type.
+        - window_border_size: Thickness of border around windows. Generally set to 0.0 or 1.0f. Other values not well tested.
+        - window_min_size: Minimum window size
+        - window_padding: Padding within a window.
+        - window_rounding: Radius of window corners rounding. Set to 0.0 to have rectangular windows. Large values tend to lead to variety of artifacts and are not recommended.
+        - window_title_align: Alignment for window title bar text in percentages
         """
         ...
 
 
     @property
-    def Alpha(self) -> float | None:
+    def alpha(self) -> float | None:
         """
         Global alpha applied to everything in Dear ImGui.
 
@@ -18964,13 +18929,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @Alpha.setter
-    def Alpha(self, value : float | None):
+    @alpha.setter
+    def alpha(self, value : float | None):
         ...
 
 
     @property
-    def ButtonTextAlign(self) -> tuple[float, float] | None:
+    def button_text_align(self) -> tuple[float, float] | None:
         """
         Alignment of button text when button is larger than text.
 
@@ -18980,13 +18945,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @ButtonTextAlign.setter
-    def ButtonTextAlign(self, value : tuple[float, float] | None):
+    @button_text_align.setter
+    def button_text_align(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def CellPadding(self) -> tuple[float, float] | None:
+    def cell_padding(self) -> tuple[float, float] | None:
         """
         Tables: padding between cells.
         The x padding is applied for the whole Table,
@@ -18998,13 +18963,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @CellPadding.setter
-    def CellPadding(self, value : tuple[float, float] | None):
+    @cell_padding.setter
+    def cell_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def ChildBorderSize(self) -> float | None:
+    def child_border_size(self) -> float | None:
         """
         Thickness of border around child windows. Generally set to 0.0f or 1.0f. Other values not well tested.
 
@@ -19014,13 +18979,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @ChildBorderSize.setter
-    def ChildBorderSize(self, value : float | None):
+    @child_border_size.setter
+    def child_border_size(self, value : float | None):
         ...
 
 
     @property
-    def ChildRounding(self) -> float | None:
+    def child_rounding(self) -> float | None:
         """
         Radius of child window corners rounding. Set to 0.0 to have rectangular child windows.
 
@@ -19030,13 +18995,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @ChildRounding.setter
-    def ChildRounding(self, value : float | None):
+    @child_rounding.setter
+    def child_rounding(self, value : float | None):
         ...
 
 
     @property
-    def DisabledAlpha(self) -> float | None:
+    def disabled_alpha(self) -> float | None:
         """
         Unused currently.
 
@@ -19046,13 +19011,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @DisabledAlpha.setter
-    def DisabledAlpha(self, value : float | None):
+    @disabled_alpha.setter
+    def disabled_alpha(self, value : float | None):
         ...
 
 
     @property
-    def FrameBorderSize(self) -> float | None:
+    def frame_border_size(self) -> float | None:
         """
         Thickness of border around frames (most widgets). Generally set to 0.0f or 1.0f. Other values not well tested.
 
@@ -19062,13 +19027,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @FrameBorderSize.setter
-    def FrameBorderSize(self, value : float | None):
+    @frame_border_size.setter
+    def frame_border_size(self, value : float | None):
         ...
 
 
     @property
-    def FramePadding(self) -> tuple[float, float] | None:
+    def frame_padding(self) -> tuple[float, float] | None:
         """
         Padding within a framed rectangle (used by most widgets)
 
@@ -19078,13 +19043,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @FramePadding.setter
-    def FramePadding(self, value : tuple[float, float] | None):
+    @frame_padding.setter
+    def frame_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def FrameRounding(self) -> float | None:
+    def frame_rounding(self) -> float | None:
         """
         Radius of frame corners rounding. Set to 0.0 to have rectangular frame (most widgets).
 
@@ -19094,13 +19059,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @FrameRounding.setter
-    def FrameRounding(self, value : float | None):
+    @frame_rounding.setter
+    def frame_rounding(self, value : float | None):
         ...
 
 
     @property
-    def GrabMinSize(self) -> float | None:
+    def grab_min_size(self) -> float | None:
         """
         Minimum width/height of a grab box for slider/scrollbar.
 
@@ -19110,13 +19075,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @GrabMinSize.setter
-    def GrabMinSize(self, value : float | None):
+    @grab_min_size.setter
+    def grab_min_size(self, value : float | None):
         ...
 
 
     @property
-    def GrabRounding(self) -> float | None:
+    def grab_rounding(self) -> float | None:
         """
         Radius of grabs corners rounding. Set to 0.0f to have rectangular slider grabs.
 
@@ -19126,13 +19091,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @GrabRounding.setter
-    def GrabRounding(self, value : float | None):
+    @grab_rounding.setter
+    def grab_rounding(self, value : float | None):
         ...
 
 
     @property
-    def IndentSpacing(self) -> float | None:
+    def indent_spacing(self) -> float | None:
         """
         Default horizontal spacing for indentations. For instance when entering a tree node.
         A good value is Generally == (FontSize + FramePadding.x*2).
@@ -19143,13 +19108,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @IndentSpacing.setter
-    def IndentSpacing(self, value : float | None):
+    @indent_spacing.setter
+    def indent_spacing(self, value : float | None):
         ...
 
 
     @property
-    def ItemInnerSpacing(self) -> tuple[float, float] | None:
+    def item_inner_spacing(self) -> tuple[float, float] | None:
         """
         Horizontal and vertical spacing between elements inside of a composed widget.
 
@@ -19159,13 +19124,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @ItemInnerSpacing.setter
-    def ItemInnerSpacing(self, value : tuple[float, float] | None):
+    @item_inner_spacing.setter
+    def item_inner_spacing(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def ItemSpacing(self) -> tuple[float, float] | None:
+    def item_spacing(self) -> tuple[float, float] | None:
         """
         Horizontal and vertical spacing between widgets/lines.
 
@@ -19175,13 +19140,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @ItemSpacing.setter
-    def ItemSpacing(self, value : tuple[float, float] | None):
+    @item_spacing.setter
+    def item_spacing(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def PopupBorderSize(self) -> float | None:
+    def popup_border_size(self) -> float | None:
         """
         Thickness of border around popup or tooltip windows. Generally set to 0.0f or 1.0f. Other values not well tested.
 
@@ -19191,13 +19156,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @PopupBorderSize.setter
-    def PopupBorderSize(self, value : float | None):
+    @popup_border_size.setter
+    def popup_border_size(self, value : float | None):
         ...
 
 
     @property
-    def PopupRounding(self) -> float | None:
+    def popup_rounding(self) -> float | None:
         """
         Radius of popup or tooltip window corners rounding. Set to 0.0 to have rectangular popup or tooltip windows.
 
@@ -19207,13 +19172,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @PopupRounding.setter
-    def PopupRounding(self, value : float | None):
+    @popup_rounding.setter
+    def popup_rounding(self, value : float | None):
         ...
 
 
     @property
-    def ScrollbarRounding(self) -> float | None:
+    def scrollbar_rounding(self) -> float | None:
         """
         Radius of grab corners rounding for scrollbar.
 
@@ -19223,13 +19188,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @ScrollbarRounding.setter
-    def ScrollbarRounding(self, value : float | None):
+    @scrollbar_rounding.setter
+    def scrollbar_rounding(self, value : float | None):
         ...
 
 
     @property
-    def ScrollbarSize(self) -> float | None:
+    def scrollbar_size(self) -> float | None:
         """
         Width of the vertical scrollbar, Height of the horizontal scrollbar
 
@@ -19239,13 +19204,29 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @ScrollbarSize.setter
-    def ScrollbarSize(self, value : float | None):
+    @scrollbar_size.setter
+    def scrollbar_size(self, value : float | None):
         ...
 
 
     @property
-    def SelectableTextAlign(self) -> tuple[float, float] | None:
+    def selectable_text_align(self) -> tuple[float, float] | None:
+        """
+        Alignment of selectable text (in percentages).
+
+        The value is a pair of floats. Defaults to (0., 0.), i.e. top-left. It is advised to keep the default.
+
+        """
+        ...
+
+
+    @selectable_text_align.setter
+    def selectable_text_align(self, value : tuple[float, float] | None):
+        ...
+
+
+    @property
+    def separator_text_align(self) -> tuple[float, float] | None:
         """
         Alignment of text within the separator in percentages.
 
@@ -19255,13 +19236,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @SelectableTextAlign.setter
-    def SelectableTextAlign(self, value : tuple[float, float] | None):
+    @separator_text_align.setter
+    def separator_text_align(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def SeparatorTextBorderSize(self) -> float | None:
+    def separator_text_border_size(self) -> float | None:
         """
         Thickness of border in Separator() text.
 
@@ -19271,13 +19252,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @SeparatorTextBorderSize.setter
-    def SeparatorTextBorderSize(self, value : float | None):
+    @separator_text_border_size.setter
+    def separator_text_border_size(self, value : float | None):
         ...
 
 
     @property
-    def SeparatorTextPadding(self) -> tuple[float, float] | None:
+    def separator_text_padding(self) -> tuple[float, float] | None:
         """
         Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
 
@@ -19287,13 +19268,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @SeparatorTextPadding.setter
-    def SeparatorTextPadding(self, value : tuple[float, float] | None):
+    @separator_text_padding.setter
+    def separator_text_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def TabBarBorderSize(self) -> float | None:
+    def tab_bar_border_size(self) -> float | None:
         """
         Thickness of tab-bar separator, which takes on the tab active color to denote focus.
 
@@ -19303,13 +19284,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @TabBarBorderSize.setter
-    def TabBarBorderSize(self, value : float | None):
+    @tab_bar_border_size.setter
+    def tab_bar_border_size(self, value : float | None):
         ...
 
 
     @property
-    def TabBarOverlineSize(self) -> float | None:
+    def tab_bar_overline_size(self) -> float | None:
         """
         Thickness of tab-bar overline, which highlights the selected tab-bar.
 
@@ -19319,13 +19300,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @TabBarOverlineSize.setter
-    def TabBarOverlineSize(self, value : float | None):
+    @tab_bar_overline_size.setter
+    def tab_bar_overline_size(self, value : float | None):
         ...
 
 
     @property
-    def TabBorderSize(self) -> float | None:
+    def tab_border_size(self) -> float | None:
         """
         Thickness of borders around tabs.
 
@@ -19335,13 +19316,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @TabBorderSize.setter
-    def TabBorderSize(self, value : float | None):
+    @tab_border_size.setter
+    def tab_border_size(self, value : float | None):
         ...
 
 
     @property
-    def TabRounding(self) -> float | None:
+    def tab_rounding(self) -> float | None:
         """
         Radius of upper corners of a tab. Set to 0.0f to have rectangular tabs.
 
@@ -19351,13 +19332,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @TabRounding.setter
-    def TabRounding(self, value : float | None):
+    @tab_rounding.setter
+    def tab_rounding(self, value : float | None):
         ...
 
 
     @property
-    def TableAngledHeadersAngle(self) -> float | None:
+    def table_angled_headers_angle(self) -> float | None:
         """
         Tables: Angle of angled headers (supported values range from -50 degrees to +50 degrees).
 
@@ -19367,13 +19348,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @TableAngledHeadersAngle.setter
-    def TableAngledHeadersAngle(self, value : float | None):
+    @table_angled_headers_angle.setter
+    def table_angled_headers_angle(self, value : float | None):
         ...
 
 
     @property
-    def TableAngledHeadersTextAlign(self) -> tuple[float, float] | None:
+    def table_angled_headers_text_align(self) -> tuple[float, float] | None:
         """
         Tables: Alignment (percentages) of angled headers within the cell
 
@@ -19383,13 +19364,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @TableAngledHeadersTextAlign.setter
-    def TableAngledHeadersTextAlign(self, value : tuple[float, float] | None):
+    @table_angled_headers_text_align.setter
+    def table_angled_headers_text_align(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def WindowBorderSize(self) -> float | None:
+    def window_border_size(self) -> float | None:
         """
         Thickness of border around windows. Generally set to 0.0 or 1.0f. Other values not well tested.
 
@@ -19399,13 +19380,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @WindowBorderSize.setter
-    def WindowBorderSize(self, value : float | None):
+    @window_border_size.setter
+    def window_border_size(self, value : float | None):
         ...
 
 
     @property
-    def WindowMinSize(self) -> tuple[float, float] | None:
+    def window_min_size(self) -> tuple[float, float] | None:
         """
         Minimum window size
 
@@ -19415,13 +19396,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @WindowMinSize.setter
-    def WindowMinSize(self, value : tuple[float, float] | None):
+    @window_min_size.setter
+    def window_min_size(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def WindowPadding(self) -> tuple[float, float] | None:
+    def window_padding(self) -> tuple[float, float] | None:
         """
         Padding within a window.
 
@@ -19431,13 +19412,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @WindowPadding.setter
-    def WindowPadding(self, value : tuple[float, float] | None):
+    @window_padding.setter
+    def window_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def WindowRounding(self) -> float | None:
+    def window_rounding(self) -> float | None:
         """
         Radius of window corners rounding. Set to 0.0 to have rectangular windows. Large values tend to lead to variety of artifacts and are not recommended.
 
@@ -19447,13 +19428,13 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @WindowRounding.setter
-    def WindowRounding(self, value : float | None):
+    @window_rounding.setter
+    def window_rounding(self, value : float | None):
         ...
 
 
     @property
-    def WindowTitleAlign(self) -> tuple[float, float] | None:
+    def window_title_align(self) -> tuple[float, float] | None:
         """
         Alignment for window title bar text in percentages
 
@@ -19463,51 +19444,51 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    @WindowTitleAlign.setter
-    def WindowTitleAlign(self, value : tuple[float, float] | None):
+    @window_title_align.setter
+    def window_title_align(self, value : tuple[float, float] | None):
         ...
 
 
 class ThemeStyleImPlot(baseThemeStyle):
-    def __init__(self, context : Context, AnnotationPadding : tuple[float, float] | None = None, DigitalBitGap : float | None = None, DigitalBitHeight : float | None = None, ErrorBarSize : float | None = None, ErrorBarWeight : float | None = None, FillAlpha : float | None = None, FitPadding : tuple[float, float] | None = None, LabelPadding : tuple[float, float] | None = None, LegendInnerPadding : tuple[float, float] | None = None, LegendPadding : tuple[float, float] | None = None, LegendSpacing : tuple[float, float] | None = None, LineWeight : float | None = None, MajorGridSize : tuple[float, float] | None = None, MajorTickLen : tuple[float, float] | None = None, MajorTickSize : tuple[float, float] | None = None, Marker : float | None = None, MarkerSize : float | None = None, MarkerWeight : float | None = None, MinorAlpha : float | None = None, MinorGridSize : tuple[float, float] | None = None, MinorTickLen : tuple[float, float] | None = None, MinorTickSize : tuple[float, float] | None = None, MousePosPadding : tuple[float, float] | None = None, PlotBorderSize : float | None = None, PlotDefaultSize : tuple[float, float] | None = None, PlotMinSize : tuple[float, float] | None = None, PlotPadding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, annotation_padding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], digital_bit_gap : float | None = None, digital_bit_height : float | None = None, enabled : bool = True, error_bar_size : float | None = None, error_bar_weight : float | None = None, fill_alpha : float | None = None, fit_padding : tuple[float, float] | None = None, label_padding : tuple[float, float] | None = None, legend_inner_padding : tuple[float, float] | None = None, legend_padding : tuple[float, float] | None = None, legend_spacing : tuple[float, float] | None = None, line_weight : float | None = None, major_grid_size : tuple[float, float] | None = None, major_tick_len : tuple[float, float] | None = None, major_tick_size : tuple[float, float] | None = None, marker : float | None = None, marker_size : float | None = None, marker_weight : float | None = None, minor_alpha : float | None = None, minor_grid_size : tuple[float, float] | None = None, minor_tick_len : tuple[float, float] | None = None, minor_tick_size : tuple[float, float] | None = None, mouse_pos_padding : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, plot_border_size : float | None = None, plot_default_size : tuple[float, float] | None = None, plot_min_size : tuple[float, float] | None = None, plot_padding : tuple[float, float] | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         Parameters
         ----------
-        - AnnotationPadding: Text padding around annotation labels.
-        - DigitalBitGap: Digital channels bit padding gap in pixels.
-        - DigitalBitHeight: Digital channels bit height (at 1) in pixels.
-        - ErrorBarSize: Error bar whisker width in pixels.
-        - ErrorBarWeight: Error bar whisker weight in pixels.
-        - FillAlpha: Alpha modifier applied to all plot item fills.
-        - FitPadding: Additional fit padding as a percentage of the fit extents (e.g. (0.1,0.1) adds 10% to the fit extents of X and Y).
-        - LabelPadding: Padding between axes labels, tick labels, and plot edge.
-        - LegendInnerPadding: Legend inner padding from legend edges.
-        - LegendPadding: Legend padding from plot edges.
-        - LegendSpacing: Spacing between legend entries.
-        - LineWeight: Plot item line weight in pixels.
-        - MajorGridSize: Line thickness of major grid lines.
-        - MajorTickLen: Major tick lengths for X and Y axes.
-        - MajorTickSize: Line thickness of major ticks.
-        - Marker: Marker specification.
-        - MarkerSize: Marker size in pixels (roughly the marker's "radius").
-        - MarkerWeight: Plot outline weight of markers in pixels.
-        - MinorAlpha: Alpha multiplier applied to minor axis grid lines.
-        - MinorGridSize: Line thickness of minor grid lines.
-        - MinorTickLen: Minor tick lengths for X and Y axes.
-        - MinorTickSize: Line thickness of minor ticks.
-        - MousePosPadding: Padding between plot edge and interior info text.
-        - PlotBorderSize: Thickness of border around plot area.
-        - PlotDefaultSize: Default size used for plots
-        - PlotMinSize: Minimum size plot frame can be when shrunk.
-        - PlotPadding: Padding between widget frame and plot area, labels, or outside legends (i.e. main padding).
+        - annotation_padding: Text padding around annotation labels.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - children: List of all the children of the item, from first rendered, to last rendered.
+        - digital_bit_gap: Digital channels bit padding gap in pixels.
+        - digital_bit_height: Digital channels bit height (at 1) in pixels.
         - enabled: Controls whether the theme is currently active.
+        - error_bar_size: Error bar whisker width in pixels.
+        - error_bar_weight: Error bar whisker weight in pixels.
+        - fill_alpha: Alpha modifier applied to all plot item fills.
+        - fit_padding: Additional fit padding as a percentage of the fit extents (e.g. (0.1,0.1) adds 10% to the fit extents of X and Y).
+        - label_padding: Padding between axes labels, tick labels, and plot edge.
+        - legend_inner_padding: Legend inner padding from legend edges.
+        - legend_padding: Legend padding from plot edges.
+        - legend_spacing: Spacing between legend entries.
+        - line_weight: Plot item line weight in pixels.
+        - major_grid_size: Line thickness of major grid lines.
+        - major_tick_len: Major tick lengths for X and Y axes.
+        - major_tick_size: Line thickness of major ticks.
+        - marker: Marker specification.
+        - marker_size: Marker size in pixels (roughly the marker's "radius").
+        - marker_weight: Plot outline weight of markers in pixels.
+        - minor_alpha: Alpha multiplier applied to minor axis grid lines.
+        - minor_grid_size: Line thickness of minor grid lines.
+        - minor_tick_len: Minor tick lengths for X and Y axes.
+        - minor_tick_size: Line thickness of minor ticks.
+        - mouse_pos_padding: Padding between plot edge and interior info text.
         - next_sibling: Child of the parent rendered just after this item.
         - no_rounding: boolean. Defaults to False.
         - no_scaling: boolean. Defaults to False.
         - parent: Parent of the item in the rendering tree.
+        - plot_border_size: Thickness of border around plot area.
+        - plot_default_size: Default size used for plots
+        - plot_min_size: Minimum size plot frame can be when shrunk.
+        - plot_padding: Padding between widget frame and plot area, labels, or outside legends (i.e. main padding).
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
         """
@@ -19515,7 +19496,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @property
-    def AnnotationPadding(self) -> tuple[float, float] | None:
+    def annotation_padding(self) -> tuple[float, float] | None:
         """
         Text padding around annotation labels.
 
@@ -19525,13 +19506,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @AnnotationPadding.setter
-    def AnnotationPadding(self, value : tuple[float, float] | None):
+    @annotation_padding.setter
+    def annotation_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def DigitalBitGap(self) -> float | None:
+    def digital_bit_gap(self) -> float | None:
         """
         Digital channels bit padding gap in pixels.
 
@@ -19541,13 +19522,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @DigitalBitGap.setter
-    def DigitalBitGap(self, value : float | None):
+    @digital_bit_gap.setter
+    def digital_bit_gap(self, value : float | None):
         ...
 
 
     @property
-    def DigitalBitHeight(self) -> float | None:
+    def digital_bit_height(self) -> float | None:
         """
         Digital channels bit height (at 1) in pixels.
 
@@ -19557,13 +19538,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @DigitalBitHeight.setter
-    def DigitalBitHeight(self, value : float | None):
+    @digital_bit_height.setter
+    def digital_bit_height(self, value : float | None):
         ...
 
 
     @property
-    def ErrorBarSize(self) -> float | None:
+    def error_bar_size(self) -> float | None:
         """
         Error bar whisker width in pixels.
 
@@ -19573,13 +19554,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @ErrorBarSize.setter
-    def ErrorBarSize(self, value : float | None):
+    @error_bar_size.setter
+    def error_bar_size(self, value : float | None):
         ...
 
 
     @property
-    def ErrorBarWeight(self) -> float | None:
+    def error_bar_weight(self) -> float | None:
         """
         Error bar whisker weight in pixels.
 
@@ -19589,13 +19570,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @ErrorBarWeight.setter
-    def ErrorBarWeight(self, value : float | None):
+    @error_bar_weight.setter
+    def error_bar_weight(self, value : float | None):
         ...
 
 
     @property
-    def FillAlpha(self) -> float | None:
+    def fill_alpha(self) -> float | None:
         """
         Alpha modifier applied to all plot item fills.
 
@@ -19605,13 +19586,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @FillAlpha.setter
-    def FillAlpha(self, value : float | None):
+    @fill_alpha.setter
+    def fill_alpha(self, value : float | None):
         ...
 
 
     @property
-    def FitPadding(self) -> tuple[float, float] | None:
+    def fit_padding(self) -> tuple[float, float] | None:
         """
         Additional fit padding as a percentage of the fit extents (e.g. (0.1,0.1) adds 10% to the fit extents of X and Y).
 
@@ -19621,13 +19602,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @FitPadding.setter
-    def FitPadding(self, value : tuple[float, float] | None):
+    @fit_padding.setter
+    def fit_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def LabelPadding(self) -> tuple[float, float] | None:
+    def label_padding(self) -> tuple[float, float] | None:
         """
         Padding between axes labels, tick labels, and plot edge.
 
@@ -19637,13 +19618,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @LabelPadding.setter
-    def LabelPadding(self, value : tuple[float, float] | None):
+    @label_padding.setter
+    def label_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def LegendInnerPadding(self) -> tuple[float, float] | None:
+    def legend_inner_padding(self) -> tuple[float, float] | None:
         """
         Legend inner padding from legend edges.
 
@@ -19653,13 +19634,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @LegendInnerPadding.setter
-    def LegendInnerPadding(self, value : tuple[float, float] | None):
+    @legend_inner_padding.setter
+    def legend_inner_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def LegendPadding(self) -> tuple[float, float] | None:
+    def legend_padding(self) -> tuple[float, float] | None:
         """
         Legend padding from plot edges.
 
@@ -19669,13 +19650,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @LegendPadding.setter
-    def LegendPadding(self, value : tuple[float, float] | None):
+    @legend_padding.setter
+    def legend_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def LegendSpacing(self) -> tuple[float, float] | None:
+    def legend_spacing(self) -> tuple[float, float] | None:
         """
         Spacing between legend entries.
 
@@ -19685,13 +19666,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @LegendSpacing.setter
-    def LegendSpacing(self, value : tuple[float, float] | None):
+    @legend_spacing.setter
+    def legend_spacing(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def LineWeight(self) -> float | None:
+    def line_weight(self) -> float | None:
         """
         Plot item line weight in pixels.
 
@@ -19701,13 +19682,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @LineWeight.setter
-    def LineWeight(self, value : float | None):
+    @line_weight.setter
+    def line_weight(self, value : float | None):
         ...
 
 
     @property
-    def MajorGridSize(self) -> tuple[float, float] | None:
+    def major_grid_size(self) -> tuple[float, float] | None:
         """
         Line thickness of major grid lines.
 
@@ -19717,13 +19698,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MajorGridSize.setter
-    def MajorGridSize(self, value : tuple[float, float] | None):
+    @major_grid_size.setter
+    def major_grid_size(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def MajorTickLen(self) -> tuple[float, float] | None:
+    def major_tick_len(self) -> tuple[float, float] | None:
         """
         Major tick lengths for X and Y axes.
 
@@ -19733,13 +19714,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MajorTickLen.setter
-    def MajorTickLen(self, value : tuple[float, float] | None):
+    @major_tick_len.setter
+    def major_tick_len(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def MajorTickSize(self) -> tuple[float, float] | None:
+    def major_tick_size(self) -> tuple[float, float] | None:
         """
         Line thickness of major ticks.
 
@@ -19749,13 +19730,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MajorTickSize.setter
-    def MajorTickSize(self, value : tuple[float, float] | None):
+    @major_tick_size.setter
+    def major_tick_size(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def Marker(self) -> float | None:
+    def marker(self) -> float | None:
         """
         Marker specification.
 
@@ -19765,13 +19746,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @Marker.setter
-    def Marker(self, value : float | None):
+    @marker.setter
+    def marker(self, value : float | None):
         ...
 
 
     @property
-    def MarkerSize(self) -> float | None:
+    def marker_size(self) -> float | None:
         """
         Marker size in pixels (roughly the marker's "radius").
 
@@ -19781,13 +19762,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MarkerSize.setter
-    def MarkerSize(self, value : float | None):
+    @marker_size.setter
+    def marker_size(self, value : float | None):
         ...
 
 
     @property
-    def MarkerWeight(self) -> float | None:
+    def marker_weight(self) -> float | None:
         """
         Plot outline weight of markers in pixels.
 
@@ -19797,13 +19778,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MarkerWeight.setter
-    def MarkerWeight(self, value : float | None):
+    @marker_weight.setter
+    def marker_weight(self, value : float | None):
         ...
 
 
     @property
-    def MinorAlpha(self) -> float | None:
+    def minor_alpha(self) -> float | None:
         """
         Alpha multiplier applied to minor axis grid lines.
 
@@ -19813,13 +19794,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MinorAlpha.setter
-    def MinorAlpha(self, value : float | None):
+    @minor_alpha.setter
+    def minor_alpha(self, value : float | None):
         ...
 
 
     @property
-    def MinorGridSize(self) -> tuple[float, float] | None:
+    def minor_grid_size(self) -> tuple[float, float] | None:
         """
         Line thickness of minor grid lines.
 
@@ -19829,13 +19810,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MinorGridSize.setter
-    def MinorGridSize(self, value : tuple[float, float] | None):
+    @minor_grid_size.setter
+    def minor_grid_size(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def MinorTickLen(self) -> tuple[float, float] | None:
+    def minor_tick_len(self) -> tuple[float, float] | None:
         """
         Minor tick lengths for X and Y axes.
 
@@ -19845,13 +19826,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MinorTickLen.setter
-    def MinorTickLen(self, value : tuple[float, float] | None):
+    @minor_tick_len.setter
+    def minor_tick_len(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def MinorTickSize(self) -> tuple[float, float] | None:
+    def minor_tick_size(self) -> tuple[float, float] | None:
         """
         Line thickness of minor ticks.
 
@@ -19861,13 +19842,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MinorTickSize.setter
-    def MinorTickSize(self, value : tuple[float, float] | None):
+    @minor_tick_size.setter
+    def minor_tick_size(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def MousePosPadding(self) -> tuple[float, float] | None:
+    def mouse_pos_padding(self) -> tuple[float, float] | None:
         """
         Padding between plot edge and interior info text.
 
@@ -19877,13 +19858,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @MousePosPadding.setter
-    def MousePosPadding(self, value : tuple[float, float] | None):
+    @mouse_pos_padding.setter
+    def mouse_pos_padding(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def PlotBorderSize(self) -> float | None:
+    def plot_border_size(self) -> float | None:
         """
         Thickness of border around plot area.
 
@@ -19893,13 +19874,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @PlotBorderSize.setter
-    def PlotBorderSize(self, value : float | None):
+    @plot_border_size.setter
+    def plot_border_size(self, value : float | None):
         ...
 
 
     @property
-    def PlotDefaultSize(self) -> tuple[float, float] | None:
+    def plot_default_size(self) -> tuple[float, float] | None:
         """
         Default size used for plots
 
@@ -19909,13 +19890,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @PlotDefaultSize.setter
-    def PlotDefaultSize(self, value : tuple[float, float] | None):
+    @plot_default_size.setter
+    def plot_default_size(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def PlotMinSize(self) -> tuple[float, float] | None:
+    def plot_min_size(self) -> tuple[float, float] | None:
         """
         Minimum size plot frame can be when shrunk.
 
@@ -19925,13 +19906,13 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @PlotMinSize.setter
-    def PlotMinSize(self, value : tuple[float, float] | None):
+    @plot_min_size.setter
+    def plot_min_size(self, value : tuple[float, float] | None):
         ...
 
 
     @property
-    def PlotPadding(self) -> tuple[float, float] | None:
+    def plot_padding(self) -> tuple[float, float] | None:
         """
         Padding between widget frame and plot area, labels, or outside legends (i.e. main padding).
 
@@ -19941,8 +19922,8 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    @PlotPadding.setter
-    def PlotPadding(self, value : tuple[float, float] | None):
+    @plot_padding.setter
+    def plot_padding(self, value : tuple[float, float] | None):
         ...
 
 
@@ -19974,7 +19955,7 @@ class TimeWatcher(uiItem):
     GPU data, etc), not to GPU rendering time.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -19988,7 +19969,6 @@ class TimeWatcher(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -20104,7 +20084,7 @@ class Tooltip(uiItem):
     can be customized with properties like delay time and activity-based hiding.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -20121,7 +20101,6 @@ class Tooltip(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - hide_on_activity: Whether to hide the tooltip when the mouse moves.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -20267,7 +20246,7 @@ class TreeNode(uiItem):
     to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -20282,7 +20261,6 @@ class TreeNode(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - leaf: Whether the node is displayed as a leaf with no expand/collapse control.
         - next_sibling: Child of the parent rendered just after this item.
@@ -20477,7 +20455,7 @@ class VerticalLayout(Layout):
     how items overflow when they exceed available height.
 
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -20492,7 +20470,6 @@ class VerticalLayout(Layout):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -21536,7 +21513,7 @@ class Window(uiItem):
     menu bars can be attached using menubar items.
 
     """
-    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, indent : float = 0.0, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -21556,7 +21533,6 @@ class Window(uiItem):
         - has_close_button: Controls whether the window displays a close button in its title bar.
         - height: Requested height for the item.
         - horizontal_scrollbar: Enables horizontal scrolling for content that exceeds window width.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - max_size: Sets the maximum allowed size for the window.
         - menubar: Controls whether the window displays a menu bar.
@@ -22109,7 +22085,7 @@ class WindowLayout(uiItem):
     for the position and rect size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -22123,7 +22099,6 @@ class WindowLayout(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -22689,7 +22664,7 @@ class baseTable(uiItem):
     is done by the derived classes.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -22703,7 +22678,6 @@ class baseTable(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -23720,7 +23694,6 @@ class uiItem(baseItem):
         - rect_size: Current size in pixels including padding
         - content_region_avail: Available content area within item for children
         - height/width: Requested size of the item
-        - indent: Left indentation amount
         - no_newline: Don't advance position after item
 
     Value Properties:
@@ -23740,12 +23713,12 @@ class uiItem(baseItem):
         - Default flow places items vertically with automatic width
         - Positions can be relative to viewport, window, parent (see string specifications)
         - Size can be fixed, automatic, or stretch to fill space
-        - indent and no_newline provide fine-grained layout control
+        - no_newline prevents automatic line breaks after the item
 
     All attributes are protected by mutexes to enable thread-safe access.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23759,7 +23732,6 @@ class uiItem(baseItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -23778,7 +23750,7 @@ class uiItem(baseItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, indent : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23790,7 +23762,6 @@ class uiItem(baseItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
-        - indent: Horizontal indentation applied to the item.
         - label: Text label displayed with or within the item.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
@@ -23941,27 +23912,6 @@ class uiItem(baseItem):
 
     @height.setter
     def height(self, value : float | str | baseSizing):
-        ...
-
-
-    @property
-    def indent(self) -> float:
-        """
-        Horizontal indentation applied to the item.
-
-        This property shifts the default horizontal position of the item by the
-        specified number of scaled pixels, creating an indented appearance.
-
-        A negative value indicates an indentation of the default size based on
-        the current style settings, typically equivalent to the standard tab
-        size. A value of 0 means no indentation is applied.
-
-        """
-        ...
-
-
-    @indent.setter
-    def indent(self, value : float):
         ...
 
 
