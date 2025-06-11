@@ -419,6 +419,16 @@ class ItemInspecter(dcg.Window):
                     with right:
                         dcg.Text(C, value=value)
 
+def _is_style_element(class_obj: dcg.baseTheme, name: str) -> bool:
+    """
+    Returns True if name is a valid theme element
+    """
+    try:
+        class_obj.get_default(name)
+        return True
+    except KeyError:
+        return False
+
 class StyleEditor(dcg.Window):
     """A visual tool to edit the global style of the application.
     
@@ -452,7 +462,7 @@ class StyleEditor(dcg.Window):
             with dcg.Tab(context, label="Colors"):
                 with dcg.TabBar(context, label="Category"):
                     with dcg.Tab(context, label="ImGui"):
-                        imgui_color_names = [name for name in dir(self.imgui_color_theme) if name[0].isupper()] # Theme colors being with upper case
+                        imgui_color_names = [name for name in dir(self.imgui_color_theme) if _is_style_element(dcg.ThemeColorImGui, name)]
                         for color_name in imgui_color_names:
                             default_color = self.imgui_color_theme.get_default(color_name)
                             def callback_imgui_color(s, t, d, color_name=color_name):
@@ -464,7 +474,7 @@ class StyleEditor(dcg.Window):
                                           callback=callback_imgui_color
                                           )
                     with dcg.Tab(context, label="ImPlot"):
-                        implot_color_names = [name for name in dir(self.implot_color_theme) if name[0].isupper()]
+                        implot_color_names = [name for name in dir(self.implot_color_theme) if _is_style_element(dcg.ThemeColorImPlot, name)]
                         for color_name in implot_color_names:
                             default_color = self.implot_color_theme.get_default(color_name)
                             def callback_implot_color(s, t, d, color_name=color_name):
@@ -478,7 +488,7 @@ class StyleEditor(dcg.Window):
             with dcg.Tab(context, label="Styles"):
                 with dcg.TabBar(context, label="Category"):
                     with dcg.Tab(context, label="ImGui"):
-                        imgui_style_names = [name for name in dir(self.imgui_style_theme) if name[0].isupper()]
+                        imgui_style_names = [name for name in dir(self.imgui_style_theme) if _is_style_element(dcg.ThemeStyleImGui, name)]
                         for style_name in imgui_style_names:
                             default_style = self.imgui_style_theme.get_default(style_name)
                             item_type = type(default_style)
@@ -512,7 +522,7 @@ class StyleEditor(dcg.Window):
                                        callback=callback_imgui_style
                                        )
                     with dcg.Tab(context, label="ImPlot"):
-                        implot_style_names = [name for name in dir(self.implot_style_theme) if name[0].isupper()]
+                        implot_style_names = [name for name in dir(self.implot_style_theme) if _is_style_element(dcg.ThemeStyleImPlot, name)]
                         for style_name in implot_style_names:
                             default_style = self.implot_style_theme.get_default(style_name)
                             item_type = type(default_style)
