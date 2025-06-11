@@ -22,6 +22,7 @@ from libcpp.cmath cimport sin, cos, sqrt, atan2, pow, fmod, fabs, fmin, fmax
 from .core cimport Context
 from .c_types cimport DCGVector
 from .draw_helpers cimport generate_elliptical_arc_points
+from .imgui_types cimport ImGuiStyleIndex, ImVec2Vec2
 from .texture cimport Pattern, get_pattern_u
 from .wrapper cimport imgui
 
@@ -4036,6 +4037,107 @@ cdef Vec4 get_theme_color(Context context, int32_t idx) noexcept nogil:
     result.z = color.z
     result.w = color.w
     return result
+
+cdef float get_theme_style_float(Context context, int32_t idx) noexcept nogil:
+    if idx == <int>ImGuiStyleIndex.ALPHA:
+        return imgui.GetStyle().Alpha
+    elif idx == <int>ImGuiStyleIndex.DISABLED_ALPHA:
+        return imgui.GetStyle().DisabledAlpha
+    elif idx == <int>ImGuiStyleIndex.WINDOW_ROUNDING:
+        return imgui.GetStyle().WindowRounding
+    elif idx == <int>ImGuiStyleIndex.WINDOW_BORDER_SIZE:
+        return imgui.GetStyle().WindowBorderSize
+    elif idx == <int>ImGuiStyleIndex.CHILD_ROUNDING:
+        return imgui.GetStyle().ChildRounding
+    elif idx == <int>ImGuiStyleIndex.CHILD_BORDER_SIZE:
+        return imgui.GetStyle().ChildBorderSize
+    elif idx == <int>ImGuiStyleIndex.POPUP_ROUNDING:
+        return imgui.GetStyle().PopupRounding
+    elif idx == <int>ImGuiStyleIndex.POPUP_BORDER_SIZE:
+        return imgui.GetStyle().PopupBorderSize
+    elif idx == <int>ImGuiStyleIndex.FRAME_ROUNDING:
+        return imgui.GetStyle().FrameRounding
+    elif idx == <int>ImGuiStyleIndex.FRAME_BORDER_SIZE:
+        return imgui.GetStyle().FrameBorderSize
+    elif idx == <int>ImGuiStyleIndex.INDENT_SPACING:
+        return imgui.GetStyle().IndentSpacing
+    elif idx == <int>ImGuiStyleIndex.SCROLLBAR_SIZE:
+        return imgui.GetStyle().ScrollbarSize
+    elif idx == <int>ImGuiStyleIndex.SCROLLBAR_ROUNDING:
+        return imgui.GetStyle().ScrollbarRounding
+    elif idx == <int>ImGuiStyleIndex.GRAB_MIN_SIZE:
+        return imgui.GetStyle().GrabMinSize
+    elif idx == <int>ImGuiStyleIndex.GRAB_ROUNDING:
+        return imgui.GetStyle().GrabRounding
+    elif idx == <int>ImGuiStyleIndex.TAB_ROUNDING:
+        return imgui.GetStyle().TabRounding
+    elif idx == <int>ImGuiStyleIndex.TAB_BORDER_SIZE:
+        return imgui.GetStyle().TabBorderSize
+    elif idx == <int>ImGuiStyleIndex.TAB_BAR_BORDER_SIZE:
+        return imgui.GetStyle().TabBarBorderSize
+    elif idx == <int>ImGuiStyleIndex.TAB_BAR_OVERLINE_SIZE:
+        return imgui.GetStyle().TabBarOverlineSize
+    elif idx == <int>ImGuiStyleIndex.TABLE_ANGLED_HEADERS_ANGLE:
+        return imgui.GetStyle().TableAngledHeadersAngle
+    elif idx == <int>ImGuiStyleIndex.SEPARATOR_TEXT_BORDER_SIZE:
+        return imgui.GetStyle().SeparatorTextBorderSize
+    # For Vec2 styles, return first component
+    elif idx == <int>ImGuiStyleIndex.WINDOW_PADDING:
+        return imgui.GetStyle().WindowPadding.x
+    elif idx == <int>ImGuiStyleIndex.WINDOW_MIN_SIZE:
+        return imgui.GetStyle().WindowMinSize.x
+    elif idx == <int>ImGuiStyleIndex.WINDOW_TITLE_ALIGN:
+        return imgui.GetStyle().WindowTitleAlign.x
+    elif idx == <int>ImGuiStyleIndex.FRAME_PADDING:
+        return imgui.GetStyle().FramePadding.x
+    elif idx == <int>ImGuiStyleIndex.ITEM_SPACING:
+        return imgui.GetStyle().ItemSpacing.x
+    elif idx == <int>ImGuiStyleIndex.ITEM_INNER_SPACING:
+        return imgui.GetStyle().ItemInnerSpacing.x
+    elif idx == <int>ImGuiStyleIndex.CELL_PADDING:
+        return imgui.GetStyle().CellPadding.x
+    elif idx == <int>ImGuiStyleIndex.TABLE_ANGLED_HEADERS_TEXT_ALIGN:
+        return imgui.GetStyle().TableAngledHeadersTextAlign.x
+    elif idx == <int>ImGuiStyleIndex.BUTTON_TEXT_ALIGN:
+        return imgui.GetStyle().ButtonTextAlign.x
+    elif idx == <int>ImGuiStyleIndex.SELECTABLE_TEXT_ALIGN:
+        return imgui.GetStyle().SelectableTextAlign.x
+    elif idx == <int>ImGuiStyleIndex.SEPARATOR_TEXT_ALIGN:
+        return imgui.GetStyle().SeparatorTextAlign.x
+    elif idx == <int>ImGuiStyleIndex.SEPARATOR_TEXT_PADDING:
+        return imgui.GetStyle().SeparatorTextPadding.x
+    else:
+        # Fallback for unhandled indices
+        return 0.0
+
+cdef Vec2 get_theme_style_vec2(Context context, int32_t idx) noexcept nogil:
+    if idx == <int>ImGuiStyleIndex.WINDOW_PADDING:
+        return ImVec2Vec2(imgui.GetStyle().WindowPadding)
+    elif idx == <int>ImGuiStyleIndex.WINDOW_MIN_SIZE:
+        return ImVec2Vec2(imgui.GetStyle().WindowMinSize)
+    elif idx == <int>ImGuiStyleIndex.WINDOW_TITLE_ALIGN:
+        return ImVec2Vec2(imgui.GetStyle().WindowTitleAlign)
+    elif idx == <int>ImGuiStyleIndex.FRAME_PADDING:
+        return ImVec2Vec2(imgui.GetStyle().FramePadding)
+    elif idx == <int>ImGuiStyleIndex.ITEM_SPACING:
+        return ImVec2Vec2(imgui.GetStyle().ItemSpacing)
+    elif idx == <int>ImGuiStyleIndex.ITEM_INNER_SPACING:
+        return ImVec2Vec2(imgui.GetStyle().ItemInnerSpacing)
+    elif idx == <int>ImGuiStyleIndex.CELL_PADDING:
+        return ImVec2Vec2(imgui.GetStyle().CellPadding)
+    elif idx == <int>ImGuiStyleIndex.TABLE_ANGLED_HEADERS_TEXT_ALIGN:
+        return ImVec2Vec2(imgui.GetStyle().TableAngledHeadersTextAlign)
+    elif idx == <int>ImGuiStyleIndex.BUTTON_TEXT_ALIGN:
+        return ImVec2Vec2(imgui.GetStyle().ButtonTextAlign)
+    elif idx == <int>ImGuiStyleIndex.SELECTABLE_TEXT_ALIGN:
+        return ImVec2Vec2(imgui.GetStyle().SelectableTextAlign)
+    elif idx == <int>ImGuiStyleIndex.SEPARATOR_TEXT_ALIGN:
+        return ImVec2Vec2(imgui.GetStyle().SeparatorTextAlign)
+    elif idx == <int>ImGuiStyleIndex.SEPARATOR_TEXT_PADDING:
+        return ImVec2Vec2(imgui.GetStyle().SeparatorTextPadding)
+    else:
+        # For non-Vec2 styles or unhandled indices, return zero vector
+        return Vec2(0.0, 0.0)
 
 cdef Vec2 calc_text_size(Context context, const char* text, void* font, float size, float wrap_width) noexcept nogil:
     # Push font if provided
