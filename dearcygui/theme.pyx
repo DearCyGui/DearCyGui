@@ -2554,86 +2554,95 @@ cdef class ThemeList(baseTheme):
         self.mutex.unlock()
 
 
-'''
-cdef object extract_theme_value(baseTheme theme, str name, type target_class):
+cdef object _search_theme_hierarchy(baseTheme theme, str name, type target_class):
     """
-    Helper function that takes a baseTheme and walks recursively to retrieve the value
-    attached to the target name/class if this baseTheme is pushed. Returns None if the
-    target name/class is not present at all.
+    Helper function that searches through a theme hierarchy for a value of the specified name and class.
+    
+    Args:
+        theme: The theme node to search
+        name: The name of the style/color property
+        target_class: The target theme class type
+        
+    Returns:
+        The theme value if found, otherwise None
     """
     cdef unique_lock[DCGMutex] m
     lock_gil_friendly(m, theme.mutex)
-    if isinstance(theme, ThemeListWithCondition):
-        return None # handled in another function
+
+    # Check if this theme node is of the target class
     if isinstance(theme, target_class):
         try:
-            return getattr(theme, name)
+            value = getattr(theme, name)
+            # Only return non-None values to allow for deeper searching
+            if value is not None:
+                return value
         except AttributeError:
             pass
+    
+    # If this theme can have children, process them in reverse order
+    # (starting from last_theme_child as that's what would be applied last during rendering)
     cdef PyObject *child
     if theme.can_have_theme_child and theme.last_theme_child is not None:
         child = <PyObject*> theme.last_theme_child
-        while (<baseItem>child) is not None:
-            value = extract_theme_value(<baseTheme>child, name, target_class)
+        while child != NULL:
+            value = _search_theme_hierarchy(<baseTheme>child, name, target_class)
             if value is not None:
                 return value
             child = <PyObject *>(<baseItem>child).prev_sibling
+    
     return None
 
 
-# UNFINISHED
-
-
-More work needed to support theme conditions,
-but also apply scaling
-def resolve_theme(baseItem item, str name, type target_class) -> object:
+def resolve_theme(baseItem item, type target_class, str name):
     """
     Function that given a baseItem, a style/color name, and a target style or color class,
     resolves the theme value that is applied for this item. If it is not found for any parent,
     returns the default value.
-
-    It can be used outside rendering to determines the style value
+    
+    It can be used outside rendering to determine the style value
     that would be applied to an item during rendering.
 
-    Note: currently does not work with ThemeListWithCondition
+    One use case is implementing a custom widget in Python and
+    wanting to use the theme values.
+    
+    Args:
+        item (baseItem): The item to resolve the theme for
+        target_class (type): The theme class type (e.g. ThemeColorImGui, ThemeStyleImGui)
+        name (str): The name of the style/color property to resolve
+        
+    Returns:
+        The resolved theme value or the default value if not found
+    
+    Raises:
+        TypeError: If target_class is not a subclass of baseTheme
+        KeyError: If the style/color name is not found in the default values
     """
     if not issubclass(target_class, baseTheme):
         raise TypeError("target_class must be a subclass of baseTheme")
-    parent_tree = [item]
-    item_parent = item.parent
-    while item_parent is not None:
-        parent_tree.append(item_parent)
-        item_parent = item_parent.parent
-    parent_tree = parent_tree[::-1]
-    # TODO: for each item in parent_tree, build the list
-    # of applicable ThemeListWithCondition. If a ThemeStopCondition
-    # is found, reset the list for the next item
-    # Starting from the top-most parent, iteratively apply
-    # the theme lists with conditions, (stop if a ThemeStopCondition
-    # is found), and then apply the theme list without conditions
-    # Deduce the final value for the target name
-    current_target_value = None
-    for item in parent_tree:
-        theme = item.theme
-        # Apply theme conditions that should apply for the item
-        #value = apply_theme_conditions(name, current_theme_conditions, item, target_class)
-        #if value is not None:
-        #        current_target_value = value
-        # Apply the theme value
-        if theme is not None:
-            value = extract_theme_value(theme, name, target_class)
-            if value is not None:
-                current_target_value = value
-            # Append conditions, reset when a ThemeStopCondition is met
-            update_theme_conditions(theme, current_theme_conditions)
-    try:
-        if current_target_value is None:
-            return target_class.get_default(name)
-    except KeyError:
-        raise KeyError(f"Style {name} not found")
-    # catch if the class doesn't have a get_default
-    except AttributeError:
-        raise TypeError(f"{target_class} does not have a get_default method")
-    return current_target_value
+    
+    # Walk down the parent tree from leaf to root to find the theme value
+    cdef object current_value = None
+    cdef baseItem parent_item = item
 
-'''
+    while parent_item is not None:
+        if getattr(parent_item, 'theme', None) is None:
+            parent_item = parent_item.parent
+            continue
+        # Search the current item's theme for the value
+        value = _search_theme_hierarchy(parent_item.theme, name, target_class)
+        if value is not None:
+            current_value = value
+            break
+        # Move to the parent item
+        parent_item = parent_item.parent
+    
+    # If no value was found, return the default
+    if current_value is None:
+        try:
+            return (<baseTheme>target_class).get_default(name)
+        except KeyError:
+            raise KeyError(f"Style/color '{name}' not found in default values")
+        except AttributeError:
+            raise TypeError(f"{target_class} does not have a get_default method")
+    
+    return current_value
