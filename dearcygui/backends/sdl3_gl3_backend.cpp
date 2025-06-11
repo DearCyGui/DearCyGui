@@ -23,6 +23,7 @@ SDL_ThreadID SDLViewport::sdlMainThreadId = 0;
 std::atomic<bool> SDLViewport::sdlInitialized{false};
 std::mutex SDLViewport::sdlInitMutex;
 std::atomic<int> SDLViewport::viewportCount{0};
+Uint32 UserEventType = SDL_EVENT_USER;
 
 bool platformViewport::fastActivityCheck() {
     ImGuiContext& g = *GImGui;
@@ -487,6 +488,7 @@ SDLViewport* SDLViewport::create(render_fun render,
         }
         sdlMainThreadId = SDL_GetCurrentThreadID();
         sdlInitialized = true;
+        UserEventType = SDL_RegisterEvents(1);
     } else if (SDL_GetCurrentThreadID() != sdlMainThreadId) {
         throw std::runtime_error("Context creation must be performed in the thread that initialized the first Context");
     }
@@ -857,7 +859,9 @@ bool SDLViewport::processEvents(int timeout_ms) {
     // Needs refresh: if the content has likely changed and we must render and present
     SDL_Event event;
     auto start_time = std::chrono::high_resolution_clock::now();
-    int remaining_timeout = timeout_ms;
+    auto remaining_timeout = timeout_ms;
+    bool user_requested_refresh = false;
+    bool user_requested_rendering = false;
 
     while (true) {
         bool new_events = SDL_PollEvent(&event);
@@ -960,6 +964,23 @@ bool SDLViewport::processEvents(int timeout_ms) {
                     isVisible = false;
                     break;
                 default:
+                    if (event.type == UserEventType) {
+                        // wake-up handling
+                        int64_t target_delay_ns = (int64_t)event.user.timestamp - (int64_t)SDL_GetTicksNS();
+                        int64_t target_delay_ms = target_delay_ns / 1000000;
+                        if (target_delay_ms <= 0)
+                            remaining_timeout = 0;
+                        else if (target_delay_ms < remaining_timeout)
+                            remaining_timeout = (int)target_delay_ms;
+    
+                        if (event.user.code == 0) {
+                            // User requested a refresh
+                            user_requested_refresh = true;
+                        } else if (event.user.code == 1) {
+                            // User requested rendering
+                            user_requested_rendering = true;
+                        }
+                    }
                     break;
             }
         } else {
@@ -967,6 +988,13 @@ bool SDLViewport::processEvents(int timeout_ms) {
             deferredEvents.push_back(event);
         }
     }
+
+    // If we have a user requested refresh, we need to render
+    if (user_requested_refresh) 
+        needsRefresh.store(true);
+    // If we have a user requested rendering, we need to render
+    if (user_requested_rendering)
+        activityDetected.store(true);
 
     // Move back to the queue events meant for other windows
     if (!deferredEvents.empty()) {
@@ -1063,11 +1091,12 @@ void SDLViewport::present() {
     renderContextLock.unlock();
 }
 
-void SDLViewport::wakeRendering() {
-    needsRefresh.store(true);
+void SDLViewport::wakeRendering(uint64_t delay_ns, bool full_refresh) {
     SDL_Event user_event;
-    user_event.type = SDL_EVENT_USER;
-    user_event.user.code = 2;
+    user_event.type = UserEventType;
+    user_event.user.windowID = SDL_GetWindowID(windowHandle);
+    user_event.user.timestamp = SDL_GetTicksNS() + delay_ns;
+    user_event.user.code = full_refresh ? 0 : 1; // 0 for full refresh, 1 for just rendering (may not submit)
     user_event.user.data1 = NULL;
     user_event.user.data2 = NULL;
     SDL_PushEvent(&user_event);

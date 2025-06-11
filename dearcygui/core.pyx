@@ -15,10 +15,10 @@
 #cython: freethreading_compatible=True
 #distutils: language=c++
 
-from libc.stdint cimport uint32_t, int32_t, int64_t
+from libc.stdint cimport uint32_t, int32_t, int64_t, uint64_t
 from libc.string cimport memset, memcpy
 from libcpp cimport bool
-from libcpp.cmath cimport floor, ceil, round as cround
+from libcpp.cmath cimport floor, ceil, round as cround, fmax
 from libcpp.set cimport set as cpp_set
 from libcpp.string cimport string
 
@@ -4276,21 +4276,34 @@ cdef class Viewport(baseItem):
         self.frame_count += 1
         return should_present
 
-    def wake(self):
+    def wake(self, double delay=0., bint full_refresh=True):
         """
         Wake the viewport to force a redraw.
 
         In case rendering is waiting for an input (wait_for_input),
         generate a fake input to force rendering.
 
-        This is useful if you have updated the content asynchronously
-        and want to show the update
+        Use-cases are:
+            - You have updated the content of several items, and you
+               request a refresh.
+            - You have a timed event, and you wish rendering to occur
+               again before or at the timed event.
+
+        Args:
+            - delay: Delay in seconds (starting from now) until the wakeup
+                should take effect. Note that rendering may occur earlier,
+                in which case you need to make a new wake call if you intended
+                a refresh to occur at a specific target time.
+            - full_refresh: If True (the default), requests that a full screen
+                redraw with gpu submission is performed. if False, render_frame
+                may decide to not submit to the gpu if it thinks no change occured.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not self._initialized:
             return
-        (<platformViewport*>self._platform).wakeRendering() # doesn't need any mutex
+        cdef uint64_t delay_ns = <uint64_t>fmax(0, delay * 1e9)
+        (<platformViewport*>self._platform).wakeRendering(delay_ns, full_refresh) # doesn't need any mutex
 
     cdef void ask_refresh_after(self, double monotonic) noexcept nogil:
         """

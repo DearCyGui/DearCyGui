@@ -55,7 +55,7 @@ public:
      */
     virtual bool addWindowIcon(void* data, int width, int height, 
                                int rowStride, int colStride, int chanStride) = 0;
-    virtual void wakeRendering() = 0;
+    virtual void wakeRendering(uint64_t delay_ns, bool full_refresh) = 0;
     virtual void makeUploadContextCurrent() = 0;
     virtual void releaseUploadContext() = 0;
     /**
@@ -250,7 +250,7 @@ public:
     virtual bool checkPrimaryThread() override;
     virtual bool addWindowIcon(void* data, int width, int height, 
                                int rowStride, int colStride, int chanStride) override;
-    virtual void wakeRendering() override;
+    virtual void wakeRendering(uint64_t delay_ns, bool full_refresh) override;
     virtual void makeUploadContextCurrent() override;
     virtual void releaseUploadContext() override;
     virtual GLContext* createSharedContext(int major, int minor) override;

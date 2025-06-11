@@ -1,3 +1,4 @@
+from libc.stdint cimport uint64_t
 from libcpp.atomic cimport atomic
 from libcpp.string cimport string
 
@@ -21,7 +22,7 @@ cdef extern from "backend.h" nogil:
         bint checkPrimaryThread()
         void toggleFullScreen()
         bint addWindowIcon(void*, int, int, int, int, int)
-        void wakeRendering()
+        void wakeRendering(uint64_t, bint)
         void makeUploadContextCurrent()
         void releaseUploadContext()
         GLContext *createSharedContext(int, int) except +
