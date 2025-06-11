@@ -485,9 +485,10 @@ cdef class DrawInWindow(uiItem):
     """
     def __cinit__(self):
         self.can_have_drawing_child = True
-        self.state.cap.can_be_clicked = True
-        self.state.cap.can_be_hovered = True
         self.state.cap.can_be_active = True
+        self.state.cap.can_be_clicked = True
+        self.state.cap.can_be_dragged = True
+        self.state.cap.can_be_hovered = True
         self.state.cap.has_rect_size = True
         self.has_frame = False
         self.orig_x = 0
