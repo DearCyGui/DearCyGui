@@ -24,7 +24,10 @@ from cpython.object cimport PyObject
 
 from .core cimport uiItem, lock_gil_friendly, Viewport
 from .c_types cimport DCGVector, unique_lock, DCGMutex
+from .imgui cimport get_theme_style_float, get_theme_style_vec2
 from .types cimport Vec2
+
+from .imgui_types import ImGuiStyleIndex
 
 import inspect
 
@@ -1159,6 +1162,43 @@ cdef class SelfYC(baseSizing):
     def __reduce__(self):
         return (self.__class__, (), {'_frozen': self._frozen, '_current_value': self._current_value})
 
+cdef class ThemeStyleSize(baseSizing):
+    """
+    References an theme style value.
+    """
+    cdef int32_t _style_idx
+    cdef bint _use_y_component
+    
+    def __cinit__(self, int32_t style_idx, bint use_y_component=False):
+        self._style_idx = style_idx
+        self._use_y_component = use_y_component
+        
+    cdef float _update_value(self, uiItem target) noexcept nogil:
+        if self._use_y_component:
+            return get_theme_style_vec2(target.context, self._style_idx).y
+        else:
+            return get_theme_style_float(target.context, self._style_idx)
+
+    def _get_style_name(self) -> str:
+        """
+        Retrieve the original style name
+        """
+        for item in list(ImGuiStyleIndex):
+            if int(item) == self._style_idx:
+                return item.name.lower()
+        return "unknown" # fallback
+
+    def __repr__(self):
+        return f"ThemeStyleSize({self._style_idx}, {self._use_y_component})"
+    
+    def __str__(self):
+        cdef str component = ".y" if self._use_y_component else ".x"
+        return f"theme.{self._get_style_name()}{component}"
+        
+    def __reduce__(self):
+        return (self.__class__, (self._style_idx, self._use_y_component), 
+                {'_frozen': self._frozen, '_current_value': self._current_value})
+
 cdef class ViewportHeight(baseSizing):
     """
     References the viewport's height.
@@ -1221,6 +1261,9 @@ cdef extern from * namespace "DearCyGui" nogil:
             IDENT_Y2,       // Identifier with '.y2' suffix (bottom y coordinate)
             IDENT_XC,       // Identifier with '.xc' suffix (x center coordinate)
             IDENT_YC,       // Identifier with '.yc' suffix (y center coordinate)
+            IDENT_THEME_STYLE,   // Identifier with 'theme.' prefix, followed by a style name
+            IDENT_THEME_STYLE_X, // Identifier with 'theme.' prefix, followed by a style name and .x suffix
+            IDENT_THEME_STYLE_Y, // Identifier with 'theme.' prefix, followed by a style name and .y suffix
             END_STRING      // End of input marker
         };
         
@@ -1253,6 +1296,7 @@ cdef extern from * namespace "DearCyGui" nogil:
             SELF_Y1,        // Reference to current item's top y coordinate
             SELF_Y2,        // Reference to current item's bottom y coordinate
             SELF_YC,         // Reference to current item's y center coordinate
+            THEME,          // Theme style reference (e.g. "theme.item_spacing")
             VIEWPORT_HEIGHT,// Reference to viewport's height
             VIEWPORT_WIDTH, // Reference to viewport's width
         };
@@ -1322,6 +1366,7 @@ cdef extern from * namespace "DearCyGui" nogil:
                 if (id == "parent.yc") return KeywordType::PARENT_YC;
                 if (id == "viewport.width") return KeywordType::VIEWPORT_WIDTH;
                 if (id == "viewport.height") return KeywordType::VIEWPORT_HEIGHT;
+                if (id == "theme") return KeywordType::THEME;
                 
                 
                 
@@ -1419,6 +1464,25 @@ cdef extern from * namespace "DearCyGui" nogil:
                     
                     std::string value = source.substr(start, position - start);
                     KeywordType keyword = getKeywordType(value);
+
+                    // Handle theme.style_name pattern
+                    if (value.length() > 6 && value.substr(0, 6) == "theme.") {
+                        std::string style_name = value.substr(6); // Remove "theme." prefix
+                        
+                        // Check for .x or .y suffix
+                        if (endsWith(style_name, ".x")) {
+                            std::string style = style_name.substr(0, style_name.length() - 2); // Remove ".x"
+                            return {TokenType::IDENT_THEME_STYLE_X, style, KeywordType::NONE};
+                        }
+                        else if (endsWith(style_name, ".y")) {
+                            std::string style = style_name.substr(0, style_name.length() - 2); // Remove ".y"
+                            return {TokenType::IDENT_THEME_STYLE_Y, style, KeywordType::NONE};
+                        }
+                        else {
+                            // No suffix - default to .x component
+                            return {TokenType::IDENT_THEME_STYLE, style_name, KeywordType::NONE};
+                        }
+                    }
                     
                     // Handle special cases for self properties
                     if (keyword == KeywordType::SELF_WIDTH || 
@@ -1542,6 +1606,9 @@ cdef extern from * namespace "DearCyGui" nogil:
         IDENT_Y2
         IDENT_XC
         IDENT_YC
+        IDENT_THEME_STYLE
+        IDENT_THEME_STYLE_X
+        IDENT_THEME_STYLE_Y
         END_STRING
     
     enum class KeywordType:
@@ -1572,6 +1639,7 @@ cdef extern from * namespace "DearCyGui" nogil:
         SELF_Y1
         SELF_Y2
         SELF_YC
+        THEME
         VIEWPORT_HEIGHT
         VIEWPORT_WIDTH
 
@@ -2006,7 +2074,30 @@ cdef class CythonParser:
             item_name = self.get_token_value(token)
             item = self.find_item_in_scope(item_name)
             return RefYC(item)
+
+        # Handle theme.style_name references
+        if token.type == TokenType.IDENT_THEME_STYLE or token.type == TokenType.IDENT_THEME_STYLE_X:
+            self.advance()  # Consume the token
+            style_name = self.get_token_value(token).upper()
+            try:
+                style_idx = int(ImGuiStyleIndex[style_name])
+            except KeyError:
+                raise ValueError(f"Unknown theme style: '{style_name.lower()}'\n"\
+                                  "Available styles: " +\
+                                  ", ".join([e.name.lower() for e in list(ImGuiStyleIndex)]))
+            return ThemeStyleSize(style_idx, False)  # x component (or scalar value)
             
+        if token.type == TokenType.IDENT_THEME_STYLE_Y:
+            self.advance()  # Consume the token
+            style_name = self.get_token_value(token).upper()
+            try:
+                style_idx = int(ImGuiStyleIndex[style_name])
+            except KeyError:
+                raise ValueError(f"Unknown theme style: '{style_name.lower()}'\n"\
+                                  "Available styles: " +\
+                                  ", ".join([e.name.lower() for e in list(ImGuiStyleIndex)]))
+            return ThemeStyleSize(style_idx, True)  # y component
+
         # Handle identifiers and keywords
         if token.type == TokenType.IDENTIFIER:
             keyword = token.keyword
@@ -2806,6 +2897,31 @@ class Size:
             RefYC: Size object relative to the reference item's y center
         """
         return RefYC(item)
+
+    @staticmethod
+    def THEME_STYLE(style_name, use_y_component=False):
+        """
+        Create a size that references an ImGui style value.
+        
+        Args:
+            style_name (str): Name of the ImGui style (case insensitive)
+            use_y_component (bool): Whether to use the Y component for Vec2 styles
+            
+        Returns:
+            ThemeStyleSize: Size object referencing the theme style
+            
+        Examples:
+            Size.THEME_STYLE("item_spacing")     # X component by default
+            Size.THEME_STYLE("item_spacing", True) # Y component
+        """
+        style_name = style_name.upper()
+        try:
+            style_idx = int(ImGuiStyleIndex[style_name])
+        except KeyError:
+            raise ValueError(f"Unknown theme style: '{style_name.lower()}'\n"\
+                              "Available styles: " +\
+                              ", ".join([e.name.lower() for e in list(ImGuiStyleIndex)]))
+        return ThemeStyleSize(style_idx, use_y_component)
 
 # Define a shorter alias for the Size factory
 Sz = Size
