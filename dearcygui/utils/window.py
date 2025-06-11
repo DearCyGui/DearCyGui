@@ -69,15 +69,15 @@ class MetricsWindow(dcg.Window):
         self.low_framerate_theme = dcg.ThemeColorImPlot(c)
         self.medium_framerate_theme = dcg.ThemeColorImPlot(c)
         self.high_framerate_theme = dcg.ThemeColorImPlot(c)
-        self.low_framerate_theme.FrameBg = (1., 0., 0., 0.3)
-        self.medium_framerate_theme.FrameBg = (1., 1., 0., 0.3)
-        self.high_framerate_theme.FrameBg = (0., 0., 0., 0.)
-        self.low_framerate_theme.PlotBg = (0., 0., 0., 1.)
-        self.medium_framerate_theme.PlotBg = (0., 0., 0., 1.)
-        self.high_framerate_theme.PlotBg = (0., 0., 0., 1.)
-        self.low_framerate_theme.PlotBorder = (0., 0., 0., 0.)
-        self.medium_framerate_theme.PlotBorder = (0., 0., 0., 0.)
-        self.high_framerate_theme.PlotBorder = (0., 0., 0., 0.)
+        self.low_framerate_theme.frame_bg = (1., 0., 0., 0.3)
+        self.medium_framerate_theme.frame_bg = (1., 1., 0., 0.3)
+        self.high_framerate_theme.frame_bg = (0., 0., 0., 0.)
+        self.low_framerate_theme.plot_bg = (0., 0., 0., 1.)
+        self.medium_framerate_theme.plot_bg = (0., 0., 0., 1.)
+        self.high_framerate_theme.plot_bg = (0., 0., 0., 1.)
+        self.low_framerate_theme.plot_border = (0., 0., 0., 0.)
+        self.medium_framerate_theme.plot_border = (0., 0., 0., 0.)
+        self.high_framerate_theme.plot_border = (0., 0., 0., 0.)
 
         with dcg.TabBar(c, label="Main Tabbar", parent=self):
             with dcg.Tab(c, label="General"):
@@ -98,27 +98,27 @@ class MetricsWindow(dcg.Window):
                                        X=self.history_bounds,
                                        Y1=[0., 0.],
                                        Y2=[16., 16.],
-                                       theme=dcg.ThemeColorImPlot(c, Fill=(0., 1., 0., 0.1)),
+                                       theme=dcg.ThemeColorImPlot(c, fill=(0., 1., 0., 0.1)),
                                        ignore_fit=True)
                     dcg.PlotShadedLine(c,
                                        label='30+ FPS',
                                        X=self.history_bounds,
                                        Y1=[16., 16.],
                                        Y2=[32., 32.],
-                                       theme=dcg.ThemeColorImPlot(c, Fill=(1., 1., 0., 0.1)),
+                                       theme=dcg.ThemeColorImPlot(c, fill=(1., 1., 0., 0.1)),
                                        ignore_fit=True)
                     dcg.PlotShadedLine(c,
                                        label='Low FPS',
                                        X=self.history_bounds,
                                        Y1=[32., 32.],
                                        Y2=[64., 64.],
-                                       theme=dcg.ThemeColorImPlot(c, Fill=(1., 0., 0., 0.1)),
+                                       theme=dcg.ThemeColorImPlot(c, fill=(1., 0., 0., 0.1)),
                                        ignore_fit=True)
                     for key in ["Frame", "Presentation"]:
                         self.plots[key] = dcg.PlotLine(c,
                                                        label=key)
                 self.secondary_plot = dcg.Plot(c,
-                                               theme=dcg.ThemeColorImPlot(c, PlotBorder=0))
+                                               theme=dcg.ThemeColorImPlot(c, plot_border=0))
                 self.secondary_plot.Y1.auto_fit = True
                 self.secondary_plot.Y1.restrict_fit_to_range = True
                 with self.secondary_plot:
@@ -388,7 +388,7 @@ class ItemInspecter(dcg.Window):
         ]
         with utils.TemporaryTooltip(C, target=item, parent=self):
             dcg.Text(C).value = f"{item}:"
-            with dcg.HorizontalLayout(C, indent=-1, theme=dcg.ThemeStyleImGui(C, ItemSpacing=(40., -3.))):
+            with dcg.HorizontalLayout(C, indent=-1, theme=dcg.ThemeStyleImGui(C, item_spacing=(40., -3.))):
                 left = dcg.VerticalLayout(C)
                 right = dcg.VerticalLayout(C)
                 for state in item_states:
@@ -732,32 +732,32 @@ class StyleEditor(dcg.Window):
                 with dcg.VerticalLayout(C):
                     dcg.Text(C, value="Colors:")
                     dcg.ColorEdit(C, label="Button Color",
-                                  value=demo_colors.get_default("Button"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "Button", d))
+                                  value=demo_colors.get_default("button"),
+                                  callback=lambda s,t,d: setattr(demo_colors, "button", d))
                     dcg.ColorEdit(C, label="Button Hovered",
-                                  value=demo_colors.get_default("ButtonHovered"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "ButtonHovered", d))
+                                  value=demo_colors.get_default("button_hovered"),
+                                  callback=lambda s,t,d: setattr(demo_colors, "button_hovered", d))
                     dcg.ColorEdit(C, label="Button Active",
                                   value=demo_colors.get_default("ButtonActive"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "ButtonActive", d))
+                                  callback=lambda s,t,d: setattr(demo_colors, "button_active", d))
                     dcg.ColorEdit(C, label="Text",
-                                  value=demo_colors.get_default("Text"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "Text", d))
+                                  value=demo_colors.get_default("text"),
+                                  callback=lambda s,t,d: setattr(demo_colors, "text", d))
                 
                 with dcg.VerticalLayout(C):
                     dcg.Text(C, value="Styles:")
                     dcg.Slider(C, label="Frame Padding",
-                               value=demo_styles.get_default("FramePadding"),
+                               value=demo_styles.get_default("frame_padding"),
                                size=2, format="float",
-                               callback=lambda s,t,d: setattr(demo_styles, "FramePadding", d[:2]))
+                               callback=lambda s,t,d: setattr(demo_styles, "frame_padding", d[:2]))
                     dcg.Slider(C, label="Frame Rounding",
-                               value=demo_styles.get_default("FrameRounding"),
+                               value=demo_styles.get_default("frame_rounding"),
                                min_value=0, max_value=12, format="float",
-                               callback=lambda s,t,d: setattr(demo_styles, "FrameRounding", d))
+                               callback=lambda s,t,d: setattr(demo_styles, "frame_rounding", d))
                     dcg.Slider(C, label="Frame Border",
-                               value=demo_styles.get_default("FrameBorderSize"),
+                               value=demo_styles.get_default("frame_border_size"),
                                min_value=0, max_value=3, format="float",
-                               callback=lambda s,t,d: setattr(demo_styles, "FrameBorderSize", d))
+                               callback=lambda s,t,d: setattr(demo_styles, "frame_border_size", d))
             
             dcg.Separator(C)
             

@@ -417,7 +417,7 @@ class DatePicker(dcg.Layout):
                                           callback=self._on_day_select)
                             if date.date() == self.value_as_datetime.date():
                                 btn.theme = dcg.ThemeColorImGui(self.context,
-                                                              Button=(0.6, 0.6, 1.0, 0.6))
+                                                                button=(0.6, 0.6, 1.0, 0.6))
                             day += 1
                             
     def _build_month_grid(self):
@@ -446,7 +446,7 @@ class DatePicker(dcg.Layout):
                         if (month == self.value_as_datetime.month - 1 and 
                             self._current_year == self.value_as_datetime.year):
                             btn.theme = dcg.ThemeColorImGui(self.context,
-                                                              Button=(0.6, 0.6, 1.0, 0.6))
+                                                            button=(0.6, 0.6, 1.0, 0.6))
                             
     def _build_year_grid(self):
         """
@@ -468,7 +468,7 @@ class DatePicker(dcg.Layout):
                                            callback=self._on_year_select)
                             if year == self.value_as_datetime.year:
                                 btn.theme = dcg.ThemeColorImGui(self.context,
-                                                              Button=(0.6, 0.6, 1.0, 0.6))
+                                                                button=(0.6, 0.6, 1.0, 0.6))
                         year += 1
                             
     def _on_prev_click(self):
