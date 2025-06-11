@@ -6980,7 +6980,7 @@ class DrawValue(drawingItem):
         is displayed. The format depends on the type of the SharedValue:
 
         - %d for SharedInt
-        - %f for SharedFloat/SharedDouble
+        - %f for SharedFloat
         - [%d, %d, %d, %d] for SharedInt4
         - (%f, %f, %f, %f) for SharedFloat4 or SharedColor
         - %s for SharedStr
@@ -7005,8 +7005,8 @@ class DrawValue(drawingItem):
         displays. The object holds a value field that is in sync with the internal value
         of the drawing. This same object can be passed to other items to share its value.
 
-        Supported types include SharedBool, SharedInt, SharedFloat, SharedDouble,
-        SharedColor, SharedInt4, SharedFloat4, SharedDouble4, and SharedStr.
+        Supported types include SharedBool, SharedInt, SharedFloat,
+        SharedColor, SharedInt4, SharedFloat4, and SharedStr.
 
         """
         ...
@@ -14307,148 +14307,6 @@ class SharedColor(SharedValue):
         ...
 
 
-class SharedDouble(SharedValue):
-    def __init__(self, context : Context, value : float):
-        ...
-
-
-    @property
-    def last_frame_change(self) -> int:
-        """
-        (Read-only) Frame index when the value was last changed to a different value.
-
-        Records the frame number when the value actually changed. For scalar
-        types, this differs from last_frame_update when a value is set to
-        its current value (no actual change). For complex data types like
-        vectors or colors, this equals last_frame_update for efficiency.
-
-        """
-        ...
-
-
-    @property
-    def last_frame_update(self) -> int:
-        """
-        (Read-only) Frame index when the value was last updated.
-
-        Tracks the frame number when the value was last modified or validated,
-        even if the new value was identical to the previous one. This can be
-        used to detect when any access or modification attempt occurred.
-
-        """
-        ...
-
-
-    @property
-    def num_attached(self) -> int:
-        """
-        (Read-only) Number of items currently sharing this value.
-
-        Counts how many UI items are currently using this shared value. When
-        this count reaches zero, the shared value becomes eligible for garbage
-        collection if no other references exist.
-
-        """
-        ...
-
-
-    @property
-    def shareable_value(self) -> SharedDouble:
-        """
-        (Read-only) Reference to the shared value object itself.
-
-        Returns a reference to this SharedValue instance, allowing it to be
-        assigned to another item's shareable_value property to establish
-        value sharing between items.
-
-        This property is primarily used when connecting multiple UI elements
-        to the same data source.
-
-        """
-        ...
-
-
-    @property
-    def value(self) -> float:
-        ...
-
-
-    @value.setter
-    def value(self, value : float):
-        ...
-
-
-class SharedDouble4(SharedValue):
-    def __init__(self, context : Context, value : list):
-        ...
-
-
-    @property
-    def last_frame_change(self) -> int:
-        """
-        (Read-only) Frame index when the value was last changed to a different value.
-
-        Records the frame number when the value actually changed. For scalar
-        types, this differs from last_frame_update when a value is set to
-        its current value (no actual change). For complex data types like
-        vectors or colors, this equals last_frame_update for efficiency.
-
-        """
-        ...
-
-
-    @property
-    def last_frame_update(self) -> int:
-        """
-        (Read-only) Frame index when the value was last updated.
-
-        Tracks the frame number when the value was last modified or validated,
-        even if the new value was identical to the previous one. This can be
-        used to detect when any access or modification attempt occurred.
-
-        """
-        ...
-
-
-    @property
-    def num_attached(self) -> int:
-        """
-        (Read-only) Number of items currently sharing this value.
-
-        Counts how many UI items are currently using this shared value. When
-        this count reaches zero, the shared value becomes eligible for garbage
-        collection if no other references exist.
-
-        """
-        ...
-
-
-    @property
-    def shareable_value(self) -> SharedDouble4:
-        """
-        (Read-only) Reference to the shared value object itself.
-
-        Returns a reference to this SharedValue instance, allowing it to be
-        assigned to another item's shareable_value property to establish
-        value sharing between items.
-
-        This property is primarily used when connecting multiple UI elements
-        to the same data source.
-
-        """
-        ...
-
-
-    @property
-    def value(self) -> list:
-        ...
-
-
-    @value.setter
-    def value(self, value : list):
-        ...
-
-
 class SharedFloat(SharedValue):
     def __init__(self, context : Context, value : float):
         ...
@@ -15299,8 +15157,8 @@ class Slider(uiItem):
         """
         Format of the slider's data type.
 
-        Must be "int", "float" or "double". Note that float here means the
-        32 bits version. The python float corresponds to a double.
+        Must be "int" or "float". Note that float here means the
+        64 bits version, similar to python float.
 
         Changing this value will reallocate the internal value storage.
 
@@ -17315,8 +17173,8 @@ class TextValue(uiItem):
         to this TextValue widget. The widget will display the current value and
         update automatically whenever the source value changes.
 
-        Supported types include SharedBool, SharedInt, SharedFloat, SharedDouble,
-        SharedColor, SharedInt4, SharedFloat4, SharedDouble4, and SharedFloatVect.
+        Supported types include SharedBool, SharedInt, SharedFloat,
+        SharedColor, SharedInt4, SharedFloat4, and SharedFloatVect.
 
         For displaying string values, use the Text widget instead.
 

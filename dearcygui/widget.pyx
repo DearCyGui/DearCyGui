@@ -1383,18 +1383,16 @@ cdef class Slider(uiItem):
         """
         Format of the slider's data type.
         
-        Must be "int", "float" or "double". Note that float here means the 
-        32 bits version. The python float corresponds to a double.
+        Must be "int" or "float". Note that float here means the 
+        64 bits version, similar to python float.
         
         Changing this value will reallocate the internal value storage.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if self._format == 1:
-            return "float"
-        elif self._format == 0:
+        if self._format == 0:
             return "int"
-        return "double" # TODO: merge double and float ?
+        return "float" 
 
     @format.setter
     def format(self, str value):
@@ -1405,10 +1403,8 @@ cdef class Slider(uiItem):
             target_format = 0
         elif value == "float":
             target_format = 1
-        elif value == "double":
-            target_format = 2
         else:
-            raise ValueError(f"Expected 'int', 'float' or 'double'. Got {value}")
+            raise ValueError(f"Expected 'int' or 'float'. Got {value}")
         if target_format == self._format:
             return
         self._format = target_format
@@ -1417,17 +1413,13 @@ cdef class Slider(uiItem):
         if self._size == 1:
             if target_format == 0:
                 self._value = <SharedValue>(SharedInt.__new__(SharedInt, self.context))
-            elif target_format == 1:
-                self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
             else:
-                self._value = <SharedValue>(SharedDouble.__new__(SharedDouble, self.context))
+                self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
         else:
             if target_format == 0:
                 self._value = <SharedValue>(SharedInt4.__new__(SharedInt4, self.context))
-            elif target_format == 1:
-                self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
             else:
-                self._value = <SharedValue>(SharedDouble4.__new__(SharedDouble4, self.context))
+                self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
         self.value = previous_value # Use property to pass through python for the conversion
         self._print_format = string_from_bytes(b"%d") \
             if target_format == 0 else \
@@ -1465,18 +1457,14 @@ cdef class Slider(uiItem):
         if target_size == 1:
             if self._format == 0:
                 self._value = <SharedValue>(SharedInt.__new__(SharedInt, self.context))
-            elif self._format == 1:
-                self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
             else:
-                self._value = <SharedValue>(SharedDouble.__new__(SharedDouble, self.context))
+                self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
             self.value = previous_value[0]
         else:
             if self._format == 0:
                 self._value = <SharedValue>(SharedInt4.__new__(SharedInt4, self.context))
-            elif self._format == 1:
-                self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
             else:
-                self._value = <SharedValue>(SharedDouble4.__new__(SharedDouble4, self.context))
+                self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
             self.value = (previous_value, 0, 0, 0)
         self._size = target_size
 
@@ -1699,18 +1687,15 @@ cdef class Slider(uiItem):
             flags |= imgui.ImGuiSliderFlags_NoInput
         cdef imgui.ImGuiDataType type
         cdef int32_t value_int
-        cdef float value_float
-        cdef double value_double
+        cdef double value_float
         cdef int32_t[4] value_int4
-        cdef float[4] value_float4
-        cdef double[4] value_double4
+        cdef double[4] value_float4
         cdef void *data
         cdef void *data_min
         cdef void *data_max
         cdef bint modified
         cdef int32_t imin, imax
-        cdef float fmin, fmax
-        cdef double dmin, dmax
+        cdef double fmin, fmax
         # Prepare data type
         if self._format == 0:
             type = imgui.ImGuiDataType_S32
@@ -1718,18 +1703,12 @@ cdef class Slider(uiItem):
             imax = <int>self._max
             data_min = &imin
             data_max = &imax
-        elif self._format == 1:
-            type = imgui.ImGuiDataType_Float
-            fmin = <float>self._min
-            fmax = <float>self._max
-            data_min = &fmin
-            data_max = &fmax
         else:
             type = imgui.ImGuiDataType_Double
-            dmin = <double>self._min
-            dmax = <double>self._max
-            data_min = &dmin
-            data_max = &dmax
+            fmin = <double>self._min
+            fmax = <double>self._max
+            data_min = &fmin
+            data_max = &fmax
 
         # Read the value
         if self._format == 0:
@@ -1739,20 +1718,13 @@ cdef class Slider(uiItem):
             else:
                 SharedInt4.get(<SharedInt4>self._value, value_int4)
                 data = &value_int4
-        elif self._format == 1:
+        else:
             if self._size == 1:
                 value_float = SharedFloat.get(<SharedFloat>self._value)
                 data = &value_float
             else:
                 SharedFloat4.get(<SharedFloat4>self._value, value_float4)
                 data = &value_float4
-        else:
-            if self._size == 1:
-                value_double = SharedDouble.get(<SharedDouble>self._value)
-                data = &value_double
-            else:
-                SharedDouble4.get(<SharedDouble4>self._value, value_double4)
-                data = &value_double4
 
         # Draw
         cdef Vec2 requested_size = self.get_requested_size()
@@ -1815,16 +1787,11 @@ cdef class Slider(uiItem):
                     SharedInt.set(<SharedInt>self._value, value_int)
                 else:
                     SharedInt4.set(<SharedInt4>self._value, value_int4)
-            elif self._format == 1:
+            else:
                 if self._size == 1:
                     SharedFloat.set(<SharedFloat>self._value, value_float)
                 else:
                     SharedFloat4.set(<SharedFloat4>self._value, value_float4)
-            else:
-                if self._size == 1:
-                    SharedDouble.set(<SharedDouble>self._value, value_double)
-                else:
-                    SharedDouble4.set(<SharedDouble4>self._value, value_double4)
         self.update_current_state()
         return modified
 
@@ -2703,17 +2670,13 @@ cdef class InputValue(uiItem):
         if self._size == 1:
             if target_format == 0:
                 self._value = <SharedValue>(SharedInt.__new__(SharedInt, self.context))
-            elif target_format == 0:
-                self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
             else:
-                self._value = <SharedValue>(SharedDouble.__new__(SharedDouble, self.context))
+                self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
         else:
             if target_format == 0:
                 self._value = <SharedValue>(SharedInt4.__new__(SharedInt4, self.context))
-            elif target_format == 0:
-                self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
             else:
-                self._value = <SharedValue>(SharedDouble4.__new__(SharedDouble4, self.context))
+                self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
         self.value = previous_value # Use property to pass through python for the conversion
         self._print_format = string_from_bytes(b"%d") \
             if target_format == 0 else \
@@ -2751,18 +2714,14 @@ cdef class InputValue(uiItem):
         if target_size == 1:
             if self._format == 0:
                 self._value = <SharedValue>(SharedInt.__new__(SharedInt, self.context))
-            elif self._format == 1:
-                self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
             else:
-                self._value = <SharedValue>(SharedDouble.__new__(SharedDouble, self.context))
+                self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
             self.value = previous_value[0]
         else:
             if self._format == 0:
                 self._value = <SharedValue>(SharedInt4.__new__(SharedInt4, self.context))
-            elif self._format == 1:
-                self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
             else:
-                self._value = <SharedValue>(SharedDouble4.__new__(SharedDouble4, self.context))
+                self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
             self.value = (previous_value, 0, 0, 0)
         self._size = target_size
 
@@ -3137,18 +3096,15 @@ cdef class InputValue(uiItem):
             flags |= imgui.ImGuiInputTextFlags_ReadOnly
         cdef imgui.ImGuiDataType type
         cdef int32_t value_int
-        cdef float value_float
-        cdef double value_double
+        cdef double value_float
         cdef int32_t[4] value_int4
-        cdef float[4] value_float4
-        cdef double[4] value_double4
+        cdef double[4] value_float4
         cdef void *data
         cdef void *data_step = NULL
         cdef void *data_step_fast = NULL
         cdef bint modified
         cdef int32_t istep, istep_fast
-        cdef float fstep, fstep_fast
-        cdef double dstep, dstep_fast
+        cdef double fstep, fstep_fast
         # Prepare data type
         if self._format == 0:
             type = imgui.ImGuiDataType_S32
@@ -3158,22 +3114,14 @@ cdef class InputValue(uiItem):
                 data_step = &istep
             if istep_fast > 0:
                 data_step_fast = &istep_fast
-        elif self._format == 1:
-            type = imgui.ImGuiDataType_Float
-            fstep = <float>self._step
-            fstep_fast = <float>self._step_fast
+        else:
+            type = imgui.ImGuiDataType_Double
+            fstep = <double>self._step
+            fstep_fast = <double>self._step_fast
             if fstep > 0:
                 data_step = &fstep
             if fstep_fast > 0:
                 data_step_fast = &fstep_fast
-        else:
-            type = imgui.ImGuiDataType_Double
-            dstep = <double>self._step
-            dstep_fast = <double>self._step_fast
-            if dstep > 0:
-                data_step = &dstep
-            if dstep_fast > 0:
-                data_step_fast = &dstep_fast
 
         # Read the value
         if self._format == 0:
@@ -3183,20 +3131,13 @@ cdef class InputValue(uiItem):
             else:
                 SharedInt4.get(<SharedInt4>self._value, value_int4)
                 data = &value_int4
-        elif self._format == 1:
+        else:
             if self._size == 1:
                 value_float = SharedFloat.get(<SharedFloat>self._value)
                 data = &value_float
             else:
                 SharedFloat4.get(<SharedFloat4>self._value, value_float4)
                 data = &value_float4
-        else:
-            if self._size == 1:
-                value_double = SharedDouble.get(<SharedDouble>self._value)
-                data = &value_double
-            else:
-                SharedDouble4.get(<SharedDouble4>self._value, value_double4)
-                data = &value_double4
 
         # Draw
         cdef Vec2 requested_size = self.get_requested_size()
@@ -3232,24 +3173,15 @@ cdef class InputValue(uiItem):
                     if modified:
                         clamp4[int32_t](value_int4, self._min, self._max)
                     SharedInt4.set(<SharedInt4>self._value, value_int4)
-            elif self._format == 1:
-                if self._size == 1:
-                    if modified:
-                        clamp1[float](value_float, self._min, self._max)
-                    SharedFloat.set(<SharedFloat>self._value, value_float)
-                else:
-                    if modified:
-                        clamp4[float](value_float4, self._min, self._max)
-                    SharedFloat4.set(<SharedFloat4>self._value, value_float4)
             else:
                 if self._size == 1:
                     if modified:
-                        clamp1[double](value_double, self._min, self._max)
-                    SharedDouble.set(<SharedDouble>self._value, value_double)
+                        clamp1[double](value_float, self._min, self._max)
+                    SharedFloat.set(<SharedFloat>self._value, value_float)
                 else:
                     if modified:
-                        clamp4[double](value_double4, self._min, self._max)
-                    SharedDouble4.set(<SharedDouble4>self._value, value_double4)
+                        clamp4[double](value_float4, self._min, self._max)
+                    SharedFloat4.set(<SharedFloat4>self._value, value_float4)
             modified = modified and (self._value._last_frame_update == self._value._last_frame_change)
         self.update_current_state()
         return modified
@@ -3415,8 +3347,8 @@ cdef class TextValue(uiItem):
         to this TextValue widget. The widget will display the current value and
         update automatically whenever the source value changes.
         
-        Supported types include SharedBool, SharedInt, SharedFloat, SharedDouble,
-        SharedColor, SharedInt4, SharedFloat4, SharedDouble4, and SharedFloatVect.
+        Supported types include SharedBool, SharedInt, SharedFloat,
+        SharedColor, SharedInt4, SharedFloat4, and SharedFloatVect.
         
         For displaying string values, use the Text widget instead.
         """
@@ -3433,29 +3365,23 @@ cdef class TextValue(uiItem):
         if not(isinstance(value, SharedBool) or
                isinstance(value, SharedInt) or
                isinstance(value, SharedFloat) or
-               isinstance(value, SharedDouble) or
                isinstance(value, SharedColor) or
                isinstance(value, SharedInt4) or
                isinstance(value, SharedFloat4) or
-               isinstance(value, SharedDouble4) or
                isinstance(value, SharedFloatVect)):
-            raise ValueError(f"Expected a shareable value of type SharedBool, SharedInt, SharedFloat, SharedDouble, SharedColor, SharedInt4, SharedFloat4, SharedDouble4 or SharedColor. Received {type(value)}")
+            raise ValueError(f"Expected a shareable value of type SharedBool, SharedInt, SharedFloat, SharedColor, SharedInt4, SharedFloat4 or SharedColor. Received {type(value)}")
         if isinstance(value, SharedBool):
             self._type = 0
         elif isinstance(value, SharedInt):
             self._type = 1
         elif isinstance(value, SharedFloat):
             self._type = 2
-        elif isinstance(value, SharedDouble):
-            self._type = 3
         elif isinstance(value, SharedColor):
             self._type = 4
         elif isinstance(value, SharedInt4):
             self._type = 5
         elif isinstance(value, SharedFloat4):
             self._type = 6
-        elif isinstance(value, SharedDouble4):
-            self._type = 7
         elif isinstance(value, SharedFloatVect):
             self._type = 8
         self._value.dec_num_attached()
@@ -3496,12 +3422,10 @@ cdef class TextValue(uiItem):
     cdef bint draw_item(self) noexcept nogil:
         cdef bool value_bool
         cdef int32_t value_int
-        cdef float value_float
-        cdef double value_double
+        cdef double value_float
         cdef Vec4 value_color
         cdef int32_t[4] value_int4
-        cdef float[4] value_float4
-        cdef double[4] value_double4
+        cdef double[4] value_float4
         cdef float[::1] value_vect
         cdef int32_t i
         if self._type == 0:
@@ -3513,9 +3437,6 @@ cdef class TextValue(uiItem):
         elif self._type == 2:
             value_float = SharedFloat.get(<SharedFloat>self._value)
             imgui.Text(self._print_format.c_str(), value_float)
-        elif self._type == 3:
-            value_double = SharedDouble.get(<SharedDouble>self._value)
-            imgui.Text(self._print_format.c_str(), value_double)
         elif self._type == 4:
             value_color = SharedColor.getF4(<SharedColor>self._value)
             imgui.Text(self._print_format.c_str(), 
@@ -3531,11 +3452,6 @@ cdef class TextValue(uiItem):
             imgui.Text(self._print_format.c_str(),
                        value_float4[0], value_float4[1],
                        value_float4[2], value_float4[3])
-        elif self._type == 7:
-            SharedDouble4.get(<SharedDouble4>self._value, value_double4)
-            imgui.Text(self._print_format.c_str(),
-                       value_double4[0], value_double4[1],
-                       value_double4[2], value_double4[3])
         elif self._type == 8:
             value_vect = SharedFloatVect.get(<SharedFloatVect>self._value)
             for i in range(value_vect.shape[0]):
@@ -6774,7 +6690,7 @@ cdef class SharedBool(SharedValue):
         self.on_update(changed)
 
 cdef class SharedFloat(SharedValue):
-    def __init__(self, Context context, float value):
+    def __init__(self, Context context, double value):
         self._value = value
         self._num_attached = 0
     @property
@@ -6783,16 +6699,16 @@ cdef class SharedFloat(SharedValue):
         lock_gil_friendly(m, self.mutex)
         return self._value
     @value.setter
-    def value(self, float value):
+    def value(self, double value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint changed = value != self._value
         self._value = value
         self.on_update(changed)
-    cdef float get(self) noexcept nogil:
+    cdef double get(self) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         return self._value
-    cdef void set(self, float value) noexcept nogil:
+    cdef void set(self, double value) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint changed = value != self._value
         self._value = value
@@ -6860,31 +6776,6 @@ cdef class SharedColor(SharedValue):
         self._value = imgui.ColorConvertFloat4ToU32(Vec4ImVec4(self._value_asfloat4))
         self.on_update(True)
 
-cdef class SharedDouble(SharedValue):
-    def __init__(self, Context context, double value):
-        self._value = value
-        self._num_attached = 0
-    @property
-    def value(self):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._value
-    @value.setter
-    def value(self, double value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        cdef bint changed = value != self._value
-        self._value = value
-        self.on_update(changed)
-    cdef double get(self) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        return self._value
-    cdef void set(self, double value) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef bint changed = value != self._value
-        self._value = value
-        self.on_update(changed)
-
 cdef class SharedStr(SharedValue):
     def __init__(self, Context context, str value):
         self._value = string_from_str(value)
@@ -6910,7 +6801,7 @@ cdef class SharedStr(SharedValue):
 
 cdef class SharedFloat4(SharedValue):
     def __init__(self, Context context, value):
-        read_vec4[float](self._value, value)
+        read_vec4[double](self._value, value)
         self._num_attached = 0
     @property
     def value(self):
@@ -6921,15 +6812,15 @@ cdef class SharedFloat4(SharedValue):
     def value(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        read_vec4[float](self._value, value)
+        read_vec4[double](self._value, value)
         self.on_update(True)
-    cdef void get(self, float *dst) noexcept nogil:
+    cdef void get(self, double *dst) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         dst[0] = self._value[0]
         dst[1] = self._value[1]
         dst[2] = self._value[2]
         dst[3] = self._value[3]
-    cdef void set(self, float[4] value) noexcept nogil:
+    cdef void set(self, double[4] value) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value[0] = value[0]
         self._value[1] = value[1]
@@ -6959,34 +6850,6 @@ cdef class SharedInt4(SharedValue):
         dst[2] = self._value[2]
         dst[3] = self._value[3]
     cdef void set(self, int32_t[4] value) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        self._value[0] = value[0]
-        self._value[1] = value[1]
-        self._value[2] = value[2]
-        self._value[3] = value[3]
-        self.on_update(True)
-
-cdef class SharedDouble4(SharedValue):
-    def __init__(self, Context context, value):
-        read_vec4[double](self._value, value)
-    @property
-    def value(self):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return list(self._value)
-    @value.setter
-    def value(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        read_vec4[double](self._value, value)
-        self.on_update(True)
-    cdef void get(self, double *dst) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        dst[0] = self._value[0]
-        dst[1] = self._value[1]
-        dst[2] = self._value[2]
-        dst[3] = self._value[3]
-    cdef void set(self, double[4] value) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value[0] = value[0]
         self._value[1] = value[1]

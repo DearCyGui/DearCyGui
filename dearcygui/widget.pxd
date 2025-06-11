@@ -207,9 +207,9 @@ cdef class SharedBool(SharedValue):
     cdef void set(self, bint) noexcept nogil
 
 cdef class SharedFloat(SharedValue):
-    cdef float _value
-    cdef float get(self) noexcept nogil
-    cdef void set(self, float) noexcept nogil
+    cdef double _value
+    cdef double get(self) noexcept nogil
+    cdef void set(self, double) noexcept nogil
 
 cdef class SharedInt(SharedValue):
     cdef int32_t _value
@@ -224,41 +224,26 @@ cdef class SharedColor(SharedValue):
     cdef void setU32(self, uint32_t) noexcept nogil # imgui.ImU32
     cdef void setF4(self, Vec4) noexcept nogil # imgui.ImVec4
 
-cdef class SharedDouble(SharedValue):
-    cdef double _value
-    cdef double get(self) noexcept nogil
-    cdef void set(self, double) noexcept nogil
-
 cdef class SharedStr(SharedValue):
     cdef DCGString _value
     cdef void get(self, DCGString&) noexcept nogil
     cdef void set(self, DCGString) noexcept nogil
 
 cdef class SharedFloat4(SharedValue):
-    cdef float[4] _value
-    cdef void get(self, float *) noexcept nogil# cython does support float[4] as return value
-    cdef void set(self, float[4]) noexcept nogil
+    cdef double[4] _value
+    cdef void get(self, double *) noexcept nogil# cython doesn't support double[4] as return value
+    cdef void set(self, double[4]) noexcept nogil
 
 cdef class SharedInt4(SharedValue):
     cdef int32_t[4] _value
     cdef void get(self, int32_t *) noexcept nogil
     cdef void set(self, int32_t[4]) noexcept nogil
 
-cdef class SharedDouble4(SharedValue):
-    cdef double[4] _value
-    cdef void get(self, double *) noexcept nogil
-    cdef void set(self, double[4]) noexcept nogil
-
 cdef class SharedFloatVect(SharedValue):
     cdef float[::1] _value
     cdef float[::1] get(self) noexcept nogil
     cdef void set(self, float[::1]) noexcept nogil
 """
-cdef class SharedDoubleVect:
-    cdef double[:] _value
-    cdef double[:] get(self) noexcept nogil
-    cdef void set(self, double[:]) noexcept nogil
-
 
 cdef class SharedTime:
     cdef tm _value
