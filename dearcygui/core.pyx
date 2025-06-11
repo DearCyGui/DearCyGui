@@ -5459,7 +5459,6 @@ cdef class uiItem(baseItem):
         - rect_size: Current size in pixels including padding
         - content_region_avail: Available content area within item for children
         - height/width: Requested size of the item
-        - indent: Left indentation amount
         - no_newline: Don't advance position after item
 
     Value Properties:
@@ -5479,7 +5478,7 @@ cdef class uiItem(baseItem):
         - Default flow places items vertically with automatic width
         - Positions can be relative to viewport, window, parent (see string specifications)
         - Size can be fixed, automatic, or stretch to fill space
-        - indent and no_newline provide fine-grained layout control
+        - no_newline prevents automatic line breaks after the item
 
     All attributes are protected by mutexes to enable thread-safe access.
     """
@@ -5500,7 +5499,6 @@ cdef class uiItem(baseItem):
         #self.filter = b""
         #self.alias = b""
         #self._dpi_scaling = True
-        self._indent = 0.
         self.can_have_sibling = True
         self.element_child_category = child_type.cat_widget
         self.state.cap.has_position = True # ALL widgets have position
@@ -6100,22 +6098,6 @@ cdef class uiItem(baseItem):
         return self.requested_width.get_value()
 
     @property
-    def indent(self):
-        """
-        Horizontal indentation applied to the item.
-        
-        This property shifts the default horizontal position of the item by the
-        specified number of scaled pixels, creating an indented appearance.
-        
-        A negative value indicates an indentation of the default size based on
-        the current style settings, typically equivalent to the standard tab
-        size. A value of 0 means no indentation is applied.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._indent
-
-    @property
     def no_newline(self):
         """
         Controls whether to advance to the next line after rendering.
@@ -6161,12 +6143,6 @@ cdef class uiItem(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         set_size(self.requested_width, value)
-
-    @indent.setter
-    def indent(self, float value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._indent = value
 
     @no_newline.setter
     def no_newline(self, bint value):
@@ -6224,14 +6200,6 @@ cdef class uiItem(baseItem):
         if self.focus_requested:
             imgui.SetKeyboardFocusHere(0)
             self.focus_requested = False
-
-        cdef float indent = self._indent
-        if indent > 0.:
-            imgui.Indent(indent)
-        # We use 0 to mean no indentation,
-        # while imgui uses 0 for default indentation
-        elif indent < 0:
-            imgui.Indent(0)
 
         cdef Vec2 cursor_pos_backup = ImVec2Vec2(imgui.GetCursorScreenPos())
         cdef Vec2 pos = cursor_pos_backup
@@ -6308,12 +6276,6 @@ cdef class uiItem(baseItem):
 
         imgui.SetCursorScreenPos(Vec2ImVec2(pos))
 
-        if indent > 0.:
-            imgui.Unindent(indent)
-        elif indent < 0:
-            imgui.Unindent(0)
-
-        # Note: not affected by the Unindent.
         if self.no_newline and \
            not(restore_cursor_y):
             imgui.SameLine(0., -1.)

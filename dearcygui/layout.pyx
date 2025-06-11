@@ -36,7 +36,7 @@ cdef class Layout(uiItem):
     The layout states correspond to the OR of all the item states, and the rect 
     size corresponds to the minimum rect containing all the items. The position 
     of the layout is used to initialize the default position for the first item.
-    For example setting indent will shift all the items of the Layout.
+    An indentation will shift all the items of the Layout.
 
     Subclassing Layout:
     For custom layouts, you can use Layout with a callback. The callback is 

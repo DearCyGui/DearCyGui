@@ -576,7 +576,6 @@ cdef class uiItem(baseItem):
     cdef bint _enabled # Needs can_be_disabled. Contrary to show, the item is rendered, but if False is unactive.
     cdef bint _enabled_update_requested # Filled by uiItem on enabled value change 
     #cdef bint _dpi_scaling # Whether to apply the global scale on the requested size. -> defaulted to True. Can be skipped with string specifications.
-    cdef float _indent
     cdef Callback _dragCallback
     cdef Callback _dropCallback
     cdef baseFont _font
