@@ -927,6 +927,28 @@ Returns:
     Vec4 containing RGBA color values
 """
 
+''' TODO: requires imgui change
+cdef float get_theme_style_float(Context context, int32_t idx) noexcept nogil
+"""
+Retrieve the current theme style float value for a target idx.
+Args:
+    context: The DearCyGui context
+    idx: ImGuiStyleVar index to query
+Returns:
+    float value for the style variable.
+"""
+
+cdef Vec2 get_theme_style_vec2(Context context, int32_t idx) noexcept nogil
+"""
+Retrieve the current theme style Vec2 value for a target idx.
+Args:
+    context: The DearCyGui context
+    idx: ImGuiStyleVar index to query
+Returns:
+    Vec2 containing the style variable value.
+"""
+'''
+
 # Text measurement functions
 cdef Vec2 calc_text_size(Context context, const char* text, void* font, float size, float wrap_width) noexcept nogil
 """
