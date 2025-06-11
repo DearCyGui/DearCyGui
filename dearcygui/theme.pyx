@@ -833,6 +833,24 @@ cdef class ThemeColorImGui(baseThemeColor):
     def modal_window_dim_bg(self, value):
         baseThemeColor._common_setter(self, <int>ImGuiColorIndex.MODAL_WINDOW_DIM_BG, value)
 
+    cdef void push(self) noexcept nogil:
+        self.mutex.lock()
+        if not(self._enabled):
+            self._last_push_size.push_back(0)
+            return
+        cdef pair[int32_t, uint32_t] element_content
+        for element_content in dereference(self._index_to_value):
+            # Note: imgui seems to convert U32 for this. Maybe use float4
+            imgui.PushStyleColor(<imgui.ImGuiCol>element_content.first, <imgui.ImU32>element_content.second)
+        self._last_push_size.push_back(<int>self._index_to_value.size())
+
+    cdef void pop(self) noexcept nogil:
+        cdef int32_t count = self._last_push_size.back()
+        self._last_push_size.pop_back()
+        if count > 0:
+            imgui.PopStyleColor(count)
+        self.mutex.unlock()
+
     @classmethod
     def get_default(self, str color_name):
         """Get the default color value for the given color name."""

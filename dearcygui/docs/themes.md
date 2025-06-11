@@ -18,22 +18,14 @@ Values set in a theme instance are meant to replace any previous value currently
 When a theme is attached to an item, the values are replayed when the item is rendered, and the item,
 as well as all its children will use these theme values (unless another theme is applied).
 
-It is possible with `ThemeListWithCondition` to define a theme that will be only applied for children when a specific type of
-item is found. However it is encouraged not to use them if possible for performance reasons, as every time an item is rendered,
-all conditions will be checked. In addition, it is preferred to attach a theme to as few items as possible, in order to avoid
-rewriting the values when not needed. Finally if you attach themes to many items, try to only set in them the values that
-will impact these items.
-
 ```python
-my_theme = dcg.ThemeStyleImGui(FramePadding=(0, 0))
+my_theme = dcg.ThemeStyleImGui(frame_padding=(0, 0))
 ...
 item.theme = my_theme
 ...
-my_theme.WindowRounding = 1 # adding a new setting in the theme
+my_theme.window_rounding = 1 # adding a new setting in the theme
 ...
-my_theme.WindowRounding = None # Removing a setting from the theme
-...
-my_theme[dcg.constants.WindowRounding] = 1 # alternative syntax
+my_theme.window_rounding = None # Removing a setting from the theme
 ```
 
 ***
