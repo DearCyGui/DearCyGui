@@ -153,8 +153,6 @@ cdef class Menu(uiItem):
 cdef class Tooltip(uiItem):
     cdef float _delay
     cdef bint _hide_on_activity
-    cdef bint _only_if_previous_item_hovered
-    cdef bint _only_if_
     cdef baseItem _target
     cdef baseHandler _secondary_handler
     cdef bint draw_item(self) noexcept nogil
