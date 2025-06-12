@@ -1889,8 +1889,33 @@ cdef object make_TableFlag(value):
             raise ValueError(f"Invalid table flag value: {value}")
     raise TypeError(f"Expected TableFlag enum or string, got {type(value).__name__}")
 
-cdef object make_PlotMarker(marker):
-    return PlotMarker(marker)
+cdef object make_PlotMarker(value):
+    if isinstance(value, PlotMarker):
+        return value
+    if isinstance(value, str):
+        try:
+            return PlotMarker[value.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid plot marker name: {value}")
+    if isinstance(value, int):
+        try:
+            return PlotMarker(value)
+        except ValueError:
+            raise ValueError(f"Invalid plot marker value: {value}")
+    raise TypeError(f"Expected PlotMarker enum or string, got {type(value).__name__}")
+
 
 cdef object make_Positioning(positioning):
-    return Positioning(positioning)
+    if isinstance(positioning, Positioning):
+        return positioning
+    if isinstance(positioning, str):
+        try:
+            return Positioning[positioning.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid positioning name: {positioning}")
+    if isinstance(positioning, int):
+        try:
+            return Positioning(positioning)
+        except ValueError:
+            raise ValueError(f"Invalid positioning value: {positioning}")
+    raise TypeError(f"Expected Positioning enum or string, got {type(positioning).__name__}")

@@ -21,8 +21,8 @@ from cpython.sequence cimport PySequence_Check
 from .core cimport baseHandler, baseItem, lock_gil_friendly,\
     itemState, ensure_correct_im_context
 from .c_types cimport DCGMutex, unique_lock
-from .types cimport check_Positioning, make_Positioning, read_rect, Rect,\
-    is_Key, make_Key
+from .types cimport make_Positioning, read_rect, Rect,\
+    is_Key, make_Key, Positioning
 from .wrapper cimport imgui
 
 import traceback
@@ -830,17 +830,17 @@ cdef class MotionHandler(baseHandler):
 
         Defaults to REL_PARENT on both axes.
         """
-        return (make_Positioning(self._positioning[0]), make_Positioning(self._positioning[1]))
+        return (make_Positioning(<int>self._positioning[0]), make_Positioning(<int>self._positioning[1]))
 
     @pos_policy.setter
     def pos_policy(self, value):
         if PySequence_Check(value) > 0:
             (x, y) = value
-            self._positioning[0] = check_Positioning(x)
-            self._positioning[1] = check_Positioning(y)
+            self._positioning[0] = <Positioning><int>make_Positioning(x)
+            self._positioning[1] = <Positioning><int>make_Positioning(y)
         else:
-            self._positioning[0] = check_Positioning(value)
-            self._positioning[1] = check_Positioning(value)
+            self._positioning[0] = <Positioning><int>make_Positioning(value)
+            self._positioning[1] = <Positioning><int>make_Positioning(value)
 
     cdef void check_bind(self, baseItem item):
         cdef unique_lock[DCGMutex] m

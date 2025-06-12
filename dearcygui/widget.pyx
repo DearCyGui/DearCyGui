@@ -3034,12 +3034,7 @@ cdef class Text(uiItem):
         if value is None:
             self._marker = <int32_t>TextMarker.NONE
         elif is_TextMarker(value):
-            self._marker = <int32_t>value
-        elif isinstance(value, str):
-            try:
-                self._marker = <int32_t>make_TextMarker(value.upper())
-            except KeyError:
-                raise ValueError(f"Invalid TextMarker value: {value}")
+            self._marker = <int32_t>make_TextMarker(value)
         else:
             raise TypeError(f"Expected None, TextMarker or str, got {type(value)}")
 
