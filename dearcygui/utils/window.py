@@ -772,7 +772,7 @@ class StyleEditor(dcg.Window):
             # Add descriptions
             with dcg.VerticalLayout(C):
                 dcg.Text(C, value="Key Concepts:")
-                dcg.Text(C, bullet=True, value="Colors control the visual appearance like button colors and text")
-                dcg.Text(C, bullet=True, value="Styles control sizing, spacing, borders and other layout properties")
-                dcg.Text(C, bullet=True, value="Themes can be applied to individual items or entire windows")
-                dcg.Text(C, bullet=True, value="Child items inherit parent themes unless overridden")
+                dcg.Text(C, marker="bullet", value="Colors control the visual appearance like button colors and text")
+                dcg.Text(C, marker="bullet", value="Styles control sizing, spacing, borders and other layout properties")
+                dcg.Text(C, marker="bullet", value="Themes can be applied to individual items or entire windows")
+                dcg.Text(C, marker="bullet", value="Child items inherit parent themes unless overridden")

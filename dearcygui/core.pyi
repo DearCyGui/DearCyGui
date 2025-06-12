@@ -16667,13 +16667,12 @@ class Text(uiItem):
     selectable.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, marker : Any = ..., next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - bullet: Whether to display a bullet point before the text.
         - callback: List of callbacks to invoke when the item's value changes.
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
@@ -16683,6 +16682,7 @@ class Text(uiItem):
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
+        - marker: Whether to display a marker point before the text.
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - parent: Parent of the item in the rendering tree.
@@ -16698,24 +16698,6 @@ class Text(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @property
-    def bullet(self) -> bool:
-        """
-        Whether to display a bullet point before the text.
-
-        When enabled, a small circular bullet is drawn at the start of the text,
-        similar to list items in bulleted lists. This can be useful for
-        emphasizing important information or creating visual hierarchies.
-
-        """
-        ...
-
-
-    @bullet.setter
-    def bullet(self, value : bool):
         ...
 
 
@@ -16752,6 +16734,24 @@ class Text(uiItem):
 
     @color.setter
     def color(self, value : Color):
+        ...
+
+
+    @property
+    def marker(self):
+        """
+        Whether to display a marker point before the text.
+
+        Accepted values are:
+            - None: No marker (default)
+            - "bullet" or TextMarker.BULLET: A small bullet point before the text
+
+        """
+        ...
+
+
+    @marker.setter
+    def marker(self, value):
         ...
 
 

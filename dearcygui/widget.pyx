@@ -40,7 +40,7 @@ from .c_types cimport unique_lock, DCGMutex, Vec2, Vec4, \
 from .imgui_types cimport unparse_color, parse_color, Vec2ImVec2, \
     Vec4ImVec4, ImVec2Vec2, ImVec4Vec4
 from .types cimport read_point, make_MouseButtonMask, MouseButtonMask,\
-    read_vec4, Coord, child_type
+    read_vec4, Coord, child_type, make_TextMarker, is_TextMarker, TextMarker
 from .wrapper cimport imgui
 
 from .imgui_types import ButtonDirection as ButtonDirection_obj
@@ -2964,7 +2964,7 @@ cdef class Text(uiItem):
     def __cinit__(self):
         self._color = 0 # invisible
         self._wrap = -1
-        self._bullet = False
+        self._marker = <int32_t>TextMarker.NONE
         self._value = <SharedValue>(SharedStr.__new__(SharedStr, self.context))
         self.state.cap.can_be_active = True # unsure
         self.state.cap.can_be_clicked = True
@@ -3015,23 +3015,33 @@ cdef class Text(uiItem):
         self._wrap = value
 
     @property
-    def bullet(self):
+    def marker(self):
         """
-        Whether to display a bullet point before the text.
-        
-        When enabled, a small circular bullet is drawn at the start of the text,
-        similar to list items in bulleted lists. This can be useful for
-        emphasizing important information or creating visual hierarchies.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._bullet
+        Whether to display a marker point before the text.
 
-    @bullet.setter
-    def bullet(self, bint value):
+        Accepted values are:
+            - None: No marker (default)
+            - "bullet" or TextMarker.BULLET: A small bullet point before the text
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._bullet = value
+        return None if self._marker == <int32_t>TextMarker.NONE else make_TextMarker(self._marker)
+
+    @marker.setter
+    def marker(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value is None:
+            self._marker = <int32_t>TextMarker.NONE
+        elif is_TextMarker(value):
+            self._marker = <int32_t>value
+        elif isinstance(value, str):
+            try:
+                self._marker = <int32_t>make_TextMarker(value.upper())
+            except KeyError:
+                raise ValueError(f"Invalid TextMarker value: {value}")
+        else:
+            raise TypeError(f"Expected None, TextMarker or str, got {type(value)}")
 
     @property
     def label(self):
@@ -3046,9 +3056,10 @@ cdef class Text(uiItem):
         elif self._wrap > 0:
             imgui.PushTextWrapPos(imgui.GetCursorPosX() + <float>self._wrap * self.context.viewport.global_scale)
             # <float>self._wrap * (self.context.viewport.global_scale if self._dpi_scaling else 1.)) # TODO dpi scaling control
-        if self._bullet:
+        cdef bint bullet = self._marker == <int32_t>TextMarker.BULLET
+        if bullet:
             imgui.BeginGroup()
-        if self._bullet:
+        if bullet:
             imgui.Bullet()
 
         cdef DCGString current_value
@@ -3061,7 +3072,7 @@ cdef class Text(uiItem):
         if self._color > 0:
             imgui.PopStyleColor(1)
 
-        if self._bullet:
+        if bullet:
             # Group enables to share the states for all items
             # And have correct rect_size
             #imgui.PushStyleVar(imgui.ImGuiStyleVar_ItemSpacing,

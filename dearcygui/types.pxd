@@ -105,6 +105,16 @@ cpdef enum class Alignment:
     JUSTIFIED=3,
     MANUAL=4
 
+# Text Marker specification
+cpdef enum class TextMarker:
+    NONE, # No marker
+    BULLET # Circle marker
+
+# needed to return an object from other cython files
+# rather that using the cdef version of PlotMarker
+cdef object make_TextMarker(marker)
+cdef bint is_TextMarker(value)
+
 # Marker specification, with values matching ImPlot
 cpdef enum class PlotMarker:
     NONE=-1, # No marker

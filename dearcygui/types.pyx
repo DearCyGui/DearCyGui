@@ -1628,6 +1628,20 @@ class TableFlag(IntFlag):
     SORT_TRISTATE = imgui.ImGuiTableFlags_SortTristate,
     HIGHLIGHT_HOVERED_COLUMN = imgui.ImGuiTableFlags_HighlightHoveredColumn
 
+cdef object make_TextMarker(marker):
+    """
+    Create a TextMarker object from an integer marker value.
+    """
+    if isinstance(marker, str):
+        return TextMarker[marker]
+    return TextMarker(marker)
+
+cdef bint is_TextMarker(value):
+    """
+    Check if value is a TextMarker instance
+    """
+    return isinstance(value, TextMarker)
+
 cdef object make_PlotMarker(int32_t marker):
     return PlotMarker(marker)
 

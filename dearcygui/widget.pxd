@@ -105,7 +105,7 @@ cdef class InputValue(uiItem):
 cdef class Text(uiItem):
     cdef uint32_t _color # imgui.ImU32
     cdef int32_t _wrap
-    cdef bint _bullet
+    cdef int32_t _marker
     cdef bint draw_item(self) noexcept nogil
 
 cdef class TextValue(uiItem):
