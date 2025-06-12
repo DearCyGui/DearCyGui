@@ -6979,9 +6979,7 @@ class DrawValue(drawingItem):
         This property accepts printf-style format strings that control how the value
         is displayed. The format depends on the type of the SharedValue:
 
-        - %d for SharedInt
         - %f for SharedFloat
-        - [%d, %d, %d, %d] for SharedInt4
         - (%f, %f, %f, %f) for SharedFloat4 or SharedColor
         - %s for SharedStr
 
@@ -7005,8 +7003,8 @@ class DrawValue(drawingItem):
         displays. The object holds a value field that is in sync with the internal value
         of the drawing. This same object can be passed to other items to share its value.
 
-        Supported types include SharedBool, SharedInt, SharedFloat,
-        SharedColor, SharedInt4, SharedFloat4, and SharedStr.
+        Supported types include SharedBool, SharedFloat,
+        SharedColor, SharedFloat4, and SharedStr.
 
         """
         ...
@@ -8653,7 +8651,7 @@ class InputValue(uiItem):
     A widget for entering numeric values with optional step buttons.
 
     This versatile input widget accepts scalar or vector numeric values with support
-    for different data types (int, float, double) and dimensions (1-4 components).
+    for different dimensions (1-4 components).
     It offers precise control over value ranges, step sizes, and formatting options.
 
     The widget can be configured with various input restrictions, keyboard behaviors,
@@ -8661,7 +8659,7 @@ class InputValue(uiItem):
     to multi-dimensional vector editing.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8680,63 +8678,6 @@ class InputValue(uiItem):
         - enabled: Whether the item is interactive and fully styled.
         - escape_clears_all: Makes Escape key clear the field's content.
         - font: Font used for rendering text in this item and its children.
-        - format: Format of the input data type.
-        - handlers: List of event handlers attached to this item.
-        - height: Requested height for the item.
-        - hexadecimal: Restricts input to hexadecimal characters.
-        - label: Text label displayed with or within the item.
-        - max_value: Maximum value the input will be clamped to.
-        - min_value: Minimum value the input will be clamped to.
-        - next_sibling: Child of the parent rendered just after this item.
-        - no_horizontal_scroll: Disables automatic horizontal scrolling during input.
-        - no_newline: Controls whether to advance to the next line after rendering.
-        - no_undo_redo: Disables the undo/redo functionality for this input field.
-        - parent: Parent of the item in the rendering tree.
-        - password: Hides the input by displaying asterisks and disables copying.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - print_format: Format string for displaying the numeric value.
-        - readonly: Makes the input field non-editable by the user.
-        - scaling_factor: Additional scaling multiplier applied to this item and its children.
-        - scientific: Restricts input to scientific notation characters.
-        - shareable_value: Reference to the underlying value that can be shared between items.
-        - show: Whether the item should be rendered and process events.
-        - size: Number of components controlled by the input widget.
-        - step: Step size for incrementing/decrementing the value with buttons.
-        - step_fast: Fast step size for quick incrementing/decrementing with modifier keys.
-        - theme: Visual styling applied to this item and its children.
-        - user_data: User data of any type.
-        - value: Main value associated with this item.
-        - width: Requested width for the item.
-        - x: Requested horizontal position of the item.
-        - y: Requested vertical position of the item.
-        """
-        ...
-
-
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
-        """
-        Configure the InputValue widget with provided keyword arguments.
-
-        Handles special configuration options that have interdependencies
-        (format, size) before delegating to the parent class for standard
-        options.
-
-        Parameters
-        ----------
-        - always_overwrite: Enables overwrite mode for text input.
-        - auto_select_all: Automatically selects all content when the field is first focused.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback_on_enter: Triggers callback when Enter key is pressed.
-        - callbacks: List of callbacks to invoke when the item's value changes.
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - decimal: Restricts input to decimal numeric characters.
-        - empty_as_zero: Treats empty input fields as zero values.
-        - empty_if_zero: Displays an empty field when the value is zero.
-        - enabled: Whether the item is interactive and fully styled.
-        - escape_clears_all: Makes Escape key clear the field's content.
-        - font: Font used for rendering text in this item and its children.
-        - format: Format of the input data type.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - hexadecimal: Restricts input to hexadecimal characters.
@@ -8913,25 +8854,6 @@ class InputValue(uiItem):
 
 
     @property
-    def format(self) -> str:
-        """
-        Format of the input data type.
-
-        Must be "int", "float" or "double". Note that float here means the
-        32 bits version. The python float corresponds to a double.
-
-        Changing this value will reallocate the internal value storage.
-
-        """
-        ...
-
-
-    @format.setter
-    def format(self, value : str):
-        ...
-
-
-    @property
     def hexadecimal(self) -> bool:
         """
         Restricts input to hexadecimal characters.
@@ -9044,8 +8966,8 @@ class InputValue(uiItem):
         Format string for displaying the numeric value.
 
         Uses printf-style formatting to control how the value is displayed.
-        Example formats: "%d" for integers, "%.2f" for floats with 2 decimal
-        places, etc.
+        Example formats: "%.0f" for integers, "%.3f" for floats with 3 decimal
+        places (default), etc.
 
         """
         ...
@@ -14520,148 +14442,6 @@ class SharedFloatVect(SharedValue):
         ...
 
 
-class SharedInt(SharedValue):
-    def __init__(self, context : Context, value : int):
-        ...
-
-
-    @property
-    def last_frame_change(self) -> int:
-        """
-        (Read-only) Frame index when the value was last changed to a different value.
-
-        Records the frame number when the value actually changed. For scalar
-        types, this differs from last_frame_update when a value is set to
-        its current value (no actual change). For complex data types like
-        vectors or colors, this equals last_frame_update for efficiency.
-
-        """
-        ...
-
-
-    @property
-    def last_frame_update(self) -> int:
-        """
-        (Read-only) Frame index when the value was last updated.
-
-        Tracks the frame number when the value was last modified or validated,
-        even if the new value was identical to the previous one. This can be
-        used to detect when any access or modification attempt occurred.
-
-        """
-        ...
-
-
-    @property
-    def num_attached(self) -> int:
-        """
-        (Read-only) Number of items currently sharing this value.
-
-        Counts how many UI items are currently using this shared value. When
-        this count reaches zero, the shared value becomes eligible for garbage
-        collection if no other references exist.
-
-        """
-        ...
-
-
-    @property
-    def shareable_value(self) -> SharedInt:
-        """
-        (Read-only) Reference to the shared value object itself.
-
-        Returns a reference to this SharedValue instance, allowing it to be
-        assigned to another item's shareable_value property to establish
-        value sharing between items.
-
-        This property is primarily used when connecting multiple UI elements
-        to the same data source.
-
-        """
-        ...
-
-
-    @property
-    def value(self) -> int:
-        ...
-
-
-    @value.setter
-    def value(self, value : int):
-        ...
-
-
-class SharedInt4(SharedValue):
-    def __init__(self, context : Context, value : list):
-        ...
-
-
-    @property
-    def last_frame_change(self) -> int:
-        """
-        (Read-only) Frame index when the value was last changed to a different value.
-
-        Records the frame number when the value actually changed. For scalar
-        types, this differs from last_frame_update when a value is set to
-        its current value (no actual change). For complex data types like
-        vectors or colors, this equals last_frame_update for efficiency.
-
-        """
-        ...
-
-
-    @property
-    def last_frame_update(self) -> int:
-        """
-        (Read-only) Frame index when the value was last updated.
-
-        Tracks the frame number when the value was last modified or validated,
-        even if the new value was identical to the previous one. This can be
-        used to detect when any access or modification attempt occurred.
-
-        """
-        ...
-
-
-    @property
-    def num_attached(self) -> int:
-        """
-        (Read-only) Number of items currently sharing this value.
-
-        Counts how many UI items are currently using this shared value. When
-        this count reaches zero, the shared value becomes eligible for garbage
-        collection if no other references exist.
-
-        """
-        ...
-
-
-    @property
-    def shareable_value(self) -> SharedInt4:
-        """
-        (Read-only) Reference to the shared value object itself.
-
-        Returns a reference to this SharedValue instance, allowing it to be
-        assigned to another item's shareable_value property to establish
-        value sharing between items.
-
-        This property is primarily used when connecting multiple UI elements
-        to the same data source.
-
-        """
-        ...
-
-
-    @property
-    def value(self) -> list:
-        ...
-
-
-    @value.setter
-    def value(self, value : list):
-        ...
-
-
 class SharedStr(SharedValue):
     def __init__(self, context : Context, value : str):
         ...
@@ -14999,13 +14779,13 @@ class Slider(uiItem):
     controls that adjust values based on mouse movement distance rather than
     absolute position.
 
-    Sliders support several data types (int, float, double) and can display
+    Sliders can display
     single values or vectors of up to 4 components. The appearance and behavior
     can be customized with various options including logarithmic scaling and
     different display formats.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15015,13 +14795,12 @@ class Slider(uiItem):
         - callback: List of callbacks to invoke when the item's value changes.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
-        - clamped: Whether the slider value should be clamped even when set via keyboard.
         - drag: Whether to use a 'drag' slider rather than a regular one.
         - enabled: Whether the item is interactive and fully styled.
         - font: Font used for rendering text in this item and its children.
-        - format: Format of the slider's data type.
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
+        - keyboard_clamped: Whether the slider value should be clamped even when set via keyboard.
         - label: Text label displayed with or within the item.
         - logarithmic: Whether the slider should use logarithmic scaling.
         - max_value: Maximum value the slider will be clamped to.
@@ -15029,58 +14808,10 @@ class Slider(uiItem):
         - next_sibling: Child of the parent rendered just after this item.
         - no_input: Whether to disable keyboard input for the slider.
         - no_newline: Controls whether to advance to the next line after rendering.
+        - no_round: Whether to disable the rounding of values according to the print_format.
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
         - print_format: Format string for converting the slider value to text for display.
-        - round_to_format: Whether to round values according to the print_format.
-        - scaling_factor: Additional scaling multiplier applied to this item and its children.
-        - shareable_value: Reference to the underlying value that can be shared between items.
-        - show: Whether the item should be rendered and process events.
-        - size: Number of components controlled by the slider.
-        - speed: The speed at which the value changes when using drag mode.
-        - theme: Visual styling applied to this item and its children.
-        - user_data: User data of any type.
-        - value: Main value associated with this item.
-        - vertical: Whether to display the slider vertically instead of horizontally.
-        - width: Requested width for the item.
-        - x: Requested horizontal position of the item.
-        - y: Requested vertical position of the item.
-        """
-        ...
-
-
-    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], clamped : bool = False, drag : bool = False, enabled : bool = True, font : Font = None, format : str = "float", handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", round_to_format : bool = True, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
-        """
-        Configure the slider with the provided keyword arguments.
-
-        This method handles special configuration options that have
-        interdependencies (format, size, logarithmic) before delegating to the
-        parent class configure method for standard options.
-
-        Parameters
-        ----------
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callbacks: List of callbacks to invoke when the item's value changes.
-        - children: List of all the children of the item, from first rendered, to last rendered.
-        - clamped: Whether the slider value should be clamped even when set via keyboard.
-        - drag: Whether to use a 'drag' slider rather than a regular one.
-        - enabled: Whether the item is interactive and fully styled.
-        - font: Font used for rendering text in this item and its children.
-        - format: Format of the slider's data type.
-        - handlers: List of event handlers attached to this item.
-        - height: Requested height for the item.
-        - label: Text label displayed with or within the item.
-        - logarithmic: Whether the slider should use logarithmic scaling.
-        - max_value: Maximum value the slider will be clamped to.
-        - min_value: Minimum value the slider will be clamped to.
-        - next_sibling: Child of the parent rendered just after this item.
-        - no_input: Whether to disable keyboard input for the slider.
-        - no_newline: Controls whether to advance to the next line after rendering.
-        - parent: Parent of the item in the rendering tree.
-        - previous_sibling: Child of the parent rendered just before this item.
-        - print_format: Format string for converting the slider value to text for display.
-        - round_to_format: Whether to round values according to the print_format.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
@@ -15116,24 +14847,6 @@ class Slider(uiItem):
 
 
     @property
-    def clamped(self) -> bool:
-        """
-        Whether the slider value should be clamped even when set via keyboard.
-
-        When enabled, the value will always be restricted to the min_value and
-        max_value range, even when the value is manually entered via keyboard
-        input (Ctrl+Click).
-
-        """
-        ...
-
-
-    @clamped.setter
-    def clamped(self, value : bool):
-        ...
-
-
-    @property
     def drag(self) -> bool:
         """
         Whether to use a 'drag' slider rather than a regular one.
@@ -15153,21 +14866,20 @@ class Slider(uiItem):
 
 
     @property
-    def format(self) -> str:
+    def keyboard_clamped(self) -> bool:
         """
-        Format of the slider's data type.
+        Whether the slider value should be clamped even when set via keyboard.
 
-        Must be "int" or "float". Note that float here means the
-        64 bits version, similar to python float.
-
-        Changing this value will reallocate the internal value storage.
+        When enabled, the value will always be restricted to the min_value and
+        max_value range, even when the value is manually entered via keyboard
+        input (Ctrl+Click).
 
         """
         ...
 
 
-    @format.setter
-    def format(self, value : str):
+    @keyboard_clamped.setter
+    def keyboard_clamped(self, value : bool):
         ...
 
 
@@ -15177,9 +14889,7 @@ class Slider(uiItem):
         Whether the slider should use logarithmic scaling.
 
         When enabled, the slider will use logarithmic scaling, making it easier
-        to select values across different orders of magnitude. Enabling this
-        option will automatically disable round_to_format as they are not
-        compatible.
+        to select values across different orders of magnitude.
 
         """
         ...
@@ -15243,6 +14953,27 @@ class Slider(uiItem):
 
 
     @property
+    def no_round(self) -> bool:
+        """
+        Whether to disable the rounding of values according to the print_format.
+
+        By default the slider's value is the value displayed in the UI.
+        This setting will enable higher precision values to be set.
+
+        For instance one could want a short version of the slider
+        that display no decimals, but still allows setting a floating
+        point value with a higher precision.
+
+        """
+        ...
+
+
+    @no_round.setter
+    def no_round(self, value : bool):
+        ...
+
+
+    @property
     def print_format(self) -> str:
         """
         Format string for converting the slider value to text for display.
@@ -15250,7 +14981,7 @@ class Slider(uiItem):
         This follows standard printf-style formatting. If round_to_format is
         enabled, the value will be rounded according to this format.
 
-        Examples: "%.2f" for 2 decimal places, "%d" for integers.
+        Examples: "%.3f" for 3 decimal places (Default), "%.0f" for integers.
 
         """
         ...
@@ -15258,26 +14989,6 @@ class Slider(uiItem):
 
     @print_format.setter
     def print_format(self, value : str):
-        ...
-
-
-    @property
-    def round_to_format(self) -> bool:
-        """
-        Whether to round values according to the print_format.
-
-        When enabled (default), the slider's value will be rounded to match the
-        precision specified in the print_format string. This ensures that the
-        displayed value matches the actual value stored.
-
-        This cannot be enabled when logarithmic is True.
-
-        """
-        ...
-
-
-    @round_to_format.setter
-    def round_to_format(self, value : bool):
         ...
 
 
@@ -15324,9 +15035,10 @@ class Slider(uiItem):
         """
         Whether to display the slider vertically instead of horizontally.
 
-        When enabled, the slider will be displayed as a vertical bar. This is
-        only supported for sliders with size=1 and is incompatible with drag=True.
-        Setting this to True will automatically set drag to False.
+        When enabled, the slider will be displayed as a vertical bar.
+
+        This is only supported for sliders with size=1 and drag=False.
+        The setting will be ignored else.
 
         """
         ...
@@ -17143,14 +16855,13 @@ class TextValue(uiItem):
         For scalar values, use a single format specifier like '%d' or '%.2f'.
 
         For vector types, provide multiple format specifiers within a template,
-        such as '[%d, %d, %d, %d]' for SharedInt4 or '(%.1f, %.1f, %.1f, %.1f)'
-        for SharedFloat4.
+        such as '(%.1f, %.1f, %.1f, %.1f)'.
 
         For SharedFloatVect, the format is applied individually to each element
         in the vector as they are displayed on separate lines.
 
         Examples:
-          '%d' - Display integers with no decimal places
+          '%.0f' - Display integers with no decimal places
           '%.2f' - Display floats with 2 decimal places
           'Value: %g' - Add prefix text to the displayed value
           'RGB: (%.0f, %.0f, %.0f)' - Format color values as integers
@@ -17173,8 +16884,8 @@ class TextValue(uiItem):
         to this TextValue widget. The widget will display the current value and
         update automatically whenever the source value changes.
 
-        Supported types include SharedBool, SharedInt, SharedFloat,
-        SharedColor, SharedInt4, SharedFloat4, and SharedFloatVect.
+        Supported types include SharedBool, SharedFloat,
+        SharedColor, SharedFloat4, and SharedFloatVect.
 
         For displaying string values, use the Text widget instead.
 
@@ -20603,15 +20314,30 @@ Render one frame of the application.
         ...
 
 
-    def wake(self):
+    def wake(self, delay=0.0, full_refresh=True):
         """
         Wake the viewport to force a redraw.
 
         In case rendering is waiting for an input (wait_for_input),
         generate a fake input to force rendering.
 
-        This is useful if you have updated the content asynchronously
-        and want to show the update
+        Use-cases are:
+            - You have updated the content of several items, and you
+               request an immediate refresh.
+            - You have updated the content of several items, and while
+               you don't need an immediate refresh, you want refresh
+               to occur not in a too long delay.
+            - You have a timed event, and you wish rendering to occur
+               again before or at the timed event.
+
+        Args:
+            - delay: Delay in seconds (starting from now) until the wakeup
+                should take effect. Note that rendering may occur earlier,
+                in which case you need to make a new wake call if you intended
+                a refresh to occur at a specific target time.
+            - full_refresh: If True (the default), requests that a full screen
+                redraw with gpu submission is performed. if False, render_frame
+                may decide to not submit to the gpu if it thinks no change occured.
 
         """
         ...

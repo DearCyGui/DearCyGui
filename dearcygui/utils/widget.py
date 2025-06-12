@@ -57,7 +57,7 @@ class TimePicker(dcg.Layout):
 
         with dcg.HorizontalLayout(context, parent=self):
             # Hours spinner
-            self._hours = dcg.InputValue(context, format="int", 
+            self._hours = dcg.InputValue(context, print_format="%.0f", 
                                   min_value=0,
                                   max_value=23 if use_24hr else 12,
                                   value=self._get_display_hour(),
@@ -66,7 +66,7 @@ class TimePicker(dcg.Layout):
 
             # Minutes spinner 
             dcg.Text(context, value=":", width=10)
-            self._minutes = dcg.InputValue(context, format="int",
+            self._minutes = dcg.InputValue(context, print_format="%.0f",
                                     min_value=0, max_value=59,
                                     value=int((total_seconds % 3600) // 60),
                                     width=45,
@@ -75,7 +75,7 @@ class TimePicker(dcg.Layout):
             # Optional seconds spinner
             if show_seconds:
                 dcg.Text(context, value=":", width=10)
-                self._seconds = dcg.InputValue(context, format="int",
+                self._seconds = dcg.InputValue(context, print_format="%.0f",
                                         min_value=0, max_value=59, 
                                         value=int(total_seconds % 60),
                                         width=45,

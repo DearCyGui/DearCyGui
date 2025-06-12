@@ -59,7 +59,6 @@ cdef class Checkbox(uiItem):
 
 cdef class Slider(uiItem):
     cdef int32_t _size
-    cdef int32_t _format
     cdef bint _drag
     cdef float _drag_speed
     cdef double _min
@@ -94,7 +93,6 @@ cdef class InputText(uiItem):
 
 cdef class InputValue(uiItem):
     cdef int32_t _size
-    cdef int32_t _format
     cdef double _step
     cdef double _step_fast
     cdef double _min
@@ -211,11 +209,6 @@ cdef class SharedFloat(SharedValue):
     cdef double get(self) noexcept nogil
     cdef void set(self, double) noexcept nogil
 
-cdef class SharedInt(SharedValue):
-    cdef int32_t _value
-    cdef int32_t get(self) noexcept nogil
-    cdef void set(self, int32_t) noexcept nogil
-
 cdef class SharedColor(SharedValue):
     cdef uint32_t _value # imgui.ImU32
     cdef Vec4 _value_asfloat4 # imgui.ImVec4
@@ -233,11 +226,6 @@ cdef class SharedFloat4(SharedValue):
     cdef double[4] _value
     cdef void get(self, double *) noexcept nogil# cython doesn't support double[4] as return value
     cdef void set(self, double[4]) noexcept nogil
-
-cdef class SharedInt4(SharedValue):
-    cdef int32_t[4] _value
-    cdef void get(self, int32_t *) noexcept nogil
-    cdef void set(self, int32_t[4]) noexcept nogil
 
 cdef class SharedFloatVect(SharedValue):
     cdef float[::1] _value

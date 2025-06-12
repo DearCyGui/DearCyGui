@@ -85,7 +85,7 @@ class MetricsWindow(dcg.Window):
                 self.text1 = dcg.Text(c)
                 self.text2 = dcg.Text(c)
                 self.text3 = dcg.Text(c)
-                self.history = dcg.Slider(context, value=10., min_value=1., max_value=30., label="History", format="float", print_format="%.1f s")
+                self.history = dcg.Slider(context, value=10., min_value=1., max_value=30., label="History", print_format="%.1f s")
                 self.main_plot = dcg.Plot(c, height=200)
                 self.main_plot.Y1.auto_fit = True
                 self.main_plot.Y1.restrict_fit_to_range = True
@@ -500,9 +500,9 @@ class StyleEditor(dcg.Window):
                             else:
                                 size = 1
                             if item_type is float:
-                                format = "float"
+                                print_format="%.2f"
                             elif item_type is int:
-                                format = "int"
+                                print_format="%.0f"
                             else:
                                 continue # Skip unsupported types
                             def callback_imgui_style(s, t, d, style_name=style_name):
@@ -515,7 +515,7 @@ class StyleEditor(dcg.Window):
                                 setattr(self.imgui_style_theme, style_name, d)
 
                             dcg.Slider(context,
-                                       format=format,
+                                       print_format=print_format,
                                        size=size,
                                        label=style_name,
                                        logarithmic=True,
@@ -534,9 +534,9 @@ class StyleEditor(dcg.Window):
                             else:
                                 size = 1
                             if item_type is float:
-                                format = "float"
+                                print_format="%.2f"
                             elif item_type is int:
-                                format = "int"
+                                print_format="%.0f"
                             elif item_type is dcg.PlotMarker:
                                 def callback_implot_style_marker(s, t, d, style_name=style_name):
                                     setattr(self.implot_style_theme, style_name, dcg.PlotMarker[d])
@@ -559,7 +559,7 @@ class StyleEditor(dcg.Window):
                                     pass
                                 setattr(self.implot_style_theme, style_name, d)
                             dcg.Slider(context,
-                                       format=format,
+                                       print_format=print_format,
                                        size=size,
                                        logarithmic=True,
                                        label=style_name,
@@ -750,15 +750,15 @@ class StyleEditor(dcg.Window):
                     dcg.Text(C, value="Styles:")
                     dcg.Slider(C, label="Frame Padding",
                                value=demo_styles.get_default("frame_padding"),
-                               size=2, format="float",
+                               size=2,
                                callback=lambda s,t,d: setattr(demo_styles, "frame_padding", d[:2]))
                     dcg.Slider(C, label="Frame Rounding",
                                value=demo_styles.get_default("frame_rounding"),
-                               min_value=0, max_value=12, format="float",
+                               min_value=0, max_value=12,
                                callback=lambda s,t,d: setattr(demo_styles, "frame_rounding", d))
                     dcg.Slider(C, label="Frame Border",
                                value=demo_styles.get_default("frame_border_size"),
-                               min_value=0, max_value=3, format="float",
+                               min_value=0, max_value=3,
                                callback=lambda s,t,d: setattr(demo_styles, "frame_border_size", d))
             
             dcg.Separator(C)
