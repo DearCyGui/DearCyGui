@@ -53,7 +53,7 @@ public:
      * @param chanStride Stride between color channels in bytes
      * @return bool Success or failure
      */
-    virtual bool addWindowIcon(void* data, int width, int height, 
+    virtual void addWindowIcon(void* data, int width, int height, 
                                int rowStride, int colStride, int chanStride) = 0;
     virtual void wakeRendering(uint64_t delay_ns, bool full_refresh) = 0;
     virtual void makeUploadContextCurrent() = 0;
@@ -248,7 +248,7 @@ public:
     virtual bool renderFrame(bool can_skip_presenting) override;
     virtual void present() override;
     virtual bool checkPrimaryThread() override;
-    virtual bool addWindowIcon(void* data, int width, int height, 
+    virtual void addWindowIcon(void* data, int width, int height, 
                                int rowStride, int colStride, int chanStride) override;
     virtual void wakeRendering(uint64_t delay_ns, bool full_refresh) override;
     virtual void makeUploadContextCurrent() override;

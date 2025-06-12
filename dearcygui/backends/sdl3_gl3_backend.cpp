@@ -1524,69 +1524,81 @@ bool SDLViewport::checkPrimaryThread() {
     return SDL_GetCurrentThreadID() == sdlMainThreadId;
 }
 
-bool SDLViewport::addWindowIcon(void* data, int width, int height, 
+void SDLViewport::addWindowIcon(void* data, int width, int height, 
                               int rowStride, int colStride, int chanStride) {
     if (!data || width <= 0 || height <= 0) {
-        return false;
+        throw std::invalid_argument("Invalid icon parameters: data is null or dimensions are invalid");
     }
     
     if (windowHandle != NULL) {
-        // Window already initialized, can't add icons
-        return false;
+        throw std::runtime_error("Cannot set window icon after window initialization");
     }
     
     // Create an SDL surface from the RGBA data
     SDL_Surface* newSurface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
     if (!newSurface) {
-        return false;
+        std::string error_msg = "Failed to create SDL surface for icon: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
+        throw std::runtime_error(error_msg);
     }
     
     // Lock the surface for pixel manipulation
-    if (SDL_LockSurface(newSurface) != 0) {
+    if (!SDL_LockSurface(newSurface)) {
+        std::string error_msg = "Failed to lock SDL surface for icon: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
         SDL_DestroySurface(newSurface);
-        return false;
+        throw std::runtime_error(error_msg);
     }
     
-    // Copy the pixel data to the surface
-    uint8_t* srcRow = static_cast<uint8_t*>(data);
-    uint8_t* dstRow = static_cast<uint8_t*>(newSurface->pixels);
-    
-    for (int y = 0; y < height; y++) {
-        uint8_t* srcPixel = srcRow;
-        uint8_t* dstPixel = dstRow;
+    try {
+        // Copy the pixel data to the surface
+        uint8_t* srcRow = static_cast<uint8_t*>(data);
+        uint8_t* dstRow = static_cast<uint8_t*>(newSurface->pixels);
         
-        for (int x = 0; x < width; x++) {
-            // Copy RGBA channels
-            for (int c = 0; c < 4; c++) {
-                dstPixel[c] = srcPixel[c * chanStride];
+        for (int y = 0; y < height; y++) {
+            uint8_t* srcPixel = srcRow;
+            uint8_t* dstPixel = dstRow;
+            
+            for (int x = 0; x < width; x++) {
+                // Copy RGBA channels
+                for (int c = 0; c < 4; c++) {
+                    dstPixel[c] = srcPixel[c * chanStride];
+                }
+                
+                // Move to next pixel
+                srcPixel += colStride;
+                dstPixel += 4; // 4 bytes per pixel in RGBA32
             }
             
-            // Move to next pixel
-            srcPixel += colStride;
-            dstPixel += 4; // 4 bytes per pixel in RGBA32
+            // Move to next row
+            srcRow += rowStride;
+            dstRow += newSurface->pitch;
         }
         
-        // Move to next row
-        srcRow += rowStride;
-        dstRow += newSurface->pitch;
-    }
-    
-    // Unlock the surface
-    SDL_UnlockSurface(newSurface);
-    
-    // Check if this is the first icon or an additional one
-    if (iconSurface == nullptr) {
-        // First icon
-        iconSurface = newSurface;
-    } else {
-        // Add as alternate icon
-        if (SDL_AddSurfaceAlternateImage(iconSurface, newSurface) != 0) {
-            // Failed to add alternate image
-            SDL_DestroySurface(newSurface);
-            return false;
+        // Unlock the surface
+        SDL_UnlockSurface(newSurface);
+        
+        // Check if this is the first icon or an additional one
+        if (iconSurface == nullptr) {
+            // First icon
+            iconSurface = newSurface;
+        } else {
+            // Add as alternate icon
+            if (!SDL_AddSurfaceAlternateImage(iconSurface, newSurface)) {
+                std::string error_msg = "Failed to add alternate icon image: ";
+                error_msg += SDL_GetError();
+                SDL_ClearError();
+                SDL_DestroySurface(newSurface);
+                throw std::runtime_error(error_msg);
+            }
+            // SDL_AddSurfaceAlternateImage takes ownership of newSurface
         }
-        // SDL_AddSurfaceAlternateImage takes ownership of newSurface
+    } catch (const std::exception&) {
+        // Make sure we clean up on any exception
+        SDL_UnlockSurface(newSurface);
+        SDL_DestroySurface(newSurface);
+        throw; // Re-throw the caught exception
     }
-    
-    return true;
 }

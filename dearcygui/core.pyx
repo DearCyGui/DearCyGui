@@ -2941,8 +2941,7 @@ cdef class Viewport(baseItem):
         
         # Process each icon one by one
         cdef Py_buffer buf_info
-        cdef bint success = True
-        
+
         for img in icon_list:
             # Initialize buffer info
             memset(&buf_info, 0, sizeof(Py_buffer))
@@ -2978,14 +2977,11 @@ cdef class Viewport(baseItem):
                 chan_stride = buf_info.strides[2]
                 
                 # Call the backend to add this icon
-                success = (<platformViewport*>self._platform).addWindowIcon(
+                (<platformViewport*>self._platform).addWindowIcon(
                     buf_info.buf, width, height,
                     row_stride, col_stride, chan_stride
                 )
-                
-                if not success:
-                    raise RuntimeError(f"Failed to add window icon (size: {width}x{height})")
-            
+
             finally:
                 # Free buffer resources
                 if buf_info.buf != NULL:

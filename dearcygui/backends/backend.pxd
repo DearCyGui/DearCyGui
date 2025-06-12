@@ -21,7 +21,7 @@ cdef extern from "backend.h" nogil:
         void present()
         bint checkPrimaryThread()
         void toggleFullScreen()
-        bint addWindowIcon(void*, int, int, int, int, int)
+        void addWindowIcon(void*, int, int, int, int, int) except +
         void wakeRendering(uint64_t, bint)
         void makeUploadContextCurrent()
         void releaseUploadContext()
