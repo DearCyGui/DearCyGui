@@ -4285,7 +4285,10 @@ cdef class Viewport(baseItem):
 
         Use-cases are:
             - You have updated the content of several items, and you
-               request a refresh.
+               request an immediate refresh.
+            - You have updated the content of several items, and while
+               you don't need an immediate refresh, you want refresh
+               to occur not in a too long delay.
             - You have a timed event, and you wish rendering to occur
                again before or at the timed event.
 

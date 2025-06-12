@@ -343,7 +343,7 @@ class ItemInspecter(dcg.Window):
                 pass
         self.inspected_items = []
 
-    def handle_item_dragging(self, handler, item, drag_deltas):
+    def handle_item_dragging(self, handler, item: dcg.uiItem, drag_deltas):
         """Process UI element dragging events.
         
         This method handles the dragging of UI elements, updating their position
@@ -355,11 +355,13 @@ class ItemInspecter(dcg.Window):
             return
         if self.dragging_item is None:
             self.dragging_item = item
-            self.dragging_item_original_pos = item.pos_to_parent
-        item.pos_to_parent = [
+            self.dragging_item_original_pos = item.state.pos_to_parent
+        new_pos = [
             self.dragging_item_original_pos[0] + drag_deltas[0],
             self.dragging_item_original_pos[1] + drag_deltas[1]
         ]
+        item.x = f"parent.x1 + {new_pos[0]}"
+        item.y = f"parent.y1 + {new_pos[1]}"
 
     def handle_item_dragged(self, handler, item):
         """Handle the completion of a UI element drag operation.
