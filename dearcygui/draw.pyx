@@ -16,7 +16,7 @@
 #distutils: language=c++
 
 from dearcygui.wrapper cimport imgui
-from .core cimport Context, drawingItem, \
+from .core cimport drawingItem, \
     lock_gil_friendly, draw_drawing_children
 from .widget cimport SharedBool, SharedFloat, \
     SharedColor, SharedFloat4, SharedStr

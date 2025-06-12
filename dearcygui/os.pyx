@@ -21,7 +21,7 @@ from libcpp.vector cimport vector
 
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 
-from .core cimport baseItem, baseHandler, Context, lock_gil_friendly
+from .core cimport Context
 from .c_types cimport unique_lock, mutex, condition_variable
 
 import traceback

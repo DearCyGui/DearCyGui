@@ -21,7 +21,7 @@ from cpython.ref cimport PyObject
 from libc.stdint cimport int32_t
 from libcpp.cmath cimport floor, fmax
 
-from .core cimport uiItem, Callback, lock_gil_friendly, Window
+from .core cimport uiItem, Callback, lock_gil_friendly
 from .c_types cimport Vec2, make_Vec2, swap_Vec2, DCGMutex, unique_lock
 from .imgui_types cimport ImVec2Vec2
 from .sizing cimport resolve_size

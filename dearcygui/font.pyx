@@ -16,6 +16,7 @@
 #distutils: language=c++
 
 from libc.math cimport logf, ceil, INFINITY
+from libc.stdint cimport uintptr_t, int32_t
 from libcpp cimport bool
 from libcpp.deque cimport deque
 from libcpp.vector cimport vector
@@ -27,11 +28,10 @@ from dearcygui.wrapper cimport imgui
 
 from .core cimport baseFont, baseItem, Callback, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector
-from .c_types cimport *
+from .c_types cimport unique_lock, DCGMutex
 from .texture cimport Texture
-from .types cimport *
+from .types cimport parse_texture
 
-from libc.stdint cimport uintptr_t, int32_t
 import ctypes
 from concurrent.futures import ThreadPoolExecutor
 

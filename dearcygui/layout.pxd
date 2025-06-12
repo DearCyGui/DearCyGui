@@ -1,5 +1,4 @@
 from libc.stdint cimport int32_t
-
 from cpython.object cimport PyObject
 
 from .core cimport uiItem

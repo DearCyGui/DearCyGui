@@ -30,11 +30,15 @@ from .backends.backend cimport SDLViewport, platformViewport, GLContext
 cimport dearcygui.backends.time as ctime
 from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t, string_to_str,\
     set_composite_label, set_uuid_label, string_from_str, Vec2, make_Vec2
+from .font cimport AutoFont
 from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color
 from .sizing cimport resolve_size, set_size, RefX1, RefY1, RefWidth, RefHeight
 from .texture cimport Texture
-from .types cimport Vec2, MouseButton, child_type,\
-    Coord, MouseCursor, parse_texture, Display
+from .types cimport Vec2, child_type,\
+    Coord, parse_texture, Display,\
+    get_children_types, get_item_type, is_Key, make_Key,\
+    is_KeyMod, make_KeyMod, \
+    is_MouseCursor, make_MouseCursor, is_MouseButton, make_MouseButton
 from .wrapper cimport imgui, implot
 
 from concurrent.futures import Executor, ThreadPoolExecutor
@@ -42,9 +46,6 @@ import os
 import time as python_time
 import traceback
 
-from dearcygui.font import AutoFont
-from .types import ChildType, MouseButton as MouseButton_obj, Key, KeyMod,\
-    MouseCursor as MouseCursor_obj
 
 
 
@@ -466,7 +467,7 @@ cdef class Context:
             return
         with gil:
             try:
-                self._queue.submit(callback, parent_item, target_item, Key(arg1))
+                self._queue.submit(callback, parent_item, target_item, make_Key(arg1))
             except Exception as e:
                 print(traceback.format_exc())
 
@@ -488,7 +489,7 @@ cdef class Context:
             return
         with gil:
             try:
-                self._queue.submit(callback, parent_item, target_item, MouseButton_obj(arg1))
+                self._queue.submit(callback, parent_item, target_item, make_MouseButton(arg1))
             except Exception as e:
                 print(traceback.format_exc())
 
@@ -558,7 +559,7 @@ cdef class Context:
             return
         with gil:
             try:
-                self._queue.submit(callback, parent_item, target_item, (Key(arg1), arg2))
+                self._queue.submit(callback, parent_item, target_item, (make_Key(arg1), arg2))
             except Exception as e:
                 print(traceback.format_exc())
 
@@ -582,7 +583,7 @@ cdef class Context:
             return
         with gil:
             try:
-                self._queue.submit(callback, parent_item, target_item, (MouseButton_obj(arg1), arg2))
+                self._queue.submit(callback, parent_item, target_item, (make_MouseButton(arg1), arg2))
             except Exception as e:
                 print(traceback.format_exc())
 
@@ -656,7 +657,7 @@ cdef class Context:
             return
         with gil:
             try:
-                self._queue.submit(callback, parent_item, target_item, (MouseButton_obj(arg1), arg2, arg3))
+                self._queue.submit(callback, parent_item, target_item, (make_MouseButton(arg1), arg2, arg3))
             except Exception as e:
                 print(traceback.format_exc())
 
@@ -853,7 +854,7 @@ cdef class Context:
     cdef int32_t c_get_keymod_mask(self) noexcept nogil:
         return <int>imgui.GetIO().KeyMods
 
-    def is_key_down(self, key : Key, keymod : KeyMod = None):
+    def is_key_down(self, key, keymod = None):
         """
         Check if a key is being held down.
 
@@ -868,21 +869,21 @@ cdef class Context:
             True if the key is down, False otherwise.
         """
         cdef unique_lock[DCGMutex] m
-        if key is None or not(isinstance(key, Key)):
+        if key is None or not(is_Key(key)):
             raise TypeError(f"key must be a valid Key, not {key}")
-        if keymod is not None and not(isinstance(keymod, KeyMod)):
+        if keymod is not None and not(is_KeyMod(keymod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
-        cdef imgui.ImGuiKey keycode = key
+        cdef imgui.ImGuiKey keycode = make_Key(key)
         ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
-        if keymod is not None and (<int>keymod & imgui.ImGuiMod_Mask_) != imgui.GetIO().KeyMods:
+        if keymod is not None and (<int>make_KeyMod(keymod) & imgui.ImGuiMod_Mask_) != imgui.GetIO().KeyMods:
             return False
         return imgui.IsKeyDown(keycode)
 
     cdef bint c_is_key_pressed(self, int32_t key, bint repeat) noexcept nogil:
         return imgui.IsKeyPressed(<imgui.ImGuiKey>key, repeat)
 
-    def is_key_pressed(self, key : Key, keymod : KeyMod = None, bint repeat=True):
+    def is_key_pressed(self, key, keymod = None, bint repeat=True):
         """
         Check if a key was pressed (went from !Down to Down).
 
@@ -899,21 +900,21 @@ cdef class Context:
             True if the key was pressed, False otherwise.
         """
         cdef unique_lock[DCGMutex] m
-        if key is None or not(isinstance(key, Key)):
+        if key is None or not(is_Key(key)):
             raise TypeError(f"key must be a valid Key, not {key}")
-        if keymod is not None and not(isinstance(keymod, KeyMod)):
+        if keymod is not None and not(is_KeyMod(keymod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
-        cdef imgui.ImGuiKey keycode = key
+        cdef imgui.ImGuiKey keycode = make_Key(key)
         ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
-        if keymod is not None and (<int>keymod & imgui.ImGuiMod_Mask_) != imgui.GetIO().KeyMods:
+        if keymod is not None and (<int>make_KeyMod(keymod) & imgui.ImGuiMod_Mask_) != imgui.GetIO().KeyMods:
             return False
         return imgui.IsKeyPressed(keycode, repeat)
 
     cdef bint c_is_key_released(self, int32_t key) noexcept nogil:
         return imgui.IsKeyReleased(<imgui.ImGuiKey>key)
 
-    def is_key_released(self, key : Key, keymod : KeyMod = None):
+    def is_key_released(self, key, keymod = None):
         """
         Check if a key was released (went from Down to !Down).
 
@@ -928,21 +929,21 @@ cdef class Context:
             True if the key was released, False otherwise.
         """
         cdef unique_lock[DCGMutex] m
-        if key is None or not(isinstance(key, Key)):
+        if key is None or not(is_Key(key)):
             raise TypeError(f"key must be a valid Key, not {key}")
-        if keymod is not None and not(isinstance(keymod, KeyMod)):
+        if keymod is not None and not(is_KeyMod(keymod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
-        cdef imgui.ImGuiKey keycode = key
+        cdef imgui.ImGuiKey keycode = make_Key(key)
         ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
-        if keymod is not None and (<int>keymod & imgui.GetIO().KeyMods) != keymod:
+        if keymod is not None and (<int>make_KeyMod(keymod) & imgui.GetIO().KeyMods) != keymod:
             return True
         return imgui.IsKeyReleased(keycode)
 
     cdef bint c_is_mouse_down(self, int32_t button) noexcept nogil:
         return imgui.IsMouseDown(button)
 
-    def is_mouse_down(self, MouseButton button):
+    def is_mouse_down(self, button):
         """
         Check if a mouse button is held down.
 
@@ -955,6 +956,9 @@ cdef class Context:
             True if the mouse button is down, False otherwise.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
@@ -964,7 +968,7 @@ cdef class Context:
     cdef bint c_is_mouse_clicked(self, int32_t button, bint repease) noexcept nogil:
         return imgui.IsMouseClicked(button, repease)
 
-    def is_mouse_clicked(self, MouseButton button, bint repeat=False):
+    def is_mouse_clicked(self, button, bint repeat=False):
         """
         Check if a mouse button was clicked (went from !Down to Down).
 
@@ -979,13 +983,16 @@ cdef class Context:
             True if the mouse button was clicked, False otherwise.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.IsMouseClicked(<int>button, repeat)
 
-    def is_mouse_double_clicked(self, MouseButton button):
+    def is_mouse_double_clicked(self, button):
         """
         Check if a mouse button was double-clicked.
 
@@ -998,6 +1005,9 @@ cdef class Context:
             True if the mouse button was double-clicked, False otherwise.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
@@ -1007,7 +1017,7 @@ cdef class Context:
     cdef int32_t c_get_mouse_clicked_count(self, int32_t button) noexcept nogil:
         return imgui.GetMouseClickedCount(button)
 
-    def get_mouse_clicked_count(self, MouseButton button):
+    def get_mouse_clicked_count(self, button):
         """
         Get the number of times a mouse button is clicked in a row.
 
@@ -1020,6 +1030,9 @@ cdef class Context:
             Number of times the mouse button is clicked in a row.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
@@ -1029,7 +1042,7 @@ cdef class Context:
     cdef bint c_is_mouse_released(self, int32_t button) noexcept nogil:
         return imgui.IsMouseReleased(button)
 
-    def is_mouse_released(self, MouseButton button):
+    def is_mouse_released(self, button):
         """
         Check if a mouse button was released (went from Down to !Down).
 
@@ -1042,6 +1055,9 @@ cdef class Context:
             True if the mouse button was released, False otherwise.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
@@ -1079,7 +1095,7 @@ cdef class Context:
     cdef bint c_is_mouse_dragging(self, int32_t button, float lock_threshold) noexcept nogil:
         return imgui.IsMouseDragging(button, lock_threshold)
 
-    def is_mouse_dragging(self, MouseButton button, float lock_threshold=-1.):
+    def is_mouse_dragging(self, button, float lock_threshold=-1.):
         """
         Check if the mouse is dragging.
 
@@ -1094,6 +1110,9 @@ cdef class Context:
             True if the mouse is dragging, False otherwise.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
@@ -1103,7 +1122,7 @@ cdef class Context:
     cdef Vec2 c_get_mouse_drag_delta(self, int32_t button, float threshold) noexcept nogil:
         return ImVec2Vec2(imgui.GetMouseDragDelta(button, threshold))
 
-    def get_mouse_drag_delta(self, MouseButton button, float lock_threshold=-1.):
+    def get_mouse_drag_delta(self, button, float lock_threshold=-1.):
         """
         Return the delta (dx, dy) from the initial clicking position while the mouse button is pressed or was just released.
 
@@ -1118,6 +1137,9 @@ cdef class Context:
             Tuple containing the drag delta (dx, dy).
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
@@ -1126,7 +1148,7 @@ cdef class Context:
         cdef double[2] coord = [delta.x, delta.y]
         return Coord.build(coord)
 
-    def reset_mouse_drag_delta(self, MouseButton button):
+    def reset_mouse_drag_delta(self, button):
         """
         Reset the drag delta for the target button to 0.
 
@@ -1135,13 +1157,16 @@ cdef class Context:
             Mouse button constant.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.ResetMouseDragDelta(<int>button)
 
-    def inject_key_down(self, key : Key):
+    def inject_key_down(self, key):
         """
         Inject a key down event for the next frame.
 
@@ -1150,14 +1175,14 @@ cdef class Context:
             Key constant.
         """
         cdef unique_lock[DCGMutex] m
-        if key is None or not(isinstance(key, Key)):
+        if key is None or not(is_Key(key)):
             raise TypeError(f"key must be a valid Key, not {key}")
-        cdef imgui.ImGuiKey keycode = key
+        cdef imgui.ImGuiKey keycode = make_Key(key)
         ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddKeyEvent(keycode, True)
 
-    def inject_key_up(self, key : Key):
+    def inject_key_up(self, key):
         """
         Inject a key up event for the next frame.
 
@@ -1166,14 +1191,14 @@ cdef class Context:
             Key constant.
         """
         cdef unique_lock[DCGMutex] m
-        if key is None or not(isinstance(key, Key)):
+        if key is None or not(is_Key(key)):
             raise TypeError(f"key must be a valid Key, not {key}")
-        cdef imgui.ImGuiKey keycode = key
+        cdef imgui.ImGuiKey keycode = make_Key(key)
         ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddKeyEvent(keycode, False)
 
-    def inject_mouse_down(self, MouseButton button):
+    def inject_mouse_down(self, button):
         """
         Inject a mouse down event for the next frame.
 
@@ -1182,13 +1207,16 @@ cdef class Context:
             Mouse button constant.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMouseButtonEvent(<int>button, True)
 
-    def inject_mouse_up(self, MouseButton button):
+    def inject_mouse_up(self, button):
         """
         Inject a mouse up event for the next frame.
 
@@ -1197,6 +1225,9 @@ cdef class Context:
             Mouse button constant.
         """
         cdef unique_lock[DCGMutex] m
+        if button is None or not(is_MouseButton(button)):
+            raise TypeError(f"button must be a valid MouseButton, not {button}")
+        button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         ensure_correct_im_context(self)
@@ -1780,53 +1811,25 @@ cdef class baseItem:
         """
         Returns which types of children can be attached to this item
         """
-        type = ChildType.NOCHILD
-        if self.can_have_drawing_child:
-            type = type | ChildType.DRAWING
-        if self.can_have_handler_child:
-            type = type | ChildType.HANDLER
-        if self.can_have_menubar_child:
-            type = type | ChildType.MENUBAR
-        if self.can_have_plot_element_child:
-            type = type | ChildType.PLOTELEMENT
-        if self.can_have_tab_child:
-            type = type | ChildType.TAB
-        if self.can_have_tag_child:
-            type = type | ChildType.AXISTAG
-        if self.can_have_theme_child:
-            type = type | ChildType.THEME
-        if self.can_have_viewport_drawlist_child:
-            type = type | ChildType.VIEWPORTDRAWLIST
-        if self.can_have_widget_child:
-            type = type | ChildType.WIDGET
-        if self.can_have_window_child:
-            type = type | ChildType.WINDOW
-        return type
+        return get_children_types(
+            self.can_have_drawing_child,
+            self.can_have_handler_child,
+            self.can_have_menubar_child,
+            self.can_have_plot_element_child,
+            self.can_have_tab_child,
+            self.can_have_tag_child,
+            self.can_have_theme_child,
+            self.can_have_viewport_drawlist_child,
+            self.can_have_widget_child,
+            self.can_have_window_child
+        )
 
     @property
     def item_type(self):
         """
         Returns which type of child this item is
         """
-        if self.element_child_category == child_type.cat_drawing:
-            return ChildType.DRAWING
-        elif self.element_child_category == child_type.cat_handler:
-            return ChildType.HANDLER
-        elif self.element_child_category == child_type.cat_menubar:
-            return ChildType.MENUBAR
-        elif self.element_child_category == child_type.cat_plot_element:
-            return ChildType.PLOTELEMENT
-        elif self.element_child_category == child_type.cat_tab:
-            return ChildType.TAB
-        elif self.element_child_category == child_type.cat_theme:
-            return ChildType.THEME
-        elif self.element_child_category == child_type.cat_viewport_drawlist:
-            return ChildType.VIEWPORTDRAWLIST
-        elif self.element_child_category == child_type.cat_widget:
-            return ChildType.WIDGET
-        elif self.element_child_category == child_type.cat_window:
-            return ChildType.WINDOW
-        return ChildType.NOCHILD
+        return get_item_type(self.element_child_category)
 
     def __enter__(self):
         # Mutexes not needed
@@ -3522,12 +3525,15 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return MouseCursor_obj(self._cursor)
+        return make_MouseCursor(self._cursor)
 
     @cursor.setter
-    def cursor(self, MouseCursor value):
+    def cursor(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if value is None or not(is_MouseCursor(value)):
+            raise TypeError("Cursor must be a MouseCursor type")
+        value = make_MouseCursor(value)
         if <int32_t>value < imgui.ImGuiMouseCursor_None or \
            <int32_t>value >= imgui.ImGuiMouseCursor_COUNT:
             raise ValueError("Invalid cursor type {value}")

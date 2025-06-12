@@ -1199,6 +1199,70 @@ class ChildType(IntFlag):
     WINDOW = 256,
     AXISTAG = 512,
 
+
+cdef object get_children_types(
+    bint can_have_drawing_child,
+    bint can_have_handler_child,
+    bint can_have_menubar_child,
+    bint can_have_plot_element_child,
+    bint can_have_tab_child,
+    bint can_have_tag_child,
+    bint can_have_theme_child,
+    bint can_have_viewport_drawlist_child,
+    bint can_have_widget_child,
+    bint can_have_window_child
+):
+    """
+    Returns which types of children can be attached to this item
+    """
+    type = ChildType.NOCHILD
+    if can_have_drawing_child:
+        type = type | ChildType.DRAWING
+    if can_have_handler_child:
+        type = type | ChildType.HANDLER
+    if can_have_menubar_child:
+        type = type | ChildType.MENUBAR
+    if can_have_plot_element_child:
+        type = type | ChildType.PLOTELEMENT
+    if can_have_tab_child:
+        type = type | ChildType.TAB
+    if can_have_tag_child:
+        type = type | ChildType.AXISTAG
+    if can_have_theme_child:
+        type = type | ChildType.THEME
+    if can_have_viewport_drawlist_child:
+        type = type | ChildType.VIEWPORTDRAWLIST
+    if can_have_widget_child:
+        type = type | ChildType.WIDGET
+    if can_have_window_child:
+        type = type | ChildType.WINDOW
+    return type
+
+
+cdef object get_item_type(int element_child_category):
+    """
+    Returns which type of child this item is
+    """
+    if element_child_category == child_type.cat_drawing:
+        return ChildType.DRAWING
+    elif element_child_category == child_type.cat_handler:
+        return ChildType.HANDLER
+    elif element_child_category == child_type.cat_menubar:
+        return ChildType.MENUBAR
+    elif element_child_category == child_type.cat_plot_element:
+        return ChildType.PLOTELEMENT
+    elif element_child_category == child_type.cat_tab:
+        return ChildType.TAB
+    elif element_child_category == child_type.cat_theme:
+        return ChildType.THEME
+    elif element_child_category == child_type.cat_viewport_drawlist:
+        return ChildType.VIEWPORTDRAWLIST
+    elif element_child_category == child_type.cat_widget:
+        return ChildType.WIDGET
+    elif element_child_category == child_type.cat_window:
+        return ChildType.WINDOW
+    return ChildType.NOCHILD
+
 class Key(IntEnum):
     """
     Enum representing various keyboard keys.
@@ -1358,6 +1422,38 @@ class Key(IntEnum):
     RESERVEDFORMODALT = imgui.ImGuiKey_ReservedForModAlt,
     RESERVEDFORMODSUPER = imgui.ImGuiKey_ReservedForModSuper
 
+cdef bint is_Key(object key):
+    """
+    Check if the object is a Key enum member.
+    """
+    if isinstance(key, Key):
+        return True
+    if isinstance(key, str):
+        try:
+            key = Key[key.upper()]
+            return True
+        except KeyError:
+            return False
+    return False
+
+cdef object make_Key(object key):
+    """
+    Convert a string or Key enum member to a Key enum member.
+    """
+    if isinstance(key, Key):
+        return key
+    if isinstance(key, str):
+        try:
+            return Key[key.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid key name: {key}")
+    if isinstance(key, int):
+        try:
+            return Key(key)
+        except ValueError:
+            raise ValueError(f"Invalid key value: {key}")
+    raise TypeError(f"Expected Key enum or string, got {type(key).__name__}")
+
 class KeyMod(IntFlag):
     """
     Enum representing key modifiers (Ctrl, Shift, Alt, Super).
@@ -1367,6 +1463,38 @@ class KeyMod(IntFlag):
     SHIFT = imgui.ImGuiMod_Shift,
     ALT = imgui.ImGuiMod_Alt,
     SUPER = imgui.ImGuiMod_Super
+
+cdef bint is_KeyMod(object key):
+    """
+    Check if the object is a KeyMod enum member.
+    """
+    if isinstance(key, KeyMod):
+        return True
+    if isinstance(key, str):
+        try:
+            key = KeyMod[key.upper()]
+            return True
+        except KeyError:
+            return False
+    return False
+
+cdef object make_KeyMod(object key):
+    """
+    Convert a string or KeyMod enum member to a KeyMod enum member.
+    """
+    if isinstance(key, KeyMod):
+        return key
+    if isinstance(key, str):
+        try:
+            return KeyMod[key.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid KeyMod name: {key}")
+    if isinstance(key, int):
+        try:
+            return KeyMod(key)
+        except ValueError:
+            raise ValueError(f"Invalid KeyMod value: {key}")
+    raise TypeError(f"Expected KeyMod enum or string, got {type(key).__name__}")
 
 class KeyOrMod(IntFlag):
     """
@@ -1628,25 +1756,141 @@ class TableFlag(IntFlag):
     SORT_TRISTATE = imgui.ImGuiTableFlags_SortTristate,
     HIGHLIGHT_HOVERED_COLUMN = imgui.ImGuiTableFlags_HighlightHoveredColumn
 
-cdef object make_TextMarker(marker):
-    """
-    Create a TextMarker object from an integer marker value.
-    """
-    if isinstance(marker, str):
-        return TextMarker[marker]
-    return TextMarker(marker)
+
+cdef bint is_MouseCursor(value):
+    if isinstance(value, MouseCursor):
+        return True
+    if isinstance(value, str):
+        try:
+            value = MouseCursor[value.upper()]
+            return True
+        except KeyError:
+            return False
+    return False
+
+cdef object make_MouseCursor(value):
+    if isinstance(value, MouseCursor):
+        return value
+    if isinstance(value, str):
+        try:
+            return MouseCursor[value.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid cursor name: {value}")
+    if isinstance(value, int):
+        try:
+            return MouseCursor(value)
+        except ValueError:
+            raise ValueError(f"Invalid cursor value: {value}")
+    raise TypeError(f"Expected Key enum or string, got {type(value).__name__}")
+
+cdef bint is_MouseButton(value):
+    if isinstance(value, MouseButton):
+        return True
+    if isinstance(value, str):
+        try:
+            value = MouseButton[value.upper()]
+            return True
+        except KeyError:
+            return False
+    return False
+
+cdef object make_MouseButton(value):
+    if isinstance(value, MouseButton):
+        return value
+    if isinstance(value, str):
+        try:
+            return MouseButton[value.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid mouse button name: {value}")
+    if isinstance(value, int):
+        try:
+            return MouseButton(value)
+        except ValueError:
+            raise ValueError(f"Invalid mouse button value: {value}")
+    raise TypeError(f"Expected MouseButton enum or string, got {type(value).__name__}")
+
+
+
+cdef bint is_MouseButtonMask(value):
+    if isinstance(value, MouseButtonMask):
+        return True
+    if isinstance(value, str):
+        try:
+            value = MouseButtonMask[value.upper()]
+            return True
+        except KeyError:
+            return False
+    return False
+
+cdef object make_MouseButtonMask(value):
+    if isinstance(value, MouseButtonMask):
+        return value
+    if isinstance(value, str):
+        try:
+            return MouseButtonMask[value.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid mouse button mask name: {value}")
+    if isinstance(value, int):
+        try:
+            return MouseButtonMask(value)
+        except ValueError:
+            raise ValueError(f"Invalid mouse button mask value: {value}")
+    raise TypeError(f"Expected MouseButtonMask enum or string, got {type(value).__name__}")
 
 cdef bint is_TextMarker(value):
-    """
-    Check if value is a TextMarker instance
-    """
-    return isinstance(value, TextMarker)
+    if isinstance(value, TextMarker):
+        return True
+    if isinstance(value, str):
+        try:
+            value = TextMarker[value.upper()]
+            return True
+        except KeyError:
+            return False
+    return False
 
-cdef object make_PlotMarker(int32_t marker):
+cdef object make_TextMarker(marker):
+    if isinstance(marker, TextMarker):
+        return marker
+    if isinstance(marker, str):
+        try:
+            return TextMarker[marker.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid text marker name: {marker}")
+    if isinstance(marker, int):
+        try:
+            return TextMarker(marker)
+        except ValueError:
+            raise ValueError(f"Invalid text marker value: {marker}")
+    raise TypeError(f"Expected TextMarker enum or string, got {type(marker).__name__}")
+
+cdef bint is_TableFlag(value):
+    if isinstance(value, TableFlag):
+        return True
+    if isinstance(value, str):
+        try:
+            value = TableFlag[value.upper()]
+            return True
+        except KeyError:
+            return False
+    return False
+
+cdef object make_TableFlag(value):
+    if isinstance(value, TableFlag):
+        return value
+    if isinstance(value, str):
+        try:
+            return TableFlag[value.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid table flag name: {value}")
+    if isinstance(value, int):
+        try:
+            return TableFlag(value)
+        except ValueError:
+            raise ValueError(f"Invalid table flag value: {value}")
+    raise TypeError(f"Expected TableFlag enum or string, got {type(value).__name__}")
+
+cdef object make_PlotMarker(marker):
     return PlotMarker(marker)
 
-cdef object make_Positioning(Positioning positioning):
+cdef object make_Positioning(positioning):
     return Positioning(positioning)
-
-cdef object make_MouseButtonMask(MouseButtonMask mask):
-    return MouseButtonMask(mask)

@@ -25,10 +25,29 @@ cdef enum child_type:
     cat_widget
     cat_window
 
+cdef object get_children_types(
+    bint can_have_drawing_child,
+    bint can_have_handler_child,
+    bint can_have_menubar_child,
+    bint can_have_plot_element_child,
+    bint can_have_tab_child,
+    bint can_have_tag_child,
+    bint can_have_theme_child,
+    bint can_have_viewport_drawlist_child,
+    bint can_have_widget_child,
+    bint can_have_window_child
+)
+cdef object get_item_type(int element_child_category)
+
 cpdef enum class HandlerListOP:
     ALL,
     ANY,
     NONE
+
+cdef bint is_Key(object key)
+cdef object make_Key(object key)
+cdef bint is_KeyMod(object key)
+cdef object make_KeyMod(object key)
 
 cpdef enum class MouseButton:
     LEFT = 0,
@@ -36,6 +55,9 @@ cpdef enum class MouseButton:
     MIDDLE = 2,
     X1 = 3,
     X2 = 4
+
+cdef bint is_MouseButton(value)
+cdef object make_MouseButton(value)
 
 cpdef enum class MouseButtonMask:
     NOBUTTON = 0,
@@ -50,7 +72,8 @@ cpdef enum class MouseButtonMask:
 #    X2 = 16,
 #    ANY = 31
 
-cdef object make_MouseButtonMask(MouseButtonMask mask)
+cdef bint is_MouseButtonMask(value)
+cdef object make_MouseButtonMask(value)
 
 cpdef enum class MouseCursor:
     CursorNone = -1,
@@ -65,6 +88,9 @@ cpdef enum class MouseCursor:
     Wait,
     Progress,
     NotAllowed
+
+cdef bint is_MouseCursor(value)
+cdef object make_MouseCursor(value)
 
 #Class that used to describe the positioning policy of an item (used now only by MotionHandler)
 cpdef enum class Positioning:
@@ -94,7 +120,7 @@ cdef inline Positioning check_Positioning(Positioning value):
     else:
         raise ValueError(f"Invalid Positioning value: {value}")
 
-cdef object make_Positioning(Positioning value)
+cdef object make_Positioning(value)
 
 cpdef enum class Alignment:
     LEFT=0,
@@ -131,7 +157,10 @@ cpdef enum class PlotMarker:
 
 # needed to return an object from other cython files
 # rather that using the cdef version of PlotMarker
-cdef object make_PlotMarker(int32_t marker)
+cdef object make_PlotMarker(marker)
+
+cdef bint is_TableFlag(value)
+cdef object make_TableFlag(value)
 
 ctypedef fused point_type:
     int32_t

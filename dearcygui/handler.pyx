@@ -21,12 +21,11 @@ from cpython.sequence cimport PySequence_Check
 from .core cimport baseHandler, baseItem, lock_gil_friendly,\
     itemState, ensure_correct_im_context
 from .c_types cimport DCGMutex, unique_lock
-from .types cimport check_Positioning, make_Positioning, read_rect, Rect
+from .types cimport check_Positioning, make_Positioning, read_rect, Rect,\
+    is_Key, make_Key
 from .wrapper cimport imgui
 
 import traceback
-
-from .types import Key
 
 cdef class CustomHandler(baseHandler):
     """
@@ -1135,14 +1134,14 @@ cdef class KeyDownHandler(baseHandler):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return Key(self._key)
+        return make_Key(self._key)
     @key.setter
-    def key(self, value : Key):
+    def key(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if value is None or not(isinstance(value, Key)):
+        if value is None or not(is_Key(value)):
             raise TypeError(f"key must be a valid Key, not {value}")
-        self._key = <int>value
+        self._key = <int>make_Key(value)
 
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef imgui.ImGuiKeyData *key_info
@@ -1183,14 +1182,14 @@ cdef class KeyPressHandler(baseHandler):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return Key(self._key)
+        return make_Key(self._key)
     @key.setter
-    def key(self, value : Key):
+    def key(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if value is None or not(isinstance(value, Key)):
+        if value is None or not(is_Key(value)):
             raise TypeError(f"key must be a valid Key, not {value}")
-        self._key = <int>value
+        self._key = <int>make_Key(value)
     @property
     def repeat(self):
         """
@@ -1239,14 +1238,14 @@ cdef class KeyReleaseHandler(baseHandler):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return Key(self._key)
+        return make_Key(self._key)
     @key.setter
-    def key(self, value : Key):
+    def key(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if value is None or not(isinstance(value, Key)):
+        if value is None or not(is_Key(value)):
             raise TypeError(f"key must be a valid Key, not {value}")
-        self._key = <int>value
+        self._key = <int>make_Key(value)
 
     cdef bint check_state(self, baseItem item) noexcept nogil:
         if imgui.IsKeyReleased(<imgui.ImGuiKey>self._key):
@@ -1267,7 +1266,7 @@ cdef inline tuple build_keys_tuple(DCGVector[int32_t] &keys_array):
     cdef list keys = []
     for i in range(<int>keys_array.size()):
         try:
-            keys.append(Key(keys_array[i]))
+            keys.append(make_Key(keys_array[i]))
         except: # key not found or invalid
             pass
     return tuple(keys)
@@ -1384,7 +1383,7 @@ cdef inline tuple build_keys_durations_tuple(DCGVector[int32_t] &keys_array,
     cdef list keys_durations = []
     for i in range(<int>keys_array.size()):
         try:
-            keys_durations.append((Key(keys_array[i]), durations_array[i]))
+            keys_durations.append((make_Key(keys_array[i]), durations_array[i]))
         except: # key not found or invalid
             pass
     return tuple(keys_durations)

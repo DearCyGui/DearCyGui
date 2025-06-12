@@ -33,3 +33,30 @@ def color_as_floats(val) -> tuple[float, float, float, float]:
     cdef imgui.ImU32 color = parse_color(val)
     cdef imgui.ImVec4 color_vec = imgui.ColorConvertU32ToFloat4(color)
     return (color_vec.x, color_vec.y, color_vec.z, color_vec.w)
+
+
+cdef bint is_ButtonDirection(value):
+    if isinstance(value, ButtonDirection):
+        return True
+    if isinstance(value, str):
+        try:
+            value = ButtonDirection[value.upper()]
+            return True
+        except KeyError:
+            return False
+    return False
+
+cdef object make_ButtonDirection(value):
+    if isinstance(value, ButtonDirection):
+        return value
+    if isinstance(value, str):
+        try:
+            return ButtonDirection[value.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid button direction name: {value}")
+    if isinstance(value, int):
+        try:
+            return ButtonDirection(value)
+        except ValueError:
+            raise ValueError(f"Invalid button direction value: {value}")
+    raise TypeError(f"Expected ButtonDirection enum or string, got {type(value).__name__}")

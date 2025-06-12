@@ -34,10 +34,10 @@ from .c_types cimport unique_lock, DCGMutex, DCGString, DCGVector,\
     DCG_UINT8, Vec2, make_Vec2, swap_Vec2, string_from_bytes
 from .imgui_types cimport imgui_ColorConvertU32ToFloat4, LegendLocation,\
     Vec2ImVec2, ImVec2Vec2, parse_color, unparse_color, AxisScale
-from .types cimport MouseButton
+from .types cimport is_MouseButton, make_MouseButton,\
+    is_KeyMod, make_KeyMod
 from .wrapper cimport imgui, implot
 
-from .types import KeyMod, MouseButton as MouseButton_obj
 
 
 cdef extern from * nogil:
@@ -1492,15 +1492,17 @@ cdef class Plot(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return MouseButton_obj(self._pan_button)
+        return make_MouseButton(self._pan_button)
 
     @pan_button.setter
-    def pan_button(self, MouseButton button):
+    def pan_button(self, button):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if not(is_MouseButton(button)):
+            raise ValueError(f"pan_button must be a MouseButton, not {button}")
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        self._pan_button = <int>button
+        self._pan_button = <int>make_MouseButton(button)
 
     @property
     def pan_mod(self):
@@ -1513,15 +1515,15 @@ cdef class Plot(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return KeyMod(self._pan_modifier)
+        return make_KeyMod(self._pan_modifier)
 
     @pan_mod.setter
-    def pan_mod(self, modifier : KeyMod):
+    def pan_mod(self, modifier):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not(isinstance(modifier, KeyMod)):
+        if not(is_KeyMod(modifier)):
             raise ValueError(f"pan_mod must be a combinaison of modifiers (KeyMod), not {modifier}")
-        self._pan_modifier = <int>modifier
+        self._pan_modifier = <int>make_KeyMod(modifier)
 
     @property
     def fit_button(self):
@@ -1534,15 +1536,17 @@ cdef class Plot(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return MouseButton_obj(self._fit_button)
+        return make_MouseButton(self._fit_button)
 
     @fit_button.setter
-    def fit_button(self, MouseButton button):
+    def fit_button(self, button):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if not(is_MouseButton(button)):
+            raise ValueError(f"fit_button must be a MouseButton, not {button}")
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        self._fit_button = <int>button
+        self._fit_button = <int>make_MouseButton(button)
 
     @property
     def menu_button(self):
@@ -1555,15 +1559,17 @@ cdef class Plot(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return MouseButton_obj(self._menu_button)
+        return make_MouseButton(self._menu_button)
 
     @menu_button.setter
-    def menu_button(self, MouseButton button):
+    def menu_button(self, button):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if not(is_MouseButton(button)):
+            raise ValueError(f"menu_button must be a MouseButton, not {button}")
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        self._menu_button = <int>button
+        self._menu_button = <int>make_MouseButton(button)
 
     @property
     def zoom_mod(self):
@@ -1576,15 +1582,15 @@ cdef class Plot(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return KeyMod(self._zoom_mod)
+        return make_KeyMod(self._zoom_mod)
 
     @zoom_mod.setter
-    def zoom_mod(self, modifier : KeyMod):
+    def zoom_mod(self, modifier):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if not(isinstance(modifier, KeyMod)):
+        if not(is_KeyMod(modifier)):
             raise ValueError(f"zoom_mod must be a combinaison of modifiers (KeyMod), not {modifier}")
-        self._zoom_mod = <int>modifier
+        self._zoom_mod = <int>make_KeyMod(modifier)
 
     @property
     def zoom_rate(self):
@@ -2073,15 +2079,17 @@ cdef class plotElementWithLegend(plotElement):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return MouseButton_obj(self._legend_button)
+        return make_MouseButton(self._legend_button)
 
     @legend_button.setter
-    def legend_button(self, MouseButton button):
+    def legend_button(self, button):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if not(is_MouseButton(button)):
+            raise ValueError(f"legend_button must be a MouseButton, not {button}")
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        self._legend_button = <int>button
+        self._legend_button = <int>make_MouseButton(button)
 
     @property
     def legend_handlers(self):

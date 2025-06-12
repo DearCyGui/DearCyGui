@@ -1,5 +1,4 @@
 from libc.stdint cimport int32_t
-from libcpp.deque cimport deque
 from cpython.ref cimport PyObject
 from .c_types cimport DCGVector
 from .core cimport baseItem, baseFont

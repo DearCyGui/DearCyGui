@@ -37,7 +37,7 @@ from .imgui_types cimport unparse_color, parse_color, Vec2ImVec2, \
 from .widget cimport Tooltip
 from .wrapper cimport imgui
 
-from .types import TableFlag
+from .types cimport is_TableFlag, make_TableFlag
 
 
 cdef class TableElement:
@@ -2247,7 +2247,7 @@ cdef class Table(baseTable):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return TableFlag(<int>self._flags)
+        return make_TableFlag(<uint32_t>self._flags)
 
     @flags.setter  
     def flags(self, value):
@@ -2257,11 +2257,11 @@ cdef class Table(baseTable):
         Args:
             value: A TableFlag value or combination of TableFlag values
         """
-        if not isinstance(value, TableFlag):
+        if not is_TableFlag(value):
             raise TypeError("flags must be a TableFlag value")
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._flags = <imgui.ImGuiTableFlags>value
+        self._flags = <imgui.ImGuiTableFlags><uint32_t>make_TableFlag(value)
 
     @property
     def inner_width(self):

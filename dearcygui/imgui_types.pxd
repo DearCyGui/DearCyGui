@@ -17,6 +17,9 @@ cpdef enum class ButtonDirection:
     UP = imgui.ImGuiDir_Up,
     DOWN = imgui.ImGuiDir_Down
 
+cdef bint is_ButtonDirection(value)
+cdef object make_ButtonDirection(value)
+
 cpdef enum class AxisScale:
     LINEAR=implot.ImPlotScale_Linear
     TIME=implot.ImPlotScale_Time
