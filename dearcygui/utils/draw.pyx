@@ -416,6 +416,7 @@ cdef class DrawStream(dcg.DrawingList):
     """
     cdef bint _allow_no_children
     cdef bint _no_skip_children
+    cdef bint _no_wake
     cdef double _time_modulus
     cdef int32_t  _last_index
     cdef deque[pair[double, PyObject*]] _expiry_times # Weak ref
@@ -423,6 +424,7 @@ cdef class DrawStream(dcg.DrawingList):
     def __cinit__(self):
         self._allow_no_children = False
         self._no_skip_children = False
+        self._no_wake = False
         self._time_modulus = 0.
         self._last_index = -1
         
@@ -504,6 +506,22 @@ cdef class DrawStream(dcg.DrawingList):
         cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
         self._no_skip_children = value
+
+    @property
+    def no_wake(self):
+        """
+        If set, disables asking the viewport to refresh
+        at the target time of the next element in the stream.
+        """
+        cdef unique_lock[DCGMutex] m
+        dcg.lock_gil_friendly(m, self.mutex)
+        return self._no_wake
+
+    @no_wake.setter
+    def no_wake(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        dcg.lock_gil_friendly(m, self.mutex)
+        self._no_wake = value
 
     @property
     def time_modulus(self):
@@ -642,17 +660,18 @@ cdef class DrawStream(dcg.DrawingList):
                 return
 
         cdef double current_time, time_to_expiration
-        if self._get_index_to_show() != self._last_index:
-            # We are running late
-            self.context.viewport.ask_refresh_after(0)
-        elif self._time_modulus == 0.:
-            self.context.viewport.ask_refresh_after(self._expiry_times[index_to_show].first)
-        else:
-            current_time = (<double>ctime.monotonic_ns())*1e-9
-            time_to_expiration = self._expiry_times[index_to_show].first - self._get_time_with_modulus()
-            if time_to_expiration < 0.:
-                time_to_expiration += self._time_modulus
-            self.context.viewport.ask_refresh_after(current_time + time_to_expiration)
+        if not(self._no_wake):
+            if self._get_index_to_show() != self._last_index:
+                # We are running late
+                self.context.viewport.ask_refresh_after(0)
+            elif self._time_modulus == 0.:
+                self.context.viewport.ask_refresh_after(self._expiry_times[index_to_show].first)
+            else:
+                current_time = (<double>ctime.monotonic_ns())*1e-9
+                time_to_expiration = self._expiry_times[index_to_show].first - self._get_time_with_modulus()
+                if time_to_expiration < 0.:
+                    time_to_expiration += self._time_modulus
+                self.context.viewport.ask_refresh_after(current_time + time_to_expiration)
 
         # Draw the child
         (<dcg.drawingItem>child).draw(draw_list)
