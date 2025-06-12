@@ -264,8 +264,11 @@ class AsyncPoolExecutor:
 
         return future
 
-
-_DefaultEventLoop = asyncio.EventLoop
+if hasattr(asyncio, 'EventLoop'):
+    _DefaultEventLoop = asyncio.EventLoop
+else:
+    # Older versions of Python
+    _DefaultEventLoop = asyncio.SelectorEventLoop
 
 try:
     # If available, use uvloop for better performance
@@ -296,7 +299,8 @@ class BatchingEventLoop(_DefaultEventLoop):
         super().__init__()
         self.time_slot = time_slot  # Time quantization in seconds
         self.quantize_threshold = min(0.001, 0.1 * time_slot)  # Don't quantize delays shorter than this
-        self.set_task_factory(asyncio.eager_task_factory) # small perf gain
+        if hasattr(asyncio, 'eager_task_factory'):
+            self.set_task_factory(asyncio.eager_task_factory) # small perf gain
     
     @classmethod
     def factory(cls, time_slot=0.010):
@@ -411,7 +415,8 @@ class AsyncThreadPoolExecutor(Executor):
             self._thread_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._thread_loop)
             # for speed, use eager task factory
-            self._thread_loop.set_task_factory(asyncio.eager_task_factory)
+            if hasattr(asyncio, 'eager_task_factory'):
+                self._thread_loop.set_task_factory(asyncio.eager_task_factory)
 
         self._running = True
         try:
