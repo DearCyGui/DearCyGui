@@ -55,13 +55,13 @@ def test_ui_item_inheritance(ctx):
     assert win.context == ctx
 
 def test_shared_values(ctx):
-    # Test a shared value between a Slider and its backing SharedInt.
-    shared_int = dcg.SharedInt(ctx, 10)
-    slider = dcg.Slider(ctx, shareable_value=shared_int, format="int")
+    # Test a shared value between a Slider and its backing SharedFloat.
+    shared_float = dcg.SharedFloat(ctx, 10)
+    slider = dcg.Slider(ctx, shareable_value=shared_float)
     
     # Change slider's value and check the shared value is updated.
     slider.value = 20
-    assert shared_int.value == 20
+    assert shared_float.value == 20
 
 def test_text_widget(ctx):
     # Test basic creation and value assignment for a Text widget.
@@ -92,7 +92,7 @@ def test_checkbox_widget(ctx):
 
 def test_slider_widget(ctx):
     # Test basic creation and value assignment for a Slider widget.
-    slider = dcg.Slider(ctx, min_value=0.0, max_value=100.0, format="double", print_format="%.2f")
+    slider = dcg.Slider(ctx, min_value=0.0, max_value=100.0, print_format="%.2f")
     assert slider.value == 0.0
     
     # Update the slider and check the new value.
@@ -191,8 +191,8 @@ def test_collapsing_header_widget(ctx):
 def test_child_window_widget(ctx):
     # Test basic creation of a ChildWindow widget.
     child_window = dcg.ChildWindow(ctx, width=100, height=100)
-    assert child_window.width == 100
-    assert child_window.height == 100
+    assert int(child_window.width) == 100
+    assert int(child_window.height) == 100
 
 def test_selectable_widget(ctx):
     # Test basic creation and value assignment for a Selectable widget.
@@ -216,20 +216,6 @@ def test_shared_float4(ctx):
 
     shared_float4.value = [5.0, 6.0, 7.0, 8.0]
     assert tuple(shared_float4.value) == (5.0, 6.0, 7.0, 8.0)
-
-def test_shared_int4(ctx):
-    shared_int4 = dcg.SharedInt4(ctx, (1, 2, 3, 4))
-    assert tuple(shared_int4.value) == (1, 2, 3, 4)
-
-    shared_int4.value = [5, 6, 7, 8]
-    assert tuple(shared_int4.value) == (5, 6, 7, 8)
-
-def test_shared_double4(ctx):
-    shared_double4 = dcg.SharedDouble4(ctx, (1.0, 2.0, 3.0, 4.0))
-    assert tuple(shared_double4.value) == (1.0, 2.0, 3.0, 4.0)
-
-    shared_double4.value = [5.0, 6.0, 7.0, 8.0]
-    assert tuple(shared_double4.value) == (5.0, 6.0, 7.0, 8.0)
 
 def test_shared_float_vect(ctx):
     shared_float_vect = dcg.SharedFloatVect(ctx, (1.0, 2.0, 3.0))
@@ -261,9 +247,6 @@ def test_slider_basic():
     """Test basic Slider functionality"""
     ctx = dcg.Context()
     slider = dcg.Slider(ctx, label="Test Slider")
-    assert slider.format == "float"
-    slider.format = "int"
-    assert slider.format == "int"
     slider.min_value = 0
     slider.max_value = 100
     assert slider.min_value == 0
@@ -338,9 +321,6 @@ def test_shared_values():
     
     float_val = dcg.SharedFloat(ctx, 1.5)
     assert float_val.value == 1.5
-    
-    int_val = dcg.SharedInt(ctx, 42)
-    assert int_val.value == 42
     
     str_val = dcg.SharedStr(ctx, "test")
     assert str_val.value == "test"

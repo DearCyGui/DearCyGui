@@ -135,8 +135,8 @@ def test_theme_gc():
     C = dcg.Context()
     
     with dcg.ThemeList(C) as theme:
-        color_theme = dcg.ThemeColorImGui(C, Button=(255,0,0))
-        style_theme = dcg.ThemeStyleImGui(C, FramePadding=(2,2))
+        color_theme = dcg.ThemeColorImGui(C, button=(255,0,0))
+        style_theme = dcg.ThemeStyleImGui(C, frame_padding=(2,2))
     
     button = dcg.Button(C, theme=theme)
     
