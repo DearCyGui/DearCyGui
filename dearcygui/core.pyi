@@ -2904,7 +2904,7 @@ class Context(object):
         ...
 
 
-    def inject_key_down(self, key: 'Key'):
+    def inject_key_down(self, key):
         """
         Inject a key down event for the next frame.
 
@@ -2916,7 +2916,7 @@ class Context(object):
         ...
 
 
-    def inject_key_up(self, key: 'Key'):
+    def inject_key_up(self, key):
         """
         Inject a key up event for the next frame.
 
@@ -2980,7 +2980,7 @@ class Context(object):
         ...
 
 
-    def is_key_down(self, key: 'Key', keymod: 'KeyMod' = None):
+    def is_key_down(self, key, keymod=None):
         """
         Check if a key is being held down.
 
@@ -2998,7 +2998,7 @@ class Context(object):
         ...
 
 
-    def is_key_pressed(self, key: 'Key', keymod: 'KeyMod' = None, repeat=True):
+    def is_key_pressed(self, key, keymod=None, repeat=True):
         """
         Check if a key was pressed (went from !Down to Down).
 
@@ -3018,7 +3018,7 @@ class Context(object):
         ...
 
 
-    def is_key_released(self, key: 'Key', keymod: 'KeyMod' = None):
+    def is_key_released(self, key, keymod=None):
         """
         Check if a key was released (went from Down to !Down).
 
@@ -19019,7 +19019,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
 class ThemeStyleImPlot(baseThemeStyle):
-    def __init__(self, context : Context, annotation_padding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], digital_bit_gap : float | None = None, digital_bit_height : float | None = None, enabled : bool = True, error_bar_size : float | None = None, error_bar_weight : float | None = None, fill_alpha : float | None = None, fit_padding : tuple[float, float] | None = None, label_padding : tuple[float, float] | None = None, legend_inner_padding : tuple[float, float] | None = None, legend_padding : tuple[float, float] | None = None, legend_spacing : tuple[float, float] | None = None, line_weight : float | None = None, major_grid_size : tuple[float, float] | None = None, major_tick_len : tuple[float, float] | None = None, major_tick_size : tuple[float, float] | None = None, marker : float | None = None, marker_size : float | None = None, marker_weight : float | None = None, minor_alpha : float | None = None, minor_grid_size : tuple[float, float] | None = None, minor_tick_len : tuple[float, float] | None = None, minor_tick_size : tuple[float, float] | None = None, mouse_pos_padding : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, plot_border_size : float | None = None, plot_default_size : tuple[float, float] | None = None, plot_min_size : tuple[float, float] | None = None, plot_padding : tuple[float, float] | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, annotation_padding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], digital_bit_gap : float | None = None, digital_bit_height : float | None = None, enabled : bool = True, error_bar_size : float | None = None, error_bar_weight : float | None = None, fill_alpha : float | None = None, fit_padding : tuple[float, float] | None = None, label_padding : tuple[float, float] | None = None, legend_inner_padding : tuple[float, float] | None = None, legend_padding : tuple[float, float] | None = None, legend_spacing : tuple[float, float] | None = None, line_weight : float | None = None, major_grid_size : tuple[float, float] | None = None, major_tick_len : tuple[float, float] | None = None, major_tick_size : tuple[float, float] | None = None, marker : int | None = None, marker_size : float | None = None, marker_weight : float | None = None, minor_alpha : float | None = None, minor_grid_size : tuple[float, float] | None = None, minor_tick_len : tuple[float, float] | None = None, minor_tick_size : tuple[float, float] | None = None, mouse_pos_padding : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, plot_border_size : float | None = None, plot_default_size : tuple[float, float] | None = None, plot_min_size : tuple[float, float] | None = None, plot_padding : tuple[float, float] | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         Parameters
         ----------
@@ -19305,7 +19305,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @property
-    def marker(self) -> float | None:
+    def marker(self) -> int | None:
         """
         Marker specification.
 
@@ -19316,7 +19316,7 @@ class ThemeStyleImPlot(baseThemeStyle):
 
 
     @marker.setter
-    def marker(self, value : float | None):
+    def marker(self, value : int | None):
         ...
 
 
@@ -20661,23 +20661,21 @@ Render one frame of the application.
 
 
     @property
-    def metrics(self) -> dict:
+    def metrics(self) -> ViewportMetrics:
         """
-        (Read-only) Return rendering related metrics relative to the last frame.
+        (Read-only) Return rendering related metrics for the last frame.
 
-        Times are returned in ns and use the monotonic clock
-        delta of times are return in float as seconds.
+        Returns a ViewportMetrics object containing detailed timing and rendering
+        statistics for performance monitoring and diagnostics. All timing values
+        use the system monotonic clock for consistent measurements across frames.
 
-        Render frames does in the folowing order:
-        event handling (wait_for_input has effect there)
-        rendering (going through all objects and calling imgui)
-        presenting to the os (send to the OS the rendered frame)
+        The metrics track the complete frame lifecycle:
+        1. Event handling (mouse/keyboard input processing)
+        2. Rendering (traversing UI tree and generating ImGui/ImPlot commands)
+        3. Presenting (submitting to GPU and swapping buffers)
 
-        No average is performed. To get FPS, one can
-        average delta_whole_frame and invert it.
-
-        frame_count corresponds to the frame number to which
-        the data refers to.
+        Use these metrics to identify performance bottlenecks or calculate the
+        effective frame rate (1.0/delta_whole_frame = FPS).
 
         """
         ...
