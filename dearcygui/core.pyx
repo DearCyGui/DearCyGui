@@ -5749,8 +5749,6 @@ cdef class uiItem(baseItem):
         self._scaling_factor = 1.0
         #self.trackOffset = 0.5 # 0.0f:top, 0.5f:center, 1.0f:bottom
         #self.tracked = False
-        self._dragCallback = None
-        self._dropCallback = None
         self._value = SharedValue(self.context) # To be changed by class
 
     def __init__(self, C, *args, **kwargs):
