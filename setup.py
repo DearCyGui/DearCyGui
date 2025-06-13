@@ -11,7 +11,7 @@ from glob import glob
 import shutil
 import subprocess
 
-wip_version = "0.0.16"
+wip_version = "0.0.17"
 
 def version_number():
     return wip_version
