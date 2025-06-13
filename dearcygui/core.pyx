@@ -2764,6 +2764,210 @@ cdef void _raise_sdl_error() noexcept:
     raise RuntimeError(error_str)
 
 
+cdef class ViewportMetrics:
+    """
+    Provides detailed rendering metrics for viewport performance analysis.
+    
+    This class exposes timing and rendering statistics for the viewport's frame lifecycle.
+    All timing values are based on the monotonic clock for consistent measurements.
+    """
+    cdef int64_t last_time_before_event_handling
+    cdef int64_t last_time_before_rendering
+    cdef int64_t last_time_after_rendering
+    cdef int64_t last_time_after_swapping
+    cdef int64_t delta_event_handling
+    cdef int64_t delta_rendering
+    cdef int64_t delta_presenting
+    cdef int64_t delta_whole_frame
+    cdef int64_t rendered_vertices
+    cdef int64_t rendered_indices
+    cdef int64_t rendered_windows
+    cdef int64_t active_windows
+    cdef int64_t frame_count
+    
+    def __cinit__(self, 
+                  int64_t last_time_before_event_handling,
+                  int64_t last_time_before_rendering,
+                  int64_t last_time_after_rendering,
+                  int64_t last_time_after_swapping,
+                  int64_t delta_event_handling,
+                  int64_t delta_rendering,
+                  int64_t delta_presenting,
+                  int64_t delta_whole_frame,
+                  int64_t rendered_vertices,
+                  int64_t rendered_indices,
+                  int64_t rendered_windows,
+                  int64_t active_windows,
+                  int64_t frame_count):
+        self.last_time_before_event_handling = last_time_before_event_handling
+        self.last_time_before_rendering = last_time_before_rendering
+        self.last_time_after_rendering = last_time_after_rendering
+        self.last_time_after_swapping = last_time_after_swapping
+        self.delta_event_handling = delta_event_handling
+        self.delta_rendering = delta_rendering
+        self.delta_presenting = delta_presenting
+        self.delta_whole_frame = delta_whole_frame
+        self.rendered_vertices = rendered_vertices
+        self.rendered_indices = rendered_indices
+        self.rendered_windows = rendered_windows
+        self.active_windows = active_windows
+        self.frame_count = frame_count
+        
+    @property
+    def last_time_before_event_handling(self) -> float:
+        """
+        Timestamp (s) when event handling started for the current frame.
+        
+        This marks the beginning of the frame lifecycle, before any input events 
+        are processed. Useful for measuring total frame time or comparing with
+        external event timings.
+        """
+        return (<double>self.last_time_before_event_handling) * 1e-9
+        
+    @property
+    def last_time_before_rendering(self) -> float:
+        """
+        Timestamp (s) when UI rendering started for the current frame.
+        
+        This marks when the system finished processing events and began the
+        rendering phase. The difference between this and last_time_before_event_handling
+        indicates how much time was spent processing input.
+        """
+        return (<double>self.last_time_before_rendering) * 1e-9
+        
+    @property
+    def last_time_after_rendering(self) -> float:
+        """
+        Timestamp (s) when UI rendering finished for the current frame.
+        
+        This marks when all drawing commands were submitted to ImGui/ImPlot and
+        CPU-side rendering work was completed. The GPU may still be processing
+        these commands at this point.
+        """
+        return (<double>self.last_time_after_rendering) * 1e-9
+        
+    @property
+    def last_time_after_swapping(self) -> float:
+        """
+        Timestamp (s) when the frame was completely presented to the screen.
+        
+        This marks the end of the frame lifecycle, after the backbuffer has been
+        swapped with the frontbuffer and presented to the display. If vsync is
+        enabled, this includes any time spent waiting for the display refresh.
+        """
+        return (<double>self.last_time_after_swapping) * 1e-9
+        
+    @property
+    def delta_event_handling(self) -> float:
+        """
+        Time (seconds) spent processing input events for the current frame.
+        
+        This measures how long the system spent handling mouse, keyboard, and
+        other input events. High values might indicate complex event processing
+        or delays from input devices.
+
+        This time may differ from the time between
+        last_time_before_event_handling and last_time_before_rendering,
+        if event processing is being run when the metrics were collected.
+        """
+        return (<double>self.delta_event_handling) * 1e-9
+        
+    @property
+    def delta_rendering(self) -> float:
+        """
+        Time (seconds) spent on CPU rendering work for the current frame.
+        
+        This measures how long it took to traverse the UI hierarchy, compute layouts,
+        and generate the render commands for ImGui/ImPlot. High values might indicate
+        complex UI structures or inefficient layout calculations.
+
+        This time may differ from the time between
+        last_time_before_rendering and last_time_after_rendering,
+        if rendering is being run when the metrics were collected.
+        """
+        return (<double>self.delta_rendering) * 1e-9
+        
+    @property
+    def delta_presenting(self) -> float:
+        """
+        Time (seconds) spent presenting the frame to the display.
+        
+        This includes the time to submit draw commands to the GPU, wait for them
+        to complete, and swap the buffers. With vsync enabled, this will include
+        time waiting for the monitor refresh, which can artificially inflate the value.
+
+        This time may differ from the time between
+        last_time_after_rendering and last_time_after_swapping,
+        if presenting is being run when the metrics were collected.
+        """
+        return (<double>self.delta_presenting) * 1e-9
+        
+    @property
+    def delta_whole_frame(self) -> float:
+        """
+        Total time (seconds) for the complete frame lifecycle.
+        
+        This measures the time from the start of event handling to the completion
+        of buffer swapping. It represents the total frame time and is the inverse
+        of the effective frame rate (1.0/delta_whole_frame = FPS).
+
+        This time may differ from the time between
+        last_time_before_event_handling and last_time_after_swapping,
+        if frame processing is being run when the metrics were collected.
+        """
+        return (<double>self.delta_whole_frame) * 1e-9
+        
+    @property
+    def rendered_vertices(self) -> int:
+        """
+        Number of vertices rendered in the current frame.
+        
+        This count represents the total geometry complexity of the UI. Higher numbers
+        indicate more complex visuals which may impact GPU performance.
+        """
+        return self.rendered_vertices
+        
+    @property
+    def rendered_indices(self) -> int:
+        """
+        Number of indices rendered in the current frame.
+        
+        This count relates to how many triangles were drawn. Like vertex count,
+        this is an indicator of visual complexity and potential GPU load.
+        """
+        return self.rendered_indices
+        
+    @property
+    def rendered_windows(self) -> int:
+        """
+        Number of windows rendered in the current frame.
+        
+        This counts all ImGui windows that were visible and rendered. Windows that
+        are hidden, collapsed, or clipped don't contribute to this count.
+        """
+        return self.rendered_windows
+        
+    @property
+    def active_windows(self) -> int:
+        """
+        Number of active windows in the current frame.
+        
+        This counts windows that are processing updates, even if not visually rendered.
+        The difference between this and rendered_windows can indicate hidden but
+        still processing windows.
+        """
+        return self.active_windows
+        
+    @property
+    def frame_count(self) -> float:
+        """
+        Counter indicating which frame these metrics belong to.
+        
+        This monotonically increasing value allows tracking metrics across multiple
+        frames and correlating with other frame-specific data.
+        """
+        return self.frame_count
+
 @cython.final
 @cython.no_gc_clear
 cdef class Viewport(baseItem):
@@ -3841,42 +4045,40 @@ cdef class Viewport(baseItem):
     @property
     def metrics(self):
         """
-        Return rendering related metrics relative to the last frame.
-
-        Times are returned in ns and use the monotonic clock
-        delta of times are return in float as seconds.
-
-        Render frames does in the folowing order:
-        event handling (wait_for_input has effect there)
-        rendering (going through all objects and calling imgui)
-        presenting to the os (send to the OS the rendered frame)
-
-        No average is performed. To get FPS, one can
-        average delta_whole_frame and invert it.
-
-        frame_count corresponds to the frame number to which
-        the data refers to.
+        Return rendering related metrics for the last frame.
+        
+        Returns a ViewportMetrics object containing detailed timing and rendering
+        statistics for performance monitoring and diagnostics. All timing values
+        use the system monotonic clock for consistent measurements across frames.
+        
+        The metrics track the complete frame lifecycle:
+        1. Event handling (mouse/keyboard input processing)
+        2. Rendering (traversing UI tree and generating ImGui/ImPlot commands)
+        3. Presenting (submitting to GPU and swapping buffers)
+        
+        Use these metrics to identify performance bottlenecks or calculate the
+        effective frame rate (1.0/delta_whole_frame = FPS).
         """
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.context.imgui_mutex)
         lock_gil_friendly(m2, self.mutex)
 
-        return {
-            "last_time_before_event_handling" : self.last_t_before_event_handling,
-            "last_time_before_rendering" : self.last_t_before_rendering,
-            "last_time_after_rendering" : self.last_t_after_rendering,
-            "last_time_after_swapping": self.last_t_after_swapping,
-            "delta_event_handling": self.delta_event_handling,
-            "delta_rendering": self.delta_rendering,
-            "delta_presenting": self.delta_swapping,
-            "delta_whole_frame": self.delta_frame,
-            "rendered_vertices": imgui.GetIO().MetricsRenderVertices,
-            "rendered_indices": imgui.GetIO().MetricsRenderIndices,
-            "rendered_windows": imgui.GetIO().MetricsRenderWindows,
-            "active_windows": imgui.GetIO().MetricsActiveWindows,
-            "frame_count" : self.frame_count-1,
-        }
+        return ViewportMetrics(
+            self.last_t_before_event_handling,
+            self.last_t_before_rendering,
+            self.last_t_after_rendering,
+            self.last_t_after_swapping,
+            self.delta_event_handling,
+            self.delta_rendering,
+            self.delta_swapping,
+            self.delta_frame,
+            imgui.GetIO().MetricsRenderVertices,
+            imgui.GetIO().MetricsRenderIndices,
+            imgui.GetIO().MetricsRenderWindows,
+            imgui.GetIO().MetricsActiveWindows,
+            self.frame_count-1
+        )
 
     @property
     def retrieve_framebuffer(self):
@@ -4270,11 +4472,11 @@ cdef class Viewport(baseItem):
             python_time.sleep(0.005) # TODO: use a timer instead and only wait if needed
         lock_gil_friendly(self_m, self.mutex)
         cdef long long current_time = ctime.monotonic_ns()
-        self.delta_frame = 1e-9 * <float>(current_time - self.last_t_after_swapping)
+        self.delta_frame = current_time - self.last_t_after_swapping
         self.last_t_after_swapping = current_time
-        self.delta_swapping = 1e-9 * <float>(current_time - self.last_t_after_rendering)
-        self.delta_rendering = 1e-9 * <float>(self.last_t_after_rendering - self.last_t_before_rendering)
-        self.delta_event_handling = 1e-9 * <float>(self.last_t_before_rendering - self.last_t_before_event_handling)
+        self.delta_swapping = current_time - self.last_t_after_rendering
+        self.delta_rendering = self.last_t_after_rendering - self.last_t_before_rendering
+        self.delta_event_handling = self.last_t_before_rendering - self.last_t_before_event_handling
         self.frame_count += 1
         return should_present
 

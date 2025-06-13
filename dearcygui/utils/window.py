@@ -158,7 +158,7 @@ class MetricsWindow(dcg.Window):
             except TypeError:
                 pass
         self.metrics_window_rendering_time = 0
-        self.start_time = 1e-9*self.context.viewport.metrics["last_time_before_rendering"]
+        self.start_time = self.context.viewport.metrics.last_time_before_rendering
         self.rendering_metrics = self.context.viewport.metrics
 
     def log_times(self, watcher, target, watcher_data):
@@ -205,35 +205,28 @@ class MetricsWindow(dcg.Window):
             found = False
             for self_metric in self.self_metrics:
                 (frame_count, metrics_window_rendering_time, t_check) = self_metric
-                if frame_count == rendering_metrics["frame_count"]:
+                if frame_count == rendering_metrics.frame_count:
                     found = True
                     break
             if not(found):
                 continue
-            rendering_metrics["delta_rendering"] = 1e-9 * (rendering_metrics["last_time_after_rendering"] - rendering_metrics["last_time_before_rendering"])
-            if (rendering_metrics["delta_rendering"] - metrics_window_rendering_time) < 0:
-                print(rendering_metrics, t_check, rendering_metrics["delta_rendering"], metrics_window_rendering_time)
-                print(t_check[0] - rendering_metrics["last_time_before_rendering"], \
-                      t_check[1] - t_check[0], \
-                      rendering_metrics["last_time_after_rendering"]  - t_check[1]\
-                )
             treated_metrics.append(rendering_metrics)
             treated_self_metrics.append(self_metric)
-            self.data["Frame"].push(1e3 * rendering_metrics["delta_whole_frame"])
-            self.data["Events"].push(1e3 * rendering_metrics["delta_event_handling"])
-            self.data["Rendering(other)"].push(1e3 * (rendering_metrics["delta_rendering"] - metrics_window_rendering_time))
+            self.data["Frame"].push(1e3 * rendering_metrics.delta_whole_frame)
+            self.data["Events"].push(1e3 * rendering_metrics.delta_event_handling)
+            self.data["Rendering(other)"].push(1e3 * (rendering_metrics.delta_rendering - metrics_window_rendering_time))
             self.data["Rendering(this)"].push(1e3 * metrics_window_rendering_time)
-            self.data["Presentation"].push(1e3 * rendering_metrics["delta_presenting"])
+            self.data["Presentation"].push(1e3 * rendering_metrics.delta_presenting)
         # Remove treated data
         for rendering_metrics in treated_metrics:
             self.metrics.remove(rendering_metrics)
         for self_metric in treated_self_metrics:
             self.self_metrics.remove(self_metric)
-        rendered_vertices = rendering_metrics["rendered_vertices"]
-        rendered_indices = rendering_metrics["rendered_indices"]
-        rendered_windows = rendering_metrics["rendered_windows"]
-        active_windows = rendering_metrics["active_windows"]
-        current_time = 1e-9*rendering_metrics["last_time_before_rendering"]
+        rendered_vertices = rendering_metrics.rendered_vertices
+        rendered_indices = rendering_metrics.rendered_indices
+        rendered_windows = rendering_metrics.rendered_windows
+        active_windows = rendering_metrics.active_windows
+        current_time = rendering_metrics.last_time_before_rendering
         self.times.push(current_time - self.start_time)
         time_average = sum(self.data["Frame"].get()[-60:]) / 60
         fps_average = 1e3 / (max(1e-20, time_average))

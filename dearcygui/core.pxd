@@ -274,10 +274,10 @@ cdef class Viewport(baseItem):
     cdef int64_t last_t_after_rendering
     cdef int64_t last_t_after_swapping
     cdef int64_t t_first_skip
-    cdef double delta_event_handling
-    cdef double delta_rendering
-    cdef double delta_swapping
-    cdef double delta_frame
+    cdef int64_t delta_event_handling
+    cdef int64_t delta_rendering
+    cdef int64_t delta_swapping
+    cdef int64_t delta_frame
     ### Public read-write variables ###
     cdef bint wait_for_input
     cdef bint always_submit_to_gpu
