@@ -15,7 +15,7 @@
 #cython: freethreading_compatible=True
 #distutils: language=c++
 
-from libc.stdint cimport uint32_t, int32_t, int64_t, uint64_t
+from libc.stdint cimport uint8_t, uint32_t, int32_t, int64_t, uint64_t
 from libc.string cimport memset, memcpy
 from libcpp cimport bool
 from libcpp.cmath cimport floor, ceil, round as cround, fmax
@@ -23,7 +23,8 @@ from libcpp.set cimport set as cpp_set
 from libcpp.string cimport string
 
 cimport cython
-from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer, PyBuffer_Release, PyBUF_RECORDS_RO
+from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer,\
+    PyBuffer_Release, PyBUF_RECORDS_RO, PyBUF_CONTIG_RO
 from cpython.sequence cimport PySequence_Check
 
 from .backends.backend cimport SDLViewport, platformViewport, GLContext
@@ -3193,6 +3194,113 @@ cdef class Viewport(baseItem):
                 # Free buffer resources
                 if buf_info.buf != NULL:
                     PyBuffer_Release(&buf_info)
+
+    @property
+    def hit_test_surface(self):
+        """
+        Define custom window hit regions for borderless windows using a 2D array.
+        
+        This property accepts a 2D numpy array or array-like object of uint8 values
+        that defines how mouse interactions behave across different regions of the window.
+        This is particularly useful for creating custom window borders when window.decorated=False.
+        
+        The values in the array determine how each region responds to mouse interactions:
+        - 0: Normal region (default behavior, passes clicks through)
+        - 1: Top resize border
+        - 2: Left resize border
+        - 3: Top-left resize corner
+        - 4: Bottom resize border
+        - 6: Bottom-left resize corner
+        - 8: Right resize border
+        - 9: Top-right resize corner
+        - 12: Bottom-right resize corner
+        - 15: Draggable region (window can be moved by dragging)
+        
+        The array is extended to cover the entire window area, where the extension
+        is performed at the center of the window, not at the edges. Thus you only
+        need to define the behaviour for the border regions, for which a small
+        surface is enough. There is no need to send a new surface if the viewport
+        is resized but the custom decorations remain the same.
+        
+        Args:
+            value: A 2D array of uint8 values defining window regions
+            
+        Returns:
+            None: Cannot retrieve the current hit test surface data
+
+        Setting this attribute will raise an exception if the OS does
+        not support custom hit test surfaces. All currently supported
+        platforms (Windows, macOS, Linux) support this feature.
+
+        Example:
+            # Create a resizable borderless window with no draggable area
+            border_width = 5
+            hit_test = np.zeros((2 * border_width + 1, 
+                                 2 * border_width + 1), dtype=np.uint8)
+            for i in range(hit_test.shape[0]):
+                for j in range(hit_test.shape[1]):
+                    if i < border_width:  # Top border
+                        hit_test[i, j] |= 1
+                    elif i >= hit_test.shape[0] - border_width:  # Bottom border
+                        hit_test[i, j] |= 4
+                    if j < border_width:  # Left border
+                        hit_test[i, j] |= 2
+                    elif j >= hit_test.shape[1] - border_width:  # Right border
+                        hit_test[i, j] |= 8
+
+            viewport.decorated = False
+            viewport.hit_test_surface = hit_test
+        """
+        # Cannot return the surface data once set
+        return None
+    
+    @hit_test_surface.setter
+    def hit_test_surface(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+
+        if value is None:
+            # Clear the hit test surface
+            (<platformViewport*>self._platform).setHitTestSurface(<uint8_t*>NULL, 0, 0)
+            return
+
+        # Get buffer info
+        cdef Py_buffer buf_info
+        memset(&buf_info, 0, sizeof(Py_buffer))
+
+        # Parse the data if needed (ensure it's compatible with buffer protocol)
+        if not PyObject_CheckBuffer(value):
+            raise TypeError("hit_test_surface must support the buffer protocol")
+
+        try:
+            # Get buffer info
+            if PyObject_GetBuffer(value, &buf_info, PyBUF_RECORDS_RO | PyBUF_CONTIG_RO) < 0:
+                raise TypeError("Failed to retrieve contiguous buffer for hit test surface")
+            
+            # Validate dimensions
+            if buf_info.ndim != 2:
+                raise ValueError("Hit test surface must be a 2D array")
+            
+            if buf_info.format[0] != b'B' and buf_info.format[0] != b'b':
+                raise ValueError("Hit test surface must contain uint8 values (0-15)")
+            
+            height = buf_info.shape[0]
+            width = buf_info.shape[1]
+
+            if height <= 0 or width <= 0:
+                raise ValueError("Hit test surface dimensions must be positive")
+
+            # Call the backend to set the hit test surface
+            (<platformViewport*>self._platform).setHitTestSurface(
+                <uint8_t*>buf_info.buf, 
+                width, 
+                height
+            )
+
+        finally:
+            # Free buffer resources
+            if buf_info.buf != NULL:
+                PyBuffer_Release(&buf_info)
 
     @property
     def transparent(self):

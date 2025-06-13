@@ -90,6 +90,125 @@ void SDLViewport::preparePresentFrame() {
     renderContextLock.unlock();
 }
 
+SDL_HitTestResult SDLViewport::HitTestCallback(SDL_Window* win, const SDL_Point* area, void* data) {
+    SDLViewport* viewport = static_cast<SDLViewport*>(data);
+    return viewport->ProcessHitTest(area);
+}
+
+SDL_HitTestResult SDLViewport::ProcessHitTest(const SDL_Point* area) {
+    std::lock_guard<std::recursive_mutex> lock(hitMutex);
+    // If we don't have a hit test surface, return normal
+    if (hitTestSurface.empty() || hitTestWidth <= 0 || hitTestHeight <= 0) {
+        return SDL_HITTEST_NORMAL;
+    }
+
+    // Map window coordinates to hit test surface coordinates
+    // Get current window size
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(windowHandle, &windowWidth, &windowHeight);
+
+    if (area->x < 0 || area->x >= windowWidth ||
+        area->y < 0 || area->y >= windowHeight) {
+        // Out of bounds, return normal
+        return SDL_HITTEST_NORMAL;
+    }
+
+    // TODO: unsure about DPI scaling
+    int half_hit_width = hitTestWidth / 2;
+    int half_hit_height = hitTestHeight / 2;
+    
+    // Map to hit test surface coordinates with the specific interpolation behavior:
+    // - Use edges exactly, center for the middle, and proportionally between
+    int surfaceX, surfaceY;
+
+    if (area->x <= half_hit_width) {
+        surfaceX = area->x;
+    } else if (area->x >= windowWidth - half_hit_width) {
+        surfaceX = area->x - windowWidth + hitTestWidth;
+    } else {
+        surfaceX = half_hit_width;
+    }
+    if (area->y <= half_hit_height) {
+        surfaceY = area->y;
+    } else if (area->y >= windowHeight - half_hit_height) {
+        surfaceY = area->y - windowHeight + hitTestHeight;
+    } else {
+        surfaceY = half_hit_height;
+    }
+
+    // Clamp to surface bounds just to be sure
+    surfaceX = std::max(0, std::min(hitTestWidth - 1, surfaceX));
+    surfaceY = std::max(0, std::min(hitTestHeight - 1, surfaceY));
+    
+    // Get hit test value at mapped position
+    uint8_t hitValue = hitTestSurface[surfaceY * hitTestWidth + surfaceX];
+    
+    // Convert hit value to SDL_HitTestResult
+    switch (hitValue) {
+        case 0:  return SDL_HITTEST_NORMAL;
+        case 1:  return SDL_HITTEST_RESIZE_TOP;
+        case 2:  return SDL_HITTEST_RESIZE_LEFT;
+        case 3:  return SDL_HITTEST_RESIZE_TOPLEFT;
+        case 4:  return SDL_HITTEST_RESIZE_BOTTOM;
+        case 5:  return SDL_HITTEST_RESIZE_TOP; // Invalid but handled
+        case 6:  return SDL_HITTEST_RESIZE_BOTTOMLEFT;
+        case 7:  return SDL_HITTEST_RESIZE_LEFT; // Invalid but handled as left
+        case 8:  return SDL_HITTEST_RESIZE_RIGHT;
+        case 9:  return SDL_HITTEST_RESIZE_TOPRIGHT;
+        case 10: return SDL_HITTEST_RESIZE_RIGHT; // Invalid but handled as right
+        case 11: return SDL_HITTEST_RESIZE_RIGHT; // Invalid but handled as right
+        case 12: return SDL_HITTEST_RESIZE_BOTTOMRIGHT;
+        case 13: return SDL_HITTEST_RESIZE_TOP; // Invalid but handled as top
+        case 14: return SDL_HITTEST_RESIZE_BOTTOM; // Invalid but handled as bottom
+        case 15: return SDL_HITTEST_DRAGGABLE;
+        default: return SDL_HITTEST_NORMAL;
+    }
+}
+
+void SDLViewport::setHitTestSurface(const uint8_t* surface, int width, int height) {
+    std::lock_guard<std::recursive_mutex> lock(hitMutex);
+
+    // Check if surface is null
+    if (!surface) {
+        // Clear the hit test surface
+        hitTestSurface.clear();
+        hitTestWidth = 0;
+        hitTestHeight = 0;
+        if (windowHandle)
+            SDL_SetWindowHitTest(windowHandle, nullptr, nullptr); // Clear hit test callback
+        return;
+    }
+
+    // Validate input dimensions
+    if (width <= 0 || height <= 0) {
+        throw std::invalid_argument("Invalid hit test surface dimensions");
+    }
+
+    if (!windowHandle) {
+        // Window not yet created, store for later
+        hitTestSurface.resize(width * height);
+        memcpy(hitTestSurface.data(), surface, width * height);
+        hitTestWidth = width;
+        hitTestHeight = height;
+        return;
+    }
+    
+    // Store the hit test surface
+    hitTestSurface.resize(width * height);
+    memcpy(hitTestSurface.data(), surface, width * height);
+    hitTestWidth = width;
+    hitTestHeight = height;
+    
+    // Set or update the hit test callback
+    if (!SDL_SetWindowHitTest(windowHandle, &SDLViewport::HitTestCallback, this)) {
+        // Failed to set hit test
+        std::string error_msg = "Failed to set window hit test: ";
+        error_msg += SDL_GetError();
+        SDL_ClearError();
+        throw std::runtime_error(error_msg);
+    }
+}
+
 
 GLuint SDLViewport::findTextureInCache(unsigned width, unsigned height, unsigned num_chans,
                                       unsigned type, unsigned filter_mode, bool dynamic) {
@@ -743,6 +862,14 @@ bool SDLViewport::initialize() {
     windowWidth = (int)((float)frameWidth / dpiScale);
     windowHeight = (int)((float)frameHeight / dpiScale);
 
+    // Apply hit test if defined
+    if (!hitTestSurface.empty() && hitTestWidth > 0 && hitTestHeight > 0) {
+        if (!SDL_SetWindowHitTest(windowHandle, &SDLViewport::HitTestCallback, this)) {
+            // Not fatal, just log error
+            fprintf(stderr, "Failed to set window hit test: %s\n", SDL_GetError());
+            SDL_ClearError();
+        }
+    }
 
     // A single thread can use a context at a time
     renderContextLock.lock();

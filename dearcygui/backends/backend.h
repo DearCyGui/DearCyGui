@@ -56,6 +56,16 @@ public:
     virtual void addWindowIcon(void* data, int width, int height, 
                                int rowStride, int colStride, int chanStride) = 0;
     virtual void wakeRendering(uint64_t delay_ns, bool full_refresh) = 0;
+
+    /**
+     * Set a hit test surface for custom window border behavior
+     * @param surface Pointer to uint8_t hit test data (0=normal, 1=top, 2=left, 4=bottom, 8=right, 15=drag)
+     * @param width Width of the hit test surface
+     * @param height Height of the hit test surface
+     */
+    virtual void setHitTestSurface(const uint8_t* surface, int width, int height) = 0;
+
+
     virtual void makeUploadContextCurrent() = 0;
     virtual void releaseUploadContext() = 0;
     /**
@@ -251,6 +261,7 @@ public:
     virtual void addWindowIcon(void* data, int width, int height, 
                                int rowStride, int colStride, int chanStride) override;
     virtual void wakeRendering(uint64_t delay_ns, bool full_refresh) override;
+    virtual void setHitTestSurface(const uint8_t* surface, int width, int height) override;
     virtual void makeUploadContextCurrent() override;
     virtual void releaseUploadContext() override;
     virtual GLContext* createSharedContext(int major, int minor) override;
@@ -384,6 +395,16 @@ private:
     bool hasResized = false;
     // Icon handling
     SDL_Surface* iconSurface = nullptr;
+
+    // Hit test surface data
+    std::recursive_mutex hitMutex; 
+    std::vector<uint8_t> hitTestSurface;
+    int hitTestWidth = 0;
+    int hitTestHeight = 0;
+
+    // SDL hit test callback and helper
+    static SDL_HitTestResult HitTestCallback(SDL_Window* win, const SDL_Point* area, void* data);
+    SDL_HitTestResult ProcessHitTest(const SDL_Point* area);
 
     // GL extension support flags
     bool has_texture_storage = false;

@@ -1,4 +1,4 @@
-from libc.stdint cimport uint64_t
+from libc.stdint cimport uint8_t, uint64_t
 from libcpp.atomic cimport atomic
 from libcpp.string cimport string
 
@@ -23,6 +23,7 @@ cdef extern from "backend.h" nogil:
         void toggleFullScreen()
         void addWindowIcon(void*, int, int, int, int, int) except +
         void wakeRendering(uint64_t, bint)
+        void setHitTestSurface(uint8_t*, int, int) except +
         void makeUploadContextCurrent()
         void releaseUploadContext()
         GLContext *createSharedContext(int, int) except +
