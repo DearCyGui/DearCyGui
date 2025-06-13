@@ -208,6 +208,16 @@ cdef class DrawText(drawingItem):
     cdef baseFont _font
     cdef void draw(self, void*) noexcept nogil
 
+cdef class DrawTextQuad(drawingItem):
+    cdef double[2] _p1
+    cdef double[2] _p2
+    cdef double[2] _p3
+    cdef double[2] _p4
+    cdef DCGString _text
+    cdef uint32_t _color # imgui.ImU32
+    cdef bint _preserve_ratio
+    cdef baseFont _font
+
 cdef class DrawTriangle(drawingItem):
     cdef double[2] _p1
     cdef double[2] _p2

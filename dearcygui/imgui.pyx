@@ -3834,11 +3834,82 @@ cdef void draw_text(Context context, void* drawlist,
     
     t_draw_text(context, drawlist, pos[0], pos[1], text, color, font, size)
 
+cdef Vec2 calc_text_rect(const char* text) noexcept nogil:
+    """
+    Calculate minimum rect size to render the target text
+    by processing each character's glyph metrics individually.
+    
+    Args:
+        context: The DearCyGui context
+        text: UTF-8 encoded text to measure
+        
+    Returns:
+        Vec2 with calculated width and height
+    """
+    # Push font if provided
+    cdef imgui.ImFont* cur_font = imgui.GetFont()
+    
+    # Variables for text measurement
+    cdef const char* text_end = NULL  # Process until null terminator
+    cdef uint32_t c = 0
+    cdef int32_t bytes_read = 0
+    cdef const char* s = text
+    cdef const imgui.ImFontGlyph* glyph = NULL
+    
+    # Result variables
+    cdef float max_width = 0.0
+    cdef float current_width = 0.0
+    #cdef float line_y1 = 0.0
+    #cdef float line_y0 = cur_font.FontSize
+    cdef int num_rows = 1
+
+    # deduce line height from the rendered characters
+    while s[0] != 0:
+        # Handle newline
+        if s[0] == '\n':
+            if s[1] != 0:
+                num_rows += 1
+            max_width = fmax(max_width, current_width)
+            current_width = 0.0
+            s += 1
+            continue
+        
+        # Get next character and advance string pointer
+        bytes_read = imgui.ImTextCharFromUtf8(&c, s, text_end)
+        s += bytes_read if bytes_read > 0 else 1
+        
+        # Get glyph
+        glyph = cur_font.FindGlyph(c)
+        if glyph == NULL:
+            continue
+
+        # Add advance to width
+        current_width += glyph.AdvanceX
+        
+        # Update line height if this glyph is taller
+        #line_y1 = fmax(line_y1, glyph.Y1)
+        #line_y0 = fmin(line_y0, glyph.Y0)
+
+    cdef float line_height = cur_font.FontSize #line_y1 - line_y0 -> no to avoid moving text on update
+    
+    # Final width check (for text without newlines)
+    max_width = fmax(max_width, current_width)
+    
+    # Return result
+    cdef Vec2 result
+    result.x = max_width
+    result.y = line_height * num_rows
+    return result
+
 cdef void t_draw_text_quad(Context context, void* drawlist,
                            float x1, float y1, float x2, float y2,  
                            float x3, float y3, float x4, float y4,
                            const char* text, uint32_t color,
                            void* font, bint preserve_ratio) noexcept nogil:
+    # x1/y1: top left of the text
+    # x2/y2: top right of the text
+    # x3/y3: bottom right of the text
+    # x4/y4: bottom left of the text
     if t_item_fully_clipped(context,
                             drawlist,
                             min(x1, x2, x3, x4),
@@ -3857,7 +3928,7 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
     cur_font = imgui.GetFont()
 
     # Get text metrics
-    cdef imgui.ImVec2 text_size = imgui.CalcTextSize(text)
+    cdef Vec2 text_size = calc_text_rect(text)
     cdef float total_w = text_size.x
     cdef float total_h = text_size.y
     if total_w <= 0:
@@ -3865,32 +3936,72 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
             imgui.PopFont()
         return
 
-    # Calculate normalized direction vectors for quad
-    cdef float quad_w = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
-    cdef float quad_h = sqrt((x4 - x1) * (x4 - x1) + (y4 - y1) * (y4 - y1))
-    
     # Skip if quad is too small
-    if quad_w < 1.0 or quad_h < 1.0:
+    if (x1 - x3) * (x1 - x3) + (y1 - y3) * (y1 - y3) < 1.0:
         if font != NULL:
             imgui.PopFont()
         return
 
-    cdef float dir_x = (x2 - x1) / quad_w
-    cdef float dir_y = (y2 - y1) / quad_w
-    cdef float up_x = (x4 - x1) / quad_h  
-    cdef float up_y = (y4 - y1) / quad_h
+    # normalized step in the direction of the "right" of the quad
+    # x1 + total_w * dir_x_top = x2
+    cdef float w_step = 1. / total_w
+    cdef float dir_x_top = (x2 - x1) * w_step
+    cdef float dir_y_top = (y2 - y1) * w_step
+    cdef float dir_x_bottom = (x3 - x4) * w_step
+    cdef float dir_y_bottom = (y3 - y4) * w_step
 
-    # Calculate scale 
-    cdef float scale_x = quad_w / total_w
-    cdef float scale_y = quad_h / total_h
-    cdef float scale = fmin(scale_x, scale_y) if preserve_ratio else 1.0
+    # normalized step in the direction of the "up" of the quad
+    cdef float h_step = 1. / total_h
+    cdef float up_x_left = (x1 - x4) * h_step
+    cdef float up_y_left = (y1 - y4) * h_step
+    cdef float up_x_right = (x2 - x3) * h_step
+    cdef float up_y_right = (y2 - y3) * h_step
     
     # Calculate starting position to center text in quad
-    cdef float start_x = x1
-    cdef float start_y = y1
+    cdef float start_x_top = x1
+    cdef float start_x_bottom = x4
+    cdef float start_y_top = y1
+    cdef float start_y_bottom = y4
+
+    cdef float horiz_offset, vert_offset, quad_w, quad_h
+    cdef float xc_left, xc_right, yc_top, yc_bottom
+    cdef float xc_top, xc_bottom, yc_left, yc_right
+    cdef float scale
     if preserve_ratio:
-        start_x += (quad_w - total_w * scale) * 0.5 * dir_x + (quad_h - total_h * scale) * 0.5 * up_x
-        start_y += (quad_w - total_w * scale) * 0.5 * dir_y + (quad_h - total_h * scale) * 0.5 * up_y
+        # Compute quad_w/h at the middle of the original borders
+        xc_left = (x1 + x4) * 0.5
+        xc_right = (x2 + x3) * 0.5
+        xc_top = (x1 + x2) * 0.5
+        xc_bottom = (x3 + x4) * 0.5
+        yc_left = (y1 + y4) * 0.5
+        yc_right = (y2 + y3) * 0.5
+        yc_top = (y1 + y2) * 0.5
+        yc_bottom = (y3 + y4) * 0.5
+
+        quad_w = sqrt((xc_right - xc_left) * (xc_right - xc_left) + 
+                      (yc_right - yc_left) * (yc_right - yc_left))
+        quad_h = sqrt((xc_top - xc_bottom) * (xc_top - xc_bottom) +
+                      (yc_top - yc_bottom) * (yc_top - yc_bottom))
+        # Use the minimum scale in all directions
+        scale = fmin(quad_w  * w_step, quad_h * h_step)
+
+        # Deduce direction vectors
+        dir_x_top = scale * (xc_right - xc_left) / quad_w
+        dir_x_bottom = dir_x_top
+        dir_y_top = scale * (yc_right - yc_left) / quad_w
+        dir_y_bottom = dir_y_top
+        up_x_left = scale * (xc_top - xc_bottom) / quad_h
+        up_x_right = up_x_left
+        up_y_left = scale * (yc_top - yc_bottom) / quad_h
+        up_y_right = up_y_left
+
+        # Deduce starting positions
+        start_x_top = (xc_left + xc_right) * 0.5 - (0.5 * total_w) * dir_x_top + \
+                      (0.5 * total_h) * up_x_left
+        start_x_bottom = start_x_top - total_h * up_x_left
+        start_y_top = (yc_top + yc_bottom) * 0.5 - (0.5 * total_w) * dir_y_top + \
+                      (0.5 * total_h) * up_y_left
+        start_y_bottom = start_y_top - total_h * up_y_left
 
     # Process each character
     cdef const char* text_end = NULL  # Process until null terminator
@@ -3898,17 +4009,20 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
     cdef int32_t bytes_read = 0
     cdef const char* s = text
     cdef const imgui.ImFontGlyph* glyph = NULL
-    cdef float char_width
-    cdef float x = start_x
-    cdef float y = start_y
+    cdef float x_top = start_x_top
+    cdef float y_top = start_y_top
+    cdef float x_bottom = start_x_bottom
+    cdef float y_bottom = start_y_bottom
     
     # Get font texture and UV scale
     cdef imgui.ImTextureID font_tex_id = cur_font.ContainerAtlas.TexID
-    cdef float tex_uvscale_x = 1.0 / cur_font.ContainerAtlas.TexWidth
-    cdef float tex_uvscale_y = 1.0 / cur_font.ContainerAtlas.TexHeight
-    cdef float c_x0, c_y0, c_x1, c_y1
+    cdef float c_xl, c_yt, c_xr, c_yb
     cdef imgui.ImVec2 tl, tr, br, bl
     cdef imgui.ImVec2 uv0, uv1, uv2, uv3
+
+    cdef float o_x, o_y
+    cdef float up_y, up_x
+    cdef float advance_percentage = 0., advance_percentage_l, advance_percentage_r
 
     while s[0] != 0:
         # Get next character and advance string pointer
@@ -3924,46 +4038,59 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
         if glyph.Visible == 0:
             continue
 
-        # Calculate character quad size and UVs 
-        char_width = glyph.AdvanceX * scale
-
         # Calculate vertex positions for character quad
-        c_x0 = x + glyph.X0 * scale
-        c_y0 = y + glyph.Y0 * scale
-        c_x1 = x + glyph.X1 * scale 
-        c_y1 = y + glyph.Y1 * scale
+        c_xl = glyph.X0
+        c_yb = glyph.Y0
+        c_xr = glyph.X1
+        c_yt = glyph.Y1
+
+        # origin position
+        o_x = x_bottom
+        o_y = y_bottom
 
         # Transform quad corners by direction vectors
+        advance_percentage_l = advance_percentage + c_xl * w_step
+        up_x = advance_percentage_l * up_x_right + (1.0 - advance_percentage_l) * up_x_left
+        up_y = advance_percentage_l * up_y_right + (1.0 - advance_percentage_l) * up_y_left
+
         tl = imgui.ImVec2(
-            c_x0 * dir_x + c_y0 * up_x,
-            c_x0 * dir_y + c_y0 * up_y
-        )
-        tr = imgui.ImVec2(
-            c_x1 * dir_x + c_y0 * up_x,
-            c_x1 * dir_y + c_y0 * up_y
-        )
-        br = imgui.ImVec2(
-            c_x1 * dir_x + c_y1 * up_x,
-            c_x1 * dir_y + c_y1 * up_y
+            o_x + c_xl * dir_x_top + c_yt * up_x,
+            o_y + c_xl * dir_y_top + c_yt * up_y
         )
         bl = imgui.ImVec2(
-            c_x0 * dir_x + c_y1 * up_x,
-            c_x0 * dir_y + c_y1 * up_y
+            o_x + c_xl * dir_x_bottom + c_yb * up_x,
+            o_y + c_xl * dir_y_bottom + c_yb * up_y
+        )
+
+        advance_percentage_r = advance_percentage + c_xr * w_step
+        up_x = advance_percentage_r * up_x_right + (1.0 - advance_percentage_r) * up_x_left
+        up_y = advance_percentage_r * up_y_right + (1.0 - advance_percentage_r) * up_y_left
+
+        tr = imgui.ImVec2(
+            o_x + c_xr * dir_x_top + c_yt * up_x,
+            o_y + c_xr * dir_y_top + c_yt * up_y
+        )
+        br = imgui.ImVec2(
+            o_x + c_xr * dir_x_bottom + c_yb * up_x,
+            o_y + c_xr * dir_y_bottom + c_yb * up_y
         )
 
         # Calculate UVs
-        uv0 = imgui.ImVec2(glyph.U0, glyph.V0)
-        uv1 = imgui.ImVec2(glyph.U1, glyph.V0)
-        uv2 = imgui.ImVec2(glyph.U1, glyph.V1)
-        uv3 = imgui.ImVec2(glyph.U0, glyph.V1)
+        uv0 = imgui.ImVec2(glyph.U0, glyph.V1) # top left
+        uv1 = imgui.ImVec2(glyph.U1, glyph.V1) # top right
+        uv2 = imgui.ImVec2(glyph.U1, glyph.V0) # bottom right
+        uv3 = imgui.ImVec2(glyph.U0, glyph.V0) # bottom left
 
         # Add vertices (6 per character - 2 triangles)
         draw_list.PrimReserve(6, 4)
         draw_list.PrimQuadUV(tl, tr, br, bl, uv0, uv1, uv2, uv3, color)
 
         # Advance cursor
-        x += char_width * dir_x
-        y += char_width * dir_y
+        x_top += glyph.AdvanceX * dir_x_top
+        x_bottom += glyph.AdvanceX * dir_x_bottom
+        y_top += glyph.AdvanceX * dir_y_top
+        y_bottom += glyph.AdvanceX * dir_y_bottom
+        advance_percentage += glyph.AdvanceX * w_step
 
     # Pop font if pushed
     if font != NULL:
@@ -3990,9 +4117,9 @@ cdef void draw_text_quad(Context context, void* drawlist,
     (context.viewport).coordinate_to_screen(p3, pos3)
     (context.viewport).coordinate_to_screen(p4, pos4)
 
-    t_draw_text_quad(context, drawlist, pos1[0], pos1[1],
-                     pos2[0], pos2[1], pos3[0], pos3[1],
-                     pos4[0], pos4[1], text, color, font,
+    t_draw_text_quad(context, drawlist, p1[0], p1[1],
+                     p2[0], p2[1], p3[0], p3[1],
+                     p4[0], p4[1], text, color, font,
                      preserve_ratio)
 
 cdef void* get_window_drawlist(Context context) noexcept nogil:

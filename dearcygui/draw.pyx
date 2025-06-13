@@ -36,7 +36,7 @@ from .wrapper.delaunator cimport delaunator_get_triangles, DelaunationResult
 from .imgui cimport t_draw_polygon, t_draw_polyline,\
     t_draw_elliptical_arc, t_draw_elliptical_pie_slice, t_draw_elliptical_ring_segment,\
     t_draw_elliptical_ring, t_draw_ellipse, draw_regular_polygon,\
-    t_draw_line, t_draw_triangle, draw_star, draw_triangle, draw_quad,\
+    t_draw_line, t_draw_triangle, draw_star, draw_triangle, draw_quad, draw_text_quad,\
     get_scaled_thickness, get_scaled_radius, draw_circle, t_item_fully_clipped
 
 
@@ -3978,6 +3978,198 @@ cdef class DrawTriangle(drawingItem):
             self._fill, 
             get_scaled_thickness(self.context, self._thickness)
         )
+
+
+cdef class DrawTextQuad(drawingItem):
+    """
+    Draws text deformed to fit inside a quadrilateral in coordinate space.
+    
+    Text is rendered to fill the entire quadrilateral defined by four corner points.
+    This allows text to be rotated, sheared, or otherwise transformed beyond what
+    is possible with standard text rendering.
+    
+    The text can be rendered either with aspect ratio preserved (which may leave empty
+    space within the quad) or fully deformed to fill the entire quad shape.
+    
+    Font appearance can be customized with color options. When a custom font is provided,
+    the text will use its style, weight, and other characteristics instead of the default font.
+    """
+    def __cinit__(self):
+        self._color = 4294967295  # 0xffffffff
+        self._preserve_ratio = True  # preserve aspect ratio by default
+        
+    @property
+    def p1(self):
+        """
+        First point (top-left corner) of the quadrilateral in coordinate space.
+        
+        This defines the origin corner from which the text begins.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return Coord.build(self._p1)
+    
+    @p1.setter
+    def p1(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        read_coord(self._p1, value)
+
+    @property
+    def p2(self):
+        """
+        Second point (top-right corner) of the quadrilateral in coordinate space.
+        
+        Together with p1, this defines the top edge of the text quad.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return Coord.build(self._p2)
+    
+    @p2.setter
+    def p2(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        read_coord(self._p2, value)
+
+    @property
+    def p3(self):
+        """
+        Third point (bottom-right corner) of the quadrilateral in coordinate space.
+        
+        Together with p2 and p4, this defines the bottom edge and right edge of the text quad.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return Coord.build(self._p3)
+    
+    @p3.setter
+    def p3(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        read_coord(self._p3, value)
+
+    @property
+    def p4(self):
+        """
+        Fourth point (bottom-left corner) of the quadrilateral in coordinate space.
+        
+        Together with p1 and p3, this defines the left edge and bottom edge of the text quad.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return Coord.build(self._p4)
+    
+    @p4.setter
+    def p4(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        read_coord(self._p4, value)
+
+    @property
+    def color(self):
+        """
+        Color of the text.
+        
+        Controls the color of the rendered text characters. Transparency 
+        is supported through the alpha channel, allowing for effects like
+        watermarks or fading text.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef float[4] color
+        unparse_color(color, self._color)
+        return list(color)
+    
+    @color.setter
+    def color(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._color = parse_color(value)
+
+    @property
+    def font(self):
+        """
+        Custom font for rendering the text.
+        
+        When set to a Font object, the text will use that font's style instead of
+        the default system font. This allows for custom typography, including
+        different weights, styles, or even icon fonts.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._font
+    
+    @font.setter
+    def font(self, baseFont value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._font = value
+
+    @property
+    def text(self):
+        """
+        The string content to display.
+        
+        This is the actual text that will be rendered within the quadrilateral.
+        The text can contain multiple lines using newline characters.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return string_to_str(self._text)
+    
+    @text.setter
+    def text(self, str value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._text = string_from_str(value)
+
+    @property
+    def preserve_ratio(self):
+        """
+        Whether to maintain the text's original aspect ratio.
+        
+        When True, the text will maintain its width-to-height ratio, which may
+        leave some areas of the quad empty if the quad's shape differs from
+        the text's natural dimensions.
+        
+        When False, the text will be deformed to completely fill the quad,
+        which may result in stretched or compressed text.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._preserve_ratio
+    
+    @preserve_ratio.setter
+    def preserve_ratio(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._preserve_ratio = value
+
+    cdef void draw(self,
+                   void* drawlist) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._show):
+            return
+
+        if self._font is not None:
+            self._font.push()
+
+        draw_text_quad(
+            self.context,
+            drawlist,
+            self._p1[0], self._p1[1],  # top-left
+            self._p2[0], self._p2[1],  # top-right
+            self._p3[0], self._p3[1],  # bottom-right
+            self._p4[0], self._p4[1],  # bottom-left
+            self._text.c_str(),
+            <imgui.ImU32>self._color,
+            NULL,
+            self._preserve_ratio
+        )
+
+        if self._font is not None:
+            self._font.pop()
 
 
 cdef class DrawValue(drawingItem):

@@ -422,7 +422,9 @@ cdef void draw_text_quad(Context context, void* drawlist,
         text: Text string to draw
         color: Text color as 32-bit RGBA value. Alpha=0 to use style color.
         font: ImFont* to use, NULL for default
-        preserve_ratio: Whether to maintain text aspect ratio when fitting
+        preserve_ratio: Whether to maintain text aspect ratio when fitting.
+            If the text dimension is reduced in one dimension, the resulting
+            text is centered on it.
         
     The text is rendered as if it was an image filling a quad shape.
     The quad vertices control the deformation/orientation of the text.
