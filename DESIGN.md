@@ -1,74 +1,164 @@
-Here are some technical details on how DearCyGui is designed:
+# DearCyGui Technical Design
 
-## The rendering tree
-Each DCG context is associated a single viewport, which corresponds to a system window.
-This viewport is an item like any other, but cannot be replaced. Rendering starts from the viewports and spans to its children.
+This document outlines the architectural design principles and implementation details of DearCyGui.
 
-The children of any item are rendered recursively from the first one to the last one.
-In practice, rather than holding a table of its children, each item only points to its LAST child. It is the responsibility of this child to render first its previous sibling before rendering itself. Then this previous sibling has the responsibility to render its previous sibling too before itself, etc.
+## Core Architecture
 
-As a result a strong impact of this design is that a parent does not draw its children itself, and cannot insert rendering commands between each item. This impacts the implementation of tables, layouts, etc.
+### Rendering Tree
 
-There are pros and cons to this design choice. The original reason for this design choice is that I thought it was not possible to have a table of objects in Cython without the gil. In fact it is possible if one uses PyObject pointers.
+DearCyGui organizes all UI elements in a hierarchical tree structure:
 
-All rendering items have a draw() function that renders the object. To avoid redundant code, most code in fact implement a class specific method that is called by draw(). This draw() function is implemented with noexcept nogil enforced, which means Cython is not allowed to access Python fields or to increase/decrease any object refcount. This constraint generates efficient C++ code that should be pretty close in performance to native C++ code.
+- Each DCG **Context** is associated with a single **Viewport** (system window)
+- The Viewport serves as the root node of the rendering tree
+- Rendering traverses the tree depth-first, starting from the root
+- Each item is responsible for rendering itself and orchestrating its children
 
-The viewport holds some temporary information needed during rendering, which avoid passing arguments to draw().
+#### Rendering Process
 
-Some parents define a clipping region, and rendering cannot be done by children outside the clipping region.
+The initial of DearCyGui was that unlike traditional GUI frameworks:
 
-## Item locks
+1. Parents don't directly render their children
+2. Each item points to its LAST child, creating a linked structure
+3. Each child renders its previous sibling first, forming a recursive chain
 
-One of the main issues with DPG is it had a single lock to protect any item access during rendering. However it had issues and it was not uncommon to have deadlocks when doing multithreading due to the GIL.
+This made it complicated however to implement some functionalities, such as Tables.
 
-DearCyGUI instead uses a lock per item. Locks are known to be very cheap when there is no contention, which is going to be almost always in DCG's usecase.
+Thus DearCyGui moved to a more traditional tree traversal:
+1. Each parent is rendered, iterating on each child to get it rendered.
 
-The lock rule to guarantee thread safety and no deadlock is:
-The topmost lock in the rendering tree must be acquired before any lower lock.
-For instance imagine you want to access an item field. You only need to lock this item. Now imagine you need to change the parent of the item. In that case you need to acquire the parent lock BEFORE acquiring the item lock. This complex mecanism is implemented by baseItem, and for simplicity, when moving an item, it is first detached of its former parent, and then attached to its new parent.
-In that specific case, as the parent might change when the item lock is not acquired, baseItem implements locking first the item, then trying to lock the parent, and if it fails, unlock the item, then lock again the item, then try to lock the parent, etc.
-In all other cases, the locks are always acquired in a specific order to guarantee the lock rule. For instance during rendering, the viewport lock is first held, then the lock of the last child, which then locks its previous siblings, etc. Then the first child renders itself, and locks the lock of its last child, etc. Thus during rendering, when an item is rendered, we hold the lock of this item, as well as all its next siblings, and the lock of its parent, all its next siblings, etc. As the rendering tree is ... a tree, that generally means only a portion of the locks of the tree is held at a given time.
+All this traversal and rendering is performed with efficient C++ code generated through Cython's nogil capabilities.
 
-As in practice the rendering of the item tree itself is not as expensive as can be other OS operations to prepare and finish rendering, the viewport is actually associated with three locks, such that one can access viewport fields or lock the main viewport lock while slow OS operations are done.
+### Item Management
 
-In order to avoid any deadlock caused by the gil, whenever an entry point holding the gil requires a lock, we actually first only 'try' to lock, and if we fail, then we release the gil and block until the lock is achieved.
+#### Threading Safety
 
+DearCyGui uses a lock-per-item approach for thread safety, rather than a global lock:
 
-## Child slots
+- Each UI element has its own lock
+- Locks must be acquired in parent-to-child order (topmost first)
+- Multiple thread-safe patterns are implemented for item manipulation
+- The viewport uses three distinct locks to enable concurrent operations
 
-There are several main classes of items from which all items derive. Almost all items derive from baseItem which defines an item that can have a tag, can be attached to parent, have siblings, etc. Exceptions to that are Callback and SharedValue.
+#### Lock Acquisition Strategy
 
-Subclassing baseItem are some other base classes. uiItem, drawingItem, baseTheme, baseHandler, plotElement. Each of these will get into different child slots and are incompatible to each other as siblings. Any subclass of these elements can be siblings and children of the same parents. Each parent defines which children base class they support. It is similar but not equivalent to DPG children slots.
+To prevent deadlocks with Python's GIL:
+- Entry points first attempt to acquire locks with a non-blocking try
+- If acquisition fails, the GIL is released before blocking
+- This pattern prevents deadlocks between the GIL and item locks
 
-uiItem is the base class of most elements. It defines an object with a state, which accepts handlers, themes and optionally a Callback and a SharedValue. By default the position of the item corresponds to the current internal cursor position, which is incremented after every item (with a line jump by default). It accepts positioning arguments to override that.
+### Class Hierarchy
 
-drawingItem is a simpler class of elements which map to imgui drawing operations. They have no state maintained, no callback, theme, value, etc. Their coordinates are in screen space transformed by their parent (if in a window, the coordinates are offsetted. If in a plot, the coordinates are offsetted and scaled.)
+DearCyGui implements a flexible component model through specialized base classes:
 
-baseTheme corresponds to theme elements that can be bound to items
+1. **baseItem**: Core parent class for most elements
+   - Provides tagging, parent-child relationships, and sibling management
 
-baseHandler corresponds to handler elements that can be bound to items
+2. **Major Subclasses**:
+   - **uiItem**: Interactive elements with state, theme support, and callbacks
+   - **drawingItem**: Lightweight drawing primitives with no state
+   - **baseTheme**: Theme components that can be bound to items
+   - **baseHandler**: Event handling components
+   - **plotElement**: Specialized elements for data visualization
 
-plotElement corresponds to plot children and define the axes to which they relate to.
+3. **Child Slots**:
+   - Each parent defines compatible child types
+   - Children must match the parent's supported base classes
+   - Siblings must share compatible base classes
 
-All element subclass these base classes and override their main rendering methods. It is possible to subclass these elements in Python or Cython and be inserted as siblings to elements of the same base class.
+## API Design Principles
 
-## Everything is attributes
+### Everything is Attributes
 
-In DPG, all items were associated with item configuration attributes, states and status. During item creation, some parameters were passed as mandatory as positional parameters.
+DearCyGui uses Python's attribute model for all item configuration:
 
-DCG uses a slightly different paradigm, as no positional parameters are required anymore. In addition DCG uses the full potential of implementing Python extension classes that Cython enables to do easily. On every DCG item, one can access the attributes as you would in any python class. This is very fast, and enables significant performance gains compared to DPG's configure.
+- No required positional parameters in constructors, except for the context, mandatory for all items
+- All properties are implemented as Python item properties
+- Fast attribute access through Cython's property system
+- Full docstring support for IDE integration
+- PYI type-stub generation for autocompletion
 
-Under the hood, DCG implements all these attributes as class properties, and during initialisation, a table of all the properties, their names and their functions set read and write them are passed by Cython to Python. A docstring is passed to every attribute, thus one can use the help() command to get the information on an attribute. a Pyi is also generated by Cython to enable autocompletion in compatible code editors. Sadly this autocompletion is not useful when creating an item, but it is very well functionnal when accessing attributes.
-
-When an item is created, DCG first initializes all class specific fields with default values. Then in a second step all the names parameters are converted into attributes.
-Basically item creation is a loop doing:
 ```python
-for (key, value) in kwargs.items():
-    if hasattr(self, key):
-        setattr(self, key, value)
+# All parameters are passed as attributes
+button = dcg.Button(context, label="Click Me", width=100)
+
+# Equivalent to:
+button = dcg.Button(context)
+button.label = "Click Me"
+button.width = 100
 ```
-In other words any optional parameter you pass during item creation is equivalent to setting the attribute of the same name after you have created the item.
 
-Note that this is a slight abuse on our side on the intent of python extension attributes, are they are meant to be cheap access to object attributes (with potential cheap conversion), and more heavy functions should rather be implemented as functions. item.parent = other_item should probably not be an attribute in this spirit, but this allows to implement better compatibility with DPG.
+### Context-Based Programming
 
-In the spirit of everything is attributes, Themes override getattr and setattr in order to be able to set theme fields directly (and only what you have set is passed to the object).
+- All items require a Context instance at creation
+- Python's `with` statement creates parent-child relationships
+- Layout containers automatically manage child positioning
+
+```python
+with dcg.Window(context, label="My Window"):
+    dcg.Text(context, value="Hello World")  # Automatically becomes child of Window
+```
+
+### Asyncio Integration
+
+DearCyGui provides comprehensive support for asynchronous programming:
+
+- Coroutines are accepted as callbacks 
+- Various helpers such as `AsyncPoolExecutor` are provided for background task management
+- Viewport rendering loop can be integrated into existing event loops
+
+## Advanced Features
+
+### Theming System
+
+Themes are first-class objects that can be:
+- Created and modified at runtime
+- Applied to specific items or item hierarchies
+- Combined through the ThemeList aggregator
+
+```python
+with dcg.ThemeList(context) as theme:
+    dcg.ThemeColorImGui(context, button=(100, 50, 200))
+    dcg.ThemeStyleImGui(context, frame_rounding=5.0)
+
+button.theme = theme  # Apply to a specific item
+```
+
+### Layout System
+
+DearCyGui offers multiple layout options:
+- Absolute and dynamic positioning (x, y coordinates)
+- Auto-layout with content-aware spacing
+- Alignment controls (LEFT, RIGHT, CENTER)
+- Responsive sizing using expressions (width="0.5*viewport.width")
+- Specialized containers (HorizontalLayout, VerticalLayout, etc.)
+
+### Framebuffer Access
+
+The viewport provides direct access to its framebuffer for:
+- Screenshot capabilities
+- Custom rendering effects
+- Image capture for recording/sharing
+
+---
+
+## Implementation Notes
+
+### Python Extension Integration
+
+DearCyGui leverages Cython to create true Python extension types:
+- Item classes are real Python classes, not just wrapped C++ objects
+- Full support for Python introspection (dir(), help(), etc.)
+- Support for subclassing in both Python and Cython
+
+### Memory Management
+
+- Python garbage collection for all items
+- Automatic cleanup of children when parents are destroyed
+- Thread-safe reference counting for shared resources
+
+### Performance Considerations
+
+- Rendering code runs without the GIL for maximum performance
+- Items track their visibility state to avoid unnecessary drawing
+- Context.viewport.wait_for_input enables efficient CPU usage
+- ImGui's immediate-mode architecture limits the need for state synchronization
