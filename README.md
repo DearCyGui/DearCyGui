@@ -13,6 +13,7 @@ Main features are:
 * MIT Licensed.
 * Low GPU/CPU usage.
 
+![Screenshot of the main demo](images/demo.gif)
 
 ## Installing
 `pip install dearcygui` to install an old version
