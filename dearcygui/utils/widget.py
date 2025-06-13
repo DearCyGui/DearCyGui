@@ -34,7 +34,7 @@ class TimePicker(dcg.Layout):
     A widget for picking time values, similar to ImPlot's time picker.
     
     The widget displays hour/minute/second spinners and AM/PM selection.
-    It uses seconds internally via SharedDouble but provides a datetime 
+    It uses seconds internally via SharedFloat but provides a datetime 
     interface for convenient time manipulation.
     
     The picker can be configured to use 12-hour or 24-hour time formats,
@@ -51,7 +51,7 @@ class TimePicker(dcg.Layout):
         else:
             total_seconds = float(value)
             
-        self._value = dcg.SharedDouble(context, total_seconds)
+        self._value = dcg.SharedFloat(context, total_seconds)
         self._use_24hr = use_24hr
         self._show_seconds = show_seconds
 
@@ -293,7 +293,7 @@ class DatePicker(dcg.Layout):
     def __init__(self, context, *, value=None, min_date=None, max_date=None, **kwargs):
         super().__init__(context, **kwargs)
         
-        self._value = dcg.SharedDouble(context, 0)
+        self._value = dcg.SharedFloat(context, 0)
         self._view_level = 0  # 0=days, 1=months, 2=years
         
         # Set default value to current date if none provided
@@ -629,7 +629,7 @@ class DateTimePicker(dcg.Layout):
         super().__init__(context, **kwargs)
         
         # Initialize shared value
-        self._value = dcg.SharedDouble(context, 0)
+        self._value = dcg.SharedFloat(context, 0)
         
         # Create date and time pickers
         if layout == "compact":
