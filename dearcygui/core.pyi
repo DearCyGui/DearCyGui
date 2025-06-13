@@ -6730,6 +6730,183 @@ class DrawText(drawingItem):
         ...
 
 
+class DrawTextQuad(drawingItem):
+    """
+    Draws text deformed to fit inside a quadrilateral in coordinate space.
+
+    Text is rendered to fill the entire quadrilateral defined by four corner points.
+    This allows text to be rotated, sheared, or otherwise transformed beyond what
+    is possible with standard text rendering.
+
+    The text can be rendered either with aspect ratio preserved (which may leave empty
+    space within the quad) or fully deformed to fill the entire quad shape.
+
+    Font appearance can be customized with color options. When a custom font is provided,
+    the text will use its style, weight, and other characteristics instead of the default font.
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, preserve_ratio : bool = True, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the text.
+        - font: Custom font for rendering the text.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: First point (top-left corner) of the quadrilateral in coordinate space.
+        - p2: Second point (top-right corner) of the quadrilateral in coordinate space.
+        - p3: Third point (bottom-right corner) of the quadrilateral in coordinate space.
+        - p4: Fourth point (bottom-left corner) of the quadrilateral in coordinate space.
+        - parent: Parent of the item in the rendering tree.
+        - preserve_ratio: Whether to maintain the text's original aspect ratio.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - text: The string content to display.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    @property
+    def color(self) -> Color:
+        """
+        Color of the text.
+
+        Controls the color of the rendered text characters. Transparency
+        is supported through the alpha channel, allowing for effects like
+        watermarks or fading text.
+
+        """
+        ...
+
+
+    @color.setter
+    def color(self, value : Color):
+        ...
+
+
+    @property
+    def font(self) -> Font:
+        """
+        Custom font for rendering the text.
+
+        When set to a Font object, the text will use that font's style instead of
+        the default system font. This allows for custom typography, including
+        different weights, styles, or even icon fonts.
+
+        """
+        ...
+
+
+    @font.setter
+    def font(self, value : Font):
+        ...
+
+
+    @property
+    def p1(self) -> Coord:
+        """
+        First point (top-left corner) of the quadrilateral in coordinate space.
+
+        This defines the origin corner from which the text begins.
+
+        """
+        ...
+
+
+    @p1.setter
+    def p1(self, value : Sequence[float] | tuple[float, float] | Coord):
+        ...
+
+
+    @property
+    def p2(self) -> Coord:
+        """
+        Second point (top-right corner) of the quadrilateral in coordinate space.
+
+        Together with p1, this defines the top edge of the text quad.
+
+        """
+        ...
+
+
+    @p2.setter
+    def p2(self, value : Sequence[float] | tuple[float, float] | Coord):
+        ...
+
+
+    @property
+    def p3(self) -> Coord:
+        """
+        Third point (bottom-right corner) of the quadrilateral in coordinate space.
+
+        Together with p2 and p4, this defines the bottom edge and right edge of the text quad.
+
+        """
+        ...
+
+
+    @p3.setter
+    def p3(self, value : Sequence[float] | tuple[float, float] | Coord):
+        ...
+
+
+    @property
+    def p4(self) -> Coord:
+        """
+        Fourth point (bottom-left corner) of the quadrilateral in coordinate space.
+
+        Together with p1 and p3, this defines the left edge and bottom edge of the text quad.
+
+        """
+        ...
+
+
+    @p4.setter
+    def p4(self, value : Sequence[float] | tuple[float, float] | Coord):
+        ...
+
+
+    @property
+    def preserve_ratio(self) -> bool:
+        """
+        Whether to maintain the text's original aspect ratio.
+
+        When True, the text will maintain its width-to-height ratio, which may
+        leave some areas of the quad empty if the quad's shape differs from
+        the text's natural dimensions.
+
+        When False, the text will be deformed to completely fill the quad,
+        which may result in stretched or compressed text.
+
+        """
+        ...
+
+
+    @preserve_ratio.setter
+    def preserve_ratio(self, value : bool):
+        ...
+
+
+    @property
+    def text(self) -> str:
+        """
+        The string content to display.
+
+        This is the actual text that will be rendered within the quadrilateral.
+        The text can contain multiple lines using newline characters.
+
+        """
+        ...
+
+
+    @text.setter
+    def text(self, value : str):
+        ...
+
+
 class DrawTriangle(drawingItem):
     """
     Draws a triangle in coordinate space.
