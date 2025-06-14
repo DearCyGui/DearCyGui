@@ -521,6 +521,93 @@ def generate_docstring_for_class(object_class, instance):
         try:
             call_sig = inspect.signature(method)
         except:
+            # Manual handling of a few failure cases:
+            if object_class.__name__ == "baseTable":
+                if method.__name__ == "__getitem__":
+                    result.append(
+                        level1 + f"def __getitem__(self, key: tuple[int, int]) -> TableElement:"
+                    )
+                    result.append(level2 + '"""Get an element by index"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__setitem__":
+                    result.append(
+                        level1 + f"def __setitem__(self, key: tuple[int, int], value: TableValue) -> None:"
+                    )
+                    result.append(level2 + '"""Set an element by index"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__delitem__":
+                    result.append(
+                        level1 + f"def __delitem__(self, key: tuple[int, int]) -> None:"
+                    )
+                    result.append(level2 + '"""Delete an element by inqqdex"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__iter__":
+                    result.append(
+                        level1 + f"def __iter__(self) -> Iterator[tuple[int, int]]:"
+                    )
+                    result.append(level2 + '"""Iterate over the keys of the table"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__len__":
+                    result.append(
+                        level1 + f"def __len__(self) -> int:"
+                    )
+                    result.append(level2 + '"""Get the number of elements in the table"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__contains__":
+                    result.append(
+                        level1 + f"def __contains__(self, key: tuple[int, int]) -> bool:"
+                    )
+                    result.append(level2 + '"""Check if the table contains an element by index"""')
+                    result.append(level2 + "...")
+                    continue
+            if object_class.__name__ == "baseThemeColor":
+                if method.__name__ == "__getitem__":
+                    result.append(
+                        level1 + f"def __getitem__(self, key: str | int) -> Color:"
+                    )
+                    result.append(level2 + '"""Get a color by name or index"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__setitem__":
+                    result.append(
+                        level1 + f"def __setitem__(self, key: str | int, value: Color) -> None:"
+                    )
+                    result.append(level2 + '"""Set a color by name or index"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__iter__":
+                    result.append(
+                        level1 + f"def __iter__(self) -> Iterator[tuple[str | int, Color]]:"
+                    )
+                    result.append(level2 + '"""Iterate over (color_name, color_value) pairs in the theme"""')
+                    result.append(level2 + "...")
+                    continue
+            if object_class.__name__ == "baseThemeStyle":
+                if method.__name__ == "__getitem__":
+                    result.append(
+                        level1 + f"def __getitem__(self, key: str | int) -> tuple[float, float] | float | int:"
+                    )
+                    result.append(level2 + '"""Get a style value by name or index"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__setitem__":
+                    result.append(
+                        level1 + f"def __setitem__(self, key: str | int, value: tuple[float, float] | float | int) -> None:"
+                    )
+                    result.append(level2 + '"""Set a style value by name or index"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__iter__":
+                    result.append(
+                        level1 + f"def __iter__(self) -> Iterator[tuple[str | int, tuple[float, float] | float | int]]:"
+                    )
+                    result.append(level2 + '"""Iterate over (style_name, style_value) pairs in the theme"""')
+                    result.append(level2 + "...")
             continue
             
         additional_properties = copy.deepcopy(properties)
@@ -556,6 +643,8 @@ def generate_docstring_for_class(object_class, instance):
                     params_str.append("callback : DCGCallable")
                     continue
                 params_str.append("context : Context")
+                if object_class.__name__ == "Texture":
+                    params_str.append("content: Array | None = None")
                 continue
             if param.name == 'kwargs':
                 if "callbacks" in additional_properties and "callback" in additional_properties:
@@ -597,7 +686,7 @@ def generate_docstring_for_class(object_class, instance):
                 params_str.append(str(param))
         if len(params_str_kw) > 0:
             # kwargs parameters are keyword-only
-            params_str = params_str + ["/"] + params_str_kw
+            params_str = params_str + ["*"] + params_str_kw
         call_str += ", ".join(params_str) + ')'
         if call_sig.return_annotation == inspect.Signature.empty:
             call_str += ':'

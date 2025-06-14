@@ -21,7 +21,7 @@ class TableElement:
     """
     def __init__(self,
                  content: TableValue | None = None,
-                 /,
+                 *,
                  bg_color: Color = 0,
                  ordering_value: object | None = None,
                  tooltip: TableValue | None = None
@@ -38,6 +38,7 @@ class TableElement:
         ...
     
     def configure(self,
+                  *,
                   content: TableValue | None = None,
                   bg_color: Color = 0,
                   ordering_value: object | None = None,

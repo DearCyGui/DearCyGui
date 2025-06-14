@@ -22,6 +22,7 @@ from libcpp.unordered_map cimport unordered_map, pair
 from cpython.object cimport PyObject
 from cpython.sequence cimport PySequence_Check
 from cython.operator cimport dereference
+cimport cython
 
 
 from .core cimport lock_gil_friendly, baseItem, baseTheme
@@ -81,7 +82,8 @@ cdef class baseThemeColor(baseTheme):
         if self._index_to_value != NULL:
             del self._index_to_value
 
-    def __getitem__(self, key):
+    @cython.annotation_typing(False)
+    def __getitem__(self, key: str | int) -> int:
         """Get color by string name or numeric index"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -96,7 +98,8 @@ cdef class baseThemeColor(baseTheme):
         else:
             raise TypeError("%s is an invalid index type" % str(type(key)))
 
-    def __setitem__(self, key, value):
+    @cython.annotation_typing(False)
+    def __setitem__(self, key: str | int, value: 'Color') -> None:
         """Set color by string name or numeric index"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -111,7 +114,8 @@ cdef class baseThemeColor(baseTheme):
         else:
             raise TypeError("%s is an invalid index type" % str(type(key)))
 
-    def __iter__(self):
+    @cython.annotation_typing(False)
+    def __iter__(self) -> list[tuple[str, int]]:
         """Iterate over (color_name, color_value) pairs"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1356,7 +1360,9 @@ cdef class baseThemeStyle(baseTheme):
         lock_gil_friendly(m, self.mutex)
         self._round_after_scale = not(value)
 
-    def __getitem__(self, key):
+    @cython.annotation_typing(False)
+    def __getitem__(self, key: str | int) -> object:
+        """Get style by string name or numeric index"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t style_index
@@ -1369,7 +1375,9 @@ cdef class baseThemeStyle(baseTheme):
             return getattr(self, self._names[style_index])
         raise TypeError("%s is an invalid index type" % str(type(key)))
 
-    def __setitem__(self, key, value):
+    @cython.annotation_typing(False)
+    def __setitem__(self, key: str | int, value: object) -> None:
+        """Set style by string name or numeric index"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t style_index
@@ -1383,7 +1391,9 @@ cdef class baseThemeStyle(baseTheme):
         else:
             raise TypeError("%s is an invalid index type" % str(type(key)))
 
-    def __iter__(self):
+    @cython.annotation_typing(False)
+    def __iter__(self) -> list[tuple[str, object]]:
+        """Iterate over the theme style values as (name, value) pairs."""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef list result = []

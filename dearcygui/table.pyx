@@ -724,7 +724,8 @@ cdef class baseTable(uiItem):
             TableElement.from_element(dereference(it).second)
         return element_config
 
-    def __getitem__(self, key):
+    @cython.annotation_typing(False)
+    def __getitem__(self, key: tuple[int, int]) -> TableElement:
         """
         Get items at specific target
         """
@@ -789,7 +790,8 @@ cdef class baseTable(uiItem):
            (<uiItem>element.tooltip_ui_item).parent is not self:
             (<uiItem>element.tooltip_ui_item).attach_to_parent(self)
 
-    def __setitem__(self, key, value):
+    @cython.annotation_typing(False)
+    def __setitem__(self, key: tuple[int, int], value: TableElement | uiItem | str | object) -> None:
         """
         Set items at specific target
         """
@@ -800,7 +802,8 @@ cdef class baseTable(uiItem):
         (row, col) = key
         self._set_single_item(row, col, value)
 
-    def __delitem__(self, key):
+    @cython.annotation_typing(False)
+    def __delitem__(self, key: tuple[int, int]) -> None:
         """
         Delete items at specific target
         """
@@ -813,7 +816,8 @@ cdef class baseTable(uiItem):
         cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
         self._delete_item(map_key)
 
-    def __iter__(self):
+    @cython.annotation_typing(False)
+    def __iter__(self) -> list[tuple[int, int]]:
         """
         Iterate over the keys in the table.
         """
@@ -823,7 +827,8 @@ cdef class baseTable(uiItem):
         for key_element in dereference(self._items):
             yield key_element.first
 
-    def __len__(self):
+    @cython.annotation_typing(False)
+    def __len__(self) -> int:
         """
         Get the number of items in the table.
         """
@@ -831,7 +836,8 @@ cdef class baseTable(uiItem):
         lock_gil_friendly(m, self.mutex)
         return self._items.size()
 
-    def __contains__(self, key):
+    @cython.annotation_typing(False)
+    def __contains__(self, key: tuple[int, int]) -> bool:
         """
         Check if a key is in the table.
         """
