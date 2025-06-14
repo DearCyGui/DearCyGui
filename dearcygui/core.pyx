@@ -6004,13 +6004,10 @@ cdef class uiItem(baseItem):
     @property
     def callback(self):
         """
-        Alias for the callbacks property for backward compatibility.
-        
-        This property provides the same functionality as the callbacks property
-        but maintains compatibility with older code that uses the singular form.
-        It is recommended to use the callbacks property in new code.
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
         """
-        # TODO: drop callback or callbacks
         return self.callbacks
 
     @callback.setter

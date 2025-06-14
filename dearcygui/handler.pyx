@@ -393,8 +393,8 @@ cdef class BoolHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         self._condition = value
 
-    cdef bint check_bind(self, baseItem item):
-        return True
+    cdef void check_bind(self, baseItem item):
+        return
 
     cdef bint check_state(self, baseItem item) noexcept nogil:
         return self._condition.get()

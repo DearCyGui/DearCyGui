@@ -6,30 +6,30 @@ from .types import *
 from .core import *
 from .sizing import baseSizing
 
-Sender = TypeVar('Sender', baseHandler, uiItem, covariant=True)
-Target = TypeVar('Target', baseItem, covariant=True)
+SenderT = TypeVar('Sender', bound='baseItem')
+TargetT = TypeVar('Target', bound='baseItem')
 
 class DCGCallable0(Protocol):
     def __call__(self, /) -> Any:
         ...
 
-class DCGCallable1(Protocol):
+class DCGCallable1(Protocol[SenderT]):
     def __call__(self,
-                 sender : Sender,
+                 sender : SenderT,
                  /) -> Any:
         ...
 
-class DCGCallable2(Protocol):
+class DCGCallable2(Protocol[SenderT, TargetT]):
     def __call__(self,
-                 sender : Sender,
-                 target : Target,
+                 sender : SenderT,
+                 target : TargetT,
                  /) -> Any:
         ...
 
-class DCGCallable3(Protocol):
+class DCGCallable3(Protocol[SenderT, TargetT]):
     def __call__(self,
-                 sender : Sender,
-                 target : Target,
+                 sender : SenderT,
+                 target : TargetT,
                  value : Any,
                  /) -> Any:
         ...
@@ -38,25 +38,25 @@ class DCGCallable0Kw(Protocol):
     def __call__(self, /, **kwargs) -> Any:
         ...
 
-class DCGCallable1Kw(Protocol):
+class DCGCallable1Kw(Protocol[SenderT]):
     def __call__(self,
-                 sender : Sender,
+                 sender : SenderT,
                  /,
                  **kwargs : Any) -> Any:
         ...
 
-class DCGCallable2Kw(Protocol):
+class DCGCallable2Kw(Protocol[SenderT, TargetT]):
     def __call__(self,
-                 sender : Sender,
-                 target : Target,
+                 sender : SenderT,
+                 target : TargetT,
                  /,
                  **kwargs : Any) -> Any:
         ...
 
-class DCGCallable3Kw(Protocol):
+class DCGCallable3Kw(Protocol[SenderT, TargetT]):
     def __call__(self,
-                 sender : Sender,
-                 target : Target,
+                 sender : SenderT,
+                 target : TargetT,
                  value : Any,
                  /,  
                  **kwargs : Any) -> Any:
@@ -359,6 +359,24 @@ class ActivatedHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class ActiveHandler(baseHandler):
     """
     Handler for when the target item is active.
@@ -373,6 +391,24 @@ class ActiveHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -416,6 +452,24 @@ class AnyKeyDownHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class AnyKeyPressHandler(baseHandler):
     """
     Handler that triggers when any keyboard key is pressed.
@@ -436,6 +490,25 @@ class AnyKeyPressHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether to trigger repeatedly while a key is held down.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -495,6 +568,24 @@ class AnyKeyReleaseHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class AnyMouseClickHandler(baseHandler):
     """
     Handler that triggers when any mouse button is clicked.
@@ -515,6 +606,25 @@ class AnyMouseClickHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether to trigger repeatedly while a button is held down.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -574,6 +684,24 @@ class AnyMouseDoubleClickHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class AnyMouseDownHandler(baseHandler):
     """
     Handler that triggers when any mouse button is held down.
@@ -593,6 +721,24 @@ class AnyMouseDownHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -634,6 +780,24 @@ class AnyMouseReleaseHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class AutoFont(FontMultiScales):
     """
     A self-managing font container that automatically creates and caches fonts at different scales.
@@ -654,13 +818,12 @@ class AutoFont(FontMultiScales):
         Additional arguments passed to font_creator
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: Callbacks triggered when a new scale is encountered.
         - callbacks: Callbacks triggered when a new scale is encountered.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - fonts: List of attached fonts with different scales.
@@ -682,6 +845,23 @@ Create a new font at the given scale
     def _on_new_scale(self, sender, target, scale) -> None:
         """
 Called when a new global scale is encountered
+        """
+        ...
+
+
+    def configure(self, callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callbacks: Callbacks triggered when a new scale is encountered.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - fonts: List of attached fonts with different scales.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
         """
         ...
 
@@ -712,6 +892,25 @@ class AxesResizeHandler(baseHandler):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The (X axis, Y axis) pair monitored by this handler.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, axes : tuple = (0, 3), callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - axes: The (X axis, Y axis) pair monitored by this handler.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -761,6 +960,25 @@ class AxisTag(baseItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - bg_color: Background color of the tag as RGBA values.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - coord: Position of the tag along the parent axis.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls the visibility of the axis tag.
+        - text: Text label displayed with the axis tag.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], coord : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - bg_color: Background color of the tag as RGBA values.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - coord: Position of the tag along the parent axis.
@@ -850,6 +1068,75 @@ class AxisTag(baseItem):
         ...
 
 
+class BoolHandler(baseHandler):
+    """
+    Handler that fits a SharedBool condition
+    inside a handler.
+
+    Basically the handler's condition is True
+    if the SharedBool evaluates to True,
+    and False else.
+
+    This handler can be used combined with
+    ConditionalHandler or HandlerList to
+    skip processing handlers (and their callbacks)
+    when some external condition is not met.
+
+    """
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - condition: SharedBool condition that this handler
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - condition: SharedBool condition that this handler
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    @property
+    def condition(self) -> SharedBool:
+        """
+        SharedBool condition that this handler
+        will use to determine if the callback
+        should be called.
+
+        """
+        ...
+
+
+    @condition.setter
+    def condition(self, value : SharedBool):
+        ...
+
+
 class Button(uiItem):
     """
     A clickable UI button that can trigger actions when pressed.
@@ -860,15 +1147,46 @@ class Button(uiItem):
     is stored in a SharedBool value that tracks whether it's active.
 
     """
-    def __init__(self, context : Context, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - arrow: If not None, draw an arrow with the specified direction.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether the button generates repeated events when held down.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - small: Whether the button should be displayed in a small size.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, arrow : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - arrow: If not None, draw an arrow with the specified direction.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -912,24 +1230,6 @@ class Button(uiItem):
 
     @arrow.setter
     def arrow(self, value):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -1010,14 +1310,13 @@ class Checkbox(uiItem):
     If a label is provided, it will be displayed at the right of the checkbox.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -1042,21 +1341,32 @@ class Checkbox(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -1074,7 +1384,7 @@ class ChildWindow(uiItem):
     structured layouts.
 
     """
-    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1087,8 +1397,51 @@ class ChildWindow(uiItem):
         - auto_resize_y: Automatically adjust height based on content.
         - before: Attach the item just before the target item. Default is None (disabled)
         - border: Show an outer border and enable window padding.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - flattened_navigation: Share focus scope with parent window for keyboard/gamepad navigation.
+        - font: Font used for rendering text in this item and its children.
+        - frame_style: Style the child window like a framed item instead of a window.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - horizontal_scrollbar: Enable horizontal scrolling and show horizontal scrollbar.
+        - label: Text label displayed with or within the item.
+        - menubar: Enable a menu bar at the top of the child window.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_scroll_with_mouse: Forward mouse wheel events to parent instead of scrolling this window.
+        - no_scrollbar: Hide scrollbars but still allow scrolling with mouse/keyboard.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - resizable_x: Allow the user to resize the window width by dragging the right border.
+        - resizable_y: Allow the user to resize the window height by dragging the bottom border.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - always_auto_resize: Measure content size even when window is hidden.
+        - always_show_horizontal_scrollvar: Always show a horizontal scrollbar when horizontal scrolling is enabled.
+        - always_show_vertical_scrollvar: Always show a vertical scrollbar even when content fits.
+        - always_use_window_padding: Apply window padding even when borders are disabled.
+        - auto_resize_x: Automatically adjust width based on content.
+        - auto_resize_y: Automatically adjust height based on content.
+        - border: Show an outer border and enable window padding.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -1249,24 +1602,6 @@ class ChildWindow(uiItem):
 
     @border.setter
     def border(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -1448,6 +1783,25 @@ class ClickedHandler(baseHandler):
         ...
 
 
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - button: Target mouse button
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def button(self) -> MouseButton:
         """
@@ -1498,6 +1852,24 @@ class CloseHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class CollapsingHeader(uiItem):
     """
     A collapsible section header that can show or hide a group of widgets.
@@ -1516,15 +1888,48 @@ class CollapsingHeader(uiItem):
     space in complex interfaces.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - bullet: Whether to display a bullet instead of an arrow.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - closable: Whether the header displays a close button.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - leaf: Whether the header is displayed without expansion controls.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - open_on_arrow: Whether the header opens only when clicking the arrow.
+        - open_on_double_click: Whether a double-click is required to open the header.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - bullet: Whether to display a bullet instead of an arrow.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - closable: Whether the header displays a close button.
@@ -1571,24 +1976,6 @@ class CollapsingHeader(uiItem):
 
     @bullet.setter
     def bullet(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -1690,15 +2077,49 @@ class ColorButton(uiItem):
     integrate color selection into interfaces with limited space.
 
     """
-    def __init__(self, context : Context, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - alpha_preview: How transparency is displayed in the color button.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - data_type: The data type used for color representation.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_alpha: Whether to ignore the Alpha component of the color.
+        - no_border: Whether to disable the default border around the color button.
+        - no_drag_drop: Whether to disable drag and drop functionality for the button.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_tooltip: Whether to disable the default tooltip when hovering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - alpha_preview: How transparency is displayed in the color button.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - data_type: The data type used for color representation.
@@ -1747,24 +2168,6 @@ class ColorButton(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, value : str):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -1882,7 +2285,7 @@ class ColorEdit(uiItem):
     drag-and-drop functionality for transferring colors between compatible widgets.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], hdr : bool = False, height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], hdr : bool = False, height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1890,8 +2293,50 @@ class ColorEdit(uiItem):
         - alpha_preview: How transparency is displayed in the color button.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - data_type: The data type used for color representation.
+        - display_mode: The color display format for the input fields.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - hdr: Whether to support HDR (High Dynamic Range) colors.
+        - height: Requested height for the item.
+        - input_mode: The color input format for editing operations.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_alpha: Whether to ignore the Alpha component of the color.
+        - no_drag_drop: Whether to disable drag and drop functionality.
+        - no_inputs: Whether to hide the input sliders and text fields.
+        - no_label: Whether to hide the text label next to the color editor.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_options: Whether to disable the right-click options menu.
+        - no_picker: Whether to disable the color picker popup when clicking the color square.
+        - no_small_preview: Whether to hide the color square preview next to the inputs.
+        - no_tooltip: Whether to disable the tooltip when hovering the preview.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], hdr : bool = False, height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - alpha_bar: Whether to show a vertical alpha bar/gradient.
+        - alpha_preview: How transparency is displayed in the color button.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - data_type: The data type used for color representation.
@@ -1966,24 +2411,6 @@ class ColorEdit(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, value : str):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -2241,7 +2668,7 @@ class ColorPicker(uiItem):
     value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2249,8 +2676,48 @@ class ColorPicker(uiItem):
         - alpha_preview: How transparency is displayed in the color button.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - data_type: The data type used for color representation.
+        - display_mode: The color display format for the input fields.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - input_mode: The color input format for editing operations.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_alpha: Whether to ignore the Alpha component of the color.
+        - no_inputs: Whether to hide the input sliders and text fields.
+        - no_label: Whether to hide the text label next to the color picker.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_side_preview: Whether to disable the large color preview on the picker's side.
+        - no_small_preview: Whether to hide the color square preview next to the inputs.
+        - no_tooltip: Whether to disable the tooltip when hovering the preview.
+        - parent: Parent of the item in the rendering tree.
+        - picker_mode: The visual style of the color picker control.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - alpha_bar: Whether to show a vertical alpha bar/gradient.
+        - alpha_preview: How transparency is displayed in the color button.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - data_type: The data type used for color representation.
@@ -2323,24 +2790,6 @@ class ColorPicker(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, value : str):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -2560,14 +3009,13 @@ class Combo(uiItem):
     to the currently selected item in the dropdown list.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -2598,21 +3046,38 @@ class Combo(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - fit_width: Makes the combo resize to fit the width of its content.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - height_mode: Controls the height of the dropdown portion of the combo.
+        - items: List of text values to select from in the combo dropdown.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_arrow_button: Hides the dropdown arrow button on the combo widget.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_preview: Disables the preview of the selected item in the combo button.
+        - parent: Parent of the item in the rendering tree.
+        - popup_align_left: Aligns the dropdown popup with the left edge of the combo button.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -2765,6 +3230,24 @@ class ConditionalHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class ContentResizeHandler(baseHandler):
     """
     Handler for item containers (windows, etc)
@@ -2779,6 +3262,24 @@ class ContentResizeHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -3267,6 +3768,24 @@ class CustomHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class DPGCallback(Callback):
     """
     Used to run callbacks created for DPG.
@@ -3307,6 +3826,24 @@ class DeactivatedAfterEditHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class DeactivatedHandler(baseHandler):
     """
     Handler for when an active item loses activation.
@@ -3330,6 +3867,24 @@ class DeactivatedHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class DoubleClickedHandler(baseHandler):
     """
     Handler for when a hovered item is double clicked on.
@@ -3341,6 +3896,24 @@ class DoubleClickedHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -3377,6 +3950,24 @@ class DraggedHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -3427,6 +4018,24 @@ class DraggingHandler(baseHandler):
         ...
 
 
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def button(self) -> MouseButton:
         ...
@@ -3455,6 +4064,33 @@ class DrawArc(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - center: Center point of the arc in coordinate space.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the arc outline.
+        - end_angle: Ending angle of the arc in radians.
+        - fill: Fill color of the arc.
+        - inner_radius: X and Y radii of the inner arc.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - radius: X and Y radii of the arc.
+        - rotation: Rotation of the entire arc around its center in radians.
+        - segments: Number of segments used to approximate the external
+        - show: Should the object be drawn/shown ?
+        - start_angle: Starting angle of the arc in radians.
+        - thickness: Line thickness of the arc outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - center: Center point of the arc in coordinate space.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the arc outline.
@@ -3708,6 +4344,28 @@ class DrawArrow(drawingItem):
         ...
 
 
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the arrow.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: End point coordinates of the arrow (where the arrowhead is drawn).
+        - p2: Start point coordinates of the arrow (the tail end).
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - size: Size of the arrow head.
+        - thickness: Line thickness of the arrow.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def color(self) -> Color:
         """
@@ -3825,6 +4483,30 @@ class DrawBezierCubic(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the Bezier curve.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: First control point coordinates of the Bezier curve.
+        - p2: Second control point coordinates of the Bezier curve.
+        - p3: Third control point coordinates of the Bezier curve.
+        - p4: Fourth control point coordinates of the Bezier curve.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - segments: Number of line segments used to approximate the Bezier curve.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the Bezier curve.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the Bezier curve.
         - next_sibling: Child of the parent rendered just after this item.
@@ -4012,6 +4694,29 @@ class DrawBezierQuadratic(drawingItem):
         ...
 
 
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the Bezier curve.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: First control point coordinates of the Bezier curve.
+        - p2: Second control point coordinates of the Bezier curve.
+        - p3: Third control point coordinates of the Bezier curve.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - segments: Number of line segments used to approximate the Bezier curve.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the Bezier curve.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def color(self) -> Color:
         """
@@ -4149,6 +4854,29 @@ class DrawCircle(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - center: Center point of the circle in coordinate space.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the circle outline.
+        - fill: Fill color of the circle.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - radius: Radius of the circle.
+        - segments: Number of line segments used to approximate the circle.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the circle outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - center: Center point of the circle in coordinate space.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the circle outline.
@@ -4328,6 +5056,29 @@ class DrawEllipse(drawingItem):
         ...
 
 
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the drawing outline.
+        - fill: Fill color of the drawing.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - pmax: Bottom-right corner position of the drawing in coordinate space.
+        - pmin: Top-left corner position of the drawing in coordinate space.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - segments: Number of segments used to approximate the ellipse.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the drawing outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def color(self) -> Color:
         """
@@ -4468,6 +5219,41 @@ class DrawImage(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - center: Center point of the image in coordinate space.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color_multiplier: Color tint applied to the image.
+        - direction: Rotation angle of the image in radians.
+        - height: Height of the image.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: Top-left corner of the image in coordinate space.
+        - p2: Top-right corner of the image in coordinate space.
+        - p3: Bottom-right corner of the image in coordinate space.
+        - p4: Bottom-left corner of the image in coordinate space.
+        - parent: Parent of the item in the rendering tree.
+        - pmax: Bottom-right corner position of the image in coordinate space.
+        - pmin: Top-left corner position of the image in coordinate space.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - rounding: Radius of corner rounding applied to the image.
+        - show: Should the object be drawn/shown ?
+        - texture: The image content to be displayed.
+        - user_data: User data of any type.
+        - uv1: Texture coordinate for the top-left corner (p1).
+        - uv2: Texture coordinate for the top-right corner (p2).
+        - uv3: Texture coordinate for the bottom-right corner (p3).
+        - uv4: Texture coordinate for the bottom-left corner (p4).
+        - uv_max: Texture coordinate for the bottom-right corner of the image.
+        - uv_min: Texture coordinate for the top-left corner of the image.
+        - width: Width of the image.
+        """
+        ...
+
+
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float | str | baseSizing = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float | str | baseSizing = 0.0):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - center: Center point of the image in coordinate space.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color_multiplier: Color tint applied to the image.
@@ -4871,6 +5657,31 @@ class DrawInPlot(plotElementWithLegend):
         ...
 
 
+    def configure(self, axes : tuple = (0, 3), children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = True, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether this element should be excluded when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def ignore_fit(self) -> bool:
         """
@@ -4916,15 +5727,52 @@ class DrawInWindow(uiItem):
     maintained and thus do not have a callback.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - button: Controls if the entire DrawInWindow area behaves like a single button.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - frame: Controls whether the item has a visual frame.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - invert_y: Controls the direction of the Y coordinate axis.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_global_scaling: Disables the global dpi scale.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - orig_x: The starting X coordinate inside the item (top-left).
+        - orig_y: The starting Y coordinate inside the item (top-left).
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - relative: Determines if scaling is relative to the item's dimensions.
+        - scale_x: The X scaling factor for items inside the drawing area.
+        - scale_y: The Y scaling factor for items inside the drawing area.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - button: Controls if the entire DrawInWindow area behaves like a single button.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -4972,24 +5820,6 @@ class DrawInWindow(uiItem):
 
     @button.setter
     def button(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -5193,6 +6023,30 @@ class DrawInvisibleButton(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: Mouse button mask that makes the invisible button
+        - capture_mouse: Writable attribute: If set, the item will
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - handlers: Writable attribute: bound handlers for the item.
+        - max_side: If the rectangle width or height after
+        - min_side: If the rectangle width or height after
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_input: Writable attribute: If enabled, this item will not
+        - p1: Corner of the invisible button in plot/drawing
+        - p2: Opposite corner of the invisible button in plot/drawing
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, button : MouseButtonMask = 7, capture_mouse : bool = True, children : Sequence[drawingItemSubCls] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - button: Mouse button mask that makes the invisible button
         - capture_mouse: Writable attribute: If set, the item will
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -5415,6 +6269,30 @@ class DrawLine(drawingItem):
         ...
 
 
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - center: Center point of the line segment.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the line.
+        - direction: Angle of the line segment in radians.
+        - length: Length of the line segment.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: First endpoint of the line segment.
+        - p2: Second endpoint of the line segment.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the line.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness in pixels.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def center(self) -> Coord:
         """
@@ -5586,6 +6464,28 @@ class DrawPolygon(drawingItem):
         ...
 
 
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the polygon outline.
+        - fill: Fill color of the polygon.
+        - hull: Whether to draw the convex hull instead of the exact polygon shape.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - points: List of vertex positions defining the shape.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the polygon outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def color(self) -> Color:
         """
@@ -5722,6 +6622,27 @@ class DrawPolyline(drawingItem):
         ...
 
 
+    def configure(self, children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - closed: Whether the polyline forms a closed shape.
+        - color: Color of the polyline.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the lines.
+        - points: List of vertex positions defining the shape.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the polyline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def closed(self) -> bool:
         """
@@ -5829,6 +6750,30 @@ class DrawQuad(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the quadrilateral outline.
+        - fill: Fill color of the quadrilateral.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: First vertex position of the quadrilateral.
+        - p2: Second vertex position of the quadrilateral.
+        - p3: Third vertex position of the quadrilateral.
+        - p4:
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the quadrilateral outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the quadrilateral outline.
         - fill: Fill color of the quadrilateral.
@@ -6000,6 +6945,33 @@ class DrawRect(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the rectangle outline.
+        - fill: Solid fill color of the rectangle.
+        - fill_p1: Fill color at the top-left corner (p1) for gradient fills.
+        - fill_p2: Fill color at the top-right corner (p2) for gradient fills.
+        - fill_p3: Fill color at the bottom-right corner (p3) for gradient fills.
+        - fill_p4: Fill color at the bottom-left corner (p4) for gradient fills.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - pmax: Bottom-right corner position of the rectangle in coordinate space.
+        - pmin: Top-left corner position of the rectangle in coordinate space.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - rounding: Radius of the rectangle's rounded corners.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the rectangle outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the rectangle outline.
         - fill: Solid fill color of the rectangle.
@@ -6254,6 +7226,30 @@ class DrawRegularPolygon(drawingItem):
         ...
 
 
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - center: Coordinates of the center of the regular polygon.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the polygon outline.
+        - direction: Angle of the first vertex in radians.
+        - fill: Fill color of the polygon.
+        - next_sibling: Child of the parent rendered just after this item.
+        - num_points: Number of sides (vertices) in the regular polygon.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - radius: Radius of the regular polygon.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the polygon outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def center(self) -> Coord:
         """
@@ -6412,6 +7408,22 @@ class DrawSplitBatch(drawingItem):
         ...
 
 
+    def configure(self, children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class DrawStar(drawingItem):
     """
     Draws a star shaped polygon with n points in coordinate space.
@@ -6431,6 +7443,31 @@ class DrawStar(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - center: Coordinates of the center of the star.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the star outline.
+        - direction: Angle of the first point of the star in radians.
+        - fill: Fill color of the star.
+        - inner_radius: Radius of the inner points of the star.
+        - next_sibling: Child of the parent rendered just after this item.
+        - num_points: Number of outer points in the star.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - radius: Radius of the outer points of the star.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the star outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - center: Coordinates of the center of the star.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the star outline.
@@ -6642,6 +7679,27 @@ class DrawText(drawingItem):
         ...
 
 
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the text.
+        - font: Custom font for rendering the text.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pos: Position of the text in coordinate space.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - size: Size of the font used to render text.
+        - text: The string content to display.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def color(self) -> Color:
         """
@@ -6751,6 +7809,30 @@ class DrawTextQuad(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the text.
+        - font: Custom font for rendering the text.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: First point (top-left corner) of the quadrilateral in coordinate space.
+        - p2: Second point (top-right corner) of the quadrilateral in coordinate space.
+        - p3: Third point (bottom-right corner) of the quadrilateral in coordinate space.
+        - p4: Fourth point (bottom-left corner) of the quadrilateral in coordinate space.
+        - parent: Parent of the item in the rendering tree.
+        - preserve_ratio: Whether to maintain the text's original aspect ratio.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - text: The string content to display.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, preserve_ratio : bool = True, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the text.
         - font: Custom font for rendering the text.
@@ -6938,6 +8020,29 @@ class DrawTriangle(drawingItem):
         ...
 
 
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the triangle outline.
+        - fill: Fill color of the triangle.
+        - next_sibling: Child of the parent rendered just after this item.
+        - p1: First vertex position of the triangle.
+        - p2: Second vertex position of the triangle.
+        - p3: Third vertex position of the triangle.
+        - parent: Parent of the item in the rendering tree.
+        - pattern: Pattern of the outline.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - thickness: Line thickness of the triangle outline.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def color(self) -> Color:
         """
@@ -7079,6 +8184,28 @@ class DrawValue(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the text.
+        - font: Custom font for rendering the text.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pos: Position of the text in coordinate space.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - print_format: Format string for converting the value to a displayed string.
+        - shareable_value: The SharedValue object being displayed.
+        - show: Should the object be drawn/shown ?
+        - size: Size of the font used to render text.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", shareable_value : SharedFloat = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the text.
         - font: Custom font for rendering the text.
@@ -7262,6 +8389,27 @@ class DrawingClip(drawingItem):
         ...
 
 
+    def configure(self, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItemSubCls | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_global_scaling: Disable apply global scale to the min/max scaling.
+        - parent: Parent of the item in the rendering tree.
+        - pmax: (xmax, ymax) of the clip region
+        - pmin: (xmin, ymin) of the clip region
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scale_max: Maximum accepted coordinate scaling to screen space.
+        - scale_min: Minimum accepted coordinate scaling to screen space.
+        - show: Should the object be drawn/shown ?
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def no_global_scaling(self) -> bool:
         """
@@ -7378,6 +8526,22 @@ class DrawingList(drawingItem):
         ...
 
 
+    def configure(self, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class DrawingScale(drawingItem):
     """
     A DrawingList, with a change in origin and scaling.
@@ -7396,6 +8560,26 @@ class DrawingScale(drawingItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_global_scaling: Disables the global scale when no_parent_scaling is True.
+        - no_parent_scaling: Resets any previous scaling to screen space.
+        - origin: Position in coordinate space of the new origin for the children.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scales: Scales (tuple or value) applied to the x and y axes for the children.
+        - show: Should the object be drawn/shown ?
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - next_sibling: Child of the parent rendered just after this item.
         - no_global_scaling: Disables the global scale when no_parent_scaling is True.
@@ -7505,6 +8689,24 @@ class EditedHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class FocusHandler(baseHandler):
     """
     Handler for windows or sub-windows that is called
@@ -7519,6 +8721,24 @@ class FocusHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -7548,6 +8768,24 @@ class Font(baseFont):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_scaling: Controls whether font is affected by DPI scaling.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scale: Multiplicative factor to scale the font when used.
+        - size: Native height of characters in pixels.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_scaling : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - next_sibling: Child of the parent rendered just after this item.
         - no_scaling: Controls whether font is affected by DPI scaling.
@@ -7641,13 +8879,29 @@ class FontMultiScales(baseFont):
     allowing for dynamic font creation as needed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: Callbacks triggered when a new scale is encountered.
+        - callbacks: Callbacks triggered when a new scale is encountered.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - fonts: List of attached fonts with different scales.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callbacks: Callbacks triggered when a new scale is encountered.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - fonts: List of attached fonts with different scales.
@@ -7799,6 +9053,22 @@ class FontTexture(baseItem):
         ...
 
 
+    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, texture : Texture | None = None, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - texture: Readonly texture containing the font data.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def built(self) -> bool:
         ...
@@ -7843,6 +9113,24 @@ class GotFocusHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class GotHoverHandler(baseHandler):
     """
     Handler that calls the callback when
@@ -7855,6 +9143,24 @@ class GotHoverHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -7890,6 +9196,24 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class GotRenderHandler(baseHandler):
     """
     Same as RenderHandler, but only calls the
@@ -7903,6 +9227,24 @@ class GotRenderHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -7955,6 +9297,25 @@ class HandlerList(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - op: HandlerListOP that defines which condition
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def op(self) -> HandlerListOP:
         """
@@ -7986,15 +9347,47 @@ class HorizontalLayout(Layout):
     how items overflow when they exceed available width.
 
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - alignment_mode: Horizontal alignment mode of the items.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_wrap: Controls whether items wrap to the next row when exceeding available width.
+        - parent: Parent of the item in the rendering tree.
+        - positions: X positions for items when using MANUAL alignment mode.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - wrap_x: X position from which items start on wrapped rows.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - alignment_mode: Horizontal alignment mode of the items.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -8043,24 +9436,6 @@ class HorizontalLayout(Layout):
 
     @alignment_mode.setter
     def alignment_mode(self, value : Alignment):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -8149,6 +9524,24 @@ class HoverHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class Image(uiItem):
     """
     A widget that displays a texture image in the UI.
@@ -8171,7 +9564,7 @@ class Image(uiItem):
     affected by FramePadding (style) and FrameRounding (style).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8179,8 +9572,42 @@ class Image(uiItem):
         - background_color: Color of the background drawn behind the image.
         - before: Attach the item just before the target item. Default is None (disabled)
         - button: Whether the image behaves as a button.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color_multiplier: Color tint applied to the image texture.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_global_scaling: Disables the global dpi scale.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - texture: The texture to display in the image widget.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - uv: UV coordinates defining the region of the texture to display.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, background_color : list = [0.0, 0.0, 0.0, 0.0], button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - background_color: Color of the background drawn behind the image.
+        - button: Whether the image behaves as a button.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color_multiplier: Color tint applied to the image texture.
@@ -8248,24 +9675,6 @@ class Image(uiItem):
 
     @button.setter
     def button(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -8368,7 +9777,7 @@ class InputText(uiItem):
     area instead of a single-line field.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8376,8 +9785,7 @@ class InputText(uiItem):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - auto_select_all: Automatically selects the entire text when the field is first clicked.
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callback_on_enter: Triggers callback when Enter key is pressed, regardless of edit state.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -8418,7 +9826,7 @@ class InputText(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Configure the InputText widget with provided keyword arguments.
 
@@ -8429,8 +9837,7 @@ class InputText(uiItem):
         ----------
         - always_overwrite: Enables overwrite mode for text input.
         - auto_select_all: Automatically selects the entire text when the field is first clicked.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callback_on_enter: Triggers callback when Enter key is pressed, regardless of edit state.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -8506,24 +9913,6 @@ class InputText(uiItem):
 
     @auto_select_all.setter
     def auto_select_all(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -8836,7 +10225,7 @@ class InputValue(uiItem):
     to multi-dimensional vector editing.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -8844,8 +10233,55 @@ class InputValue(uiItem):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - auto_select_all: Automatically selects all content when the field is first focused.
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callback_on_enter: Triggers callback when Enter key is pressed.
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - decimal: Restricts input to decimal numeric characters.
+        - empty_as_zero: Treats empty input fields as zero values.
+        - empty_if_zero: Displays an empty field when the value is zero.
+        - enabled: Whether the item is interactive and fully styled.
+        - escape_clears_all: Makes Escape key clear the field's content.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - hexadecimal: Restricts input to hexadecimal characters.
+        - label: Text label displayed with or within the item.
+        - max_value: Maximum value the input will be clamped to.
+        - min_value: Minimum value the input will be clamped to.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_horizontal_scroll: Disables automatic horizontal scrolling during input.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_undo_redo: Disables the undo/redo functionality for this input field.
+        - parent: Parent of the item in the rendering tree.
+        - password: Hides the input by displaying asterisks and disables copying.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - print_format: Format string for displaying the numeric value.
+        - readonly: Makes the input field non-editable by the user.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - scientific: Restricts input to scientific notation characters.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - size: Number of components controlled by the input widget.
+        - step: Step size for incrementing/decrementing the value with buttons.
+        - step_fast: Fast step size for quick incrementing/decrementing with modifier keys.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - always_overwrite: Enables overwrite mode for text input.
+        - auto_select_all: Automatically selects all content when the field is first focused.
+        - callback: Callback to invoke when the item's value changes
         - callback_on_enter: Triggers callback when Enter key is pressed.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -8920,24 +10356,6 @@ class InputValue(uiItem):
 
     @auto_select_all.setter
     def auto_select_all(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -9277,6 +10695,25 @@ class KeyDownHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - key: The key that this handler is monitoring.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def key(self) -> Key:
         """
@@ -9309,6 +10746,26 @@ class KeyPressHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - key: The key that this handler is monitoring.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether to trigger repeatedly while a key is held down.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -9384,6 +10841,25 @@ class KeyReleaseHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - key: The key that this handler is monitoring.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def key(self) -> Key:
         """
@@ -9426,14 +10902,42 @@ class Layout(uiItem):
     set the x, y and no_newline fields of the item to their new desired values.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -9470,24 +10974,6 @@ class Layout(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
-        ...
-
-
 class ListBox(uiItem):
     """
     A scrollable list of selectable text items with single selection support.
@@ -9502,14 +10988,13 @@ class ListBox(uiItem):
     the text of the selected item.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -9536,21 +11021,34 @@ class ListBox(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - items: List of text values from which the user can select.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - num_items_shown_when_open: Number of items visible in the listbox before scrolling is required.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -9616,6 +11114,24 @@ class LostFocusHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class LostHoverHandler(baseHandler):
     """
     Handler that calls the callback the first
@@ -9641,6 +11157,24 @@ class LostHoverHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class LostMouseOverHandler(baseHandler):
     """
 Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
@@ -9652,6 +11186,24 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -9692,6 +11244,24 @@ class LostRenderHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class Menu(uiItem):
     """
 A Menu creates a menu container within a menu bar.
@@ -9703,14 +11273,13 @@ A Menu creates a menu container within a menu bar.
     Menus must be created within a MenuBar or as a child of another Menu.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -9735,21 +11304,32 @@ A Menu creates a menu container within a menu bar.
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -9771,14 +11351,13 @@ class MenuBar(uiItem):
     window, it creates a local menu bar for that window.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -9803,21 +11382,32 @@ class MenuBar(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -9835,14 +11425,13 @@ class MenuItem(uiItem):
     SharedBool value.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - check: Whether the menu item displays a checkmark.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -9869,21 +11458,34 @@ class MenuItem(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - check: Whether the menu item displays a checkmark.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - shortcut: Text displayed on the right side of the menu item as a shortcut hint.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -9953,6 +11555,25 @@ class MotionHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pos_policy: positioning policy used as reference for the motion
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def pos_policy(self) -> tuple[Positioning, Positioning]:
         """positioning policy used as reference for the motion
@@ -9995,6 +11616,26 @@ class MouseClickHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The mouse button that this handler is monitoring.
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - repeat: Whether to trigger repeatedly while a mouse button is held down.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - button: The mouse button that this handler is monitoring.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -10068,6 +11709,25 @@ class MouseCursorHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - cursor: Change the mouse cursor to one of MouseCursor,
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def cursor(self) -> MouseCursor:
         """
@@ -10101,6 +11761,25 @@ class MouseDoubleClickHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The button this handler monitors.
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - button: The button this handler monitors.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -10159,6 +11838,25 @@ class MouseDownHandler(baseHandler):
         ...
 
 
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - button: The button this handler monitors.
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def button(self) -> MouseButton:
         """
@@ -10194,6 +11892,26 @@ class MouseDragHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The button this handler monitors.
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - threshold: The movement threshold to trigger a drag.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - button: The button this handler monitors.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -10270,6 +11988,25 @@ class MouseInRect(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - rect: Rectangle to test in viewport coordinates
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def rect(self) -> Rect:
         """Rectangle to test in viewport coordinates
@@ -10300,6 +12037,24 @@ class MouseMoveHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -10347,6 +12102,24 @@ Prefer HoverHandler unless you really need to (see below)
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class MouseReleaseHandler(baseHandler):
     """
     Handler for mouse button releases.
@@ -10364,6 +12137,25 @@ class MouseReleaseHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The button this handler monitors.
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - button: The button this handler monitors.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -10426,6 +12218,25 @@ class MouseWheelHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - horizontal: Whether to look at the horizontal wheel
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def horizontal(self) -> bool:
         """
@@ -10472,6 +12283,24 @@ class OpenHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class OtherItemHandler(HandlerList):
     """
     A handler that monitors states from a different item than the one it's attached to.
@@ -10494,6 +12323,26 @@ class OtherItemHandler(HandlerList):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - op: HandlerListOP that defines which condition
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - target: Target item which state will be used
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -10568,6 +12417,25 @@ class Pattern(baseItem):
         Returns:
             Pattern: A checkerboard pattern with white stripes
 
+        """
+        ...
+
+
+    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : Texture | None = None, user_data : Any = ..., x_mode : str = "points"):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scale_factor: Scaling factor for the pattern repetition.
+        - screen_space: Whether the 'length' mode is in screen space (pixels) or coordinate space.
+        - texture: Texture to use for the pattern.
+        - user_data: User data of any type.
+        - x_mode: How to sample the x-coordinate of the texture.
         """
         ...
 
@@ -10812,6 +12680,21 @@ class PlaceHolderParent(baseItem):
         ...
 
 
+    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class Plot(uiItem):
     """
     Interactive 2D plot that displays data with customizable axes and legend.
@@ -10829,7 +12712,7 @@ class Plot(uiItem):
     and can appear in the legend.
 
     """
-    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -10841,8 +12724,61 @@ class Plot(uiItem):
         - Y3: Configuration for the tertiary Y-axis.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - crosshairs: Whether to display crosshair lines at the mouse position.
+        - enabled: Whether the item is interactive and fully styled.
+        - equal_aspects: Whether to maintain equal pixel-to-data ratio for X and Y axes.
+        - fit_button: Mouse button used to fit axes to data when double-clicked.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - legend_config: Configuration for the plot legend.
+        - menu_button: Mouse button used to open context menus.
+        - mouse_location: Position where mouse coordinates are displayed within the plot.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_frame: Whether to hide the plot's outer frame.
+        - no_inputs: Whether to disable all user interactions with the plot.
+        - no_legend: Whether to hide the plot legend.
+        - no_menus: Whether to disable context menus.
+        - no_mouse_pos: Whether to hide the mouse position text.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_title: Whether to hide the plot title.
+        - pan_button: Mouse button used for panning the plot.
+        - pan_mod: Keyboard modifier required for panning the plot.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - use_24hour_clock: Whether to use 24-hour time format.
+        - use_ISO8601: Whether to format dates according to ISO 8601.
+        - use_local_time: Whether to display time axes in local timezone.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        - zoom_mod: Keyboard modifier required for mouse wheel zooming.
+        - zoom_rate: Zooming speed when using the mouse wheel.
+        """
+        ...
+
+
+    def configure(self, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+        """
+        Parameters
+        ----------
+        - X1: Configuration for the primary X-axis.
+        - X2: Configuration for the secondary X-axis.
+        - X3: Configuration for the tertiary X-axis.
+        - Y1: Configuration for the primary Y-axis.
+        - Y2: Configuration for the secondary Y-axis.
+        - Y3: Configuration for the tertiary Y-axis.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - crosshairs: Whether to display crosshair lines at the mouse position.
@@ -11004,24 +12940,6 @@ class Plot(uiItem):
         that need to apply to multiple axes simultaneously.
 
         """
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -11402,6 +13320,31 @@ class PlotAnnotation(plotElement):
         ...
 
 
+    def configure(self, axes : tuple = (0, 3), bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - axes: The X and Y axes that the plot element is attached to.
+        - bg_color: Background color of the annotation bubble.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - clamp: Whether to ensure the annotation stays within the plot area.
+        - label: Text label for the plot element.
+        - next_sibling: Child of the parent rendered just after this item.
+        - offset: Offset in pixels from the anchor point.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - text: Text content of the annotation.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        - x: X coordinate of the annotation in plot units.
+        - y: Y coordinate of the annotation in plot units.
+        """
+        ...
+
+
     @property
     def bg_color(self) -> list:
         """
@@ -11532,6 +13475,51 @@ class PlotAxisConfig(baseItem):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - auto_fit: Whether the axis automatically fits to data every frame.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - constraint_max: Maximum allowed value for the axis maximum.
+        - constraint_min: Minimum allowed value for the axis minimum.
+        - enabled: Whether elements using this axis should be drawn.
+        - foreground_grid: Whether to draw grid lines in the foreground.
+        - handlers: Event handlers attached to this axis.
+        - invert: Whether the axis direction is inverted.
+        - keep_default_ticks: Whether to keep default ticks when using custom labels.
+        - label: Text label for the axis.
+        - labels: Custom text labels for specific tick positions.
+        - labels_coord: Coordinate positions for custom tick labels.
+        - lock_max: Whether the axis maximum value is locked when panning/zooming.
+        - lock_min: Whether the axis minimum value is locked when panning/zooming.
+        - max: Current maximum value of the axis range.
+        - min: Current minimum value of the axis range.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_gridlines: Whether to hide the grid lines.
+        - no_highlight: Whether to disable axis highlighting when hovered or selected.
+        - no_initial_fit: Whether to disable automatic fitting on the first frame.
+        - no_label: Whether to hide the axis label.
+        - no_menus: Whether to disable context menus for this axis.
+        - no_side_switch: Whether to prevent the user from switching the axis side.
+        - no_tick_labels: Whether to hide the text labels for tick marks.
+        - no_tick_marks: Whether to hide the tick marks on the axis.
+        - opposite: Whether to display ticks and labels on the opposite side of the axis.
+        - pan_stretch: Whether panning can stretch locked or constrained axes.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - restrict_fit_to_range: Whether to restrict fitting to data within the opposing axis range.
+        - scale: Current axis scale type.
+        - tick_format: Format string for displaying tick labels.
+        - user_data: User data of any type.
+        - zoom_max: Maximum allowed width of the axis range.
+        - zoom_min: Minimum allowed width of the axis range.
+        """
+        ...
+
+
+    def configure(self, auto_fit : bool = False, children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - auto_fit: Whether the axis automatically fits to data every frame.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - constraint_max: Maximum allowed value for the axis maximum.
         - constraint_min: Minimum allowed value for the axis minimum.
@@ -12186,6 +14174,37 @@ class PlotBarGroups(plotElementWithLegend):
         ...
 
 
+    def configure(self, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - group_size: Portion of the available width used for bars within each group.
+        - horizontal: Whether bars are oriented horizontally instead of vertically.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - labels: Labels for each data series.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - shift: Horizontal offset for all groups in plot units.
+        - show: Controls whether the plot element is visible.
+        - stacked: Whether bars within each group are stacked.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        - values: 2D array containing the values for each bar.
+        """
+        ...
+
+
     @property
     def group_size(self) -> float:
         """
@@ -12340,6 +14359,35 @@ class PlotBars(plotElementXY):
         ...
 
 
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - horizontal: Whether to render bars horizontally instead of vertically.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        - weight: Width of each bar in plot units.
+        """
+        ...
+
+
     @property
     def horizontal(self) -> bool:
         """
@@ -12415,6 +14463,33 @@ class PlotDigital(plotElementXY):
         ...
 
 
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class PlotErrorBars(plotElementXY):
     """
     Plots vertical or horizontal error bars for X,Y data points.
@@ -12435,6 +14510,36 @@ class PlotErrorBars(plotElementXY):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The X and Y axes that the plot element is attached to.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - horizontal: Whether error bars are oriented horizontally instead of vertically.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - negatives: Negative error values array.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - positives: Positive error values array.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Array = ..., next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, positives : Array = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether this element is currently visible in the plot.
         - font: Font used for rendering this element's text.
@@ -12533,6 +14638,38 @@ class PlotHeatmap(plotElementWithLegend):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The X and Y axes that the plot element is attached to.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - bounds_max: Top-right corner position of the heatmap in plot coordinates.
+        - bounds_min: Bottom-left corner position of the heatmap in plot coordinates.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - col_major: Whether values array is interpreted in column-major order.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - label_format: Format string for displaying cell values.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scale_max: Maximum value for color mapping.
+        - scale_min: Minimum value for color mapping.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        - values: 2D array of values to visualize in the heatmap.
+        """
+        ...
+
+
+    def configure(self, axes : tuple = (0, 3), bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence[uiItemSubCls] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - axes: The X and Y axes that the plot element is attached to.
         - bounds_max: Top-right corner position of the heatmap in plot coordinates.
         - bounds_min: Bottom-left corner position of the heatmap in plot coordinates.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -12710,6 +14847,39 @@ class PlotHistogram(plotElementX):
         - axes: The X and Y axes that the plot element is attached to.
         - bar_scale: Scale factor for bar heights.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - bins: Number of bins or automatic binning method to use.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - cumulative: Whether to display the histogram as a cumulative distribution.
+        - density: Whether to normalize counts to form a probability density.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - horizontal: Whether to render the histogram with horizontal bars.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - no_outliers: Whether to exclude values outside the specified range.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - range: Optional (min, max) range for binning.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, X : Array = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, bins : int = -1, children : Sequence[uiItemSubCls] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - axes: The X and Y axes that the plot element is attached to.
+        - bar_scale: Scale factor for bar heights.
         - bins: Number of bins or automatic binning method to use.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - cumulative: Whether to display the histogram as a cumulative distribution.
@@ -12912,6 +15082,39 @@ class PlotHistogram2D(plotElementXY):
         ...
 
 
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - density: Whether to normalize counts to form a probability density.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - no_outliers: Whether to exclude values outside the specified ranges.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - range_x: Optional (min, max) range for X-axis binning.
+        - range_y: Optional (min, max) range for Y-axis binning.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        - x_bins: Number of X-axis bins or automatic binning method to use.
+        - y_bins: Number of Y-axis bins or automatic binning method to use.
+        """
+        ...
+
+
     @property
     def density(self) -> bool:
         """
@@ -13066,6 +15269,33 @@ class PlotInfLines(plotElementX):
         ...
 
 
+    def configure(self, X : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - horizontal: Whether to draw horizontal lines instead of vertical.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def horizontal(self) -> bool:
         """
@@ -13101,6 +15331,29 @@ class PlotLegendConfig(baseItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - horizontal: Whether to arrange legend entries horizontally instead of vertically.
+        - location: Position of the legend within the plot.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_buttons: Whether legend icons can be clicked to hide/show plot items.
+        - no_highlight_axis: Whether to disable highlighting axes on legend hover.
+        - no_highlight_item: Whether to disable highlighting plot items on legend hover.
+        - no_menus: Whether to disable context menus in the legend.
+        - outside: Whether to render the legend outside the plot area.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - sorted: Whether to sort legend entries alphabetically.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : Sequence[baseItemSubCls] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItemSubCls | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, sorted : bool = False, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - horizontal: Whether to arrange legend entries horizontally instead of vertically.
         - location: Position of the legend within the plot.
@@ -13303,6 +15556,38 @@ class PlotLine(plotElementXY):
         ...
 
 
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - loop: Whether to connect the first and last points of the line.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_clip: Whether to disable clipping of markers at the plot edges.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - segments: Whether to draw disconnected line segments rather than a continuous line.
+        - shaded: Whether to fill the area between the line and the x-axis.
+        - show: Controls whether the plot element is visible.
+        - skip_nan: Whether to skip NaN values instead of breaking the line.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def loop(self) -> bool:
         """
@@ -13412,6 +15697,40 @@ class PlotPieChart(plotElementWithLegend):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The X and Y axes that the plot element is attached to.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - ignore_hidden: Whether to ignore hidden slices when drawing the pie chart.
+        - label: Text label for the plot element.
+        - label_format: Format string for slice value labels.
+        - labels: Array of labels for each pie slice.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - normalize: Whether to normalize values to always create a full circle.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - radius: Radius of pie chart in plot units.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        - values: Array of values for each pie slice.
+        - x: X coordinate of pie chart center in plot units.
+        - y: Y coordinate of pie chart center in plot units.
+        """
+        ...
+
+
+    def configure(self, angle : float = 90.0, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - angle: Starting angle for first slice in degrees.
+        - axes: The X and Y axes that the plot element is attached to.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether this element is currently visible in the plot.
         - font: Font used for rendering this element's text.
@@ -13637,6 +15956,34 @@ class PlotScatter(plotElementXY):
         ...
 
 
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_clip: Whether to prevent clipping markers at plot edges.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def no_clip(self) -> bool:
         """
@@ -13685,6 +16032,34 @@ class PlotShadedLine(plotElementXYY):
         ...
 
 
+    def configure(self, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y1: Values on the Y1 axis.
+        - Y2: Values on the Y2 axis.
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class PlotStairs(plotElementXY):
     """
     Plots a stair-step graph from X,Y data points.
@@ -13704,6 +16079,35 @@ class PlotStairs(plotElementXY):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The X and Y axes that the plot element is attached to.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - pre_step: Whether steps occur before or after each X position.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - shaded: Whether to fill the area between the stairs and the axis.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, pre_step : bool = False, previous_sibling : baseItemSubCls | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether this element is currently visible in the plot.
         - font: Font used for rendering this element's text.
@@ -13801,6 +16205,34 @@ class PlotStems(plotElementXY):
         ...
 
 
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - horizontal: Whether to render stems horizontally instead of vertically.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def horizontal(self) -> bool:
         """
@@ -13834,14 +16266,43 @@ class ProgressBar(uiItem):
     inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - overlay: Optional text to display centered in the progress bar.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -13868,24 +16329,6 @@ class ProgressBar(uiItem):
 
 
     @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
     def overlay(self) -> str:
         """
         Optional text to display centered in the progress bar.
@@ -13904,14 +16347,13 @@ class ProgressBar(uiItem):
 
 
 class RadioButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -13938,21 +16380,34 @@ class RadioButton(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - horizontal: Writable attribute: Horizontal vs vertical placement
+        - items: Writable attribute: List of text values to select
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -14015,6 +16470,24 @@ class RenderHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class ResizeHandler(baseHandler):
     """
     Handler that triggers the callback
@@ -14027,6 +16500,24 @@ class ResizeHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -14054,14 +16545,13 @@ class Selectable(uiItem):
     property.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callback_on_double_click: Controls whether the selectable responds to double-clicks.
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
@@ -14090,21 +16580,36 @@ class Selectable(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callback_on_double_click: Controls whether the selectable responds to double-clicks.
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - disable_popup_close: Controls whether clicking the selectable will close parent popup windows.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - highlighted: Controls whether the selectable appears highlighted regardless of hover state.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - span_columns: Controls whether the selectable spans all columns in a table.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -14196,14 +16701,13 @@ class Separator(uiItem):
     creating a section header. Without a label, it renders as a simple line.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -14228,21 +16732,32 @@ class Separator(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text to display centered on the separator line.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -14804,15 +17319,48 @@ class SimplePlot(uiItem):
     and modified through the value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, histogram : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, histogram : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - autoscale: Controls whether the plot automatically scales to fit the data.
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - histogram: Determines if the plot displays data as a histogram.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - overlay: Text to display as an overlay on the plot.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scale_max: The maximum value of the plot's vertical scale.
+        - scale_min: The minimum value of the plot's vertical scale.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, autoscale : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, histogram : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - autoscale: Controls whether the plot automatically scales to fit the data.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -14856,24 +17404,6 @@ class SimplePlot(uiItem):
 
     @autoscale.setter
     def autoscale(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -14962,14 +17492,13 @@ class Slider(uiItem):
     different display formats.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - drag: Whether to use a 'drag' slider rather than a regular one.
@@ -15005,21 +17534,43 @@ class Slider(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - drag: Whether to use a 'drag' slider rather than a regular one.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - keyboard_clamped: Whether the slider value should be clamped even when set via keyboard.
+        - label: Text label displayed with or within the item.
+        - logarithmic: Whether the slider should use logarithmic scaling.
+        - max_value: Maximum value the slider will be clamped to.
+        - min_value: Minimum value the slider will be clamped to.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_input: Whether to disable keyboard input for the slider.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_round: Whether to disable the rounding of values according to the print_format.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - print_format: Format string for converting the slider value to text for display.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - size: Number of components controlled by the slider.
+        - speed: The speed at which the value changes when using drag mode.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - vertical: Whether to display the slider vertically instead of horizontally.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -15239,14 +17790,13 @@ class Spacer(uiItem):
     of the precise requested size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -15271,21 +17821,32 @@ class Spacer(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -15303,14 +17864,13 @@ class Subplots(uiItem):
     order by default, but can be changed to column-major ordering as needed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - col_major: Whether to add plots in column-major order.
@@ -15345,21 +17905,42 @@ class Subplots(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - col_major: Whether to add plots in column-major order.
+        - col_ratios: Size ratios for subplot columns.
+        - cols: Number of subplot columns in the grid.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_align: Whether to disable subplot edge alignment.
+        - no_menus: Whether to disable subplot context menus.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_resize: Whether to disable subplot resize splitters.
+        - no_title: Whether to hide subplot titles.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - row_ratios: Size ratios for subplot rows.
+        - rows: Number of subplot rows in the grid.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - share_legends: Whether to share legend items across all subplots.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -15580,14 +18161,13 @@ class Tab(uiItem):
     addition to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - closable: Whether the tab displays a close button.
@@ -15617,21 +18197,37 @@ class Tab(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - closable: Whether the tab displays a close button.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - leading: Whether the tab is positioned at the left side of the tab bar.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_reorder: Whether tab reordering is disabled for this tab.
+        - no_tooltip: Whether tooltips are disabled for this tab.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - trailing: Whether the tab is positioned at the right side of the tab bar.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -15750,7 +18346,7 @@ class TabBar(uiItem):
     hidden until selected.
 
     """
-    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15758,8 +18354,45 @@ class TabBar(uiItem):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - autoselect_new_tabs: Whether newly created tabs are automatically selected.
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_close_with_middle_mouse_button: Whether closing tabs with middle mouse button is disabled.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_scrolling_button: Whether scrolling buttons are hidden when tabs exceed the visible area.
+        - no_tab_list_popup_button: Whether the popup button for the tab list is disabled.
+        - no_tooltip: Whether tooltips are disabled for all tabs in this tab bar.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - reorderable: Whether tabs can be manually dragged to reorder them.
+        - resize_to_fit: Whether tabs should resize when they don't fit the available space.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - selected_overline: Whether to draw an overline marker on the selected tab.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, allow_tab_scroll : bool = False, autoselect_new_tabs : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - allow_tab_scroll: Whether to add scroll buttons when tabs don't fit the available space.
+        - autoselect_new_tabs: Whether newly created tabs are automatically selected.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -15826,24 +18459,6 @@ class TabBar(uiItem):
 
     @autoselect_new_tabs.setter
     def autoselect_new_tabs(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -15997,14 +18612,13 @@ class TabButton(uiItem):
     using themes.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -16033,21 +18647,36 @@ class TabButton(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - leading: Positions the tab button at the left side of the tab bar.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_reorder: Prevents this tab button from being reordered or crossed over.
+        - no_tooltip: Disables the tooltip that would appear when hovering over the tab button.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - trailing: Positions the tab button at the right side of the tab bar.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -16141,14 +18770,13 @@ Table widget with advanced display and interaction capabilities.
     and behavior can be customized through column and row configurations.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float | str | baseSizing = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float | str | baseSizing = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -16184,21 +18812,39 @@ Table widget with advanced display and interaction capabilities.
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float | str | baseSizing = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - flags: Table behavior and appearance flags.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - header: Whether to display a table header row.
+        - height: Requested height for the item.
+        - inner_width: Width of the table content when horizontal scrolling is enabled.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - num_cols_frozen: Number of columns with scroll frozen.
+        - num_cols_visible: Override the number of visible columns in the table.
+        - num_rows_frozen: Number of rows with scroll frozen.
+        - num_rows_visible: Override the number of visible rows in the table.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -16317,6 +18963,41 @@ class TableColConfig(baseItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - default_sort: Whether the column is set as the default sorting column.
+        - enabled: Whether the column is currently enabled.
+        - handlers: The event handlers bound to this column.
+        - label: The text displayed in the column header.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_clip: Whether content in this column should be clipped.
+        - no_header_label: Whether to display the column header label.
+        - no_header_width: Whether to show column width when the header is hovered.
+        - no_hide: Whether the column can be hidden by the user.
+        - no_reorder: Whether the column can be reordered by the user.
+        - no_resize: Whether the column can be resized by the user.
+        - no_scaling: Whether to disable automatic DPI scaling for this column.
+        - no_sort: Whether the column can be used for sorting.
+        - no_sort_ascending: Whether sorting in ascending order is allowed.
+        - no_sort_descending: Whether sorting in descending order is allowed.
+        - parent: Parent of the item in the rendering tree.
+        - prefer_sort_ascending: Whether to use ascending order for initial sort.
+        - prefer_sort_descending: Whether to use descending order for initial sort.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Whether the column should be shown.
+        - stretch: The column's sizing behavior.
+        - stretch_weight: The weight used when stretching this column.
+        - user_data: User data of any type.
+        - width: The fixed width of the column in pixels.
+        """
+        ...
+
+
+    def configure(self, children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | baseSizing = 0.0):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - default_sort: Whether the column is set as the default sorting column.
         - enabled: Whether the column is currently enabled.
@@ -16729,6 +19410,21 @@ class TablePlaceHolderParent(baseItem):
         ...
 
 
+    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class TableRowConfig(baseItem):
     """
     Configuration for a table row.
@@ -16747,6 +19443,25 @@ class TableRowConfig(baseItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - bg_color: Background color for the entire row.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - handlers: Event handlers bound to this row.
+        - min_height: Minimum height of the row in pixels.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the row is visible.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - bg_color: Background color for the entire row.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - handlers: Event handlers bound to this row.
@@ -16844,14 +19559,13 @@ class Text(uiItem):
     selectable.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, marker : Any = ..., next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, marker : Any = ..., next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - color: Color of the text displayed by the widget.
@@ -16878,21 +19592,34 @@ class Text(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, marker : Any = ..., next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color: Color of the text displayed by the widget.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - marker: Whether to display a marker point before the text.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - wrap: Width in pixels at which to wrap the text.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -16972,14 +19699,13 @@ class TextValue(uiItem):
     to control precision, alignment, and presentation.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -17005,21 +19731,33 @@ class TextValue(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - print_format: The format string used to convert values to display text.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: The SharedValue object that provides the displayed value.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -17124,6 +19862,26 @@ class Texture(baseItem):
 
         Either uint8 or float32 must be set to True.
 
+        """
+        ...
+
+
+    def configure(self, antialiased : bool = False, children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - antialiased: Whether this texture uses mipmapping with anisotropic filtering for antialiasing.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - hint_dynamic: Hint that the texture will be updated frequently.
+        - nearest_neighbor_upsampling: Whether to use nearest neighbor interpolation when upscaling.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        - wrap_x: Whether to repeat the texture on x.
+        - wrap_y: Whether to repeat the texture on y.
         """
         ...
 
@@ -17438,6 +20196,76 @@ class ThemeColorImGui(baseThemeColor):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - border: Color of borders.
+        - border_shadow: Color of border shadows.
+        - button: Button color.
+        - button_active: Button color when active.
+        - button_hovered: Button color when hovered.
+        - check_mark: Checkmark color.
+        - child_bg: Background of child windows.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - drag_drop_target: Rectangle highlighting a drop target.
+        - enabled: Controls whether the theme is currently active.
+        - frame_bg: Background of checkbox, radio button, plot, slider, text input.
+        - frame_bg_active: Color of FrameBg when the item is active.
+        - frame_bg_hovered: Color of FrameBg when the item is hovered.
+        - header: Colors used for CollapsingHeader, TreeNode, Selectable, MenuItem.
+        - header_active: Header colors when activated/clicked.
+        - header_hovered: Header colors when hovered.
+        - menu_bar_bg: Menu bar background color.
+        - modal_window_dim_bg: Darken/colorize entire screen behind a modal window.
+        - nav_cursor: Color of keyboard/gamepad navigation cursor/rectangle, when visible.
+        - nav_windowing_dim_bg: Darken/colorize entire screen behind CTRL+TAB window list.
+        - nav_windowing_highlight: Highlight window when using CTRL+TAB.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - plot_histogram: Color of SimplePlot histogram.
+        - plot_histogram_hovered: Color of SimplePlot histogram when hovered.
+        - plot_lines: Color of SimplePlot lines.
+        - plot_lines_hovered: Color of SimplePlot lines when hovered.
+        - popup_bg: Background of popups, menus, tooltips windows.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - resize_grip: Resize grip in lower-right and lower-left corners of windows.
+        - resize_grip_active: ResizeGrip color when clicked.
+        - resize_grip_hovered: ResizeGrip color when hovered.
+        - scrollbar_bg: Scrollbar background color.
+        - scrollbar_grab: Scrollbar grab color.
+        - scrollbar_grab_active: Scrollbar grab color when active.
+        - scrollbar_grab_hovered: Scrollbar grab color when hovered.
+        - separator: Color of separating lines.
+        - separator_active: Separator color when active.
+        - separator_hovered: Separator color when hovered.
+        - slider_grab: Slider grab color.
+        - slider_grab_active: Slider grab color when active.
+        - tab: Tab background when tab-bar is focused & tab is unselected.
+        - tab_dimmed: Tab background when tab-bar is unfocused & tab is unselected.
+        - tab_dimmed_selected: Tab background when tab-bar is unfocused & tab is selected.
+        - tab_dimmed_selected_overline: Tab horizontal overline when tab-bar is unfocused & tab is selected.
+        - tab_hovered: Tab background when hovered.
+        - tab_selected: Tab background when tab-bar is focused & tab is selected.
+        - tab_selected_overline: Tab horizontal overline when tab-bar is focused & tab is selected.
+        - table_border_light: Table inner borders (prefer using Alpha=1.0 here).
+        - table_border_strong: Table outer borders and headers (prefer using Alpha=1.0 here).
+        - table_header_bg: Table header background.
+        - table_row_bg: Table row background (even rows).
+        - table_row_bg_alt: Table row background (odd rows).
+        - text: Color for text rendering.
+        - text_disabled: Color for the text of disabled items.
+        - text_link: Hyperlink color.
+        - text_selected_bg: Background color of selected text.
+        - title_bg: Title bar color.
+        - title_bg_active: Title bar color when focused.
+        - title_bg_collapsed: Title bar color when collapsed.
+        - user_data: User data of any type.
+        - window_bg: Background of normal windows.
+        """
+        ...
+
+
+    def configure(self, border : Color| None = None, border_shadow : Color| None = None, button : Color| None = None, button_active : Color| None = None, button_hovered : Color| None = None, check_mark : Color| None = None, child_bg : Color| None = None, children : None  = [], drag_drop_target : Color| None = None, enabled : bool = True, frame_bg : Color| None = None, frame_bg_active : Color| None = None, frame_bg_hovered : Color| None = None, header : Color| None = None, header_active : Color| None = None, header_hovered : Color| None = None, menu_bar_bg : Color| None = None, modal_window_dim_bg : Color| None = None, nav_cursor : Color| None = None, nav_windowing_dim_bg : Color| None = None, nav_windowing_highlight : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, plot_histogram : Color| None = None, plot_histogram_hovered : Color| None = None, plot_lines : Color| None = None, plot_lines_hovered : Color| None = None, popup_bg : Color| None = None, previous_sibling : baseItemSubCls | None = None, resize_grip : Color| None = None, resize_grip_active : Color| None = None, resize_grip_hovered : Color| None = None, scrollbar_bg : Color| None = None, scrollbar_grab : Color| None = None, scrollbar_grab_active : Color| None = None, scrollbar_grab_hovered : Color| None = None, separator : Color| None = None, separator_active : Color| None = None, separator_hovered : Color| None = None, slider_grab : Color| None = None, slider_grab_active : Color| None = None, tab : Color| None = None, tab_dimmed : Color| None = None, tab_dimmed_selected : Color| None = None, tab_dimmed_selected_overline : Color| None = None, tab_hovered : Color| None = None, tab_selected : Color| None = None, tab_selected_overline : Color| None = None, table_border_light : Color| None = None, table_border_strong : Color| None = None, table_header_bg : Color| None = None, table_row_bg : Color| None = None, table_row_bg_alt : Color| None = None, text : Color| None = None, text_disabled : Color| None = None, text_link : Color| None = None, text_selected_bg : Color| None = None, title_bg : Color| None = None, title_bg_active : Color| None = None, title_bg_collapsed : Color| None = None, user_data : Color| None = None, window_bg : Color| None = None):
+        """
+        Parameters
+        ----------
         - border: Color of borders.
         - border_shadow: Color of border shadows.
         - button: Button color.
@@ -18305,6 +21133,41 @@ class ThemeColorImPlot(baseThemeColor):
         ...
 
 
+    def configure(self, axis_bg : Color| None = None, axis_bg_active : Color| None = None, axis_bg_hovered : Color| None = None, axis_grid : Color| None = None, axis_text : Color| None = None, axis_tick : Color| None = None, children : None  = [], crosshairs : Color| None = None, enabled : bool = True, error_bar : Color| None = None, fill : Color = None, frame_bg : Color| None = None, inlay_text : Color| None = None, legend_bg : Color| None = None, legend_border : Color| None = None, legend_text : Color| None = None, line : Color| None = None, marker_fill : Color| None = None, marker_outline : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, plot_bg : Color| None = None, plot_border : Color| None = None, previous_sibling : baseItemSubCls | None = None, selection : Color| None = None, title_text : Color| None = None, user_data : Color| None = None):
+        """
+        Parameters
+        ----------
+        - axis_bg: Background color of axis hover region.
+        - axis_bg_active: Axis background color when clicked.
+        - axis_bg_hovered: Axis background color when hovered.
+        - axis_grid: Axis grid color.
+        - axis_text: Axis text labels color.
+        - axis_tick: Axis tick marks color.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - crosshairs: Crosshairs color.
+        - enabled: Controls whether the theme is currently active.
+        - error_bar: Error bar color.
+        - fill: Plot fill color.
+        - frame_bg: Plot frame background color.
+        - inlay_text: Color of text appearing inside of plots.
+        - legend_bg: Legend background color.
+        - legend_border: Legend border color.
+        - legend_text: Legend text color.
+        - line: Plot line color.
+        - marker_fill: Plot marker fill color.
+        - marker_outline: Plot marker outline color.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - plot_bg: Plot area background color.
+        - plot_border: Plot area border color.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - selection: Box-selection color.
+        - title_text: Plot title text color.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def axis_bg(self) -> Color| None:
         """Background color of axis hover region.
@@ -18612,6 +21475,20 @@ class ThemeList(baseTheme):
         ...
 
 
+    def configure(self, children : Sequence[baseThemeSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the theme is currently active.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class ThemeStyleImGui(baseThemeStyle):
     def __init__(self, context : Context, alpha : float | None = None, attach : Any = ..., before : Any = ..., button_text_align : tuple[float, float] | None = None, cell_padding : tuple[float, float] | None = None, child_border_size : float | None = None, child_rounding : float | None = None, children : None  = [], disabled_alpha : float | None = None, enabled : bool = True, frame_border_size : float | None = None, frame_padding : tuple[float, float] | None = None, frame_rounding : float | None = None, grab_min_size : float | None = None, grab_rounding : float | None = None, indent_spacing : float | None = None, item_inner_spacing : tuple[float, float] | None = None, item_spacing : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, popup_border_size : float | None = None, popup_rounding : float | None = None, previous_sibling : baseItemSubCls | None = None, scrollbar_rounding : float | None = None, scrollbar_size : float | None = None, selectable_text_align : tuple[float, float] | None = None, separator_text_align : tuple[float, float] | None = None, separator_text_border_size : float | None = None, separator_text_padding : tuple[float, float] | None = None, tab_bar_border_size : float | None = None, tab_bar_overline_size : float | None = None, tab_border_size : float | None = None, tab_rounding : float | None = None, table_angled_headers_angle : float | None = None, table_angled_headers_text_align : tuple[float, float] | None = None, user_data : tuple[float, float] | None = None, window_border_size : float | None = None, window_min_size : tuple[float, float] | None = None, window_padding : tuple[float, float] | None = None, window_rounding : float | None = None, window_title_align : tuple[float, float] | None = None):
         """
@@ -18620,6 +21497,55 @@ class ThemeStyleImGui(baseThemeStyle):
         - alpha: Global alpha applied to everything in Dear ImGui.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button_text_align: Alignment of button text when button is larger than text.
+        - cell_padding: Tables: padding between cells.
+        - child_border_size: Thickness of border around child windows. Generally set to 0.0f or 1.0f. Other values not well tested.
+        - child_rounding: Radius of child window corners rounding. Set to 0.0 to have rectangular child windows.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - disabled_alpha: Unused currently.
+        - enabled: Controls whether the theme is currently active.
+        - frame_border_size: Thickness of border around frames (most widgets). Generally set to 0.0f or 1.0f. Other values not well tested.
+        - frame_padding: Padding within a framed rectangle (used by most widgets)
+        - frame_rounding: Radius of frame corners rounding. Set to 0.0 to have rectangular frame (most widgets).
+        - grab_min_size: Minimum width/height of a grab box for slider/scrollbar.
+        - grab_rounding: Radius of grabs corners rounding. Set to 0.0f to have rectangular slider grabs.
+        - indent_spacing: Default horizontal spacing for indentations. For instance when entering a tree node.
+        - item_inner_spacing: Horizontal and vertical spacing between elements inside of a composed widget.
+        - item_spacing: Horizontal and vertical spacing between widgets/lines.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_rounding: boolean. Defaults to False.
+        - no_scaling: boolean. Defaults to False.
+        - parent: Parent of the item in the rendering tree.
+        - popup_border_size: Thickness of border around popup or tooltip windows. Generally set to 0.0f or 1.0f. Other values not well tested.
+        - popup_rounding: Radius of popup or tooltip window corners rounding. Set to 0.0 to have rectangular popup or tooltip windows.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scrollbar_rounding: Radius of grab corners rounding for scrollbar.
+        - scrollbar_size: Width of the vertical scrollbar, Height of the horizontal scrollbar
+        - selectable_text_align: Alignment of selectable text (in percentages).
+        - separator_text_align: Alignment of text within the separator in percentages.
+        - separator_text_border_size: Thickness of border in Separator() text.
+        - separator_text_padding: Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
+        - tab_bar_border_size: Thickness of tab-bar separator, which takes on the tab active color to denote focus.
+        - tab_bar_overline_size: Thickness of tab-bar overline, which highlights the selected tab-bar.
+        - tab_border_size: Thickness of borders around tabs.
+        - tab_rounding: Radius of upper corners of a tab. Set to 0.0f to have rectangular tabs.
+        - table_angled_headers_angle: Tables: Angle of angled headers (supported values range from -50 degrees to +50 degrees).
+        - table_angled_headers_text_align: Tables: Alignment (percentages) of angled headers within the cell
+        - user_data: User data of any type.
+        - window_border_size: Thickness of border around windows. Generally set to 0.0 or 1.0f. Other values not well tested.
+        - window_min_size: Minimum window size
+        - window_padding: Padding within a window.
+        - window_rounding: Radius of window corners rounding. Set to 0.0 to have rectangular windows. Large values tend to lead to variety of artifacts and are not recommended.
+        - window_title_align: Alignment for window title bar text in percentages
+        """
+        ...
+
+
+    def configure(self, alpha : float | None = None, button_text_align : tuple[float, float] | None = None, cell_padding : tuple[float, float] | None = None, child_border_size : float | None = None, child_rounding : float | None = None, children : None  = [], disabled_alpha : float | None = None, enabled : bool = True, frame_border_size : float | None = None, frame_padding : tuple[float, float] | None = None, frame_rounding : float | None = None, grab_min_size : float | None = None, grab_rounding : float | None = None, indent_spacing : float | None = None, item_inner_spacing : tuple[float, float] | None = None, item_spacing : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, popup_border_size : float | None = None, popup_rounding : float | None = None, previous_sibling : baseItemSubCls | None = None, scrollbar_rounding : float | None = None, scrollbar_size : float | None = None, selectable_text_align : tuple[float, float] | None = None, separator_text_align : tuple[float, float] | None = None, separator_text_border_size : float | None = None, separator_text_padding : tuple[float, float] | None = None, tab_bar_border_size : float | None = None, tab_bar_overline_size : float | None = None, tab_border_size : float | None = None, tab_rounding : float | None = None, table_angled_headers_angle : float | None = None, table_angled_headers_text_align : tuple[float, float] | None = None, user_data : tuple[float, float] | None = None, window_border_size : float | None = None, window_min_size : tuple[float, float] | None = None, window_padding : tuple[float, float] | None = None, window_rounding : float | None = None, window_title_align : tuple[float, float] | None = None):
+        """
+        Parameters
+        ----------
+        - alpha: Global alpha applied to everything in Dear ImGui.
         - button_text_align: Alignment of button text when button is larger than text.
         - cell_padding: Tables: padding between cells.
         - child_border_size: Thickness of border around child windows. Generally set to 0.0f or 1.0f. Other values not well tested.
@@ -19241,6 +22167,49 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
+    def configure(self, annotation_padding : tuple[float, float] | None = None, children : None  = [], digital_bit_gap : float | None = None, digital_bit_height : float | None = None, enabled : bool = True, error_bar_size : float | None = None, error_bar_weight : float | None = None, fill_alpha : float | None = None, fit_padding : tuple[float, float] | None = None, label_padding : tuple[float, float] | None = None, legend_inner_padding : tuple[float, float] | None = None, legend_padding : tuple[float, float] | None = None, legend_spacing : tuple[float, float] | None = None, line_weight : float | None = None, major_grid_size : tuple[float, float] | None = None, major_tick_len : tuple[float, float] | None = None, major_tick_size : tuple[float, float] | None = None, marker : int | None = None, marker_size : float | None = None, marker_weight : float | None = None, minor_alpha : float | None = None, minor_grid_size : tuple[float, float] | None = None, minor_tick_len : tuple[float, float] | None = None, minor_tick_size : tuple[float, float] | None = None, mouse_pos_padding : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, plot_border_size : float | None = None, plot_default_size : tuple[float, float] | None = None, plot_min_size : tuple[float, float] | None = None, plot_padding : tuple[float, float] | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+        """
+        Parameters
+        ----------
+        - annotation_padding: Text padding around annotation labels.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - digital_bit_gap: Digital channels bit padding gap in pixels.
+        - digital_bit_height: Digital channels bit height (at 1) in pixels.
+        - enabled: Controls whether the theme is currently active.
+        - error_bar_size: Error bar whisker width in pixels.
+        - error_bar_weight: Error bar whisker weight in pixels.
+        - fill_alpha: Alpha modifier applied to all plot item fills.
+        - fit_padding: Additional fit padding as a percentage of the fit extents (e.g. (0.1,0.1) adds 10% to the fit extents of X and Y).
+        - label_padding: Padding between axes labels, tick labels, and plot edge.
+        - legend_inner_padding: Legend inner padding from legend edges.
+        - legend_padding: Legend padding from plot edges.
+        - legend_spacing: Spacing between legend entries.
+        - line_weight: Plot item line weight in pixels.
+        - major_grid_size: Line thickness of major grid lines.
+        - major_tick_len: Major tick lengths for X and Y axes.
+        - major_tick_size: Line thickness of major ticks.
+        - marker: Marker specification.
+        - marker_size: Marker size in pixels (roughly the marker's "radius").
+        - marker_weight: Plot outline weight of markers in pixels.
+        - minor_alpha: Alpha multiplier applied to minor axis grid lines.
+        - minor_grid_size: Line thickness of minor grid lines.
+        - minor_tick_len: Minor tick lengths for X and Y axes.
+        - minor_tick_size: Line thickness of minor ticks.
+        - mouse_pos_padding: Padding between plot edge and interior info text.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_rounding: boolean. Defaults to False.
+        - no_scaling: boolean. Defaults to False.
+        - parent: Parent of the item in the rendering tree.
+        - plot_border_size: Thickness of border around plot area.
+        - plot_default_size: Default size used for plots
+        - plot_min_size: Minimum size plot frame can be when shrunk.
+        - plot_padding: Padding between widget frame and plot area, labels, or outside legends (i.e. main padding).
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def annotation_padding(self) -> tuple[float, float] | None:
         """
@@ -19701,14 +22670,13 @@ class TimeWatcher(uiItem):
     GPU data, etc), not to GPU rendering time.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -19733,21 +22701,32 @@ class TimeWatcher(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -19772,6 +22751,24 @@ class ToggledCloseHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -19813,6 +22810,24 @@ class ToggledOpenHandler(baseHandler):
         ...
 
 
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class Tooltip(uiItem):
     """
     A floating popup that displays additional information when hovering an item.
@@ -19830,14 +22845,13 @@ class Tooltip(uiItem):
     can be customized with properties like delay time and activity-based hiding.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - condition_from_handler: A handler that determines when the tooltip should be displayed.
@@ -19866,21 +22880,36 @@ class Tooltip(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - condition_from_handler: A handler that determines when the tooltip should be displayed.
+        - delay: Time in seconds to wait before showing the tooltip.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - hide_on_activity: Whether to hide the tooltip when the mouse moves.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - target: The UI item that triggers this tooltip when hovered.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -19992,15 +23021,50 @@ class TreeNode(uiItem):
     to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - bullet: Whether to display a bullet instead of an arrow.
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - leaf: Whether the node is displayed as a leaf with no expand/collapse control.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - open_on_arrow: Whether the node opens only when clicking the arrow.
+        - open_on_double_click: Whether a double-click is required to open the node.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - selectable: Whether the TreeNode appears selected when opened.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - span_full_width: Whether the clickable area spans the entire width of the window.
+        - span_text_width: Whether the clickable area only covers the text label.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - bullet: Whether to display a bullet instead of an arrow.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -20049,24 +23113,6 @@ class TreeNode(uiItem):
 
     @bullet.setter
     def bullet(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -20201,15 +23247,47 @@ class VerticalLayout(Layout):
     how items overflow when they exceed available height.
 
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - alignment_mode: Vertical alignment mode of the items.
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - positions: Y positions for items when using MANUAL alignment mode.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - wrap: Controls whether items wrap to the next column when exceeding available height.
+        - wrap_y: Y position from which items start on wrapped columns.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - alignment_mode: Vertical alignment mode of the items.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -20329,7 +23407,7 @@ class Viewport(baseItem):
     It is decorated by the operating system and can be minimized/maximized/made fullscreen.
 
     """
-    def __init__(self, context : Context, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Parameters
         ----------
@@ -20347,6 +23425,56 @@ class Viewport(baseItem):
         - fullscreen: Whether the viewport is currently in fullscreen mode.
         - handlers: Event handlers attached to the viewport.
         - height: DPI invariant height of the viewport window.
+        - hit_test_surface: Define custom window hit regions for borderless windows using a 2D array.
+        - icon: Set the window icon from one or more images.
+        - max_height: Maximum height the viewport window can be resized to.
+        - max_width: Maximum width the viewport window can be resized to.
+        - maximized: Whether the viewport is currently maximized.
+        - min_height: Minimum height the viewport window can be resized to.
+        - min_width: Minimum width the viewport window can be resized to.
+        - minimized: Whether the viewport is currently minimized.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - pixel_height: Actual height of the viewport in pixels.
+        - pixel_width: Actual width of the viewport in pixels.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - resizable: Whether the viewport window can be resized by the user.
+        - resize_callback: Callback to be issued when the viewport is resized.
+        - retrieve_framebuffer: Whether to activate the framebuffer retrieval.
+        - scale: Multiplicative scale applied on top of the system DPI scaling.
+        - theme: Global theme applied to all elements within the viewport.
+        - title: Text displayed in the viewport window's title bar.
+        - transparent: Whether the window is created with a back buffer allowing for transparent windows
+        - user_data: User data of any type.
+        - visible: State to control whether the viewport is associated to a window.
+        - vsync: Whether vertical synchronization is enabled.
+        - wait_for_input: Stop refreshing when no mouse/keyboard event is detected.
+        - width: DPI invariant width of the viewport window.
+        - x_pos: X position of the viewport window on the screen.
+        - y_pos: Y position of the viewport window on the screen.
+        """
+        ...
+
+
+    def configure(self, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - always_on_top: Whether the viewport window stays above other windows.
+        - always_submit_to_gpu: By default DearCyGui attemps to skip submitting to the GPU
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - clear_color: Color used to clear the viewport background.
+        - close_callback: Callback to be issued when the viewport is closed.
+        - cursor: Current mouse cursor appearance.
+        - decorated: Whether the viewport window shows OS-provided decorations.
+        - disable_close: Whether window close operations are blocked.
+        - font: Global font applied to all text within the viewport.
+        - fullscreen: Whether the viewport is currently in fullscreen mode.
+        - handlers: Event handlers attached to the viewport.
+        - height: DPI invariant height of the viewport window.
+        - hit_test_surface: Define custom window hit regions for borderless windows using a 2D array.
         - icon: Set the window icon from one or more images.
         - max_height: Maximum height the viewport window can be resized to.
         - max_width: Maximum width the viewport window can be resized to.
@@ -20381,7 +23509,7 @@ class Viewport(baseItem):
         ...
 
 
-    def initialize(self, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
+    def initialize(self, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Initialize the viewport for rendering and show it.
 
@@ -20411,6 +23539,7 @@ class Viewport(baseItem):
         - fullscreen: Whether the viewport is currently in fullscreen mode.
         - handlers: Event handlers attached to the viewport.
         - height: DPI invariant height of the viewport window.
+        - hit_test_surface: Define custom window hit regions for borderless windows using a 2D array.
         - icon: Set the window icon from one or more images.
         - max_height: Maximum height the viewport window can be resized to.
         - max_width: Maximum width the viewport window can be resized to.
@@ -20750,6 +23879,71 @@ Render one frame of the application.
 
     @height.setter
     def height(self, value : float | str | baseSizing):
+        ...
+
+
+    @property
+    def hit_test_surface(self):
+        """
+        Define custom window hit regions for borderless windows using a 2D array.
+
+        This property accepts a 2D numpy array or array-like object of uint8 values
+        that defines how mouse interactions behave across different regions of the window.
+        This is particularly useful for creating custom window borders when window.decorated=False.
+
+        The values in the array determine how each region responds to mouse interactions:
+        - 0: Normal region (default behavior, passes clicks through)
+        - 1: Top resize border
+        - 2: Left resize border
+        - 3: Top-left resize corner
+        - 4: Bottom resize border
+        - 6: Bottom-left resize corner
+        - 8: Right resize border
+        - 9: Top-right resize corner
+        - 12: Bottom-right resize corner
+        - 15: Draggable region (window can be moved by dragging)
+
+        The array is extended to cover the entire window area, where the extension
+        is performed at the center of the window, not at the edges. Thus you only
+        need to define the behaviour for the border regions, for which a small
+        surface is enough. There is no need to send a new surface if the viewport
+        is resized but the custom decorations remain the same.
+
+        Args:
+            value: A 2D array of uint8 values defining window regions
+
+        Returns:
+            None: Cannot retrieve the current hit test surface data
+
+        Setting this attribute will raise an exception if the OS does
+        not support custom hit test surfaces. All currently supported
+        platforms (Windows, macOS, Linux) support this feature.
+
+        Example:
+            # Create a resizable borderless window with no draggable area
+            border_width = 5
+            hit_test = np.zeros((2 * border_width + 1,
+                                 2 * border_width + 1), dtype=np.uint8)
+            for i in range(hit_test.shape[0]):
+                for j in range(hit_test.shape[1]):
+                    if i < border_width:  # Top border
+                        hit_test[i, j] |= 1
+                    elif i >= hit_test.shape[0] - border_width:  # Bottom border
+                        hit_test[i, j] |= 4
+                    if j < border_width:  # Left border
+                        hit_test[i, j] |= 2
+                    elif j >= hit_test.shape[1] - border_width:  # Right border
+                        hit_test[i, j] |= 8
+
+            viewport.decorated = False
+            viewport.hit_test_surface = hit_test
+
+        """
+        ...
+
+
+    @hit_test_surface.setter
+    def hit_test_surface(self, value):
         ...
 
 
@@ -21244,6 +24438,23 @@ class ViewportDrawList(drawingItem):
         ...
 
 
+    def configure(self, children : Sequence[drawingItemSubCls] = [], front : bool = True, next_sibling : baseItemSubCls | None = None, parent : Viewport | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - front: Display the drawings in front of all items (rather than behind)
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def front(self) -> bool:
         """Display the drawings in front of all items (rather than behind)
@@ -21272,7 +24483,7 @@ class Window(uiItem):
     menu bars can be attached using menubar items.
 
     """
-    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -21281,8 +24492,63 @@ class Window(uiItem):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - autosize: Makes the window automatically resize to fit its contents.
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - collapsed: Controls and reflects the collapsed state of the window.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - has_close_button: Controls whether the window displays a close button in its title bar.
+        - height: Requested height for the item.
+        - horizontal_scrollbar: Enables horizontal scrolling for content that exceeds window width.
+        - label: Text label displayed with or within the item.
+        - max_size: Sets the maximum allowed size for the window.
+        - menubar: Controls whether the window displays a menu bar.
+        - min_size: Sets the minimum allowed size for the window.
+        - modal: Makes the window a modal dialog that blocks interaction with other windows.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_background: Makes the window background transparent and removes the border.
+        - no_bring_to_front_on_focus: Prevents the window from coming to the front when focused.
+        - no_collapse: Disables collapsing the window by double-clicking the title bar.
+        - no_focus_on_appearing: Prevents the window from gaining focus when it first appears.
+        - no_keyboard_inputs: Disables keyboard input and keyboard navigation for the window.
+        - no_mouse_inputs: Disables mouse input events for the window and its contents.
+        - no_move: Prevents the window from being moved by the user.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - no_open_over_existing_popup: Prevents opening if another popup is already visible.
+        - no_resize: Disables resizing of the window by the user.
+        - no_saved_settings: Prevents the window from saving its position and size between sessions.
+        - no_scroll_with_mouse: Disables scrolling the window content with the mouse wheel.
+        - no_scrollbar: Hides the scrollbars when content overflows.
+        - no_title_bar: Hides the title bar of the window.
+        - on_close: Callback that will be triggered when the window is closed.
+        - parent: Parent of the item in the rendering tree.
+        - popup: Makes the window a popup that closes when clicking outside it.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - primary: Controls whether this window serves as the primary application window.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - unsaved_document: Displays a dot next to the window title to indicate unsaved changes.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - always_show_horizontal_scrollvar: Always displays the horizontal scrollbar even when content fits.
+        - always_show_vertical_scrollvar: Always displays the vertical scrollbar even when content fits.
+        - autosize: Makes the window automatically resize to fit its contents.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - collapsed: Controls and reflects the collapsed state of the window.
@@ -21382,24 +24648,6 @@ class Window(uiItem):
 
     @autosize.setter
     def autosize(self, value : bool):
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -21844,14 +25092,42 @@ class WindowLayout(uiItem):
     for the position and rect size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -21880,24 +25156,6 @@ class WindowLayout(uiItem):
         ...
 
 
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
-        ...
-
-
 class baseFont(baseItem):
     def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
@@ -21905,6 +25163,21 @@ class baseFont(baseItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - next_sibling: Child of the parent rendered just after this item.
         - parent: Parent of the item in the rendering tree.
@@ -21933,6 +25206,24 @@ class baseHandler(baseItem):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -22423,14 +25714,13 @@ class baseTable(uiItem):
     is done by the derived classes.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -22497,6 +25787,39 @@ class baseTable(uiItem):
     def col(self, idx):
         """
 Get a view of the specified column.
+        """
+        ...
+
+
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+        """
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - num_cols_frozen: Number of columns with scroll frozen.
+        - num_cols_visible: Override the number of visible columns in the table.
+        - num_rows_frozen: Number of rows with scroll frozen.
+        - num_rows_visible: Override the number of visible rows in the table.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Main value associated with this item.
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
         """
         ...
 
@@ -22644,24 +25967,6 @@ Sort the rows using the value in ref_col as index.
 
 
     def __enter__(self) -> baseTable:
-        ...
-
-
-    @property
-    def callback(self) -> DCGCallable | None:
-        """
-        List of callbacks to invoke when the item's value changes.
-
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
-
-        """
-        ...
-
-
-    @callback.setter
-    def callback(self, value : DCGCallable | None):
         ...
 
 
@@ -22864,6 +26169,20 @@ class baseThemeColor(baseTheme):
         ...
 
 
+    def configure(self, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
+        """
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the theme is currently active.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        """
+        ...
+
+
 class baseThemeStyle(baseTheme):
     def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
@@ -22871,6 +26190,22 @@ class baseThemeStyle(baseTheme):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the theme is currently active.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_rounding: boolean. Defaults to False.
+        - no_scaling: boolean. Defaults to False.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+        """
+        Parameters
+        ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the theme is currently active.
         - next_sibling: Child of the parent rendered just after this item.
@@ -22938,6 +26273,22 @@ class drawingItem(baseItem):
         ...
 
 
+    def configure(self, children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Should the object be drawn/shown ?
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def show(self) -> bool:
         """
@@ -22978,6 +26329,25 @@ class plotElement(baseItem):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The X and Y axes that the plot element is attached to.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - label: Text label for the plot element.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, axes : tuple = (0, 3), children : None  = [], label : str = "", next_sibling : baseItemSubCls | None = None, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - axes: The X and Y axes that the plot element is attached to.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - label: Text label for the plot element.
         - next_sibling: Child of the parent rendered just after this item.
@@ -23082,6 +26452,31 @@ class plotElementWithLegend(plotElement):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The X and Y axes that the plot element is attached to.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - axes: The X and Y axes that the plot element is attached to.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether this element is currently visible in the plot.
         - font: Font used for rendering this element's text.
@@ -23250,6 +26645,32 @@ class plotElementX(plotElementWithLegend):
         ...
 
 
+    def configure(self, X : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - axes: The X and Y axes that the plot element is attached to.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
     @property
     def X(self) -> Array:
         """
@@ -23278,6 +26699,33 @@ class plotElementXY(plotElementWithLegend):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The X and Y axes that the plot element is attached to.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y: Values on the Y axis
+        - axes: The X and Y axes that the plot element is attached to.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether this element is currently visible in the plot.
         - font: Font used for rendering this element's text.
@@ -23343,6 +26791,34 @@ class plotElementXYY(plotElementWithLegend):
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - axes: The X and Y axes that the plot element is attached to.
         - before: Attach the item just before the target item. Default is None (disabled)
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Whether this element is currently visible in the plot.
+        - font: Font used for rendering this element's text.
+        - ignore_fit: Whether to exclude this element when auto-fitting axes.
+        - label: Text label for the plot element.
+        - legend_button: Mouse button that opens this element's legend popup.
+        - legend_handlers: Event handlers attached to this element's legend entry.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_legend: Whether to hide this element from the plot legend.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Controls whether the plot element is visible.
+        - theme: Visual theme applied to the plot element.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - X: Values on the X axis.
+        - Y1: Values on the Y1 axis.
+        - Y2: Values on the Y2 axis.
+        - axes: The X and Y axes that the plot element is attached to.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether this element is currently visible in the plot.
         - font: Font used for rendering this element's text.
@@ -23477,14 +26953,13 @@ class uiItem(baseItem):
     All attributes are protected by mutexes to enable thread-safe access.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -23509,12 +26984,11 @@ class uiItem(baseItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
-        - callback: List of callbacks to invoke when the item's value changes.
-        - callback: List of callbacks to invoke when the item's value changes.
+        - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Whether the item is interactive and fully styled.
@@ -23556,11 +27030,9 @@ class uiItem(baseItem):
     @property
     def callback(self) -> DCGCallable | None:
         """
-        List of callbacks to invoke when the item's value changes.
+        Callback to invoke when the item's value changes
 
-        Callbacks are functions that receive three arguments: the item with the
-        callback, the item that triggered the change, and any additional data.
-        Multiple callbacks can be attached to track different value changes.
+        This is an alias for the callbacks property
 
         """
         ...

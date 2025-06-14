@@ -6,30 +6,30 @@ from .types import *
 from .core import *
 from .sizing import baseSizing
 
-Sender = TypeVar('Sender', baseHandler, uiItem, covariant=True)
-Target = TypeVar('Target', baseItem, covariant=True)
+SenderT = TypeVar('Sender', bound='baseItem')
+TargetT = TypeVar('Target', bound='baseItem')
 
 class DCGCallable0(Protocol):
     def __call__(self, /) -> Any:
         ...
 
-class DCGCallable1(Protocol):
+class DCGCallable1(Protocol[SenderT]):
     def __call__(self,
-                 sender : Sender,
+                 sender : SenderT,
                  /) -> Any:
         ...
 
-class DCGCallable2(Protocol):
+class DCGCallable2(Protocol[SenderT, TargetT]):
     def __call__(self,
-                 sender : Sender,
-                 target : Target,
+                 sender : SenderT,
+                 target : TargetT,
                  /) -> Any:
         ...
 
-class DCGCallable3(Protocol):
+class DCGCallable3(Protocol[SenderT, TargetT]):
     def __call__(self,
-                 sender : Sender,
-                 target : Target,
+                 sender : SenderT,
+                 target : TargetT,
                  value : Any,
                  /) -> Any:
         ...
@@ -38,25 +38,25 @@ class DCGCallable0Kw(Protocol):
     def __call__(self, /, **kwargs) -> Any:
         ...
 
-class DCGCallable1Kw(Protocol):
+class DCGCallable1Kw(Protocol[SenderT]):
     def __call__(self,
-                 sender : Sender,
+                 sender : SenderT,
                  /,
                  **kwargs : Any) -> Any:
         ...
 
-class DCGCallable2Kw(Protocol):
+class DCGCallable2Kw(Protocol[SenderT, TargetT]):
     def __call__(self,
-                 sender : Sender,
-                 target : Target,
+                 sender : SenderT,
+                 target : TargetT,
                  /,
                  **kwargs : Any) -> Any:
         ...
 
-class DCGCallable3Kw(Protocol):
+class DCGCallable3Kw(Protocol[SenderT, TargetT]):
     def __call__(self,
-                 sender : Sender,
-                 target : Target,
+                 sender : SenderT,
+                 target : TargetT,
                  value : Any,
                  /,  
                  **kwargs : Any) -> Any:

@@ -373,7 +373,7 @@ def generate_docstring_for_class(object_class, instance):
     
     for method in all_methods:
         # Skip if method is identical to parent
-        if parent_class_info and method.__name__ != "__init__" and is_method_same_as_parent(method, parent_class_info['methods'], parent_class):
+        if parent_class_info and method.__name__ not in ["__init__", "configure"] and is_method_same_as_parent(method, parent_class_info['methods'], parent_class):
             continue
             
         try:
@@ -402,11 +402,8 @@ def generate_docstring_for_class(object_class, instance):
                 params_str.append("context : Context")
                 continue
             if param.name == 'kwargs':
-                if "callbacks" in additional_properties:
-                    # alternative syntax only as param
-                    additional_properties.append("callback")
-                    docs["callback"] = docs["callbacks"]
-                    default_values["callback"] = None
+                if "callbacks" in additional_properties and "callback" in additional_properties:
+                    default_values["callback"] = None # callback is an alias for callbacks, but with different type hint
                 if not(isinstance(object_class, dcg.Viewport)) and \
                    issubclass(object_class, dcg.baseItem) and \
                    method.__name__ == "__init__":
