@@ -10,6 +10,22 @@ level3 = level2 + level1
 # Class info cache to avoid redundant extraction
 CLASS_INFO_CACHE = {}
 
+def is_cython_default_docstring(docstring: str | None) -> bool:
+    """
+    Check if a docstring matches the pattern of Cython default special methods
+    """
+    if docstring is None or len(docstring) < 2:
+        return False
+    
+    # Must be a single line
+    if '\n' in docstring:
+        return False
+
+    # Contains 'self', 'Default', 'memory'
+    if "self" in docstring or "Default" in docstring or "memory" in docstring or "Helper" in docstring:
+        return True
+    return False
+
 # New helper function to extract class properties and methods info
 def extract_class_info(object_class, instance):
     """
@@ -42,10 +58,35 @@ def extract_class_info(object_class, instance):
     properties = set()
     default_values = dict()
     docs = dict()
+
+    whitelist_special_methods = [
+        "__setitem__", "__getitem__", "__delitem__",
+        "__call__",
+        "__str__", "__repr__", "__len__",
+        "__contains__", "__iter__", "__next__",
+        "__add__", "__sub__", "__mul__",
+        "__truediv__", "__floordiv__", "__mod__",
+        "__pow__", "__lshift__", "__rshift__",
+        "__and__", "__or__", "__xor__",
+        "__lt__", "__le__", "__eq__",
+        "__ne__", "__gt__", "__ge__",
+        "__hash__", "__bool__", "__getattr__",
+        "__setattr__", "__delattr__", "__dir__",
+        "__getattribute__", "__reduce__", "__reduce_ex__",
+        "__sizeof__", "__copy__", "__deepcopy__"
+    ]
     
     for attr in sorted(attributes):
-        if attr[:2] == "__":
-            continue
+        if attr.startswith("_"):
+            if attr not in whitelist_special_methods:
+                continue
+            # We must filter out the "default" implementations
+            # that Cython provides.
+            attr_inst = getattr(object_class, attr, None)
+            doc = getattr(attr_inst, '__doc__', None)
+            if is_cython_default_docstring(doc):
+                continue
+
         attr_inst = getattr(object_class, attr, None)
         if attr_inst is not None and inspect.isbuiltin(attr_inst):
             continue
@@ -738,8 +779,96 @@ def get_pyi_for_classes(C):
         result += generate_docstring_for_class(object_class, instance)
     return "\n".join(result)
 
+def get_pyi_for_toplevel_functions(module):
+    """Generate type stubs for top-level functions in the DearCyGui module."""
+    result = []
+
+    # already handled in the imported pyi files
+    blacklist = [
+        "parse_size"
+    ]
+    
+    # Get all top-level items
+    for name in sorted(dir(module)):
+        if name in blacklist:
+            continue
+        # Skip private items and items that aren't functions
+        item = getattr(module, name)
+        
+        # Check if it's a function (callable) but not a class
+        if callable(item) and not inspect.isclass(item) and not name.startswith('_'):
+            try:
+                # Get signature
+                sig = inspect.signature(item)
+                
+                # Build function definition with parameters
+                params = []
+                for param_name, param in sig.parameters.items():
+                    type_hint = f": {param.annotation}" if param.annotation != inspect.Parameter.empty else ""
+                    if name.startswith("color_") and param_name == "val":
+                        type_hint = ": Color"
+                    default = f" = {param.default}" if param.default != inspect.Parameter.empty else ""
+                    
+                    if param.kind == inspect.Parameter.VAR_POSITIONAL:
+                        params.append(f"*{param_name}{type_hint}")
+                    elif param.kind == inspect.Parameter.VAR_KEYWORD:
+                        params.append(f"**{param_name}{type_hint}")
+                    else:
+                        params.append(f"{param_name}{type_hint}{default}")
+                
+                # Return type annotation
+                return_annotation = f" -> {sig.return_annotation}" if sig.return_annotation != inspect.Parameter.empty else ""
+                
+                # Build the full function definition
+                func_def = f"def {name}({', '.join(params)}){return_annotation}:"
+                
+                # Add docstring if available
+                docstring = remove_jumps_start_and_end(getattr(item, '__doc__', None))
+                if docstring:
+                    result.extend([
+                        func_def,
+                        '    """',
+                        docstring,
+                        '    """',
+                        "    ...",
+                        "\n"
+                    ])
+                else:
+                    result.extend([
+                        func_def,
+                        "    ...",
+                        "\n"
+                    ])
+            except Exception as e:
+                # If we can't process the function, add a placeholder
+                result.extend([
+                    f"def {name}(*args, **kwargs): # Error: {str(e)}",
+                    "    ...",
+                    "\n"
+                ])
+    
+    return "\n".join(result)
+
 with open("../dearcygui/core.pyi", "w") as f:
     with open("custom.pyi", "r") as f2:
         f.write(f2.read())
     f.write("\n")
+    with open("types.pyi", "r") as f2:
+        f.write(f2.read())
+    f.write("\n")
+    with open("state.pyi", "r") as f2:
+        f.write(f2.read())
+    f.write("\n")
+    with open("sizing.pyi", "r") as f2:
+        f.write(f2.read())
+    f.write("\n")
+    with open("font.pyi", "r") as f2:
+        f.write(f2.read())
+    f.write("\n")
+    with open("table.pyi", "r") as f2:
+        f.write(f2.read())
+    f.write("\n")
     f.write(get_pyi_for_classes(dcg.Context()))
+    f.write("\n")
+    # Add toplevel functions
+    f.write(get_pyi_for_toplevel_functions(dcg))

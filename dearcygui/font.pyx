@@ -68,7 +68,7 @@ import freetype
 import freetype.raw
 import os
 
-def get_system_fonts():
+def get_system_fonts() -> list[str]:
     """
     Returns a list of available fonts
     """
@@ -1403,7 +1403,11 @@ a_italic = ord("\U0001D44E")
 A_bitalic = ord("\U0001D468")
 a_bitalic = ord("\U0001D482")
 
-def make_chr_italic(c):
+def make_chr_italic(c: str) -> str:
+    """
+    Convert a single character to its italic version
+    using the mathematical italic character encodings.
+    """
     code = ord(c)
     if code >= A_int and code <= Z_int:
         code = code - A_int + A_italic
@@ -1411,7 +1415,11 @@ def make_chr_italic(c):
         code = code - a_int + a_italic
     return chr(code)
 
-def make_chr_bold(c):
+def make_chr_bold(c: str) -> str:
+    """
+    Convert a single character to its bold version
+    using the mathematical bold character encodings.
+    """
     code = ord(c)
     if code >= A_int and code <= Z_int:
         code = code - A_int + A_bold
@@ -1419,7 +1427,11 @@ def make_chr_bold(c):
         code = code - a_int + a_bold
     return chr(code)
 
-def make_chr_bold_italic(c):
+def make_chr_bold_italic(c: str) -> str:
+    """
+    Convert a single character to its bold-italic version
+    using the mathematical bold-italic character encodings.
+    """
     code = ord(c)
     if code >= A_int and code <= Z_int:
         code = code - A_int + A_bitalic
@@ -1427,7 +1439,7 @@ def make_chr_bold_italic(c):
         code = code - a_int + a_bitalic
     return chr(code)
 
-def make_italic(text):
+def make_italic(text: str) -> str:
     """
     Helper to convert a string into
     its italic version using the mathematical
@@ -1435,7 +1447,7 @@ def make_italic(text):
     """
     return "".join([make_chr_italic(c) for c in text])
 
-def make_bold(text):
+def make_bold(text: str) -> str:
     """
     Helper to convert a string into
     its bold version using the mathematical
@@ -1443,7 +1455,7 @@ def make_bold(text):
     """
     return "".join([make_chr_bold(c) for c in text])
 
-def make_bold_italic(text):
+def make_bold_italic(text: str) -> str:
     """
     Helper to convert a string into
     its bold-italic version using the mathematical
@@ -1458,7 +1470,7 @@ def make_extended_latin_font(size: int,
                              italic_font_path: str = None, 
                              bold_font_path: str = None,
                              bold_italic_path: str = None,
-                             **kwargs):
+                             **kwargs) -> GlyphSet:
     """Create an extended latin font with bold/italic variants for the target size"""
 
     # Use default font paths if not specified

@@ -2611,7 +2611,7 @@ cdef object _search_theme_hierarchy(baseTheme theme, str name, type target_class
     return None
 
 
-def resolve_theme(baseItem item, type target_class, str name):
+def resolve_theme(item: baseItem, target_class: type, name: str) -> object:
     """
     Function that given a baseItem, a style/color name, and a target style or color class,
     resolves the theme value that is applied for this item. If it is not found for any parent,

@@ -790,6 +790,10 @@ cdef class baseTable(uiItem):
             (<uiItem>element.tooltip_ui_item).attach_to_parent(self)
 
     def __setitem__(self, key, value):
+        """
+        Set items at specific target
+        """
+
         if PySequence_Check(key) == 0 or len(key) != 2:
             raise ValueError("index must be of length 2")
         cdef int32_t row, col
