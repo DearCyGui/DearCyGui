@@ -55,7 +55,7 @@ def extract_class_info(object_class, instance):
         is_accessible = False
         is_writable = False
         is_property = inspect.isdatadescriptor(attr_inst)
-        is_class_method = inspect.ismethoddescriptor(attr_inst)
+        is_class_method = inspect.ismethoddescriptor(attr_inst) or callable(attr_inst)
         try:
             if instance is None:
                 raise ValueError
@@ -129,7 +129,7 @@ def is_method_same_as_parent(method, parent_methods, parent_class):
         
     return True
 
-def is_property_same_as_parent(prop_name, class_info, parent_class_info):
+def is_property_same_as_parent(prop_name, class_info, parent_class_info, object_class, parent_class, instance, parent_instance):
     """Check if property is identical to parent class property"""
     parent_properties = parent_class_info['properties']
     if prop_name not in parent_properties:
@@ -148,8 +148,62 @@ def is_property_same_as_parent(prop_name, class_info, parent_class_info):
     
     if docs != parent_docs:
         return False
+
+    # Compare types
+    try:
+        child_value = class_info['default_values'].get(prop_name)
+        parent_value = parent_class_info['default_values'].get(prop_name)
         
+        child_type = typename(object_class, instance, prop_name, child_value)
+        parent_type = typename(parent_class, parent_instance, prop_name, parent_value)
+        
+        if child_type != parent_type:
+            return False
+    except Exception as e:
+        # If we can't determine types, default to including the property
+        return False
+
     return True
+
+def is_staticmethod(cls, method_name):
+    """Check if a method is a staticmethod."""
+    # Get the method descriptor from the class
+    method = getattr(cls, method_name, None)
+    if method is None:
+        return False
+    
+    # Direct check for staticmethod
+    if isinstance(method, staticmethod):
+        return True
+    
+    # For Cython extension methods, use signature inspection
+    sig = inspect.signature(method)
+    # Static methods don't have 'self' or 'cls' as first parameter
+    params = list(sig.parameters.values())
+    if len(params) == 0 or (params[0].name != 'self' and params[0].name != 'cls'):
+        return True
+    return False
+
+def is_classmethod(cls, method_name):
+    """Check if a method is a classmethod."""
+    # Get the method descriptor from the class
+    method = getattr(cls, method_name, None)
+    if method is None:
+        return False
+    
+    # Direct check for classmethod
+    if isinstance(method, classmethod):
+        return True
+    
+    # For Cython extension methods, use signature inspection
+    sig = inspect.signature(method)
+    # Class methods typically have 'cls' as first parameter
+    params = list(sig.parameters.values())
+    if len(params) > 0 and params[0].name == 'cls':
+        return True
+    
+    return False
+
 
 def remove_jumps_start_and_end(s : str | None):
     if s is None:
@@ -273,15 +327,59 @@ def typename(object_class, instance, name, value):
             return "uiItemSubCls | plotElementSubCls | None"
         if issubclass(object_class, dcg.plotElement):
             return "PlotSubCls | None"
-        if issubclass(object_class, dcg.baseTheme):
-            return "baseHandlerSubCls | None"
         if issubclass(object_class, dcg.baseHandler):
+            return "baseHandlerSubCls | None"
+        if issubclass(object_class, dcg.baseTheme):
             return "baseThemeSubCls | None"
 
     if issubclass(object_class, dcg.plotElement) and type(value).__name__ == "_memoryviewslice":
         return "Array"
 
+    if name == "shareable_value":
+        if issubclass(object_class, dcg.InputValue) or \
+           issubclass(object_class, dcg.Slider):
+            return "SharedFloat | SharedFloat4" # these accept two choices
+        if issubclass(object_class, dcg.DrawValue) or issubclass(object_class, dcg.TextValue):
+            return "SharedValue"
+
+    if name.startswith("uv") and isinstance(value, list) and len(value) == 2:
+        return "Sequence[float] | tuple[float, float]"
+
+    if name == "value":
+        if issubclass(object_class, dcg.SharedColor) or \
+           issubclass(object_class, dcg.ColorPicker) or \
+           issubclass(object_class, dcg.ColorEdit) or \
+           issubclass(object_class, dcg.ColorButton):
+                return "Color"
+        if issubclass(object_class, dcg.InputValue) or \
+           issubclass(object_class, dcg.Slider):
+            return "float | int | Sequence[float] | Sequence[int]"
+
+    if name == "items" and issubclass(object_class, dcg.uiItem):
+        return "Sequence[str]"
+
+    if name == "positions" and issubclass(object_class, dcg.Layout):
+        return "Sequence[int] | Sequence[float]"
+
+    if name == "handlers":
+        return "Sequence[baseHandlerSubCls] | baseHandlerSubCls | None"
+
     default = None if value is None else type(value).__name__
+    if isinstance(value, list):
+        # if list is accepted, a sequence is accepted
+        if len(value) == 0:
+            default = "Sequence[Any]"
+        else:
+            if isinstance(value[0], str):
+                default = "Sequence[str]"
+            elif isinstance(value[0], int):
+                default = "Sequence[int]"
+            elif isinstance(value[0], float):
+                default = "Sequence[float]"
+            #elif isinstance(value[0], dcg.Coord):
+            #    default = "Sequence[float] | tuple[float, float] | Coord"
+            else:
+                default = "Sequence[Any]"
     default = hardcoded.get(name, default)
     if issubclass(object_class, dcg.baseTheme) and default is None:
         if issubclass(object_class, dcg.baseThemeColor):
@@ -309,6 +407,9 @@ def typename(object_class, instance, name, value):
                 pass
     if isinstance(value, dcg.Coord):
         return "Sequence[float] | tuple[float, float] | Coord"
+    if issubclass(object_class, dcg.Texture):
+        if name == "width" or name == "height":
+            return "int"
 
     return default
 
@@ -384,11 +485,25 @@ def generate_docstring_for_class(object_class, instance):
         additional_properties = copy.deepcopy(properties)
         additional_properties = [p for p in additional_properties if p not in read_only_properties]
         call_str = level1 + "def " + method.__name__ + "("
+        # Check for special decorations (staticmethod, classmethod)
+        if is_staticmethod(object_class, method.__name__):
+            call_str = level1 + "@staticmethod\n" + call_str
+        elif is_classmethod(object_class, method.__name__):
+            call_str = level1 + "@classmethod\n" + call_str
+
         params_str = []
+        params_str_kw = []
         kwargs_docs = []
         for (_, param) in call_sig.parameters.items():
             if method.__name__ not in ["__init__", "configure", "initialize"]:
-                params_str.append(str(param))
+                type_hint = f" : {param.annotation}" if param.annotation != inspect.Parameter.empty else ""
+                value = f" = {param.default}" if param.default != inspect.Parameter.empty else ""
+                param_str = f"{param.name}{type_hint}{value}"
+                if param.kind == inspect.Parameter.VAR_POSITIONAL:
+                    param_str = f"*{param_str}"
+                elif param.kind == inspect.Parameter.VAR_KEYWORD:
+                    param_str = f"**{param_str}"
+                params_str.append(param_str)
                 continue
             try:
                 additional_properties.remove(param.name) 
@@ -434,11 +549,14 @@ def generate_docstring_for_class(object_class, instance):
                     elif isinstance(v, str):
                         v = f'"{v}"'
                     if issubclass(object_class, dcg.SharedValue) and method.__name__ == "__init__":
-                        params_str.append(f"{prop} : {v_type}")
+                        params_str_kw.append(f"{prop} : {v_type}")
                     else:
-                        params_str.append(f"{prop} : {v_type} = {v}")
+                        params_str_kw.append(f"{prop} : {v_type} = {v}")
             else:
                 params_str.append(str(param))
+        if len(params_str_kw) > 0:
+            # kwargs parameters are keyword-only
+            params_str = params_str + ["/"] + params_str_kw
         call_str += ", ".join(params_str) + ')'
         if call_sig.return_annotation == inspect.Signature.empty:
             call_str += ':'
@@ -467,6 +585,7 @@ def generate_docstring_for_class(object_class, instance):
     # Only include __enter__ and __exit__ if they're not identical to parent class
     if hasattr(object_class, "__enter__"):
         include_enter = True
+
         if parent_class_info and hasattr(parent_class, "__enter__"):
             # Simple check - assume identical implementation if both have it
             # Could be improved with more detailed comparison if needed
@@ -476,7 +595,7 @@ def generate_docstring_for_class(object_class, instance):
                 include_enter = False
         
         if include_enter:        
-            result.append(f"{level1}def __enter__(self) -> {object_class.__name__}:")
+            result.append(f"{level1}def __enter__(self) -> Self")  #{object_class.__name__}:")
             result.append(f"{level2}...")
             result.append("\n")
 
@@ -490,14 +609,16 @@ def generate_docstring_for_class(object_class, instance):
                 include_exit = False
         
         if include_exit:
-            result.append(f"{level1}def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:")
+            result.append(f"{level1}def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> False:")
             result.append(f"{level2}...")
             result.append("\n")
 
     # Process properties
     for property in sorted(properties):
         # Skip if property is identical to parent
-        if parent_class_info and is_property_same_as_parent(property, class_info, parent_class_info):
+        if parent_class_info and is_property_same_as_parent(
+            property, class_info, parent_class_info,
+            object_class, parent_class, instance, parent_instance):
             continue
             
         result.append(level1 + "@property")
@@ -511,6 +632,21 @@ def generate_docstring_for_class(object_class, instance):
             if isinstance(default_value, dcg.Coord):
                 # property read is always Coord 
                 tname_read = "Coord"
+            elif isinstance(default_value, dcg.baseSizing):
+                # property read is always baseSizing
+                tname_read = "baseSizing"
+            elif property == "handlers":
+                # handlers is always list of baseHandlerSubCls
+                tname_read = "list[baseHandlerSubCls]"
+            elif property == "children":
+                # replace Sequence with list
+                tname_read = tname.replace("Sequence[", "list[")
+            elif property == "callbacks" or property == "callback":
+                # callbacks is always list of DCGCallable
+                tname_read = "list[DCGCallable]"
+            elif property.startswith("uv") and isinstance(default_value, list) and len(default_value) == 2:
+                # uv properties are always list of float
+                tname_read = "list[float]"
 
             result.append(f"{level1}{definition} -> {tname_read}:")
         docstring = docs[property]

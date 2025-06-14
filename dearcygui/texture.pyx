@@ -653,7 +653,7 @@ cdef tuple _create_pattern_key(str pattern_type, dict params):
     return (pattern_type,) + tuple(param_items)
 
 # Function to check if a pattern exists in the cache
-cdef object _get_pattern_from_cache(context, str pattern_type, dict params):
+cdef object _get_pattern_from_cache(Context context, str pattern_type, dict params):
     # Initialize cache for this context if needed
     if context not in _pattern_cache:
         _pattern_cache[context] = WeakValueDictionary()
@@ -672,7 +672,7 @@ cdef object _get_pattern_from_cache(context, str pattern_type, dict params):
     return None
 
 # Function to store a pattern in the cache
-cdef object _store_pattern_in_cache(context, str pattern_type, dict params, pattern):
+cdef object _store_pattern_in_cache(Context context, str pattern_type, dict params, pattern):
     # Initialize cache for this context if needed
     if context not in _pattern_cache:
         _pattern_cache[context] = WeakValueDictionary()
@@ -786,7 +786,7 @@ cdef class Pattern(baseItem):
 
     # Base factory method
     @staticmethod
-    def from_array(context, array, int32_t upscale_factor=1, bint antialiased=True, **kwargs):
+    def from_array(context: Context, array, int32_t upscale_factor=1, bint antialiased=True, **kwargs):
         """
         Creates a pattern from a provided array with optional upscaling.
         
@@ -998,7 +998,7 @@ cdef class Pattern(baseItem):
 
     # Factory methods for common patterns
     @staticmethod
-    def solid(context, **kwargs):
+    def solid(context: Context, **kwargs):
         """
         Creates a solid line pattern (no pattern).
 
@@ -1041,7 +1041,7 @@ cdef class Pattern(baseItem):
         return pattern
 
     @staticmethod
-    def dashed(context, int32_t dash_length=10, int32_t gap_length=10,
+    def dashed(context: Context, int32_t dash_length=10, int32_t gap_length=10,
                int32_t upscale_factor=32, bint opaque=False, **kwargs):
         """
         Creates a dashed line pattern.
@@ -1117,7 +1117,7 @@ cdef class Pattern(baseItem):
         return pattern
 
     @staticmethod
-    def dotted(context, int32_t dot_size=2, int32_t spacing=8,
+    def dotted(context: Context, int32_t dot_size=2, int32_t spacing=8,
                int32_t upscale_factor=64, bint opaque=False, **kwargs):
         """
         Creates a dotted line pattern.
@@ -1193,7 +1193,7 @@ cdef class Pattern(baseItem):
         return pattern
 
     @staticmethod
-    def dash_dot(context, int32_t dash_length=10, int32_t dot_size=2,
+    def dash_dot(context: Context, int32_t dash_length=10, int32_t dot_size=2,
                  int32_t spacing=5, int32_t upscale_factor=64,
                  bint opaque=False, **kwargs):
         """
@@ -1282,7 +1282,7 @@ cdef class Pattern(baseItem):
         return pattern
 
     @staticmethod
-    def dash_dot_dot(context, int32_t dash_length=10, int32_t dot_size=2,
+    def dash_dot_dot(context: Context, int32_t dash_length=10, int32_t dot_size=2,
                      int32_t spacing=5, int32_t upscale_factor=64,
                      bint opaque=False, **kwargs):
         """
@@ -1378,7 +1378,7 @@ cdef class Pattern(baseItem):
         return pattern
 
     @staticmethod
-    def railroad(context, int32_t track_width=4, int32_t tie_width=10,
+    def railroad(context: Context, int32_t track_width=4, int32_t tie_width=10,
                  int32_t tie_spacing=10, upscale_factor=64,
                  bint opaque=False, **kwargs):
         """
@@ -1474,7 +1474,7 @@ cdef class Pattern(baseItem):
         return pattern
 
     @staticmethod
-    def double_dash(context, int32_t dash_length=10, int32_t gap_length=5,
+    def double_dash(context: Context, int32_t dash_length=10, int32_t gap_length=5,
                     int32_t dash_width=2, int32_t upscale_factor=64,
                     bint opaque=False, **kwargs):
         """
@@ -1565,7 +1565,7 @@ cdef class Pattern(baseItem):
         return pattern
 
     @staticmethod
-    def checkerboard(context, int32_t cell_size=5, int32_t stripe_width=1,
+    def checkerboard(context: Context, int32_t cell_size=5, int32_t stripe_width=1,
                      int32_t upscale_factor=64, bint opaque=False, **kwargs):
         """
         Creates a checkerboard pattern with white stripes borders.

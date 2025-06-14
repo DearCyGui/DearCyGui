@@ -943,7 +943,7 @@ class DraggableBar(dcg.DrawInWindow):
         # Get mouse position and widget bounds
         mouse_pos = self.context.get_mouse_position()
             
-        widget_pos = self.pos_to_viewport
+        widget_pos = self.state.pos_to_viewport
         widget_size = self.state.rect_size
         
         # Calculate relative mouse position within widget

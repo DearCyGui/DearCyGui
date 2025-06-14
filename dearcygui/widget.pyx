@@ -1349,6 +1349,36 @@ cdef class Slider(uiItem):
         self.state.cap.can_be_hovered = True
 
     @property
+    def shareable_value(self):
+        """
+        Reference to the underlying value that can be shared between items.
+        
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._value
+
+    @shareable_value.setter
+    def shareable_value(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if self._value is value:
+            return
+        if not isinstance(self._value, SharedFloat) or not isinstance(value, SharedFloat4):
+            raise ValueError(f"Expected a shareable value of type SharedFloat or SharedFloat4. Received {type(value)}")
+        self._value.dec_num_attached()
+        self._value = value
+        self._value.inc_num_attached()
+        if isinstance(value, SharedFloat4) and self._size == 1:
+            self._size = 4
+        elif isinstance(value, SharedFloat) and self._size > 1:
+            self._size = 1
+
+    @property
     def size(self):
         """
         Number of components controlled by the slider.
@@ -2482,6 +2512,36 @@ cdef class InputValue(uiItem):
         self.state.cap.can_be_edited = True
         self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
+
+    @property
+    def shareable_value(self):
+        """
+        Reference to the underlying value that can be shared between items.
+        
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._value
+
+    @shareable_value.setter
+    def shareable_value(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if self._value is value:
+            return
+        if not isinstance(self._value, SharedFloat) or not isinstance(value, SharedFloat4):
+            raise ValueError(f"Expected a shareable value of type SharedFloat or SharedFloat4. Received {type(value)}")
+        self._value.dec_num_attached()
+        self._value = value
+        self._value.inc_num_attached()
+        if isinstance(value, SharedFloat4) and self._size == 1:
+            self._size = 4
+        elif isinstance(value, SharedFloat) and self._size > 1:
+            self._size = 1
 
     @property
     def size(self):

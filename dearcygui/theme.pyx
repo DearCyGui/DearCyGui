@@ -852,7 +852,7 @@ cdef class ThemeColorImGui(baseThemeColor):
         self.mutex.unlock()
 
     @classmethod
-    def get_default(self, str color_name):
+    def get_default(cls, str color_name):
         """Get the default color value for the given color name."""
         if color_name == "text":
             return (1.00, 1.00, 1.00, 1.00)
@@ -1240,16 +1240,16 @@ cdef class ThemeColorImPlot(baseThemeColor):
         baseThemeColor._common_setter(self, <int>ImPlotColorIndex.CROSSHAIRS, value)
 
     @classmethod
-    def get_default(self, str color_name):
+    def get_default(cls, str color_name):
         """Get the default color value for the given color name."""
         if color_name == "line":
             return ThemeColorImGui.get_default("Text")
         elif color_name == "fill":
-            return self.get_default("line")
+            return cls.get_default("line")
         elif color_name == "marker_outline":
-            return self.get_default("line")
+            return cls.get_default("line")
         elif color_name == "marker_fill":
-            return self.get_default("line")
+            return cls.get_default("line")
         elif color_name == "error_bar":
             return ThemeColorImGui.get_default("Text")
         elif color_name == "frame_bg":
@@ -1274,7 +1274,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
             (r, g, b, a) = ThemeColorImGui.get_default("Text")
             return (r, g, b, 0.25 * a)
         elif color_name == "axis_tick":
-            return self.get_default("axis_grid")
+            return cls.get_default("axis_grid")
         elif color_name == "axis_bg":
             return (0.00, 0.00, 0.00, 0.00)  # Transparent
         elif color_name == "axis_bg_hovered":
@@ -1284,7 +1284,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
         elif color_name == "selection":
             return (1.00, 1.00, 0.00, 1.00)
         elif color_name == "crosshairs":
-            return self.get_default("plot_border")
+            return cls.get_default("plot_border")
         else:
             raise KeyError(f"Color {color_name} not found")
 
@@ -1967,7 +1967,7 @@ cdef class ThemeStyleImGui(baseThemeStyle):
         baseThemeStyle._common_setter(self, <int>ImGuiStyleIndex.SEPARATOR_TEXT_PADDING, theme_value_types.t_float2, True, True, value)
 
     @classmethod
-    def get_default(self, str style_name):
+    def get_default(cls, str style_name):
         """Get the default style value for the given style name."""
         if style_name == "alpha":
             return 1.0
@@ -2452,7 +2452,7 @@ cdef class ThemeStyleImPlot(baseThemeStyle):
         baseThemeStyle._common_setter(self, <int>ImPlotStyleIndex.PLOT_MIN_SIZE, theme_value_types.t_float2, True, True, value)
 
     @classmethod
-    def get_default(self, str style_name):
+    def get_default(cls, str style_name):
         """Get the default style value for the given style name."""
         if style_name == "line_weight":
             return 1.0

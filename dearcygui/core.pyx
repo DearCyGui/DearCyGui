@@ -91,6 +91,7 @@ cdef class BackendRenderingContext:
 
     def __exit__(self, exc_type, exc_value, traceback):
         (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+        return False
 
     @staticmethod
     cdef BackendRenderingContext from_context(Context context):
@@ -148,6 +149,7 @@ cdef class SharedGLContext:
         assert(self.gl_context != NULL)
         self.gl_context.release()
         self.mutex.unlock()
+        return False
 
     @staticmethod
     cdef SharedGLContext from_context(Context context, GLContext* gl_context):
@@ -6247,46 +6249,6 @@ cdef class uiItem(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._scaling_factor = value
-
-    ### Positioning - layouts
-
-    ### Current position states
-
-    @property
-    def pos_to_viewport(self):
-        """
-        Position relative to the viewport's top-left corner.
-        
-        This coordinate represents the position of the item's top-left corner
-        relative to the entire viewport.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.pos_to_viewport)
-
-    @property
-    def pos_to_window(self):
-        """
-        Position relative to the containing window's content area.
-        
-        This coordinate represents the position of the item's top-left corner
-        relative to the inner content area of the containing window.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.pos_to_window)
-
-    @property
-    def pos_to_parent(self):
-        """
-        Position relative to the parent item's content area.
-        
-        This coordinate represents the position of the item's top-left corner
-        relative to its parent's content area.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return Coord.build_v(self.state.cur.pos_to_parent)
 
     ### Positioning and size requests
 

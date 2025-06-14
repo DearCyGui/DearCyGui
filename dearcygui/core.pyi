@@ -1,7 +1,7 @@
 from typing import TypeAlias, Any
 from enum import IntEnum
 from collections.abc import Sequence
-from typing import Protocol, TypeVar
+from typing import Protocol, Self, TypeVar
 from .types import *
 from .core import *
 from .sizing import baseSizing
@@ -341,7 +341,7 @@ class ActivatedHandler(baseHandler):
     buttons turn active when the mouse is pressed on them.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -359,7 +359,7 @@ class ActivatedHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -385,7 +385,7 @@ class ActiveHandler(baseHandler):
     the mouse is released.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -403,7 +403,7 @@ class ActiveHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -434,7 +434,7 @@ class AnyKeyDownHandler(baseHandler):
           - duration: How long the key has been held (in seconds)
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -452,7 +452,7 @@ class AnyKeyDownHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -484,7 +484,7 @@ class AnyKeyPressHandler(baseHandler):
         - data: A tuple of Key objects that were pressed this frame
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -503,7 +503,7 @@ class AnyKeyPressHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -550,7 +550,7 @@ class AnyKeyReleaseHandler(baseHandler):
         - data: A tuple of Key objects that were released this frame
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -568,7 +568,7 @@ class AnyKeyReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -600,7 +600,7 @@ class AnyMouseClickHandler(baseHandler):
         - data: A tuple of MouseButton objects that were clicked this frame
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -619,7 +619,7 @@ class AnyMouseClickHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -666,7 +666,7 @@ class AnyMouseDoubleClickHandler(baseHandler):
         - data: A tuple of MouseButton objects that were double-clicked this frame
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -684,7 +684,7 @@ class AnyMouseDoubleClickHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -715,7 +715,7 @@ class AnyMouseDownHandler(baseHandler):
           - duration: How long the button has been held (in seconds)
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -733,7 +733,7 @@ class AnyMouseDownHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -762,7 +762,7 @@ class AnyMouseReleaseHandler(baseHandler):
         - data: A tuple of MouseButton objects that were released this frame
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -780,7 +780,7 @@ class AnyMouseReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -818,7 +818,7 @@ class AutoFont(FontMultiScales):
         Additional arguments passed to font_creator
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : Sequence[Any] = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -849,7 +849,7 @@ Called when a new global scale is encountered
         ...
 
 
-    def configure(self, callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : list = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, /, callbacks : Sequence[DCGCallable] = ..., children : Sequence[baseItemSubCls] = [], fonts : Sequence[Any] = ..., next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -885,7 +885,7 @@ class AxesResizeHandler(baseHandler):
     - Second tuple is for Y axis (default Y1)
 
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -904,7 +904,7 @@ class AxesResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, axes : tuple = (0, 3), callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, axes : tuple = (0, 3), callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -954,7 +954,7 @@ class AxisTag(baseItem):
     specified as a coordinate value on that axis.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], coord : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], coord : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
         """
         Parameters
         ----------
@@ -973,7 +973,7 @@ class AxisTag(baseItem):
         ...
 
 
-    def configure(self, bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], coord : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+    def configure(self, /, bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], coord : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -993,7 +993,7 @@ class AxisTag(baseItem):
 
 
     @property
-    def bg_color(self) -> list:
+    def bg_color(self) -> Sequence[float]:
         """
         Background color of the tag as RGBA values.
 
@@ -1010,7 +1010,7 @@ class AxisTag(baseItem):
 
 
     @bg_color.setter
-    def bg_color(self, value : list):
+    def bg_color(self, value : Sequence[float]):
         ...
 
 
@@ -1083,7 +1083,7 @@ class BoolHandler(baseHandler):
     when some external condition is not met.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -1102,7 +1102,7 @@ class BoolHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -1147,7 +1147,7 @@ class Button(uiItem):
     is stored in a SharedBool value that tracks whether it's active.
 
     """
-    def __init__(self, context : Context, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, arrow : Any = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1181,7 +1181,7 @@ class Button(uiItem):
         ...
 
 
-    def configure(self, arrow : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, arrow : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1253,6 +1253,25 @@ class Button(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
     def small(self) -> bool:
         """
         Whether the button should be displayed in a small size.
@@ -1266,6 +1285,25 @@ class Button(uiItem):
 
     @small.setter
     def small(self, value : bool):
+        ...
+
+
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
         ...
 
 
@@ -1285,7 +1323,7 @@ class Callback(object):
 
 
     @property
-    def callback(self) -> DCGCallable | None:
+    def callback(self) -> list[DCGCallable]:
         """(Read-only) Wrapped callback
         """
         ...
@@ -1310,7 +1348,7 @@ class Checkbox(uiItem):
     If a label is provided, it will be displayed at the right of the checkbox.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1341,7 +1379,7 @@ class Checkbox(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1370,6 +1408,44 @@ class Checkbox(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
+        ...
+
+
 class ChildWindow(uiItem):
     """
     A child window container that enables hierarchical UI layout.
@@ -1384,7 +1460,7 @@ class ChildWindow(uiItem):
     structured layouts.
 
     """
-    def __init__(self, context : Context, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : Any = ..., border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1430,7 +1506,7 @@ class ChildWindow(uiItem):
         ...
 
 
-    def configure(self, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], enabled : bool = True, flattened_navigation : bool = True, font : Font = None, frame_style : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1606,6 +1682,25 @@ class ChildWindow(uiItem):
 
 
     @property
+    def children(self) -> list[uiItemSubCls | MenuBarSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls | MenuBarSubCls]):
+        ...
+
+
+    @property
     def flattened_navigation(self) -> bool:
         """
         Share focus scope with parent window for keyboard/gamepad navigation.
@@ -1764,7 +1859,7 @@ class ClickedHandler(baseHandler):
     it can be Text for example.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -1783,7 +1878,7 @@ class ClickedHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -1834,7 +1929,7 @@ class CloseHandler(baseHandler):
     the object is show or not shown.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -1852,7 +1947,7 @@ class CloseHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -1888,7 +1983,7 @@ class CollapsingHeader(uiItem):
     space in complex interfaces.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1924,7 +2019,7 @@ class CollapsingHeader(uiItem):
         ...
 
 
-    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -1976,6 +2071,25 @@ class CollapsingHeader(uiItem):
 
     @bullet.setter
     def bullet(self, value : bool):
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -2060,6 +2174,44 @@ class CollapsingHeader(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
+        ...
+
+
 class ColorButton(uiItem):
     """
     A button that displays a color preview and opens a color picker when clicked.
@@ -2077,7 +2229,7 @@ class ColorButton(uiItem):
     integrate color selection into interfaces with limited space.
 
     """
-    def __init__(self, context : Context, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2114,7 +2266,7 @@ class ColorButton(uiItem):
         ...
 
 
-    def configure(self, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2267,6 +2419,44 @@ class ColorButton(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedColor:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedColor):
+        ...
+
+
+    @property
+    def value(self) -> Color:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : Color):
+        ...
+
+
 class ColorEdit(uiItem):
     """
     A widget for editing RGB or RGBA color values with customizable input methods.
@@ -2285,7 +2475,7 @@ class ColorEdit(uiItem):
     drag-and-drop functionality for transferring colors between compatible widgets.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], hdr : bool = False, height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], hdr : bool = False, height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2330,7 +2520,7 @@ class ColorEdit(uiItem):
         ...
 
 
-    def configure(self, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], hdr : bool = False, height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], hdr : bool = False, height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2651,6 +2841,44 @@ class ColorEdit(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedColor:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedColor):
+        ...
+
+
+    @property
+    def value(self) -> Color:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : Color):
+        ...
+
+
 class ColorPicker(uiItem):
     """
     A comprehensive color selection widget with multiple input and display options.
@@ -2668,7 +2896,7 @@ class ColorPicker(uiItem):
     value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2711,7 +2939,7 @@ class ColorPicker(uiItem):
         ...
 
 
-    def configure(self, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : int = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : baseItemSubCls | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, picker_mode : str = "bar", previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -2992,6 +3220,44 @@ class ColorPicker(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedColor:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedColor):
+        ...
+
+
+    @property
+    def value(self) -> Color:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : Color):
+        ...
+
+
 class Combo(uiItem):
     """
     A dropdown selection widget that displays a list of choices.
@@ -3009,7 +3275,7 @@ class Combo(uiItem):
     to the currently selected item in the dropdown list.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", items : Sequence[str] = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -3046,7 +3312,7 @@ class Combo(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, fit_width : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, height_mode : str = "regular", items : Sequence[str] = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, popup_align_left : bool = False, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -3118,7 +3384,7 @@ class Combo(uiItem):
 
 
     @property
-    def items(self) -> list:
+    def items(self) -> Sequence[str]:
         """
         List of text values to select from in the combo dropdown.
 
@@ -3133,7 +3399,7 @@ class Combo(uiItem):
 
 
     @items.setter
-    def items(self, value : list):
+    def items(self, value : Sequence[str]):
         ...
 
 
@@ -3191,6 +3457,44 @@ class Combo(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedStr:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedStr):
+        ...
+
+
+    @property
+    def value(self) -> str:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : str):
+        ...
+
+
 class ConditionalHandler(baseHandler):
     """
     A handler that runs the FIRST handler child if all other handler children conditions are met.
@@ -3212,7 +3516,7 @@ class ConditionalHandler(baseHandler):
         Other handlers are used purely for their state conditions.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3230,7 +3534,7 @@ class ConditionalHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -3248,6 +3552,25 @@ class ConditionalHandler(baseHandler):
         ...
 
 
+    @property
+    def children(self) -> list[baseHandlerSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[baseHandlerSubCls]):
+        ...
+
+
 class ContentResizeHandler(baseHandler):
     """
     Handler for item containers (windows, etc)
@@ -3256,7 +3579,7 @@ class ContentResizeHandler(baseHandler):
     area available to the children) changes size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3274,7 +3597,7 @@ class ContentResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -3371,7 +3694,7 @@ class Context(object):
         ...
 
 
-    def get_mouse_drag_delta(self, button, lock_threshold=-1.0):
+    def get_mouse_drag_delta(self, button, lock_threshold = -1.0):
         """
         Return the delta (dx, dy) from the initial clicking position while the mouse button is pressed or was just released.
 
@@ -3481,7 +3804,7 @@ class Context(object):
         ...
 
 
-    def is_key_down(self, key, keymod=None):
+    def is_key_down(self, key, keymod = None):
         """
         Check if a key is being held down.
 
@@ -3499,7 +3822,7 @@ class Context(object):
         ...
 
 
-    def is_key_pressed(self, key, keymod=None, repeat=True):
+    def is_key_pressed(self, key, keymod = None, repeat = True):
         """
         Check if a key was pressed (went from !Down to Down).
 
@@ -3519,7 +3842,7 @@ class Context(object):
         ...
 
 
-    def is_key_released(self, key, keymod=None):
+    def is_key_released(self, key, keymod = None):
         """
         Check if a key was released (went from Down to !Down).
 
@@ -3537,7 +3860,7 @@ class Context(object):
         ...
 
 
-    def is_mouse_clicked(self, button, repeat=False):
+    def is_mouse_clicked(self, button, repeat = False):
         """
         Check if a mouse button was clicked (went from !Down to Down).
 
@@ -3587,7 +3910,7 @@ class Context(object):
         ...
 
 
-    def is_mouse_dragging(self, button, lock_threshold=-1.0):
+    def is_mouse_dragging(self, button, lock_threshold = -1.0):
         """
         Check if the mouse is dragging.
 
@@ -3750,7 +4073,7 @@ class CustomHandler(baseHandler):
         for execution in another thread.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3768,7 +4091,7 @@ class CustomHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -3796,7 +4119,7 @@ class DPGCallback(Callback):
 
 
     @property
-    def callback(self) -> DCGCallable | None:
+    def callback(self) -> list[DCGCallable]:
         """(Read-only) Wrapped callback
         """
         ...
@@ -3808,7 +4131,7 @@ class DeactivatedAfterEditHandler(baseHandler):
     activation after having been edited.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3826,7 +4149,7 @@ class DeactivatedAfterEditHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -3849,7 +4172,7 @@ class DeactivatedHandler(baseHandler):
     Handler for when an active item loses activation.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3867,7 +4190,7 @@ class DeactivatedHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -3890,7 +4213,7 @@ class DoubleClickedHandler(baseHandler):
     Handler for when a hovered item is double clicked on.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3908,7 +4231,7 @@ class DoubleClickedHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -3944,7 +4267,7 @@ class DraggedHandler(baseHandler):
     the dragging.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3962,7 +4285,7 @@ class DraggedHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -4000,7 +4323,7 @@ class DraggingHandler(baseHandler):
     hovered anymore.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4018,7 +4341,7 @@ class DraggingHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -4058,7 +4381,7 @@ class DrawArc(drawingItem):
     Negative radius values are interpreted in screen space rather than coordinate space.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4085,7 +4408,7 @@ class DrawArc(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], end_angle : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), rotation : float = 0.0, segments : int = 0, show : bool = True, start_angle : float = 0.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -4322,7 +4645,7 @@ class DrawArrow(drawingItem):
     or visualizing vectors in coordinate space.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4344,7 +4667,7 @@ class DrawArrow(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 4.0, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -4477,7 +4800,7 @@ class DrawBezierCubic(drawingItem):
     with higher values creating smoother curves at the cost of performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4501,7 +4824,7 @@ class DrawBezierCubic(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -4671,7 +4994,7 @@ class DrawBezierQuadratic(drawingItem):
     with higher values creating smoother curves at the cost of performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4694,7 +5017,7 @@ class DrawBezierQuadratic(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -4848,7 +5171,7 @@ class DrawCircle(drawingItem):
     create a more perfect circle at the cost of rendering performance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4871,7 +5194,7 @@ class DrawCircle(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -5033,7 +5356,7 @@ class DrawEllipse(drawingItem):
         segments (int): Number of segments used to approximate the ellipse
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -5056,7 +5379,7 @@ class DrawEllipse(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -5213,7 +5536,7 @@ class DrawImage(drawingItem):
     space (negative values), allowing for consistent visual sizes regardless of zoom level.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float | str | baseSizing = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : Sequence[float] = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float | str | baseSizing = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : Sequence[float] | tuple[float, float] = [0.0, 0.0], uv2 : Sequence[float] | tuple[float, float] = [1.0, 0.0], uv3 : Sequence[float] | tuple[float, float] = [1.0, 1.0], uv4 : Sequence[float] | tuple[float, float] = [0.0, 1.0], uv_max : Sequence[float] | tuple[float, float] = [1.0, 1.0], uv_min : Sequence[float] | tuple[float, float] = [0.0, 0.0], width : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -5248,7 +5571,7 @@ class DrawImage(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float | str | baseSizing = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : list = [0.0, 0.0], uv2 : list = [1.0, 0.0], uv3 : list = [1.0, 1.0], uv4 : list = [0.0, 1.0], uv_max : list = [1.0, 1.0], uv_min : list = [0.0, 0.0], width : float | str | baseSizing = 0.0):
+    def configure(self, /, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color_multiplier : Sequence[float] = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, height : float | str | baseSizing = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, texture : Texture | None = None, user_data : Any = ..., uv1 : Sequence[float] | tuple[float, float] = [0.0, 0.0], uv2 : Sequence[float] | tuple[float, float] = [1.0, 0.0], uv3 : Sequence[float] | tuple[float, float] = [1.0, 1.0], uv4 : Sequence[float] | tuple[float, float] = [0.0, 1.0], uv_max : Sequence[float] | tuple[float, float] = [1.0, 1.0], uv_min : Sequence[float] | tuple[float, float] = [0.0, 0.0], width : float | str | baseSizing = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -5302,7 +5625,7 @@ class DrawImage(drawingItem):
 
 
     @property
-    def color_multiplier(self) -> list:
+    def color_multiplier(self) -> Sequence[float]:
         """
         Color tint applied to the image.
 
@@ -5315,7 +5638,7 @@ class DrawImage(drawingItem):
 
 
     @color_multiplier.setter
-    def color_multiplier(self, value : list):
+    def color_multiplier(self, value : Sequence[float]):
         ...
 
 
@@ -5493,7 +5816,7 @@ class DrawImage(drawingItem):
 
 
     @property
-    def uv1(self) -> list:
+    def uv1(self) -> list[float]:
         """
         Texture coordinate for the top-left corner (p1).
 
@@ -5506,12 +5829,12 @@ class DrawImage(drawingItem):
 
 
     @uv1.setter
-    def uv1(self, value : list):
+    def uv1(self, value : Sequence[float] | tuple[float, float]):
         ...
 
 
     @property
-    def uv2(self) -> list:
+    def uv2(self) -> list[float]:
         """
         Texture coordinate for the top-right corner (p2).
 
@@ -5524,12 +5847,12 @@ class DrawImage(drawingItem):
 
 
     @uv2.setter
-    def uv2(self, value : list):
+    def uv2(self, value : Sequence[float] | tuple[float, float]):
         ...
 
 
     @property
-    def uv3(self) -> list:
+    def uv3(self) -> list[float]:
         """
         Texture coordinate for the bottom-right corner (p3).
 
@@ -5542,12 +5865,12 @@ class DrawImage(drawingItem):
 
 
     @uv3.setter
-    def uv3(self, value : list):
+    def uv3(self, value : Sequence[float] | tuple[float, float]):
         ...
 
 
     @property
-    def uv4(self) -> list:
+    def uv4(self) -> list[float]:
         """
         Texture coordinate for the bottom-left corner (p4).
 
@@ -5560,12 +5883,12 @@ class DrawImage(drawingItem):
 
 
     @uv4.setter
-    def uv4(self, value : list):
+    def uv4(self, value : Sequence[float] | tuple[float, float]):
         ...
 
 
     @property
-    def uv_max(self) -> list:
+    def uv_max(self) -> list[float]:
         """
         Texture coordinate for the bottom-right corner of the image.
 
@@ -5578,12 +5901,12 @@ class DrawImage(drawingItem):
 
 
     @uv_max.setter
-    def uv_max(self, value : list):
+    def uv_max(self, value : Sequence[float] | tuple[float, float]):
         ...
 
 
     @property
-    def uv_min(self) -> list:
+    def uv_min(self) -> list[float]:
         """
         Texture coordinate for the top-left corner of the image.
 
@@ -5596,7 +5919,7 @@ class DrawImage(drawingItem):
 
 
     @uv_min.setter
-    def uv_min(self, value : list):
+    def uv_min(self, value : Sequence[float] | tuple[float, float]):
         ...
 
 
@@ -5632,7 +5955,7 @@ class DrawInPlot(plotElementWithLegend):
     can be changed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = True, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = True, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -5657,7 +5980,7 @@ class DrawInPlot(plotElementWithLegend):
         ...
 
 
-    def configure(self, axes : tuple = (0, 3), children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = True, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, axes : tuple = (0, 3), children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = True, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -5679,6 +6002,25 @@ class DrawInPlot(plotElementWithLegend):
         - theme: Visual theme applied to the plot element.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[drawingItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -5727,7 +6069,7 @@ class DrawInWindow(uiItem):
     maintained and thus do not have a callback.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -5767,7 +6109,7 @@ class DrawInWindow(uiItem):
         ...
 
 
-    def configure(self, button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : list = [], height : float | str | baseSizing = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[drawingItemSubCls] = [], enabled : bool = True, font : Font = None, frame : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, invert_y : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -5820,6 +6162,25 @@ class DrawInWindow(uiItem):
 
     @button.setter
     def button(self, value : bool):
+        ...
+
+
+    @property
+    def children(self) -> list[drawingItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -6017,7 +6378,7 @@ class DrawInvisibleButton(drawingItem):
     where top left is (0, 0) and bottom right is (1, 1).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButtonMask = 7, capture_mouse : bool = True, children : Sequence[drawingItemSubCls] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButtonMask = 7, capture_mouse : bool = True, children : Sequence[drawingItemSubCls] = [], handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6041,7 +6402,7 @@ class DrawInvisibleButton(drawingItem):
         ...
 
 
-    def configure(self, button : MouseButtonMask = 7, capture_mouse : bool = True, children : Sequence[drawingItemSubCls] = [], handlers : list = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButtonMask = 7, capture_mouse : bool = True, children : Sequence[drawingItemSubCls] = [], handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], max_side : float = inf, min_side : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -6115,7 +6476,26 @@ class DrawInvisibleButton(drawingItem):
 
 
     @property
-    def handlers(self) -> list:
+    def children(self) -> list[drawingItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[drawingItemSubCls]):
+        ...
+
+
+    @property
+    def handlers(self) -> list[baseHandlerSubCls]:
         """
         Writable attribute: bound handlers for the item.
         If read returns a list of handlers. Accept
@@ -6127,7 +6507,7 @@ class DrawInvisibleButton(drawingItem):
 
 
     @handlers.setter
-    def handlers(self, value : list):
+    def handlers(self, value : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None):
         ...
 
 
@@ -6245,7 +6625,7 @@ class DrawLine(drawingItem):
     allowing for consistent visual size regardless of zoom level.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6269,7 +6649,7 @@ class DrawLine(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, length : float = 0.0, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -6442,7 +6822,7 @@ class DrawPolygon(drawingItem):
     is drawn instead of the exact polygon shape.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : Sequence[Any] = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6464,7 +6844,7 @@ class DrawPolygon(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], hull : bool = False, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : Sequence[Any] = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -6556,7 +6936,7 @@ class DrawPolygon(drawingItem):
 
 
     @property
-    def points(self) -> list:
+    def points(self) -> Sequence[Any]:
         """
         List of vertex positions defining the shape.
 
@@ -6569,7 +6949,7 @@ class DrawPolygon(drawingItem):
 
 
     @points.setter
-    def points(self, value : list):
+    def points(self, value : Sequence[Any]):
         ...
 
 
@@ -6601,7 +6981,7 @@ class DrawPolyline(drawingItem):
     property, the last point will be connected back to the first, forming a closed shape.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : Sequence[Any] = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6622,7 +7002,7 @@ class DrawPolyline(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : list = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], closed : bool = False, color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, points : Sequence[Any] = [], previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -6696,7 +7076,7 @@ class DrawPolyline(drawingItem):
 
 
     @property
-    def points(self) -> list:
+    def points(self) -> Sequence[Any]:
         """
         List of vertex positions defining the shape.
 
@@ -6709,7 +7089,7 @@ class DrawPolyline(drawingItem):
 
 
     @points.setter
-    def points(self, value : list):
+    def points(self, value : Sequence[Any]):
         ...
 
 
@@ -6744,7 +7124,7 @@ class DrawQuad(drawingItem):
     with proper orientation handling to ensure correct anti-aliasing.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6768,7 +7148,7 @@ class DrawQuad(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -6939,7 +7319,7 @@ class DrawRect(drawingItem):
     specified for each corner of the rectangle.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : Sequence[float] = [0.0, 0.0, 0.0, 0.0], fill_p2 : Sequence[float] = [0.0, 0.0, 0.0, 0.0], fill_p3 : Sequence[float] = [0.0, 0.0, 0.0, 0.0], fill_p4 : Sequence[float] = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6966,7 +7346,7 @@ class DrawRect(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : list = [0.0, 0.0, 0.0, 0.0], fill_p2 : list = [0.0, 0.0, 0.0, 0.0], fill_p3 : list = [0.0, 0.0, 0.0, 0.0], fill_p4 : list = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], fill_p1 : Sequence[float] = [0.0, 0.0, 0.0, 0.0], fill_p2 : Sequence[float] = [0.0, 0.0, 0.0, 0.0], fill_p3 : Sequence[float] = [0.0, 0.0, 0.0, 0.0], fill_p4 : Sequence[float] = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), pmin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, rounding : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -7029,7 +7409,7 @@ class DrawRect(drawingItem):
 
 
     @property
-    def fill_p1(self) -> list:
+    def fill_p1(self) -> Sequence[float]:
         """
         Fill color at the top-left corner (p1) for gradient fills.
 
@@ -7042,12 +7422,12 @@ class DrawRect(drawingItem):
 
 
     @fill_p1.setter
-    def fill_p1(self, value : list):
+    def fill_p1(self, value : Sequence[float]):
         ...
 
 
     @property
-    def fill_p2(self) -> list:
+    def fill_p2(self) -> Sequence[float]:
         """
         Fill color at the top-right corner (p2) for gradient fills.
 
@@ -7060,12 +7440,12 @@ class DrawRect(drawingItem):
 
 
     @fill_p2.setter
-    def fill_p2(self, value : list):
+    def fill_p2(self, value : Sequence[float]):
         ...
 
 
     @property
-    def fill_p3(self) -> list:
+    def fill_p3(self) -> Sequence[float]:
         """
         Fill color at the bottom-right corner (p3) for gradient fills.
 
@@ -7078,12 +7458,12 @@ class DrawRect(drawingItem):
 
 
     @fill_p3.setter
-    def fill_p3(self, value : list):
+    def fill_p3(self, value : Sequence[float]):
         ...
 
 
     @property
-    def fill_p4(self) -> list:
+    def fill_p4(self) -> Sequence[float]:
         """
         Fill color at the bottom-left corner (p4) for gradient fills.
 
@@ -7096,7 +7476,7 @@ class DrawRect(drawingItem):
 
 
     @fill_p4.setter
-    def fill_p4(self, value : list):
+    def fill_p4(self, value : Sequence[float]):
         ...
 
 
@@ -7202,7 +7582,7 @@ class DrawRegularPolygon(drawingItem):
     with different colors and thicknesses.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7226,7 +7606,7 @@ class DrawRegularPolygon(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, num_points : int = 1, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -7392,7 +7772,7 @@ class DrawRegularPolygon(drawingItem):
 
 
 class DrawSplitBatch(drawingItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7408,7 +7788,7 @@ class DrawSplitBatch(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -7437,7 +7817,7 @@ class DrawStar(drawingItem):
     or screen space (negative values) to maintain consistent visual size regardless of zoom level.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7462,7 +7842,7 @@ class DrawStar(drawingItem):
         ...
 
 
-    def configure(self, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, center : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], direction : float = 0.0, fill : Color = [0.0, 0.0, 0.0, 0.0], inner_radius : float = 0.0, next_sibling : baseItemSubCls | None = None, num_points : int = 5, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 0.0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -7658,7 +8038,7 @@ class DrawText(drawingItem):
     of the default font.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7679,7 +8059,7 @@ class DrawText(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, show : bool = True, size : float = 0.0, text : str = "", user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -7803,7 +8183,7 @@ class DrawTextQuad(drawingItem):
     the text will use its style, weight, and other characteristics instead of the default font.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, preserve_ratio : bool = True, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, preserve_ratio : bool = True, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7827,7 +8207,7 @@ class DrawTextQuad(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, preserve_ratio : bool = True, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, preserve_ratio : bool = True, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -7997,7 +8377,7 @@ class DrawTriangle(drawingItem):
     The shape can be both filled with a solid color and outlined with a different color and thickness.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8020,7 +8400,7 @@ class DrawTriangle(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], fill : Color = [0.0, 0.0, 0.0, 0.0], next_sibling : baseItemSubCls | None = None, p1 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pattern : Pattern | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8178,7 +8558,7 @@ class DrawValue(drawingItem):
     256 characters.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", shareable_value : SharedFloat = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", shareable_value : SharedValue = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8200,7 +8580,7 @@ class DrawValue(drawingItem):
         ...
 
 
-    def configure(self, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", shareable_value : SharedFloat = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
+    def configure(self, /, children : None  = [], color : Color = [1.0, 1.0, 1.0, 1.0], font : Font = None, next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pos : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", shareable_value : SharedValue = ..., show : bool = True, size : float = 0.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8299,7 +8679,7 @@ class DrawValue(drawingItem):
 
 
     @property
-    def shareable_value(self) -> SharedFloat:
+    def shareable_value(self) -> SharedValue:
         """
         The SharedValue object being displayed.
 
@@ -8315,7 +8695,7 @@ class DrawValue(drawingItem):
 
 
     @shareable_value.setter
-    def shareable_value(self, value : SharedFloat):
+    def shareable_value(self, value : SharedValue):
         ...
 
 
@@ -8368,7 +8748,7 @@ class DrawingClip(drawingItem):
     in the visible space, the children are not rendered.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItemSubCls | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItemSubCls | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8389,7 +8769,7 @@ class DrawingClip(drawingItem):
         ...
 
 
-    def configure(self, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItemSubCls | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
+    def configure(self, /, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, pmax : Sequence[float] | tuple[float, float] | Coord = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | Coord = (-1e+300, -1e+300), previous_sibling : baseItemSubCls | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8407,6 +8787,25 @@ class DrawingClip(drawingItem):
         - show: Should the object be drawn/shown ?
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[drawingItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -8510,7 +8909,7 @@ class DrawingList(drawingItem):
     hide/show/delete them by manipulating the list.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8526,7 +8925,7 @@ class DrawingList(drawingItem):
         ...
 
 
-    def configure(self, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8539,6 +8938,25 @@ class DrawingList(drawingItem):
         - show: Should the object be drawn/shown ?
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[drawingItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -8554,7 +8972,7 @@ class DrawingScale(drawingItem):
     scaling operations to the children.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8574,7 +8992,7 @@ class DrawingScale(drawingItem):
         ...
 
 
-    def configure(self, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
+    def configure(self, /, children : Sequence[drawingItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_parent_scaling : bool = False, origin : Sequence[float] | tuple[float, float] | Coord = (0.0, 0.0), parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scales : Sequence[float] | tuple[float, float] | Coord = (1.0, 1.0), show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8591,6 +9009,25 @@ class DrawingScale(drawingItem):
         - show: Should the object be drawn/shown ?
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[drawingItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[drawingItemSubCls]):
         ...
 
 
@@ -8671,7 +9108,7 @@ class EditedHandler(baseHandler):
     triggers the callback.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8689,7 +9126,7 @@ class EditedHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8715,7 +9152,7 @@ class FocusHandler(baseHandler):
     or editing a field).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8733,7 +9170,7 @@ class FocusHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8762,7 +9199,7 @@ class Font(baseFont):
     FontTexture.add_custom_font() rather than directly instantiated.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_scaling : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_scaling : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8780,7 +9217,7 @@ class Font(baseFont):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_scaling : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, no_scaling : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8879,7 +9316,7 @@ class FontMultiScales(baseFont):
     allowing for dynamic font creation as needed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8896,7 +9333,7 @@ class FontMultiScales(baseFont):
         ...
 
 
-    def configure(self, callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : list = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, /, callbacks : Sequence[DCGCallable] = [], children : Sequence[baseItemSubCls] = [], fonts : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -8914,7 +9351,7 @@ class FontMultiScales(baseFont):
 
 
     @property
-    def callbacks(self) -> Sequence[DCGCallable]:
+    def callbacks(self) -> list[DCGCallable]:
         """
         Callbacks triggered when a new scale is encountered.
 
@@ -8932,7 +9369,7 @@ class FontMultiScales(baseFont):
 
 
     @property
-    def fonts(self) -> list:
+    def fonts(self) -> Sequence[Any]:
         """
         List of attached fonts with different scales.
 
@@ -8946,12 +9383,12 @@ class FontMultiScales(baseFont):
 
 
     @fonts.setter
-    def fonts(self, value : list):
+    def fonts(self, value : Sequence[Any]):
         ...
 
 
     @property
-    def recent_scales(self) -> list:
+    def recent_scales(self) -> Sequence[Any]:
         """
         (Read-only) List of up to 10 most recent global scales encountered during rendering.
 
@@ -8993,7 +9430,7 @@ class FontTexture(baseItem):
     scale, and implement 1) or 2) yourself.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, texture : Texture | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, texture : Texture | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9023,7 +9460,7 @@ class FontTexture(baseItem):
         ...
 
 
-    def add_font_file(self, path, size=13.0, index_in_file=0, density_scale=1.0, align_to_pixel=False):
+    def add_font_file(self, path, size = 13.0, index_in_file = 0, density_scale = 1.0, align_to_pixel = False):
         """
         Prepare the target font file to be added to the FontTexture,
         using ImGui's font loader.
@@ -9053,7 +9490,7 @@ class FontTexture(baseItem):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, texture : Texture | None = None, user_data : Any = ...):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, texture : Texture | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -9095,7 +9532,7 @@ class GotFocusHandler(baseHandler):
     focus.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9113,7 +9550,7 @@ class GotFocusHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -9137,7 +9574,7 @@ class GotHoverHandler(baseHandler):
     the target item has just been hovered.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9155,7 +9592,7 @@ class GotHoverHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -9178,7 +9615,7 @@ class GotMouseOverHandler(baseHandler):
 Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9196,7 +9633,7 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -9221,7 +9658,7 @@ class GotRenderHandler(baseHandler):
     non-rendered to a rendered state.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9239,7 +9676,7 @@ class GotRenderHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -9278,7 +9715,7 @@ class HandlerList(baseHandler):
         Handlers are not checked if their parent item is not rendered.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9297,7 +9734,7 @@ class HandlerList(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -9313,6 +9750,25 @@ class HandlerList(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[baseHandlerSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[baseHandlerSubCls]):
         ...
 
 
@@ -9347,7 +9803,7 @@ class HorizontalLayout(Layout):
     how items overflow when they exceed available width.
 
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9382,7 +9838,7 @@ class HorizontalLayout(Layout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_wrap : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap_x : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9458,7 +9914,7 @@ class HorizontalLayout(Layout):
 
 
     @property
-    def positions(self) -> list:
+    def positions(self) -> Sequence[int] | Sequence[float]:
         """
         X positions for items when using MANUAL alignment mode.
 
@@ -9477,7 +9933,7 @@ class HorizontalLayout(Layout):
 
 
     @positions.setter
-    def positions(self, value : list):
+    def positions(self, value : Sequence[int] | Sequence[float]):
         ...
 
 
@@ -9506,7 +9962,7 @@ class HoverHandler(baseHandler):
     the target item is hovered.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9524,7 +9980,7 @@ class HoverHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -9564,7 +10020,7 @@ class Image(uiItem):
     affected by FramePadding (style) and FrameRounding (style).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., background_color : list = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., background_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], before : Any = ..., button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : Sequence[float] = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : Sequence[float] = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9601,7 +10057,7 @@ class Image(uiItem):
         ...
 
 
-    def configure(self, background_color : list = [0.0, 0.0, 0.0, 0.0], button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : list = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : list = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, background_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color_multiplier : Sequence[float] = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : Texture | None = None, theme : Any = ..., user_data : Any = ..., uv : Sequence[float] = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9637,7 +10093,7 @@ class Image(uiItem):
 
 
     @property
-    def background_color(self) -> list:
+    def background_color(self) -> Sequence[float]:
         """
         Color of the background drawn behind the image.
 
@@ -9655,7 +10111,7 @@ class Image(uiItem):
 
 
     @background_color.setter
-    def background_color(self, value : list):
+    def background_color(self, value : Sequence[float]):
         ...
 
 
@@ -9679,7 +10135,7 @@ class Image(uiItem):
 
 
     @property
-    def color_multiplier(self) -> list:
+    def color_multiplier(self) -> Sequence[float]:
         """
         Color tint applied to the image texture.
 
@@ -9695,7 +10151,7 @@ class Image(uiItem):
 
 
     @color_multiplier.setter
-    def color_multiplier(self, value : list):
+    def color_multiplier(self, value : Sequence[float]):
         ...
 
 
@@ -9741,7 +10197,7 @@ class Image(uiItem):
 
 
     @property
-    def uv(self) -> list:
+    def uv(self) -> Sequence[float]:
         """
         UV coordinates defining the region of the texture to display.
 
@@ -9756,7 +10212,7 @@ class Image(uiItem):
 
 
     @uv.setter
-    def uv(self, value : list):
+    def uv(self, value : Sequence[float]):
         ...
 
 
@@ -9777,7 +10233,7 @@ class InputText(uiItem):
     area instead of a single-line field.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -9826,7 +10282,7 @@ class InputText(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Configure the InputText widget with provided keyword arguments.
 
@@ -10175,6 +10631,25 @@ class InputText(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedStr:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedStr):
+        ...
+
+
+    @property
     def tab_input(self) -> bool:
         """
         Allows tab key to insert a tab character into the text.
@@ -10212,6 +10687,25 @@ class InputText(uiItem):
         ...
 
 
+    @property
+    def value(self) -> str:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : str):
+        ...
+
+
 class InputValue(uiItem):
     """
     A widget for entering numeric values with optional step buttons.
@@ -10225,7 +10719,7 @@ class InputValue(uiItem):
     to multi-dimensional vector editing.
 
     """
-    def __init__(self, context : Context, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -10275,7 +10769,7 @@ class InputValue(uiItem):
         ...
 
 
-    def configure(self, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -10610,6 +11104,25 @@ class InputValue(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedFloat | SharedFloat4:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedFloat | SharedFloat4):
+        ...
+
+
+    @property
     def size(self) -> int:
         """
         Number of components controlled by the input widget.
@@ -10664,6 +11177,25 @@ class InputValue(uiItem):
         ...
 
 
+    @property
+    def value(self) -> float | int | Sequence[float] | Sequence[int]:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : float | int | Sequence[float] | Sequence[int]):
+        ...
+
+
 class KeyDownHandler(baseHandler):
     """
     Handler that triggers when a key is held down.
@@ -10676,7 +11208,7 @@ class KeyDownHandler(baseHandler):
         - duration: How long the key has been held down
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -10695,7 +11227,7 @@ class KeyDownHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -10740,7 +11272,7 @@ class KeyPressHandler(baseHandler):
         - key: The key that was pressed
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -10760,7 +11292,7 @@ class KeyPressHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -10822,7 +11354,7 @@ class KeyReleaseHandler(baseHandler):
         - key: The key that was released
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -10841,7 +11373,7 @@ class KeyReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, key : Key = 525, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -10902,7 +11434,7 @@ class Layout(uiItem):
     set the x, y and no_newline fields of the item to their new desired values.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -10933,7 +11465,7 @@ class Layout(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -10974,6 +11506,25 @@ class Layout(uiItem):
         ...
 
 
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
+        ...
+
+
 class ListBox(uiItem):
     """
     A scrollable list of selectable text items with single selection support.
@@ -10988,7 +11539,7 @@ class ListBox(uiItem):
     the text of the selected item.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, items : Sequence[str] = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11021,7 +11572,7 @@ class ListBox(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, items : Sequence[str] = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11053,7 +11604,7 @@ class ListBox(uiItem):
 
 
     @property
-    def items(self) -> list:
+    def items(self) -> Sequence[str]:
         """
         List of text values from which the user can select.
 
@@ -11067,7 +11618,7 @@ class ListBox(uiItem):
 
 
     @items.setter
-    def items(self, value : list):
+    def items(self, value : Sequence[str]):
         ...
 
 
@@ -11090,13 +11641,51 @@ class ListBox(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedStr:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedStr):
+        ...
+
+
+    @property
+    def value(self) -> str:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : str):
+        ...
+
+
 class LostFocusHandler(baseHandler):
     """
     Handler for when windows or sub-windows lose
     focus.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11114,7 +11703,7 @@ class LostFocusHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11139,7 +11728,7 @@ class LostHoverHandler(baseHandler):
     is not anymore.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11157,7 +11746,7 @@ class LostHoverHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11180,7 +11769,7 @@ class LostMouseOverHandler(baseHandler):
 Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11198,7 +11787,7 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11226,7 +11815,7 @@ class LostRenderHandler(baseHandler):
     an item is non-rendered will trigger the handlers.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11244,7 +11833,7 @@ class LostRenderHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11273,7 +11862,7 @@ A Menu creates a menu container within a menu bar.
     Menus must be created within a MenuBar or as a child of another Menu.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11304,7 +11893,7 @@ A Menu creates a menu container within a menu bar.
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11330,6 +11919,63 @@ A Menu creates a menu container within a menu bar.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
+        ...
+
+
+    @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
         ...
 
 
@@ -11351,7 +11997,7 @@ class MenuBar(uiItem):
     window, it creates a local menu bar for that window.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11382,7 +12028,7 @@ class MenuBar(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : Viewport | WindowSubCls | ChildWindowSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11411,6 +12057,68 @@ class MenuBar(uiItem):
         ...
 
 
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
+        ...
+
+
+    @property
+    def parent(self) -> Viewport | WindowSubCls | ChildWindowSubCls | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : Viewport | WindowSubCls | ChildWindowSubCls | None):
+        ...
+
+
 class MenuItem(uiItem):
     """
     A clickable menu item that can be used inside Menu components.
@@ -11425,7 +12133,7 @@ class MenuItem(uiItem):
     SharedBool value.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11458,7 +12166,7 @@ class MenuItem(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -11509,6 +12217,25 @@ class MenuItem(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
     def shortcut(self) -> str:
         """
         Text displayed on the right side of the menu item as a shortcut hint.
@@ -11529,6 +12256,25 @@ class MenuItem(uiItem):
         ...
 
 
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
+        ...
+
+
 class MotionHandler(baseHandler):
     """
     Handler that calls the callback when
@@ -11536,7 +12282,7 @@ class MotionHandler(baseHandler):
     the positioning reference (by default the parent)
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11555,7 +12301,7 @@ class MotionHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, pos_policy : tuple[Positioning, Positioning] = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11610,7 +12356,7 @@ class MouseClickHandler(baseHandler):
         - button: The button that was clicked
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11630,7 +12376,7 @@ class MouseClickHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11690,7 +12436,7 @@ class MouseCursorHandler(baseHandler):
     combined with a HoverHandler.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11709,7 +12455,7 @@ class MouseCursorHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], cursor : MouseCursor = 0, enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11755,7 +12501,7 @@ class MouseDoubleClickHandler(baseHandler):
         - button: The button that was double-clicked
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11774,7 +12520,7 @@ class MouseDoubleClickHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11819,7 +12565,7 @@ class MouseDownHandler(baseHandler):
         - duration: How long the button has been held
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11838,7 +12584,7 @@ class MouseDownHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11886,7 +12632,7 @@ class MouseDragHandler(baseHandler):
         - delta_y: Vertical drag distance
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11906,7 +12652,7 @@ class MouseDragHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -11969,7 +12715,7 @@ class MouseInRect(baseHandler):
         - y: Current mouse y position
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11988,7 +12734,7 @@ class MouseInRect(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, rect : Rect = (0.0, 0.0, 0.0, 0.0), show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12031,7 +12777,7 @@ class MouseMoveHandler(baseHandler):
         Position is relative to the viewport.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12049,7 +12795,7 @@ class MouseMoveHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12084,7 +12830,7 @@ Prefer HoverHandler unless you really need to (see below)
     drag & drop operations.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12102,7 +12848,7 @@ Prefer HoverHandler unless you really need to (see below)
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12131,7 +12877,7 @@ class MouseReleaseHandler(baseHandler):
         - button: The button that was released
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12150,7 +12896,7 @@ class MouseReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, button : MouseButton = 0, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12199,7 +12945,7 @@ class MouseWheelHandler(baseHandler):
         Holding Shift while using vertical scroll wheel generates horizontal scroll events.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12218,7 +12964,7 @@ class MouseWheelHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, horizontal : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12265,7 +13011,7 @@ class OpenHandler(baseHandler):
     the object is show or not shown.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12283,7 +13029,7 @@ class OpenHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12317,7 +13063,7 @@ class OtherItemHandler(HandlerList):
         Callbacks still reference the attached item as target, not the monitored item.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12337,7 +13083,7 @@ class OtherItemHandler(HandlerList):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : Sequence[baseHandlerSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, op : HandlerListOP = 0, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12384,7 +13130,7 @@ class Pattern(baseItem):
     interior to exterior).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : Texture | None = None, user_data : Any = ..., x_mode : str = "points"):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : Texture | None = None, user_data : Any = ..., x_mode : str = "points"):
         """
         Parameters
         ----------
@@ -12403,7 +13149,8 @@ class Pattern(baseItem):
         ...
 
 
-    def checkerboard(context, cell_size=5, stripe_width=1, upscale_factor=64, opaque=False, **kwargs):
+    @staticmethod
+    def checkerboard(context : Context, cell_size = 5, stripe_width = 1, upscale_factor = 64, opaque = False, **kwargs):
         """
         Creates a checkerboard pattern with white stripes borders.
 
@@ -12421,7 +13168,7 @@ class Pattern(baseItem):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : Texture | None = None, user_data : Any = ..., x_mode : str = "points"):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : Texture | None = None, user_data : Any = ..., x_mode : str = "points"):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12440,7 +13187,8 @@ class Pattern(baseItem):
         ...
 
 
-    def dash_dot(context, dash_length=10, dot_size=2, spacing=5, upscale_factor=64, opaque=False, **kwargs):
+    @staticmethod
+    def dash_dot(context : Context, dash_length = 10, dot_size = 2, spacing = 5, upscale_factor = 64, opaque = False, **kwargs):
         """
         Creates a dash-dot-dash pattern (commonly used in technical drawings).
 
@@ -12459,7 +13207,8 @@ class Pattern(baseItem):
         ...
 
 
-    def dash_dot_dot(context, dash_length=10, dot_size=2, spacing=5, upscale_factor=64, opaque=False, **kwargs):
+    @staticmethod
+    def dash_dot_dot(context : Context, dash_length = 10, dot_size = 2, spacing = 5, upscale_factor = 64, opaque = False, **kwargs):
         """
         Creates a dash-dot-dot pattern with one dash followed by two dots.
 
@@ -12478,7 +13227,8 @@ class Pattern(baseItem):
         ...
 
 
-    def dashed(context, dash_length=10, gap_length=10, upscale_factor=32, opaque=False, **kwargs):
+    @staticmethod
+    def dashed(context : Context, dash_length = 10, gap_length = 10, upscale_factor = 32, opaque = False, **kwargs):
         """
         Creates a dashed line pattern.
 
@@ -12496,7 +13246,8 @@ class Pattern(baseItem):
         ...
 
 
-    def dotted(context, dot_size=2, spacing=8, upscale_factor=64, opaque=False, **kwargs):
+    @staticmethod
+    def dotted(context : Context, dot_size = 2, spacing = 8, upscale_factor = 64, opaque = False, **kwargs):
         """
         Creates a dotted line pattern.
 
@@ -12514,7 +13265,8 @@ class Pattern(baseItem):
         ...
 
 
-    def double_dash(context, dash_length=10, gap_length=5, dash_width=2, upscale_factor=64, opaque=False, **kwargs):
+    @staticmethod
+    def double_dash(context : Context, dash_length = 10, gap_length = 5, dash_width = 2, upscale_factor = 64, opaque = False, **kwargs):
         """
         Creates a double-dashed line pattern with two parallel dashed lines.
 
@@ -12532,7 +13284,8 @@ class Pattern(baseItem):
         ...
 
 
-    def from_array(context, array, upscale_factor=1, antialiased=True, **kwargs):
+    @staticmethod
+    def from_array(context : Context, array, upscale_factor = 1, antialiased = True, **kwargs):
         """
         Creates a pattern from a provided array with optional upscaling.
 
@@ -12554,7 +13307,8 @@ class Pattern(baseItem):
         ...
 
 
-    def railroad(context, track_width=4, tie_width=10, tie_spacing=10, upscale_factor=64, opaque=False, **kwargs):
+    @staticmethod
+    def railroad(context : Context, track_width = 4, tie_width = 10, tie_spacing = 10, upscale_factor = 64, opaque = False, **kwargs):
         """
         Creates a railroad track pattern with parallel lines and perpendicular ties.
 
@@ -12572,7 +13326,8 @@ class Pattern(baseItem):
         ...
 
 
-    def solid(context, **kwargs):
+    @staticmethod
+    def solid(context : Context, **kwargs):
         """
         Creates a solid line pattern (no pattern).
 
@@ -12665,7 +13420,7 @@ class PlaceHolderParent(baseItem):
     Can be a parent to anything but cannot have any parent itself.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12680,7 +13435,7 @@ class PlaceHolderParent(baseItem):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -12712,7 +13467,7 @@ class Plot(uiItem):
     and can appear in the legend.
 
     """
-    def __init__(self, context : Context, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def __init__(self, context : Context, /, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -12768,7 +13523,7 @@ class Plot(uiItem):
         ...
 
 
-    def configure(self, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
+    def configure(self, /, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[plotElementSubCls] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = 0, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = 1, mouse_location : LegendLocation = 10, next_sibling : baseItemSubCls | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = 0, pan_mod : KeyMod = 0, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0, zoom_mod : KeyMod = 0, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -12931,7 +13686,7 @@ class Plot(uiItem):
 
 
     @property
-    def axes(self) -> list:
+    def axes(self) -> Sequence[Any]:
         """
         (Read-only) All six axes configurations in a list.
 
@@ -12940,6 +13695,25 @@ class Plot(uiItem):
         that need to apply to multiple axes simultaneously.
 
         """
+        ...
+
+
+    @property
+    def children(self) -> list[plotElementSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[plotElementSubCls]):
         ...
 
 
@@ -13295,7 +14069,7 @@ class PlotAnnotation(plotElement):
     background colors, offsets, and clamping behavior to ensure visibility.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -13320,7 +14094,7 @@ class PlotAnnotation(plotElement):
         ...
 
 
-    def configure(self, axes : tuple = (0, 3), bg_color : list = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, axes : tuple = (0, 3), bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : None  = [], clamp : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, offset : tuple = (0.0, 0.0), parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -13346,7 +14120,7 @@ class PlotAnnotation(plotElement):
 
 
     @property
-    def bg_color(self) -> list:
+    def bg_color(self) -> Sequence[float]:
         """
         Background color of the annotation bubble.
 
@@ -13360,7 +14134,7 @@ class PlotAnnotation(plotElement):
 
 
     @bg_color.setter
-    def bg_color(self, value : list):
+    def bg_color(self, value : Sequence[float]):
         ...
 
 
@@ -13468,7 +14242,7 @@ class PlotAxisConfig(baseItem):
     along the axis.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[Any] = [], labels_coord : Sequence[Any] = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
         Parameters
         ----------
@@ -13513,7 +14287,7 @@ class PlotAxisConfig(baseItem):
         ...
 
 
-    def configure(self, auto_fit : bool = False, children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : list = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : list = [], labels_coord : list = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def configure(self, /, auto_fit : bool = False, children : Sequence[baseItemSubCls] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[Any] = [], labels_coord : Sequence[Any] = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : baseItemSubCls | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = 0, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -13661,7 +14435,7 @@ class PlotAxisConfig(baseItem):
 
 
     @property
-    def handlers(self) -> list:
+    def handlers(self) -> list[baseHandlerSubCls]:
         """
         Event handlers attached to this axis.
 
@@ -13673,7 +14447,7 @@ class PlotAxisConfig(baseItem):
 
 
     @handlers.setter
-    def handlers(self, value : list):
+    def handlers(self, value : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None):
         ...
 
 
@@ -13732,7 +14506,7 @@ class PlotAxisConfig(baseItem):
 
 
     @property
-    def labels(self) -> list:
+    def labels(self) -> Sequence[Any]:
         """
         Custom text labels for specific tick positions.
 
@@ -13745,12 +14519,12 @@ class PlotAxisConfig(baseItem):
 
 
     @labels.setter
-    def labels(self, value : list):
+    def labels(self, value : Sequence[Any]):
         ...
 
 
     @property
-    def labels_coord(self) -> list:
+    def labels_coord(self) -> Sequence[Any]:
         """
         Coordinate positions for custom tick labels.
 
@@ -13762,7 +14536,7 @@ class PlotAxisConfig(baseItem):
 
 
     @labels_coord.setter
-    def labels_coord(self, value : list):
+    def labels_coord(self, value : Sequence[Any]):
         ...
 
 
@@ -14143,7 +14917,7 @@ class PlotBarGroups(plotElementWithLegend):
     color), and each column represents a group position.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : Sequence[str] = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
         Parameters
         ----------
@@ -14174,7 +14948,7 @@ class PlotBarGroups(plotElementWithLegend):
         ...
 
 
-    def configure(self, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : list = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
+    def configure(self, /, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : Sequence[str] = ['Item 0'], legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -14245,7 +15019,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @property
-    def labels(self) -> list:
+    def labels(self) -> Sequence[str]:
         """
         Labels for each data series.
 
@@ -14259,7 +15033,7 @@ class PlotBarGroups(plotElementWithLegend):
 
 
     @labels.setter
-    def labels(self, value : list):
+    def labels(self, value : Sequence[str]):
         ...
 
 
@@ -14330,7 +15104,7 @@ class PlotBars(plotElementXY):
     Suitable for histograms, bar charts, and column graphs.
 
     """
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
         """
         Parameters
         ----------
@@ -14359,7 +15133,7 @@ class PlotBars(plotElementXY):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -14436,7 +15210,7 @@ class PlotDigital(plotElementXY):
     time.
 
     """
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14463,7 +15237,7 @@ class PlotDigital(plotElementXY):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -14501,7 +15275,7 @@ class PlotErrorBars(plotElementXY):
     or estimated uncertainties.
 
     """
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Array = ..., next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, positives : Array = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], negatives : Array = ..., next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, positives : Array = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14531,7 +15305,7 @@ class PlotErrorBars(plotElementXY):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], negatives : Array = ..., next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, positives : Array = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], negatives : Array = ..., next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, positives : Array = ..., previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -14631,7 +15405,7 @@ class PlotHeatmap(plotElementWithLegend):
     and the color scaling can be automatic or manually specified.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence[uiItemSubCls] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence[uiItemSubCls] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
         Parameters
         ----------
@@ -14663,7 +15437,7 @@ class PlotHeatmap(plotElementWithLegend):
         ...
 
 
-    def configure(self, axes : tuple = (0, 3), bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence[uiItemSubCls] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
+    def configure(self, /, axes : tuple = (0, 3), bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence[uiItemSubCls] = [], col_major : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -14838,7 +15612,7 @@ class PlotHistogram(plotElementX):
     with cumulative counts, density normalization, and range constraints.
 
     """
-    def __init__(self, context : Context, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : Sequence[uiItemSubCls] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : Sequence[uiItemSubCls] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14871,7 +15645,7 @@ class PlotHistogram(plotElementX):
         ...
 
 
-    def configure(self, X : Array = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, bins : int = -1, children : Sequence[uiItemSubCls] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., axes : tuple = (0, 3), bar_scale : float = 1.0, bins : int = -1, children : Sequence[uiItemSubCls] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -15049,7 +15823,7 @@ class PlotHistogram2D(plotElementXY):
     Various binning methods are available for both X and Y dimensions.
 
     """
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
         """
         Parameters
         ----------
@@ -15082,7 +15856,7 @@ class PlotHistogram2D(plotElementXY):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], density : bool = False, enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, no_outliers : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
         """
         Shortcut to set multiple attributes at once.
 
@@ -15242,7 +16016,7 @@ class PlotInfLines(plotElementX):
     thresholds, or reference points across the entire plotting area.
 
     """
-    def __init__(self, context : Context, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15269,7 +16043,7 @@ class PlotInfLines(plotElementX):
         ...
 
 
-    def configure(self, X : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -15325,7 +16099,7 @@ class PlotLegendConfig(baseItem):
     interaction behavior and layout.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItemSubCls | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, sorted : bool = False, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItemSubCls | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, sorted : bool = False, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15348,7 +16122,7 @@ class PlotLegendConfig(baseItem):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItemSubCls | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, sorted : bool = False, user_data : Any = ...):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], horizontal : bool = False, location : LegendLocation = 5, next_sibling : baseItemSubCls | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, sorted : bool = False, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -15524,7 +16298,7 @@ class PlotLine(plotElementXY):
     shading beneath the line, and NaN handling can be configured.
 
     """
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], loop : bool = False, next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15556,7 +16330,7 @@ class PlotLine(plotElementXY):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], loop : bool = False, next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], loop : bool = False, next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -15689,7 +16463,7 @@ class PlotPieChart(plotElementWithLegend):
     proportions of the values as provided.
 
     """
-    def __init__(self, context : Context, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, angle : float = 90.0, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : Sequence[str] = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -15723,7 +16497,7 @@ class PlotPieChart(plotElementWithLegend):
         ...
 
 
-    def configure(self, angle : float = 90.0, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : list = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, angle : float = 90.0, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : Sequence[str] = ['Slice 0'], legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, normalize : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -15812,7 +16586,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @property
-    def labels(self) -> list:
+    def labels(self) -> Sequence[str]:
         """
         Array of labels for each pie slice.
 
@@ -15825,7 +16599,7 @@ class PlotPieChart(plotElementWithLegend):
 
 
     @labels.setter
-    def labels(self, value : list):
+    def labels(self, value : Sequence[str]):
         ...
 
 
@@ -15928,7 +16702,7 @@ class PlotScatter(plotElementXY):
     between points is not continuous.
 
     """
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15956,7 +16730,7 @@ class PlotScatter(plotElementXY):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -16004,7 +16778,7 @@ class PlotScatter(plotElementXY):
 
 
 class PlotShadedLine(plotElementXYY):
-    def __init__(self, context : Context, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -16032,7 +16806,7 @@ class PlotShadedLine(plotElementXYY):
         ...
 
 
-    def configure(self, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -16070,7 +16844,7 @@ class PlotStairs(plotElementXY):
     signals that maintain a value until an event causes a change.
 
     """
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, pre_step : bool = False, previous_sibling : baseItemSubCls | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, pre_step : bool = False, previous_sibling : baseItemSubCls | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -16099,7 +16873,7 @@ class PlotStairs(plotElementXY):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, pre_step : bool = False, previous_sibling : baseItemSubCls | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, pre_step : bool = False, previous_sibling : baseItemSubCls | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -16177,7 +16951,7 @@ class PlotStems(plotElementXY):
     signals.
 
     """
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -16205,7 +16979,7 @@ class PlotStems(plotElementXY):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -16266,7 +17040,7 @@ class ProgressBar(uiItem):
     inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16298,7 +17072,7 @@ class ProgressBar(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16346,8 +17120,46 @@ class ProgressBar(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedFloat:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedFloat):
+        ...
+
+
+    @property
+    def value(self) -> float:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : float):
+        ...
+
+
 class RadioButton(uiItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, items : Sequence[str] = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16380,7 +17192,7 @@ class RadioButton(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, items : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, horizontal : bool = False, items : Sequence[str] = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16426,7 +17238,7 @@ class RadioButton(uiItem):
 
 
     @property
-    def items(self) -> list:
+    def items(self) -> Sequence[str]:
         """
         Writable attribute: List of text values to select
 
@@ -16435,7 +17247,45 @@ class RadioButton(uiItem):
 
 
     @items.setter
-    def items(self, value : list):
+    def items(self, value : Sequence[str]):
+        ...
+
+
+    @property
+    def shareable_value(self) -> SharedStr:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedStr):
+        ...
+
+
+    @property
+    def value(self) -> str:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : str):
         ...
 
 
@@ -16452,7 +17302,7 @@ class RenderHandler(baseHandler):
     currently closed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -16470,7 +17320,7 @@ class RenderHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -16494,7 +17344,7 @@ class ResizeHandler(baseHandler):
     whenever the item's bounding box changes size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -16512,7 +17362,7 @@ class ResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -16545,7 +17395,7 @@ class Selectable(uiItem):
     property.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16580,7 +17430,7 @@ class Selectable(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], disable_popup_close : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, highlighted : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16671,6 +17521,25 @@ class Selectable(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
     def span_columns(self) -> bool:
         """
         Controls whether the selectable spans all columns in a table.
@@ -16689,6 +17558,25 @@ class Selectable(uiItem):
         ...
 
 
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
+        ...
+
+
 class Separator(uiItem):
     """
     A horizontal line that visually separates UI elements.
@@ -16701,7 +17589,7 @@ class Separator(uiItem):
     creating a section header. Without a label, it renders as a simple line.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16732,7 +17620,7 @@ class Separator(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -16780,7 +17668,7 @@ class Separator(uiItem):
 
 
 class SharedBool(SharedValue):
-    def __init__(self, context : Context, value : bool):
+    def __init__(self, context : Context, /, value : bool):
         ...
 
 
@@ -16851,7 +17739,7 @@ class SharedBool(SharedValue):
 
 
 class SharedColor(SharedValue):
-    def __init__(self, context : Context, value : int):
+    def __init__(self, context : Context, /, value : Color):
         ...
 
 
@@ -16912,17 +17800,17 @@ class SharedColor(SharedValue):
 
 
     @property
-    def value(self) -> int:
+    def value(self) -> Color:
         ...
 
 
     @value.setter
-    def value(self, value : int):
+    def value(self, value : Color):
         ...
 
 
 class SharedFloat(SharedValue):
-    def __init__(self, context : Context, value : float):
+    def __init__(self, context : Context, /, value : float):
         ...
 
 
@@ -16993,7 +17881,7 @@ class SharedFloat(SharedValue):
 
 
 class SharedFloat4(SharedValue):
-    def __init__(self, context : Context, value : list):
+    def __init__(self, context : Context, /, value : Sequence[float]):
         ...
 
 
@@ -17054,17 +17942,17 @@ class SharedFloat4(SharedValue):
 
 
     @property
-    def value(self) -> list:
+    def value(self) -> Sequence[float]:
         ...
 
 
     @value.setter
-    def value(self, value : list):
+    def value(self, value : Sequence[float]):
         ...
 
 
 class SharedFloatVect(SharedValue):
-    def __init__(self, context : Context, value : array):
+    def __init__(self, context : Context, /, value : array):
         ...
 
 
@@ -17135,7 +18023,7 @@ class SharedFloatVect(SharedValue):
 
 
 class SharedStr(SharedValue):
-    def __init__(self, context : Context, value : str):
+    def __init__(self, context : Context, /, value : str):
         ...
 
 
@@ -17223,7 +18111,7 @@ class SharedValue(object):
     consistent behavior around tracking and sharing.
 
     """
-    def __init__(self, context : Context, value : Any):
+    def __init__(self, context : Context, /, value : Any):
         """
         Parameters
         ----------
@@ -17319,7 +18207,7 @@ class SimplePlot(uiItem):
     and modified through the value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, histogram : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., autoscale : bool = True, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, histogram : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17355,7 +18243,7 @@ class SimplePlot(uiItem):
         ...
 
 
-    def configure(self, autoscale : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, histogram : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, autoscale : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, histogram : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, overlay : str = "", parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17477,6 +18365,25 @@ class SimplePlot(uiItem):
         ...
 
 
+    @property
+    def shareable_value(self) -> SharedFloatVect:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedFloatVect):
+        ...
+
+
 class Slider(uiItem):
     """
     A widget that allows selecting values by dragging a handle along a track.
@@ -17492,7 +18399,7 @@ class Slider(uiItem):
     different display formats.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17534,7 +18441,7 @@ class Slider(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17721,6 +18628,25 @@ class Slider(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedFloat | SharedFloat4:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedFloat | SharedFloat4):
+        ...
+
+
+    @property
     def size(self) -> int:
         """
         Number of components controlled by the slider.
@@ -17759,6 +18685,25 @@ class Slider(uiItem):
 
 
     @property
+    def value(self) -> float | int | Sequence[float] | Sequence[int]:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : float | int | Sequence[float] | Sequence[int]):
+        ...
+
+
+    @property
     def vertical(self) -> bool:
         """
         Whether to display the slider vertically instead of horizontally.
@@ -17790,7 +18735,7 @@ class Spacer(uiItem):
     of the precise requested size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17821,7 +18766,7 @@ class Spacer(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17864,7 +18809,7 @@ class Subplots(uiItem):
     order by default, but can be changed to column-major ordering as needed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : Sequence[Any] = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : Sequence[Any] = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17905,7 +18850,7 @@ class Subplots(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : list = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : list = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], col_major : bool = False, col_ratios : Sequence[Any] = [], cols : int = 1, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, row_ratios : Sequence[Any] = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -17945,6 +18890,25 @@ class Subplots(uiItem):
 
 
     @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
+        ...
+
+
+    @property
     def col_major(self) -> bool:
         """
         Whether to add plots in column-major order.
@@ -17964,7 +18928,7 @@ class Subplots(uiItem):
 
 
     @property
-    def col_ratios(self) -> list:
+    def col_ratios(self) -> Sequence[Any]:
         """
         Size ratios for subplot columns.
 
@@ -17977,7 +18941,7 @@ class Subplots(uiItem):
 
 
     @col_ratios.setter
-    def col_ratios(self, value : list):
+    def col_ratios(self, value : Sequence[Any]):
         ...
 
 
@@ -18088,7 +19052,7 @@ class Subplots(uiItem):
 
 
     @property
-    def row_ratios(self) -> list:
+    def row_ratios(self) -> Sequence[Any]:
         """
         Size ratios for subplot rows.
 
@@ -18101,7 +19065,7 @@ class Subplots(uiItem):
 
 
     @row_ratios.setter
-    def row_ratios(self, value : list):
+    def row_ratios(self, value : Sequence[Any]):
         ...
 
 
@@ -18161,7 +19125,7 @@ class Tab(uiItem):
     addition to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18197,7 +19161,7 @@ class Tab(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], closable : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18228,6 +19192,25 @@ class Tab(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -18309,6 +19292,25 @@ class Tab(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
     def trailing(self) -> bool:
         """
         Whether the tab is positioned at the right side of the tab bar.
@@ -18325,6 +19327,25 @@ class Tab(uiItem):
 
     @trailing.setter
     def trailing(self, value : bool):
+        ...
+
+
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
         ...
 
 
@@ -18346,7 +19367,7 @@ class TabBar(uiItem):
     hidden until selected.
 
     """
-    def __init__(self, context : Context, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18386,7 +19407,7 @@ class TabBar(uiItem):
         ...
 
 
-    def configure(self, allow_tab_scroll : bool = False, autoselect_new_tabs : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, allow_tab_scroll : bool = False, autoselect_new_tabs : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18612,7 +19633,7 @@ class TabButton(uiItem):
     using themes.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18647,7 +19668,7 @@ class TabButton(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", leading : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18738,6 +19759,25 @@ class TabButton(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
     def trailing(self) -> bool:
         """
         Positions the tab button at the right side of the tab bar.
@@ -18757,6 +19797,25 @@ class TabButton(uiItem):
         ...
 
 
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
+        ...
+
+
 class Table(baseTable):
     """
 Table widget with advanced display and interaction capabilities.
@@ -18770,7 +19829,7 @@ Table widget with advanced display and interaction capabilities.
     and behavior can be customized through column and row configurations.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float | str | baseSizing = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], header : bool = False, height : float | str | baseSizing = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18812,7 +19871,7 @@ Table widget with advanced display and interaction capabilities.
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : list = [], header : bool = False, height : float | str | baseSizing = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, flags : TableFlag = 0, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], header : bool = False, height : float | str | baseSizing = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18957,7 +20016,7 @@ class TableColConfig(baseItem):
     - HoveredHandler to detect when the user hovers over the column
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -18992,7 +20051,7 @@ class TableColConfig(baseItem):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : list = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | baseSizing = 0.0):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], default_sort : bool = False, enabled : bool = True, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], label : str = "", next_sibling : baseItemSubCls | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : baseItemSubCls | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : baseItemSubCls | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | baseSizing = 0.0):
         """
         Shortcut to set multiple attributes at once.
 
@@ -19062,7 +20121,7 @@ class TableColConfig(baseItem):
 
 
     @property
-    def handlers(self) -> list:
+    def handlers(self) -> list[baseHandlerSubCls]:
         """
         The event handlers bound to this column.
 
@@ -19075,7 +20134,7 @@ class TableColConfig(baseItem):
 
 
     @handlers.setter
-    def handlers(self, value : list):
+    def handlers(self, value : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None):
         ...
 
 
@@ -19395,7 +20454,7 @@ class TablePlaceHolderParent(baseItem):
     table cells. This allows for a cleaner, more intuitive API for populating tables.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -19410,7 +20469,7 @@ class TablePlaceHolderParent(baseItem):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -19437,7 +20496,7 @@ class TableRowConfig(baseItem):
     control over the table's appearance.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], min_height : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -19456,7 +20515,7 @@ class TableRowConfig(baseItem):
         ...
 
 
-    def configure(self, bg_color : list = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], handlers : list = [], min_height : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : Sequence[baseItemSubCls] = [], handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], min_height : float = 0.0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -19476,7 +20535,7 @@ class TableRowConfig(baseItem):
 
 
     @property
-    def bg_color(self) -> list:
+    def bg_color(self) -> Sequence[float]:
         """
         Background color for the entire row.
 
@@ -19488,12 +20547,12 @@ class TableRowConfig(baseItem):
 
 
     @bg_color.setter
-    def bg_color(self, value : list):
+    def bg_color(self, value : Sequence[float]):
         ...
 
 
     @property
-    def handlers(self) -> list:
+    def handlers(self) -> list[baseHandlerSubCls]:
         """
         Event handlers bound to this row.
 
@@ -19506,7 +20565,7 @@ class TableRowConfig(baseItem):
 
 
     @handlers.setter
-    def handlers(self, value : list):
+    def handlers(self, value : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None):
         ...
 
 
@@ -19559,7 +20618,7 @@ class Text(uiItem):
     selectable.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, marker : Any = ..., next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, marker : Any = ..., next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -19592,7 +20651,7 @@ class Text(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, marker : Any = ..., next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], color : Color = 0, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, marker : Any = ..., next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | baseSizing = 0.0, wrap : int = -1, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -19660,6 +20719,44 @@ class Text(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedStr:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedStr):
+        ...
+
+
+    @property
+    def value(self) -> str:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : str):
+        ...
+
+
+    @property
     def wrap(self) -> int:
         """
         Width in pixels at which to wrap the text.
@@ -19699,7 +20796,7 @@ class TextValue(uiItem):
     to control precision, alignment, and presentation.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -19731,7 +20828,7 @@ class TextValue(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -19791,7 +20888,7 @@ class TextValue(uiItem):
 
 
     @property
-    def shareable_value(self) -> SharedFloat:
+    def shareable_value(self) -> SharedValue:
         """
         The SharedValue object that provides the displayed value.
 
@@ -19809,7 +20906,26 @@ class TextValue(uiItem):
 
 
     @shareable_value.setter
-    def shareable_value(self, value : SharedFloat):
+    def shareable_value(self, value : SharedValue):
+        ...
+
+
+    @property
+    def value(self) -> float:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : float):
         ...
 
 
@@ -19823,7 +20939,7 @@ class Texture(baseItem):
     and can be read from or written to.
 
     """
-    def __init__(self, context : Context, antialiased : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
+    def __init__(self, context : Context, /, antialiased : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
         """
         Parameters
         ----------
@@ -19843,7 +20959,7 @@ class Texture(baseItem):
         ...
 
 
-    def allocate(self, width, height, num_chans, uint8=False, float32=False, no_realloc=True):
+    def allocate(self, width, height, num_chans, uint8 = False, float32 = False, no_realloc = True):
         """
         Allocate the buffer backing for the texture.
 
@@ -19866,7 +20982,7 @@ class Texture(baseItem):
         ...
 
 
-    def configure(self, antialiased : bool = False, children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
+    def configure(self, /, antialiased : bool = False, children : Sequence[baseItemSubCls] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
         """
         Shortcut to set multiple attributes at once.
 
@@ -19938,7 +21054,7 @@ class Texture(baseItem):
         ...
 
 
-    def read(self, x0=0, y0=0, crop_width=0, crop_height=0):
+    def read(self, x0 = 0, y0 = 0, crop_width = 0, crop_height = 0):
         """
         Read the texture content.
 
@@ -20001,7 +21117,7 @@ class Texture(baseItem):
 
 
     @property
-    def height(self) -> float | str | baseSizing:
+    def height(self) -> int:
         """
         (Read-only) Height of the current texture content in pixels.
 
@@ -20070,7 +21186,7 @@ class Texture(baseItem):
 
 
     @property
-    def width(self) -> float | str | baseSizing:
+    def width(self) -> int:
         """
         (Read-only) Width of the current texture content in pixels.
 
@@ -20190,7 +21306,7 @@ class ThemeColorImGui(baseThemeColor):
         modal_window_dim_bg: Darken/colorize entire screen behind a modal window, when one is active
 
     """
-    def __init__(self, context : Context, attach : Color| None = None, before : Color| None = None, border : Color| None = None, border_shadow : Color| None = None, button : Color| None = None, button_active : Color| None = None, button_hovered : Color| None = None, check_mark : Color| None = None, child_bg : Color| None = None, children : None  = [], drag_drop_target : Color| None = None, enabled : bool = True, frame_bg : Color| None = None, frame_bg_active : Color| None = None, frame_bg_hovered : Color| None = None, header : Color| None = None, header_active : Color| None = None, header_hovered : Color| None = None, menu_bar_bg : Color| None = None, modal_window_dim_bg : Color| None = None, nav_cursor : Color| None = None, nav_windowing_dim_bg : Color| None = None, nav_windowing_highlight : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, plot_histogram : Color| None = None, plot_histogram_hovered : Color| None = None, plot_lines : Color| None = None, plot_lines_hovered : Color| None = None, popup_bg : Color| None = None, previous_sibling : baseItemSubCls | None = None, resize_grip : Color| None = None, resize_grip_active : Color| None = None, resize_grip_hovered : Color| None = None, scrollbar_bg : Color| None = None, scrollbar_grab : Color| None = None, scrollbar_grab_active : Color| None = None, scrollbar_grab_hovered : Color| None = None, separator : Color| None = None, separator_active : Color| None = None, separator_hovered : Color| None = None, slider_grab : Color| None = None, slider_grab_active : Color| None = None, tab : Color| None = None, tab_dimmed : Color| None = None, tab_dimmed_selected : Color| None = None, tab_dimmed_selected_overline : Color| None = None, tab_hovered : Color| None = None, tab_selected : Color| None = None, tab_selected_overline : Color| None = None, table_border_light : Color| None = None, table_border_strong : Color| None = None, table_header_bg : Color| None = None, table_row_bg : Color| None = None, table_row_bg_alt : Color| None = None, text : Color| None = None, text_disabled : Color| None = None, text_link : Color| None = None, text_selected_bg : Color| None = None, title_bg : Color| None = None, title_bg_active : Color| None = None, title_bg_collapsed : Color| None = None, user_data : Color| None = None, window_bg : Color| None = None):
+    def __init__(self, context : Context, /, attach : Color| None = None, before : Color| None = None, border : Color| None = None, border_shadow : Color| None = None, button : Color| None = None, button_active : Color| None = None, button_hovered : Color| None = None, check_mark : Color| None = None, child_bg : Color| None = None, children : None  = [], drag_drop_target : Color| None = None, enabled : bool = True, frame_bg : Color| None = None, frame_bg_active : Color| None = None, frame_bg_hovered : Color| None = None, header : Color| None = None, header_active : Color| None = None, header_hovered : Color| None = None, menu_bar_bg : Color| None = None, modal_window_dim_bg : Color| None = None, nav_cursor : Color| None = None, nav_windowing_dim_bg : Color| None = None, nav_windowing_highlight : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, plot_histogram : Color| None = None, plot_histogram_hovered : Color| None = None, plot_lines : Color| None = None, plot_lines_hovered : Color| None = None, popup_bg : Color| None = None, previous_sibling : baseItemSubCls | None = None, resize_grip : Color| None = None, resize_grip_active : Color| None = None, resize_grip_hovered : Color| None = None, scrollbar_bg : Color| None = None, scrollbar_grab : Color| None = None, scrollbar_grab_active : Color| None = None, scrollbar_grab_hovered : Color| None = None, separator : Color| None = None, separator_active : Color| None = None, separator_hovered : Color| None = None, slider_grab : Color| None = None, slider_grab_active : Color| None = None, tab : Color| None = None, tab_dimmed : Color| None = None, tab_dimmed_selected : Color| None = None, tab_dimmed_selected_overline : Color| None = None, tab_hovered : Color| None = None, tab_selected : Color| None = None, tab_selected_overline : Color| None = None, table_border_light : Color| None = None, table_border_strong : Color| None = None, table_header_bg : Color| None = None, table_row_bg : Color| None = None, table_row_bg_alt : Color| None = None, text : Color| None = None, text_disabled : Color| None = None, text_link : Color| None = None, text_selected_bg : Color| None = None, title_bg : Color| None = None, title_bg_active : Color| None = None, title_bg_collapsed : Color| None = None, user_data : Color| None = None, window_bg : Color| None = None):
         """
         Parameters
         ----------
@@ -20262,7 +21378,7 @@ class ThemeColorImGui(baseThemeColor):
         ...
 
 
-    def configure(self, border : Color| None = None, border_shadow : Color| None = None, button : Color| None = None, button_active : Color| None = None, button_hovered : Color| None = None, check_mark : Color| None = None, child_bg : Color| None = None, children : None  = [], drag_drop_target : Color| None = None, enabled : bool = True, frame_bg : Color| None = None, frame_bg_active : Color| None = None, frame_bg_hovered : Color| None = None, header : Color| None = None, header_active : Color| None = None, header_hovered : Color| None = None, menu_bar_bg : Color| None = None, modal_window_dim_bg : Color| None = None, nav_cursor : Color| None = None, nav_windowing_dim_bg : Color| None = None, nav_windowing_highlight : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, plot_histogram : Color| None = None, plot_histogram_hovered : Color| None = None, plot_lines : Color| None = None, plot_lines_hovered : Color| None = None, popup_bg : Color| None = None, previous_sibling : baseItemSubCls | None = None, resize_grip : Color| None = None, resize_grip_active : Color| None = None, resize_grip_hovered : Color| None = None, scrollbar_bg : Color| None = None, scrollbar_grab : Color| None = None, scrollbar_grab_active : Color| None = None, scrollbar_grab_hovered : Color| None = None, separator : Color| None = None, separator_active : Color| None = None, separator_hovered : Color| None = None, slider_grab : Color| None = None, slider_grab_active : Color| None = None, tab : Color| None = None, tab_dimmed : Color| None = None, tab_dimmed_selected : Color| None = None, tab_dimmed_selected_overline : Color| None = None, tab_hovered : Color| None = None, tab_selected : Color| None = None, tab_selected_overline : Color| None = None, table_border_light : Color| None = None, table_border_strong : Color| None = None, table_header_bg : Color| None = None, table_row_bg : Color| None = None, table_row_bg_alt : Color| None = None, text : Color| None = None, text_disabled : Color| None = None, text_link : Color| None = None, text_selected_bg : Color| None = None, title_bg : Color| None = None, title_bg_active : Color| None = None, title_bg_collapsed : Color| None = None, user_data : Color| None = None, window_bg : Color| None = None):
+    def configure(self, /, border : Color| None = None, border_shadow : Color| None = None, button : Color| None = None, button_active : Color| None = None, button_hovered : Color| None = None, check_mark : Color| None = None, child_bg : Color| None = None, children : None  = [], drag_drop_target : Color| None = None, enabled : bool = True, frame_bg : Color| None = None, frame_bg_active : Color| None = None, frame_bg_hovered : Color| None = None, header : Color| None = None, header_active : Color| None = None, header_hovered : Color| None = None, menu_bar_bg : Color| None = None, modal_window_dim_bg : Color| None = None, nav_cursor : Color| None = None, nav_windowing_dim_bg : Color| None = None, nav_windowing_highlight : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, plot_histogram : Color| None = None, plot_histogram_hovered : Color| None = None, plot_lines : Color| None = None, plot_lines_hovered : Color| None = None, popup_bg : Color| None = None, previous_sibling : baseItemSubCls | None = None, resize_grip : Color| None = None, resize_grip_active : Color| None = None, resize_grip_hovered : Color| None = None, scrollbar_bg : Color| None = None, scrollbar_grab : Color| None = None, scrollbar_grab_active : Color| None = None, scrollbar_grab_hovered : Color| None = None, separator : Color| None = None, separator_active : Color| None = None, separator_hovered : Color| None = None, slider_grab : Color| None = None, slider_grab_active : Color| None = None, tab : Color| None = None, tab_dimmed : Color| None = None, tab_dimmed_selected : Color| None = None, tab_dimmed_selected_overline : Color| None = None, tab_hovered : Color| None = None, tab_selected : Color| None = None, tab_selected_overline : Color| None = None, table_border_light : Color| None = None, table_border_strong : Color| None = None, table_header_bg : Color| None = None, table_row_bg : Color| None = None, table_row_bg_alt : Color| None = None, text : Color| None = None, text_disabled : Color| None = None, text_link : Color| None = None, text_selected_bg : Color| None = None, title_bg : Color| None = None, title_bg_active : Color| None = None, title_bg_collapsed : Color| None = None, user_data : Color| None = None, window_bg : Color| None = None):
         """
         Parameters
         ----------
@@ -20328,6 +21444,14 @@ class ThemeColorImGui(baseThemeColor):
         - title_bg_collapsed: Title bar color when collapsed.
         - user_data: User data of any type.
         - window_bg: Background of normal windows.
+        """
+        ...
+
+
+    @staticmethod
+    def get_default(color_name):
+        """
+Get the default color value for the given color name.
         """
         ...
 
@@ -21096,7 +22220,7 @@ class ThemeColorImPlot(baseThemeColor):
         crosshairs: Crosshairs color. Auto - derived from PlotBorder color
 
     """
-    def __init__(self, context : Context, attach : Color| None = None, axis_bg : Color| None = None, axis_bg_active : Color| None = None, axis_bg_hovered : Color| None = None, axis_grid : Color| None = None, axis_text : Color| None = None, axis_tick : Color| None = None, before : Color| None = None, children : None  = [], crosshairs : Color| None = None, enabled : bool = True, error_bar : Color| None = None, fill : Color = None, frame_bg : Color| None = None, inlay_text : Color| None = None, legend_bg : Color| None = None, legend_border : Color| None = None, legend_text : Color| None = None, line : Color| None = None, marker_fill : Color| None = None, marker_outline : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, plot_bg : Color| None = None, plot_border : Color| None = None, previous_sibling : baseItemSubCls | None = None, selection : Color| None = None, title_text : Color| None = None, user_data : Color| None = None):
+    def __init__(self, context : Context, /, attach : Color| None = None, axis_bg : Color| None = None, axis_bg_active : Color| None = None, axis_bg_hovered : Color| None = None, axis_grid : Color| None = None, axis_text : Color| None = None, axis_tick : Color| None = None, before : Color| None = None, children : None  = [], crosshairs : Color| None = None, enabled : bool = True, error_bar : Color| None = None, fill : Color = None, frame_bg : Color| None = None, inlay_text : Color| None = None, legend_bg : Color| None = None, legend_border : Color| None = None, legend_text : Color| None = None, line : Color| None = None, marker_fill : Color| None = None, marker_outline : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, plot_bg : Color| None = None, plot_border : Color| None = None, previous_sibling : baseItemSubCls | None = None, selection : Color| None = None, title_text : Color| None = None, user_data : Color| None = None):
         """
         Parameters
         ----------
@@ -21133,7 +22257,7 @@ class ThemeColorImPlot(baseThemeColor):
         ...
 
 
-    def configure(self, axis_bg : Color| None = None, axis_bg_active : Color| None = None, axis_bg_hovered : Color| None = None, axis_grid : Color| None = None, axis_text : Color| None = None, axis_tick : Color| None = None, children : None  = [], crosshairs : Color| None = None, enabled : bool = True, error_bar : Color| None = None, fill : Color = None, frame_bg : Color| None = None, inlay_text : Color| None = None, legend_bg : Color| None = None, legend_border : Color| None = None, legend_text : Color| None = None, line : Color| None = None, marker_fill : Color| None = None, marker_outline : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, plot_bg : Color| None = None, plot_border : Color| None = None, previous_sibling : baseItemSubCls | None = None, selection : Color| None = None, title_text : Color| None = None, user_data : Color| None = None):
+    def configure(self, /, axis_bg : Color| None = None, axis_bg_active : Color| None = None, axis_bg_hovered : Color| None = None, axis_grid : Color| None = None, axis_text : Color| None = None, axis_tick : Color| None = None, children : None  = [], crosshairs : Color| None = None, enabled : bool = True, error_bar : Color| None = None, fill : Color = None, frame_bg : Color| None = None, inlay_text : Color| None = None, legend_bg : Color| None = None, legend_border : Color| None = None, legend_text : Color| None = None, line : Color| None = None, marker_fill : Color| None = None, marker_outline : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, plot_bg : Color| None = None, plot_border : Color| None = None, previous_sibling : baseItemSubCls | None = None, selection : Color| None = None, title_text : Color| None = None, user_data : Color| None = None):
         """
         Parameters
         ----------
@@ -21164,6 +22288,14 @@ class ThemeColorImPlot(baseThemeColor):
         - selection: Box-selection color.
         - title_text: Plot title text color.
         - user_data: User data of any type.
+        """
+        ...
+
+
+    @staticmethod
+    def get_default(color_name):
+        """
+Get the default color value for the given color name.
         """
         ...
 
@@ -21459,7 +22591,7 @@ class ThemeList(baseTheme):
     applied as well.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseThemeSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseThemeSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -21475,7 +22607,7 @@ class ThemeList(baseTheme):
         ...
 
 
-    def configure(self, children : Sequence[baseThemeSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, /, children : Sequence[baseThemeSubCls] = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -21486,11 +22618,30 @@ class ThemeList(baseTheme):
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[baseThemeSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[baseThemeSubCls]):
         ...
 
 
 class ThemeStyleImGui(baseThemeStyle):
-    def __init__(self, context : Context, alpha : float | None = None, attach : Any = ..., before : Any = ..., button_text_align : tuple[float, float] | None = None, cell_padding : tuple[float, float] | None = None, child_border_size : float | None = None, child_rounding : float | None = None, children : None  = [], disabled_alpha : float | None = None, enabled : bool = True, frame_border_size : float | None = None, frame_padding : tuple[float, float] | None = None, frame_rounding : float | None = None, grab_min_size : float | None = None, grab_rounding : float | None = None, indent_spacing : float | None = None, item_inner_spacing : tuple[float, float] | None = None, item_spacing : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, popup_border_size : float | None = None, popup_rounding : float | None = None, previous_sibling : baseItemSubCls | None = None, scrollbar_rounding : float | None = None, scrollbar_size : float | None = None, selectable_text_align : tuple[float, float] | None = None, separator_text_align : tuple[float, float] | None = None, separator_text_border_size : float | None = None, separator_text_padding : tuple[float, float] | None = None, tab_bar_border_size : float | None = None, tab_bar_overline_size : float | None = None, tab_border_size : float | None = None, tab_rounding : float | None = None, table_angled_headers_angle : float | None = None, table_angled_headers_text_align : tuple[float, float] | None = None, user_data : tuple[float, float] | None = None, window_border_size : float | None = None, window_min_size : tuple[float, float] | None = None, window_padding : tuple[float, float] | None = None, window_rounding : float | None = None, window_title_align : tuple[float, float] | None = None):
+    def __init__(self, context : Context, /, alpha : float | None = None, attach : Any = ..., before : Any = ..., button_text_align : tuple[float, float] | None = None, cell_padding : tuple[float, float] | None = None, child_border_size : float | None = None, child_rounding : float | None = None, children : None  = [], disabled_alpha : float | None = None, enabled : bool = True, frame_border_size : float | None = None, frame_padding : tuple[float, float] | None = None, frame_rounding : float | None = None, grab_min_size : float | None = None, grab_rounding : float | None = None, indent_spacing : float | None = None, item_inner_spacing : tuple[float, float] | None = None, item_spacing : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseThemeSubCls | None = None, popup_border_size : float | None = None, popup_rounding : float | None = None, previous_sibling : baseItemSubCls | None = None, scrollbar_rounding : float | None = None, scrollbar_size : float | None = None, selectable_text_align : tuple[float, float] | None = None, separator_text_align : tuple[float, float] | None = None, separator_text_border_size : float | None = None, separator_text_padding : tuple[float, float] | None = None, tab_bar_border_size : float | None = None, tab_bar_overline_size : float | None = None, tab_border_size : float | None = None, tab_rounding : float | None = None, table_angled_headers_angle : float | None = None, table_angled_headers_text_align : tuple[float, float] | None = None, user_data : tuple[float, float] | None = None, window_border_size : float | None = None, window_min_size : tuple[float, float] | None = None, window_padding : tuple[float, float] | None = None, window_rounding : float | None = None, window_title_align : tuple[float, float] | None = None):
         """
         Parameters
         ----------
@@ -21541,7 +22692,7 @@ class ThemeStyleImGui(baseThemeStyle):
         ...
 
 
-    def configure(self, alpha : float | None = None, button_text_align : tuple[float, float] | None = None, cell_padding : tuple[float, float] | None = None, child_border_size : float | None = None, child_rounding : float | None = None, children : None  = [], disabled_alpha : float | None = None, enabled : bool = True, frame_border_size : float | None = None, frame_padding : tuple[float, float] | None = None, frame_rounding : float | None = None, grab_min_size : float | None = None, grab_rounding : float | None = None, indent_spacing : float | None = None, item_inner_spacing : tuple[float, float] | None = None, item_spacing : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, popup_border_size : float | None = None, popup_rounding : float | None = None, previous_sibling : baseItemSubCls | None = None, scrollbar_rounding : float | None = None, scrollbar_size : float | None = None, selectable_text_align : tuple[float, float] | None = None, separator_text_align : tuple[float, float] | None = None, separator_text_border_size : float | None = None, separator_text_padding : tuple[float, float] | None = None, tab_bar_border_size : float | None = None, tab_bar_overline_size : float | None = None, tab_border_size : float | None = None, tab_rounding : float | None = None, table_angled_headers_angle : float | None = None, table_angled_headers_text_align : tuple[float, float] | None = None, user_data : tuple[float, float] | None = None, window_border_size : float | None = None, window_min_size : tuple[float, float] | None = None, window_padding : tuple[float, float] | None = None, window_rounding : float | None = None, window_title_align : tuple[float, float] | None = None):
+    def configure(self, /, alpha : float | None = None, button_text_align : tuple[float, float] | None = None, cell_padding : tuple[float, float] | None = None, child_border_size : float | None = None, child_rounding : float | None = None, children : None  = [], disabled_alpha : float | None = None, enabled : bool = True, frame_border_size : float | None = None, frame_padding : tuple[float, float] | None = None, frame_rounding : float | None = None, grab_min_size : float | None = None, grab_rounding : float | None = None, indent_spacing : float | None = None, item_inner_spacing : tuple[float, float] | None = None, item_spacing : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseThemeSubCls | None = None, popup_border_size : float | None = None, popup_rounding : float | None = None, previous_sibling : baseItemSubCls | None = None, scrollbar_rounding : float | None = None, scrollbar_size : float | None = None, selectable_text_align : tuple[float, float] | None = None, separator_text_align : tuple[float, float] | None = None, separator_text_border_size : float | None = None, separator_text_padding : tuple[float, float] | None = None, tab_bar_border_size : float | None = None, tab_bar_overline_size : float | None = None, tab_border_size : float | None = None, tab_rounding : float | None = None, table_angled_headers_angle : float | None = None, table_angled_headers_text_align : tuple[float, float] | None = None, user_data : tuple[float, float] | None = None, window_border_size : float | None = None, window_min_size : tuple[float, float] | None = None, window_padding : tuple[float, float] | None = None, window_rounding : float | None = None, window_title_align : tuple[float, float] | None = None):
         """
         Parameters
         ----------
@@ -21586,6 +22737,14 @@ class ThemeStyleImGui(baseThemeStyle):
         - window_padding: Padding within a window.
         - window_rounding: Radius of window corners rounding. Set to 0.0 to have rectangular windows. Large values tend to lead to variety of artifacts and are not recommended.
         - window_title_align: Alignment for window title bar text in percentages
+        """
+        ...
+
+
+    @staticmethod
+    def get_default(style_name):
+        """
+Get the default style value for the given style name.
         """
         ...
 
@@ -22122,7 +23281,7 @@ class ThemeStyleImGui(baseThemeStyle):
 
 
 class ThemeStyleImPlot(baseThemeStyle):
-    def __init__(self, context : Context, annotation_padding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], digital_bit_gap : float | None = None, digital_bit_height : float | None = None, enabled : bool = True, error_bar_size : float | None = None, error_bar_weight : float | None = None, fill_alpha : float | None = None, fit_padding : tuple[float, float] | None = None, label_padding : tuple[float, float] | None = None, legend_inner_padding : tuple[float, float] | None = None, legend_padding : tuple[float, float] | None = None, legend_spacing : tuple[float, float] | None = None, line_weight : float | None = None, major_grid_size : tuple[float, float] | None = None, major_tick_len : tuple[float, float] | None = None, major_tick_size : tuple[float, float] | None = None, marker : int | None = None, marker_size : float | None = None, marker_weight : float | None = None, minor_alpha : float | None = None, minor_grid_size : tuple[float, float] | None = None, minor_tick_len : tuple[float, float] | None = None, minor_tick_size : tuple[float, float] | None = None, mouse_pos_padding : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, plot_border_size : float | None = None, plot_default_size : tuple[float, float] | None = None, plot_min_size : tuple[float, float] | None = None, plot_padding : tuple[float, float] | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, /, annotation_padding : tuple[float, float] | None = None, attach : Any = ..., before : Any = ..., children : None  = [], digital_bit_gap : float | None = None, digital_bit_height : float | None = None, enabled : bool = True, error_bar_size : float | None = None, error_bar_weight : float | None = None, fill_alpha : float | None = None, fit_padding : tuple[float, float] | None = None, label_padding : tuple[float, float] | None = None, legend_inner_padding : tuple[float, float] | None = None, legend_padding : tuple[float, float] | None = None, legend_spacing : tuple[float, float] | None = None, line_weight : float | None = None, major_grid_size : tuple[float, float] | None = None, major_tick_len : tuple[float, float] | None = None, major_tick_size : tuple[float, float] | None = None, marker : int | None = None, marker_size : float | None = None, marker_weight : float | None = None, minor_alpha : float | None = None, minor_grid_size : tuple[float, float] | None = None, minor_tick_len : tuple[float, float] | None = None, minor_tick_size : tuple[float, float] | None = None, mouse_pos_padding : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseThemeSubCls | None = None, plot_border_size : float | None = None, plot_default_size : tuple[float, float] | None = None, plot_min_size : tuple[float, float] | None = None, plot_padding : tuple[float, float] | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         Parameters
         ----------
@@ -22167,7 +23326,7 @@ class ThemeStyleImPlot(baseThemeStyle):
         ...
 
 
-    def configure(self, annotation_padding : tuple[float, float] | None = None, children : None  = [], digital_bit_gap : float | None = None, digital_bit_height : float | None = None, enabled : bool = True, error_bar_size : float | None = None, error_bar_weight : float | None = None, fill_alpha : float | None = None, fit_padding : tuple[float, float] | None = None, label_padding : tuple[float, float] | None = None, legend_inner_padding : tuple[float, float] | None = None, legend_padding : tuple[float, float] | None = None, legend_spacing : tuple[float, float] | None = None, line_weight : float | None = None, major_grid_size : tuple[float, float] | None = None, major_tick_len : tuple[float, float] | None = None, major_tick_size : tuple[float, float] | None = None, marker : int | None = None, marker_size : float | None = None, marker_weight : float | None = None, minor_alpha : float | None = None, minor_grid_size : tuple[float, float] | None = None, minor_tick_len : tuple[float, float] | None = None, minor_tick_size : tuple[float, float] | None = None, mouse_pos_padding : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, plot_border_size : float | None = None, plot_default_size : tuple[float, float] | None = None, plot_min_size : tuple[float, float] | None = None, plot_padding : tuple[float, float] | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+    def configure(self, /, annotation_padding : tuple[float, float] | None = None, children : None  = [], digital_bit_gap : float | None = None, digital_bit_height : float | None = None, enabled : bool = True, error_bar_size : float | None = None, error_bar_weight : float | None = None, fill_alpha : float | None = None, fit_padding : tuple[float, float] | None = None, label_padding : tuple[float, float] | None = None, legend_inner_padding : tuple[float, float] | None = None, legend_padding : tuple[float, float] | None = None, legend_spacing : tuple[float, float] | None = None, line_weight : float | None = None, major_grid_size : tuple[float, float] | None = None, major_tick_len : tuple[float, float] | None = None, major_tick_size : tuple[float, float] | None = None, marker : int | None = None, marker_size : float | None = None, marker_weight : float | None = None, minor_alpha : float | None = None, minor_grid_size : tuple[float, float] | None = None, minor_tick_len : tuple[float, float] | None = None, minor_tick_size : tuple[float, float] | None = None, mouse_pos_padding : tuple[float, float] | None = None, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseThemeSubCls | None = None, plot_border_size : float | None = None, plot_default_size : tuple[float, float] | None = None, plot_min_size : tuple[float, float] | None = None, plot_padding : tuple[float, float] | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         Parameters
         ----------
@@ -22206,6 +23365,14 @@ class ThemeStyleImPlot(baseThemeStyle):
         - plot_padding: Padding between widget frame and plot area, labels, or outside legends (i.e. main padding).
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
+        """
+        ...
+
+
+    @staticmethod
+    def get_default(style_name):
+        """
+Get the default style value for the given style name.
         """
         ...
 
@@ -22670,7 +23837,7 @@ class TimeWatcher(uiItem):
     GPU data, etc), not to GPU rendering time.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -22701,7 +23868,7 @@ class TimeWatcher(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -22727,6 +23894,25 @@ class TimeWatcher(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -22745,7 +23931,7 @@ class ToggledCloseHandler(baseHandler):
     the object is show or not shown.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -22763,7 +23949,7 @@ class ToggledCloseHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -22792,7 +23978,7 @@ class ToggledOpenHandler(baseHandler):
     the object is show or not shown.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -22810,7 +23996,7 @@ class ToggledOpenHandler(baseHandler):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -22845,7 +24031,7 @@ class Tooltip(uiItem):
     can be customized with properties like delay time and activity-based hiding.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -22880,7 +24066,7 @@ class Tooltip(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -22910,6 +24096,25 @@ class Tooltip(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -23021,7 +24226,7 @@ class TreeNode(uiItem):
     to user interaction.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23059,7 +24264,7 @@ class TreeNode(uiItem):
         ...
 
 
-    def configure(self, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", leaf : bool = False, next_sibling : baseItemSubCls | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23113,6 +24318,25 @@ class TreeNode(uiItem):
 
     @bullet.setter
     def bullet(self, value : bool):
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -23196,6 +24420,25 @@ class TreeNode(uiItem):
 
 
     @property
+    def shareable_value(self) -> SharedBool:
+        """
+        Reference to the underlying value that can be shared between items.
+
+        Unlike the value property which returns a copy, this returns a reference
+        to the underlying SharedValue object. This object can be assigned to other
+        items' shareable_value properties, creating a link where all items share
+        and update the same underlying value.
+
+        """
+        ...
+
+
+    @shareable_value.setter
+    def shareable_value(self, value : SharedBool):
+        ...
+
+
+    @property
     def span_full_width(self) -> bool:
         """
         Whether the clickable area spans the entire width of the window.
@@ -23233,6 +24476,25 @@ class TreeNode(uiItem):
         ...
 
 
+    @property
+    def value(self) -> bool:
+        """
+        Main value associated with this item.
+
+        The meaning of this value depends on the item type: for buttons it's
+        whether pressed, for text inputs it's the text content, for selectable
+        items it's whether selected, and so on. This property provides a
+        unified interface for accessing an item's core data.
+
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : bool):
+        ...
+
+
 class VerticalLayout(Layout):
     """
     A layout that organizes items vertically from top to bottom.
@@ -23247,7 +24509,7 @@ class VerticalLayout(Layout):
     how items overflow when they exceed available height.
 
     """
-    def __init__(self, context : Context, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, alignment_mode : Alignment = 0, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23282,7 +24544,7 @@ class VerticalLayout(Layout):
         ...
 
 
-    def configure(self, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : list = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, alignment_mode : Alignment = 0, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -23340,7 +24602,7 @@ class VerticalLayout(Layout):
 
 
     @property
-    def positions(self) -> list:
+    def positions(self) -> Sequence[int] | Sequence[float]:
         """
         Y positions for items when using MANUAL alignment mode.
 
@@ -23359,7 +24621,7 @@ class VerticalLayout(Layout):
 
 
     @positions.setter
-    def positions(self, value : list):
+    def positions(self, value : Sequence[int] | Sequence[float]):
         ...
 
 
@@ -23407,7 +24669,7 @@ class Viewport(baseItem):
     It is decorated by the operating system and can be minimized/maximized/made fullscreen.
 
     """
-    def __init__(self, context : Context, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, /, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Parameters
         ----------
@@ -23456,7 +24718,7 @@ class Viewport(baseItem):
         ...
 
 
-    def configure(self, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
+    def configure(self, /, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Shortcut to set multiple attributes at once.
 
@@ -23505,11 +24767,11 @@ class Viewport(baseItem):
         ...
 
 
-    def copy(self, target_context=None):
+    def copy(self, target_context = None):
         ...
 
 
-    def initialize(self, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : list = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
+    def initialize(self, /, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = 0, decorated : bool = True, disable_close : bool = False, font : Font = None, fullscreen : bool = False, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : baseItemSubCls | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | baseSizing = 853, x_pos : int = 100, y_pos : int = 100):
         """
         Initialize the viewport for rendering and show it.
 
@@ -23592,7 +24854,7 @@ Render one frame of the application.
         ...
 
 
-    def wait_events(self, timeout_ms=0) -> bool:
+    def wait_events(self, timeout_ms = 0) -> bool:
         """
         Waits for an event that justifies running render_frame to occur.
 
@@ -23620,7 +24882,7 @@ Render one frame of the application.
         ...
 
 
-    def wake(self, delay=0.0, full_refresh=True):
+    def wake(self, delay = 0.0, full_refresh = True):
         """
         Wake the viewport to force a redraw.
 
@@ -23684,6 +24946,25 @@ Render one frame of the application.
 
     @always_submit_to_gpu.setter
     def always_submit_to_gpu(self, value : bool):
+        ...
+
+
+    @property
+    def children(self) -> list[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls]):
         ...
 
 
@@ -23845,7 +25126,7 @@ Render one frame of the application.
 
 
     @property
-    def handlers(self) -> list:
+    def handlers(self) -> list[baseHandlerSubCls]:
         """
         Event handlers attached to the viewport.
 
@@ -23859,7 +25140,7 @@ Render one frame of the application.
 
 
     @handlers.setter
-    def handlers(self, value : list):
+    def handlers(self, value : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None):
         ...
 
 
@@ -24421,7 +25702,7 @@ class ViewportDrawList(drawingItem):
     regardless of the current window or plot being displayed.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], front : bool = True, next_sibling : baseItemSubCls | None = None, parent : Viewport | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[drawingItemSubCls] = [], front : bool = True, next_sibling : baseItemSubCls | None = None, parent : Viewport | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -24438,7 +25719,7 @@ class ViewportDrawList(drawingItem):
         ...
 
 
-    def configure(self, children : Sequence[drawingItemSubCls] = [], front : bool = True, next_sibling : baseItemSubCls | None = None, parent : Viewport | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, children : Sequence[drawingItemSubCls] = [], front : bool = True, next_sibling : baseItemSubCls | None = None, parent : Viewport | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -24456,6 +25737,25 @@ class ViewportDrawList(drawingItem):
 
 
     @property
+    def children(self) -> list[drawingItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[drawingItemSubCls]):
+        ...
+
+
+    @property
     def front(self) -> bool:
         """Display the drawings in front of all items (rather than behind)
         """
@@ -24464,6 +25764,49 @@ class ViewportDrawList(drawingItem):
 
     @front.setter
     def front(self, value : bool):
+        ...
+
+
+    @property
+    def parent(self) -> Viewport | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : Viewport | None):
         ...
 
 
@@ -24483,7 +25826,7 @@ class Window(uiItem):
     menu bars can be attached using menubar items.
 
     """
-    def __init__(self, context : Context, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -24541,7 +25884,7 @@ class Window(uiItem):
         ...
 
 
-    def configure(self, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : list = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls | MenuBarSubCls] = [], collapsed : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], has_close_button : bool = True, height : float | str | baseSizing = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | Coord = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | Coord = (100.0, 100.0), modal : bool = False, next_sibling : baseItemSubCls | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : Viewport | None = None, popup : bool = False, previous_sibling : baseItemSubCls | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -24648,6 +25991,25 @@ class Window(uiItem):
 
     @autosize.setter
     def autosize(self, value : bool):
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls | MenuBarSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls | MenuBarSubCls]):
         ...
 
 
@@ -25028,6 +26390,49 @@ class Window(uiItem):
 
 
     @property
+    def parent(self) -> Viewport | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : Viewport | None):
+        ...
+
+
+    @property
     def popup(self) -> bool:
         """
         Makes the window a popup that closes when clicking outside it.
@@ -25092,7 +26497,7 @@ class WindowLayout(uiItem):
     for the position and rect size.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -25123,7 +26528,7 @@ class WindowLayout(uiItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -25157,7 +26562,7 @@ class WindowLayout(uiItem):
 
 
 class baseFont(baseItem):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -25172,7 +26577,7 @@ class baseFont(baseItem):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -25200,7 +26605,7 @@ class baseHandler(baseItem):
     attached to a single item to respond to different aspects of its state.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -25218,7 +26623,7 @@ class baseHandler(baseItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, callback : DCGCallable | None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -25237,7 +26642,7 @@ class baseHandler(baseItem):
 
 
     @property
-    def callback(self) -> DCGCallable | None:
+    def callback(self) -> list[DCGCallable]:
         """
         Function called when the handler's condition is met.
 
@@ -25256,6 +26661,25 @@ class baseHandler(baseItem):
 
 
     @property
+    def children(self) -> None :
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : None ):
+        ...
+
+
+    @property
     def enabled(self) -> bool:
         """
         Controls whether the handler is active and processing events.
@@ -25270,6 +26694,49 @@ class baseHandler(baseItem):
 
     @enabled.setter
     def enabled(self, value : bool):
+        ...
+
+
+    @property
+    def parent(self) -> baseHandlerSubCls | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : baseHandlerSubCls | None):
         ...
 
 
@@ -25322,7 +26789,7 @@ class baseItem(object):
         - Textures, themes, colormaps and fonts: Cannot be children but can be bound to items
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -25353,7 +26820,7 @@ class baseItem(object):
         ...
 
 
-    def configure(self, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, /, children : Sequence[baseItemSubCls] = [], next_sibling : baseItemSubCls | None = None, parent : baseItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -25368,7 +26835,7 @@ class baseItem(object):
         ...
 
 
-    def copy(self, target_context=None):
+    def copy(self, target_context = None):
         """
         Shallow copy of the item to the target context.
 
@@ -25417,7 +26884,7 @@ class baseItem(object):
         ...
 
 
-    def lock_mutex(self, wait=False):
+    def lock_mutex(self, wait = False):
         """
         Lock the internal item mutex.
 
@@ -25472,16 +26939,16 @@ class baseItem(object):
         ...
 
 
-    def __enter__(self) -> baseItem:
+    def __enter__(self) -> Self
         ...
 
 
-    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> bool:
+    def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> False:
         ...
 
 
     @property
-    def children(self) -> Sequence[baseItemSubCls]:
+    def children(self) -> list[baseItemSubCls]:
         """
         List of all the children of the item, from first rendered, to last rendered.
 
@@ -25714,7 +27181,7 @@ class baseTable(uiItem):
     is done by the derived classes.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -25791,7 +27258,7 @@ Get a view of the specified column.
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -25828,7 +27295,7 @@ Get a view of the specified column.
         ...
 
 
-    def get(self, key, default=None):
+    def get(self, key, default = None):
         """
         Get the value at a specific key.
 
@@ -25836,7 +27303,7 @@ Get a view of the specified column.
         ...
 
 
-    def insert_col(self, col, items=None):
+    def insert_col(self, col, items = None):
         """
         Inserts a column at the given index.
 
@@ -25844,7 +27311,7 @@ Get a view of the specified column.
         ...
 
 
-    def insert_row(self, row, items=None):
+    def insert_row(self, row, items = None):
         """
         Inserts a row at the given index.
 
@@ -25899,7 +27366,7 @@ Get a view of the specified row.
         ...
 
 
-    def sort_cols(self, ref_row, ascending=True):
+    def sort_cols(self, ref_row, ascending = True):
         """
 Sort the columns using the value in ref_row as index.
 
@@ -25913,7 +27380,7 @@ Sort the columns using the value in ref_row as index.
         ...
 
 
-    def sort_rows(self, ref_col, ascending=True):
+    def sort_rows(self, ref_col, ascending = True):
         """
 Sort the rows using the value in ref_col as index.
 
@@ -25966,7 +27433,26 @@ Sort the rows using the value in ref_col as index.
         ...
 
 
-    def __enter__(self) -> baseTable:
+    def __enter__(self) -> Self
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -26089,7 +27575,7 @@ class baseTheme(baseItem):
     hovered/unhovered) and element categories (window, plot, node, etc).
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26105,7 +27591,7 @@ class baseTheme(baseItem):
         ...
 
 
-    def configure(self, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
+    def configure(self, /, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26116,6 +27602,25 @@ class baseTheme(baseItem):
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> None :
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : None ):
         ...
 
 
@@ -26137,6 +27642,49 @@ class baseTheme(baseItem):
         ...
 
 
+    @property
+    def parent(self) -> baseThemeSubCls | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : baseThemeSubCls | None):
+        ...
+
+
 class baseThemeColor(baseTheme):
     """
     Base class for theme colors that provides common color-related functionality.
@@ -26153,7 +27701,7 @@ class baseThemeColor(baseTheme):
     or numeric indices.
 
     """
-    def __init__(self, context : Context, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
+    def __init__(self, context : Context, /, attach : Color| None = None, before : Color| None = None, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
         """
         Parameters
         ----------
@@ -26169,7 +27717,7 @@ class baseThemeColor(baseTheme):
         ...
 
 
-    def configure(self, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
+    def configure(self, /, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : Color| None = None):
         """
         Parameters
         ----------
@@ -26183,8 +27731,32 @@ class baseThemeColor(baseTheme):
         ...
 
 
+    @property
+    def user_data(self) -> Color| None:
+        """
+        User data of any type.
+
+        To prevent programmer mistakes and improved performance,
+        base DearCyGui items do only accept predefined attributes.
+
+        This attribute is meant to be used by the user to attach
+        any custom data to the item.
+
+        An alternative for more complex needs is to subclass
+        the item and add your own attributes. Subclassed items
+        (unless using slots explicitly) do accept any attribute.
+
+        """
+        ...
+
+
+    @user_data.setter
+    def user_data(self, value : Color| None):
+        ...
+
+
 class baseThemeStyle(baseTheme):
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         Parameters
         ----------
@@ -26202,7 +27774,7 @@ class baseThemeStyle(baseTheme):
         ...
 
 
-    def configure(self, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseHandlerSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
+    def configure(self, /, children : None  = [], enabled : bool = True, next_sibling : baseItemSubCls | None = None, no_rounding : bool = True, no_scaling : bool = False, parent : baseThemeSubCls | None = None, previous_sibling : baseItemSubCls | None = None, user_data : tuple[float, float] | None = None):
         """
         Parameters
         ----------
@@ -26252,12 +27824,36 @@ class baseThemeStyle(baseTheme):
         ...
 
 
+    @property
+    def user_data(self) -> tuple[float, float] | None:
+        """
+        User data of any type.
+
+        To prevent programmer mistakes and improved performance,
+        base DearCyGui items do only accept predefined attributes.
+
+        This attribute is meant to be used by the user to attach
+        any custom data to the item.
+
+        An alternative for more complex needs is to subclass
+        the item and add your own attributes. Subclassed items
+        (unless using slots explicitly) do accept any attribute.
+
+        """
+        ...
+
+
+    @user_data.setter
+    def user_data(self, value : tuple[float, float] | None):
+        ...
+
+
 class drawingItem(baseItem):
     """
     A simple item with no UI state that inherits from the drawing area of its parent.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26273,7 +27869,7 @@ class drawingItem(baseItem):
         ...
 
 
-    def configure(self, children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
+    def configure(self, /, children : None  = [], next_sibling : baseItemSubCls | None = None, parent : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -26286,6 +27882,68 @@ class drawingItem(baseItem):
         - show: Should the object be drawn/shown ?
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> None :
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : None ):
+        ...
+
+
+    @property
+    def parent(self) -> DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None):
         ...
 
 
@@ -26322,7 +27980,7 @@ class plotElement(baseItem):
     They also support themes for consistent visual styling.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : None  = [], label : str = "", next_sibling : baseItemSubCls | None = None, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : None  = [], label : str = "", next_sibling : baseItemSubCls | None = None, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26341,7 +27999,7 @@ class plotElement(baseItem):
         ...
 
 
-    def configure(self, axes : tuple = (0, 3), children : None  = [], label : str = "", next_sibling : baseItemSubCls | None = None, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, axes : tuple = (0, 3), children : None  = [], label : str = "", next_sibling : baseItemSubCls | None = None, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -26380,6 +28038,25 @@ class plotElement(baseItem):
 
 
     @property
+    def children(self) -> None :
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : None ):
+        ...
+
+
+    @property
     def label(self) -> str:
         """
         Text label for the plot element.
@@ -26394,6 +28071,49 @@ class plotElement(baseItem):
 
     @label.setter
     def label(self, value : str):
+        ...
+
+
+    @property
+    def parent(self) -> PlotSubCls | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : PlotSubCls | None):
         ...
 
 
@@ -26445,7 +28165,7 @@ class plotElementWithLegend(plotElement):
     element. Custom handlers can be attached to respond to these interactions.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26470,7 +28190,7 @@ class plotElementWithLegend(plotElement):
         ...
 
 
-    def configure(self, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -26492,6 +28212,25 @@ class plotElementWithLegend(plotElement):
         - theme: Visual theme applied to the plot element.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[uiItemSubCls]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItemSubCls]):
         ...
 
 
@@ -26568,7 +28307,7 @@ class plotElementWithLegend(plotElement):
 
 
     @property
-    def legend_handlers(self) -> list:
+    def legend_handlers(self) -> Sequence[Any]:
         """
         Event handlers attached to this element's legend entry.
 
@@ -26581,7 +28320,7 @@ class plotElementWithLegend(plotElement):
 
 
     @legend_handlers.setter
-    def legend_handlers(self, value : list):
+    def legend_handlers(self, value : Sequence[Any]):
         ...
 
 
@@ -26619,7 +28358,7 @@ class plotElementWithLegend(plotElement):
 
 
 class plotElementX(plotElementWithLegend):
-    def __init__(self, context : Context, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26645,7 +28384,7 @@ class plotElementX(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -26690,7 +28429,7 @@ class plotElementX(plotElementWithLegend):
 
 
 class plotElementXY(plotElementWithLegend):
-    def __init__(self, context : Context, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26717,7 +28456,7 @@ class plotElementXY(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -26781,7 +28520,7 @@ class plotElementXY(plotElementWithLegend):
 
 
 class plotElementXYY(plotElementWithLegend):
-    def __init__(self, context : Context, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, /, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple = (0, 3), before : Any = ..., children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -26809,7 +28548,7 @@ class plotElementXYY(plotElementWithLegend):
         ...
 
 
-    def configure(self, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : list = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def configure(self, /, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple = (0, 3), children : Sequence[uiItemSubCls] = [], enabled : bool = True, font : Font = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = 1, legend_handlers : Sequence[Any] = [], next_sibling : baseItemSubCls | None = None, no_legend : bool = False, parent : PlotSubCls | None = None, previous_sibling : baseItemSubCls | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Shortcut to set multiple attributes at once.
 
@@ -26953,7 +28692,7 @@ class uiItem(baseItem):
     All attributes are protected by mutexes to enable thread-safe access.
 
     """
-    def __init__(self, context : Context, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, /, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -26984,7 +28723,7 @@ class uiItem(baseItem):
         ...
 
 
-    def configure(self, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : list = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, /, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, label : str = "", next_sibling : baseItemSubCls | None = None, no_newline : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -27028,7 +28767,7 @@ class uiItem(baseItem):
 
 
     @property
-    def callback(self) -> DCGCallable | None:
+    def callback(self) -> list[DCGCallable]:
         """
         Callback to invoke when the item's value changes
 
@@ -27044,7 +28783,7 @@ class uiItem(baseItem):
 
 
     @property
-    def callbacks(self) -> Sequence[DCGCallable]:
+    def callbacks(self) -> list[DCGCallable]:
         """
         List of callbacks to invoke when the item's value changes.
 
@@ -27058,6 +28797,25 @@ class uiItem(baseItem):
 
     @callbacks.setter
     def callbacks(self, value : Sequence[DCGCallable]):
+        ...
+
+
+    @property
+    def children(self) -> None :
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : None ):
         ...
 
 
@@ -27099,7 +28857,7 @@ class uiItem(baseItem):
 
 
     @property
-    def handlers(self) -> list:
+    def handlers(self) -> list[baseHandlerSubCls]:
         """
         List of event handlers attached to this item.
 
@@ -27113,12 +28871,12 @@ class uiItem(baseItem):
 
 
     @handlers.setter
-    def handlers(self, value : list):
+    def handlers(self, value : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None):
         ...
 
 
     @property
-    def height(self) -> float | str | baseSizing:
+    def height(self) -> baseSizing:
         """
         Requested height for the item.
 
@@ -27187,38 +28945,45 @@ class uiItem(baseItem):
 
 
     @property
-    def pos_to_parent(self) -> Coord:
+    def parent(self) -> uiItemSubCls | plotElementSubCls | None:
         """
-        (Read-only) Position relative to the parent item's content area.
+        Parent of the item in the rendering tree.
 
-        This coordinate represents the position of the item's top-left corner
-        relative to its parent's content area.
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
 
         """
         ...
 
 
-    @property
-    def pos_to_viewport(self) -> Coord:
-        """
-        (Read-only) Position relative to the viewport's top-left corner.
-
-        This coordinate represents the position of the item's top-left corner
-        relative to the entire viewport.
-
-        """
-        ...
-
-
-    @property
-    def pos_to_window(self) -> Coord:
-        """
-        (Read-only) Position relative to the containing window's content area.
-
-        This coordinate represents the position of the item's top-left corner
-        relative to the inner content area of the containing window.
-
-        """
+    @parent.setter
+    def parent(self, value : uiItemSubCls | plotElementSubCls | None):
         ...
 
 
@@ -27333,7 +29098,7 @@ class uiItem(baseItem):
 
 
     @property
-    def width(self) -> float | str | baseSizing:
+    def width(self) -> baseSizing:
         """
         Requested width for the item.
 
@@ -27362,7 +29127,7 @@ class uiItem(baseItem):
 
 
     @property
-    def x(self) -> float | str | baseSizing:
+    def x(self) -> baseSizing:
         """
         Requested horizontal position of the item.
 
@@ -27399,7 +29164,7 @@ class uiItem(baseItem):
 
 
     @property
-    def y(self) -> float | str | baseSizing:
+    def y(self) -> baseSizing:
         """
         Requested vertical position of the item.
 
