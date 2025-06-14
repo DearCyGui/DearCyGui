@@ -23,6 +23,7 @@ from .core cimport baseHandler, baseItem, lock_gil_friendly,\
 from .c_types cimport DCGMutex, unique_lock
 from .types cimport make_Positioning, read_rect, Rect,\
     is_Key, make_Key, Positioning
+from .widget cimport SharedBool
 from .wrapper cimport imgui
 
 import traceback
@@ -357,6 +358,46 @@ cdef class OtherItemHandler(HandlerList):
             if self.check_state(item):
                 self.run_callback(item)
 
+
+cdef class BoolHandler(baseHandler):
+    """
+    Handler that fits a SharedBool condition
+    inside a handler.
+
+    Basically the handler's condition is True
+    if the SharedBool evaluates to True,
+    and False else.
+
+    This handler can be used combined with
+    ConditionalHandler or HandlerList to
+    skip processing handlers (and their callbacks)
+    when some external condition is not met.
+    """
+    def __cinit__(self):
+        self._condition = SharedBool.__new__(SharedBool, self.context)
+
+    @property
+    def condition(self):
+        """
+        SharedBool condition that this handler
+        will use to determine if the callback
+        should be called.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._condition
+
+    @condition.setter
+    def condition(self, SharedBool value not None):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._condition = value
+
+    cdef bint check_bind(self, baseItem item):
+        return True
+
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        return self._condition.get()
 
 cdef class ActivatedHandler(baseHandler):
     """

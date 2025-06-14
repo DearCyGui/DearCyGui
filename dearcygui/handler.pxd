@@ -2,6 +2,7 @@ from libc.stdint cimport int32_t
 from .core cimport baseHandler, baseItem
 from .c_types cimport DCGVector
 from .types cimport MouseButton, Positioning, HandlerListOP, MouseCursor
+from .widget cimport SharedBool
 
 cdef class CustomHandler(baseHandler):
     cdef bint _has_run
@@ -25,6 +26,11 @@ cdef class OtherItemHandler(HandlerList):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class BoolHandler(baseHandler):
+    cdef SharedBool _condition
+    cdef void check_bind(self, baseItem)
+    cdef bint check_state(self, baseItem) noexcept nogil
 
 cdef class ActivatedHandler(baseHandler):
     cdef void check_bind(self, baseItem)
