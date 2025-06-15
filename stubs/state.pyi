@@ -219,3 +219,167 @@ class ItemStateView:
         item from which the states are extracted.
         """
         ...
+
+
+class ViewportMetrics:
+    """
+    Provides detailed rendering metrics for viewport performance analysis.
+    
+    This class exposes timing and rendering statistics for the viewport's frame lifecycle.
+    All timing values are based on the monotonic clock for consistent measurements.
+    """
+        
+    @property
+    def last_time_before_event_handling(self) -> float:
+        """
+        Timestamp (s) when event handling started for the current frame.
+        
+        This marks the beginning of the frame lifecycle, before any input events 
+        are processed. Useful for measuring total frame time or comparing with
+        external event timings.
+        """
+        ...
+        
+    @property
+    def last_time_before_rendering(self) -> float:
+        """
+        Timestamp (s) when UI rendering started for the current frame.
+        
+        This marks when the system finished processing events and began the
+        rendering phase. The difference between this and last_time_before_event_handling
+        indicates how much time was spent processing input.
+        """
+        ...
+        
+    @property
+    def last_time_after_rendering(self) -> float:
+        """
+        Timestamp (s) when UI rendering finished for the current frame.
+        
+        This marks when all drawing commands were submitted to ImGui/ImPlot and
+        CPU-side rendering work was completed. The GPU may still be processing
+        these commands at this point.
+        """
+        ...
+        
+    @property
+    def last_time_after_swapping(self) -> float:
+        """
+        Timestamp (s) when the frame was completely presented to the screen.
+        
+        This marks the end of the frame lifecycle, after the backbuffer has been
+        swapped with the frontbuffer and presented to the display. If vsync is
+        enabled, this includes any time spent waiting for the display refresh.
+        """
+        ...
+        
+    @property
+    def delta_event_handling(self) -> float:
+        """
+        Time (seconds) spent processing input events for the current frame.
+        
+        This measures how long the system spent handling mouse, keyboard, and
+        other input events. High values might indicate complex event processing
+        or delays from input devices.
+
+        This time may differ from the time between
+        last_time_before_event_handling and last_time_before_rendering,
+        if event processing is being run when the metrics were collected.
+        """
+        ...
+        
+    @property
+    def delta_rendering(self) -> float:
+        """
+        Time (seconds) spent on CPU rendering work for the current frame.
+        
+        This measures how long it took to traverse the UI hierarchy, compute layouts,
+        and generate the render commands for ImGui/ImPlot. High values might indicate
+        complex UI structures or inefficient layout calculations.
+
+        This time may differ from the time between
+        last_time_before_rendering and last_time_after_rendering,
+        if rendering is being run when the metrics were collected.
+        """
+        ...
+        
+    @property
+    def delta_presenting(self) -> float:
+        """
+        Time (seconds) spent presenting the frame to the display.
+        
+        This includes the time to submit draw commands to the GPU, wait for them
+        to complete, and swap the buffers. With vsync enabled, this will include
+        time waiting for the monitor refresh, which can artificially inflate the value.
+
+        This time may differ from the time between
+        last_time_after_rendering and last_time_after_swapping,
+        if presenting is being run when the metrics were collected.
+        """
+        ...
+        
+    @property
+    def delta_whole_frame(self) -> float:
+        """
+        Total time (seconds) for the complete frame lifecycle.
+        
+        This measures the time from the start of event handling to the completion
+        of buffer swapping. It represents the total frame time and is the inverse
+        of the effective frame rate (1.0/delta_whole_frame = FPS).
+
+        This time may differ from the time between
+        last_time_before_event_handling and last_time_after_swapping,
+        if frame processing is being run when the metrics were collected.
+        """
+        ...
+        
+    @property
+    def rendered_vertices(self) -> int:
+        """
+        Number of vertices rendered in the current frame.
+        
+        This count represents the total geometry complexity of the UI. Higher numbers
+        indicate more complex visuals which may impact GPU performance.
+        """
+        ...
+        
+    @property
+    def rendered_indices(self) -> int:
+        """
+        Number of indices rendered in the current frame.
+        
+        This count relates to how many triangles were drawn. Like vertex count,
+        this is an indicator of visual complexity and potential GPU load.
+        """
+        ...
+        
+    @property
+    def rendered_windows(self) -> int:
+        """
+        Number of windows rendered in the current frame.
+        
+        This counts all ImGui windows that were visible and rendered. Windows that
+        are hidden, collapsed, or clipped don't contribute to this count.
+        """
+        ...
+        
+    @property
+    def active_windows(self) -> int:
+        """
+        Number of active windows in the current frame.
+        
+        This counts windows that are processing updates, even if not visually rendered.
+        The difference between this and rendered_windows can indicate hidden but
+        still processing windows.
+        """
+        ...
+        
+    @property
+    def frame_count(self) -> float:
+        """
+        Counter indicating which frame these metrics belong to.
+        
+        This monotonically increasing value allows tracking metrics across multiple
+        frames and correlating with other frame-specific data.
+        """
+        ...

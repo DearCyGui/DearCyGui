@@ -12,13 +12,13 @@ class TemporaryTooltip(dcg.Tooltip):
     """
     def __init__(self,
                  context : dcg.Context,
-                 **kwargs):
+                 **kwargs) -> None:
         super().__init__(context, **kwargs)
         self.handlers += [
             dcg.LostRenderHandler(context,
                                   callback=self.destroy_tooltip)]
 
-    def destroy_tooltip(self):
+    def destroy_tooltip(self) -> None:
         """
         Remove this tooltip from the widget tree.
         
@@ -41,7 +41,7 @@ class TimePicker(dcg.Layout):
     The picker can be configured to use 12-hour or 24-hour time formats,
     and seconds display can be optionally hidden for a simpler interface.
     """
-    def __init__(self, context, *, value=None, use_24hr=False, show_seconds=True, **kwargs):
+    def __init__(self, context, *, value=None, use_24hr=False, show_seconds=True, **kwargs) -> None:
         super().__init__(context, **kwargs)
 
         # Default to current time if no value provided
@@ -115,17 +115,19 @@ class TimePicker(dcg.Layout):
                                         callback=self._on_ampm_change)
                 self._am_pm.theme = self._ampm_colors
 
-    def _update_theme_style(self):
+    def _update_theme_style(self) -> None:
         """Update all theme objects based on current theme settings"""
         # Get base colors from current theme
-        text_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "text")
-        frame_bg = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "frame_bg")
-        frame_bg_hovered = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "frame_bg_hovered")
-        frame_bg_active = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "frame_bg_active")
-        child_bg = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "child_bg") 
+        parent = self.parent
+        assert parent is not None
+        text_color = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "text")
+        frame_bg = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg")
+        frame_bg_hovered = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg_hovered")
+        frame_bg_active = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg_active")
+        child_bg = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "child_bg") 
 
         # Get accent color for highlights
-        accent_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "check_mark")
+        accent_color = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "check_mark")
         accent_color = dcg.color_as_floats(accent_color)
         if sum(accent_color[:3]) < 0.1:  # Fallback if too dark
             accent_color = (0.4, 0.5, 0.8, 0.7)
@@ -154,7 +156,7 @@ class TimePicker(dcg.Layout):
         self._ampm_colors.frame_bg_active = tuple(c * 0.9 for c in frame_bg_active[:3]) + (frame_bg_active[3],)
         self._ampm_colors.text = text_color
 
-    def _get_display_hour(self):
+    def _get_display_hour(self) -> int:
         """
         Convert internal seconds to display hour format.
         
@@ -168,7 +170,7 @@ class TimePicker(dcg.Layout):
                 hour = 12
         return hour
 
-    def _get_total_seconds(self, hour, minute, second=None):
+    def _get_total_seconds(self, hour: int, minute: int, second: int | None = None) -> int:
         """
         Convert hours, minutes, and seconds to total seconds.
         
@@ -178,14 +180,14 @@ class TimePicker(dcg.Layout):
             second = int(self._value.value % 60)
         return hour * 3600 + minute * 60 + second
         
-    def _on_hour_change(self, sender, target, value):
+    def _on_hour_change(self, sender, target, value) -> None:
         """
         Handle hour input changes.
         
         Converts 12-hour format to internal 24-hour representation
         if necessary and updates the internal time value.
         """
-        hour = value
+        hour = int(value)
         if not self._use_24hr:
             is_pm = self._am_pm.value == "PM"
             if hour == 12:
@@ -197,17 +199,17 @@ class TimePicker(dcg.Layout):
         self._value.value = self._get_total_seconds(hour, minute)
         self.run_callbacks()
 
-    def _on_minute_change(self, sender, target, value): 
+    def _on_minute_change(self, sender, target, value) -> None: 
         """
         Handle minute input changes.
         
         Updates the internal time value while preserving hours and seconds.
         """
         hour = int(self._value.value // 3600)
-        self._value.value = self._get_total_seconds(hour, value)
+        self._value.value = self._get_total_seconds(hour, int(value))
         self.run_callbacks()
 
-    def _on_second_change(self, sender, target, value):
+    def _on_second_change(self, sender, target, value) -> None:
         """
         Handle second input changes.
         
@@ -216,10 +218,10 @@ class TimePicker(dcg.Layout):
         if self._show_seconds:
             hour = int(self._value.value // 3600)
             minute = int((self._value.value % 3600) // 60)
-            self._value.value = self._get_total_seconds(hour, minute, value)
+            self._value.value = self._get_total_seconds(hour, minute, int(value))
             self.run_callbacks()
 
-    def _on_ampm_change(self, sender, target, value):
+    def _on_ampm_change(self, sender, target, value) -> None:
         """
         Handle AM/PM selection changes.
         
@@ -236,7 +238,7 @@ class TimePicker(dcg.Layout):
                 self._value.value = self._get_total_seconds(hour, minute)
                 self.run_callbacks()
 
-    def run_callbacks(self):
+    def run_callbacks(self) -> None:
         """
         Execute all registered callbacks with the current time value.
         
@@ -246,7 +248,7 @@ class TimePicker(dcg.Layout):
             callback(self, self, self.value_as_datetime)
 
     @property
-    def value(self):
+    def value(self) -> float:
         """
         Current time value represented as seconds since midnight.
         
@@ -256,7 +258,7 @@ class TimePicker(dcg.Layout):
         return self._value.value
 
     @value.setter 
-    def value(self, value):
+    def value(self, value: float | datetime) -> None:
         """Set current time in seconds"""
         if isinstance(value, datetime):
             value = value.hour * 3600 + value.minute * 60 + value.second
@@ -271,7 +273,7 @@ class TimePicker(dcg.Layout):
             self._am_pm.value = "PM" if (self._value.value // 3600) >= 12 else "AM"
 
     @property
-    def value_as_datetime(self):
+    def value_as_datetime(self) -> datetime:
         """
         Current time as a datetime object.
         
@@ -285,14 +287,14 @@ class TimePicker(dcg.Layout):
         return datetime.now().replace(hour=hours, minute=minutes, second=seconds)
 
     @value_as_datetime.setter
-    def value_as_datetime(self, value):
+    def value_as_datetime(self, value) -> None:
         """Set current time from datetime"""
         if not isinstance(value, datetime):
             raise ValueError("Value must be a datetime object")
         self.value = value
 
     @property
-    def use_24hr(self):
+    def use_24hr(self) -> bool:
         """
         Whether the time picker uses 24-hour format.
         
@@ -302,7 +304,7 @@ class TimePicker(dcg.Layout):
         return self._use_24hr
 
     @use_24hr.setter
-    def use_24hr(self, value):
+    def use_24hr(self, value: bool) -> None:
         """Set whether to use 24 hour format"""
         if value != self._use_24hr:
             self._use_24hr = value
@@ -314,7 +316,7 @@ class TimePicker(dcg.Layout):
                 self._am_pm.show = not value
 
     @property 
-    def show_seconds(self):
+    def show_seconds(self) -> bool:
         """
         Whether seconds are shown in the time picker.
         
@@ -324,7 +326,7 @@ class TimePicker(dcg.Layout):
         return self._show_seconds
 
     @show_seconds.setter
-    def show_seconds(self, value):
+    def show_seconds(self, value: bool) -> None:
         """Set whether to show seconds"""
         if value != self._show_seconds:
             self._show_seconds = value

@@ -821,8 +821,8 @@ def generate_docstring_for_class(object_class, instance):
                 # replace Sequence with list
                 tname_read = tname.replace("Sequence[", "list[")
             elif property == "callbacks" or property == "callback":
-                # callbacks is always list of DCGCallable
-                tname_read = "list[DCGCallable]"
+                # callbacks is always list of DCGCallable3
+                tname_read = "list[DCGCallable3]"
             elif property.startswith("uv") and isinstance(default_value, list) and len(default_value) == 2:
                 # uv properties are always list of float
                 tname_read = "list[float]"
