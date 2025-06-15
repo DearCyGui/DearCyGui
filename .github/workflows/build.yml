@@ -46,6 +46,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+        path: DearCyGui
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -63,17 +64,30 @@ jobs:
         choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
         choco install windows-sdk-10.0
 
+    - name: Create build directories
+      run: mkdir -p C:\build\wheelhouse
+
     - name: Build wheels
-      run: python -m cibuildwheel --platform windows --output-dir wheelhouse
+      run: python -m cibuildwheel --platform windows --output-dir C:\build\wheelhouse
       env:
         CIBW_BUILD: "cp310-win_amd64 cp311-win_amd64 cp312-win_amd64 cp313-win_amd64 cp313t-win_amd64 pp310-win_amd64"
         CIBW_ENABLE: "cpython-freethreading pypy"
+        CIBW_ENVIRONMENT: "TEMP=C:\\temp TMP=C:\\temp TMPDIR=C:\\temp"
+        CIBW_BEFORE_BUILD: "mkdir -p C:\\temp"
+        CIBW_BUILD_FRONTEND: "build"
+        # Explicitly use C drive for all operations
+        TEMP: "C:\\temp"
+        TMP: "C:\\temp"
+        TMPDIR: "C:\\temp"
+        RUNNER_TEMP: "C:\\temp"
+        RUNNER_TOOL_CACHE: "C:\\hostedtoolcache"
+      working-directory: DearCyGui
 
     - name: Upload wheels
       uses: actions/upload-artifact@v4
       with:
         name: wheels-windows
-        path: wheelhouse/*.whl
+        path: C:\build\wheelhouse\*.whl
 
   build_wheels_macos_x86:
     name: Build macOS wheels (x86_64)
