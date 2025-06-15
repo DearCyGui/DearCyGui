@@ -110,8 +110,7 @@ try:
     from collections.abc import Buffer
     Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any] | Buffer
 except ImportError:
-    Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any]
-    pass
+    Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any] | "np.ndarray[Any, Any]"
 
 
 """
@@ -134,14 +133,14 @@ class Coord:
     def x(self) -> float:
         """Coordinate on the horizontal axis"""
         ...
-    
+
+    @x.setter
+    def x(self, value: float) -> None:
+        ...
+
     @property
     def y(self) -> float:
         """Coordinate on the vertical axis"""
-        ...
-    
-    @x.setter
-    def x(self, value: float) -> None:
         ...
     
     @y.setter
@@ -274,20 +273,36 @@ class Rect:
     def x1(self) -> float:
         """Coordinate of the first corner point"""
         ...
+
+    @x1.setter
+    def x1(self, value: float) -> None:
+        ...
     
     @property
     def y1(self) -> float:
         """Coordinate of the first corner point"""
         ...
-    
+
+    @y1.setter
+    def y1(self, value: float) -> None:
+        ...
+
     @property
     def x2(self) -> float:
         """Coordinate of the second corner point"""
+        ...
+
+    @x2.setter
+    def x2(self, value: float) -> None:
         ...
     
     @property
     def y2(self) -> float:
         """Coordinate of the second corner point"""
+        ...
+
+    @y2.setter
+    def y2(self, value: float) -> None:
         ...
     
     @property
@@ -328,22 +343,6 @@ class Rect:
     @property
     def size(self) -> Coord:
         """Size as Coord(w,h)"""
-        ...
-    
-    @x1.setter
-    def x1(self, value: float) -> None:
-        ...
-    
-    @x2.setter
-    def x2(self, value: float) -> None:
-        ...
-    
-    @y1.setter
-    def y1(self, value: float) -> None:
-        ...
-    
-    @y2.setter
-    def y2(self, value: float) -> None:
         ...
     
     @center.setter
@@ -5432,7 +5431,7 @@ class plotElementWithLegend(plotElement):
 
 
     @property
-    def legend_handlers(self) -> Sequence['baseHandler'] | 'baseHandler' | None:
+    def legend_handlers(self) -> list['baseHandler']:
         """
         Event handlers attached to this element's legend entry.
 

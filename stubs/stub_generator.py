@@ -814,7 +814,7 @@ def generate_docstring_for_class(object_class, instance):
             elif isinstance(default_value, dcg.baseSizing):
                 # property read is always baseSizing
                 tname_read = "'baseSizing'"
-            elif property == "handlers":
+            elif property == "handlers" or property == "legend_handlers":
                 # handlers is always list of baseHandlerSubCls
                 tname_read = "list[baseHandlerSubCls]"
             elif property == "children":

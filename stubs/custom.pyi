@@ -110,6 +110,5 @@ try:
     from collections.abc import Buffer
     Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any] | Buffer
 except ImportError:
-    Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any]
-    pass
+    Array: TypeAlias = memoryview | bytearray | bytes | Sequence[Any] | "np.ndarray[Any, Any]"
 
