@@ -1,3 +1,4 @@
+import colorsys
 import dearcygui as dcg
 from datetime import datetime
 
@@ -55,31 +56,54 @@ class TimePicker(dcg.Layout):
         self._use_24hr = use_24hr
         self._show_seconds = show_seconds
 
+        # Apply consistent styling
+        self.border = True
+        self.no_scrollbar = True
+        self.no_scroll_with_mouse = True
+        with dcg.ThemeList(self.context) as self.theme:
+            self._container_style = dcg.ThemeStyleImGui(self.context, 
+                                frame_rounding=4.0,
+                                child_rounding=4.0,
+                                frame_padding=(6, 3),
+                                item_spacing=(4, 4))
+            self._container_colors = dcg.ThemeColorImGui(self.context)
+        self._input_colors = dcg.ThemeColorImGui(context)
+        self._separator_colors = dcg.ThemeColorImGui(context)
+        self._ampm_colors = dcg.ThemeColorImGui(context)
+
+        self.handlers += [
+            dcg.GotRenderHandler(context, callback=self._update_theme_style)
+        ]
+
+
         with dcg.HorizontalLayout(context, parent=self):
             # Hours spinner
             self._hours = dcg.InputValue(context, print_format="%.0f", 
                                   min_value=0,
                                   max_value=23 if use_24hr else 12,
                                   value=self._get_display_hour(),
-                                  width=45,
+                                  width=100, step=1, step_fast=5,
                                   callback=self._on_hour_change)
+            self._hours.theme = self._input_colors
 
             # Minutes spinner 
-            dcg.Text(context, value=":", width=10)
+            dcg.Text(context, value=":", width=10, theme = self._separator_colors)
             self._minutes = dcg.InputValue(context, print_format="%.0f",
                                     min_value=0, max_value=59,
                                     value=int((total_seconds % 3600) // 60),
-                                    width=45,
+                                    width=100, step=1, step_fast=5,
                                     callback=self._on_minute_change)
+            self._minutes.theme = self._input_colors
             
             # Optional seconds spinner
             if show_seconds:
-                dcg.Text(context, value=":", width=10)
+                dcg.Text(context, value=":", width=10, theme = self._separator_colors)
                 self._seconds = dcg.InputValue(context, print_format="%.0f",
                                         min_value=0, max_value=59, 
                                         value=int(total_seconds % 60),
-                                        width=45,
+                                        width=100, step=1, step_fast=5,
                                         callback=self._on_second_change)
+                self._seconds.theme = self._input_colors
             
             # AM/PM selector for 12-hour format
             if not use_24hr:
@@ -89,6 +113,46 @@ class TimePicker(dcg.Layout):
                                         value="PM" if (total_seconds // 3600) >= 12 else "AM",
                                         horizontal=True,
                                         callback=self._on_ampm_change)
+                self._am_pm.theme = self._ampm_colors
+
+    def _update_theme_style(self):
+        """Update all theme objects based on current theme settings"""
+        # Get base colors from current theme
+        text_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "text")
+        frame_bg = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "frame_bg")
+        frame_bg_hovered = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "frame_bg_hovered")
+        frame_bg_active = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "frame_bg_active")
+        child_bg = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "child_bg") 
+
+        # Get accent color for highlights
+        accent_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "check_mark")
+        accent_color = dcg.color_as_floats(accent_color)
+        if sum(accent_color[:3]) < 0.1:  # Fallback if too dark
+            accent_color = (0.4, 0.5, 0.8, 0.7)
+            
+        # Update container theme
+        self._container_colors.text = text_color
+        self._container_colors.child_bg = child_bg
+        
+        # Update input field colors
+        self._input_colors.text = text_color
+        self._input_colors.frame_bg = frame_bg
+        self._input_colors.frame_bg_hovered = frame_bg_hovered
+        self._input_colors.frame_bg_active = frame_bg_active
+        text_color = dcg.color_as_floats(text_color)
+        frame_bg = dcg.color_as_floats(frame_bg)
+        frame_bg_hovered = dcg.color_as_floats(frame_bg_hovered)
+        frame_bg_active = dcg.color_as_floats(frame_bg_active)
+        
+        # Update separator color - make it slightly accent-colored
+        self._separator_colors.text = tuple(0.3 * text_color[i] + 0.7 * accent_color[i] 
+                                           for i in range(3)) + (text_color[3],)
+        
+        # Update AM/PM selector theme
+        self._ampm_colors.frame_bg = tuple(c * 0.95 for c in frame_bg[:3]) + (frame_bg[3],)
+        self._ampm_colors.frame_bg_hovered = tuple(min(1.0, c * 1.05) for c in frame_bg_hovered[:3]) + (frame_bg_hovered[3],)
+        self._ampm_colors.frame_bg_active = tuple(c * 0.9 for c in frame_bg_active[:3]) + (frame_bg_active[3],)
+        self._ampm_colors.text = text_color
 
     def _get_display_hour(self):
         """
@@ -267,9 +331,9 @@ class TimePicker(dcg.Layout):
             if hasattr(self, '_seconds'):
                 self._seconds.show = value
 
-class DatePicker(dcg.Layout):
+class DatePicker(dcg.ChildWindow):
     """
-    A widget for picking dates, similar to ImPlot's date picker.
+    A widget for picking dates.
     
     The widget displays a calendar interface with month/year navigation and allows
     selecting dates within the valid range. Users can navigate between day, month, 
@@ -311,27 +375,139 @@ class DatePicker(dcg.Layout):
         self._current_month = value.month - 1
         self._current_year = value.year
         self._current_year_block = value.year - (value.year % 20)
+
+        # Styling
+        self.border = True
+        self.auto_resize_y = True
+        self.no_scrollbar = True
+        self.no_scroll_with_mouse = True
+        self._container_style = \
+            dcg.ThemeStyleImGui(context, 
+                                frame_rounding=4.0,
+                                frame_padding=(6, 3),
+                                child_rounding=4.0,
+                                item_spacing=(8, 4))
+        self._container_colors = dcg.ThemeColorImGui(context)
+        self.theme = dcg.ThemeList(context)
+        self._container_style.parent = self.theme
+        self._container_colors.parent = self.theme
         
+        # Nav buttons theme
+        self._nav_button_colors = dcg.ThemeColorImGui(context)
+        
+        # Header button theme
+        self._header_button_colors = dcg.ThemeColorImGui(context)
+        
+        # Weekday header theme
+        self._weekday_header_colors = dcg.ThemeColorImGui(context)
+        
+        # Day button themes
+        self._day_button_colors = dcg.ThemeColorImGui(context)
+        self._selected_day_colors = dcg.ThemeColorImGui(context)
+        self._today_day_colors = dcg.ThemeColorImGui(context)
+        self._disabled_day_colors = dcg.ThemeColorImGui(context)
+
+        # Add handler to update themes when rendered
+        self.handlers += [
+            dcg.GotRenderHandler(context, callback=self._update_theme_style)
+        ]
+
         with self:
             # Header row with navigation
             with dcg.HorizontalLayout(context):
-                # Left button
-                self._left_btn = dcg.Button(context, label="<", width=20,
+                # Left button - styling for a cleaner arrow
+                self._left_btn = dcg.Button(context, label="<", width=30,
                                           callback=self._on_prev_click)
+                self._left_btn.theme = self._nav_button_colors
                 
-                # Center label/button
+                # Center label/button with more professional styling
                 self._header_btn = dcg.Button(context, 
                                             label=self._get_header_text(),
                                             callback=self._on_header_click)
+                self._header_btn.theme = self._header_button_colors
                 
                 # Right button
-                self._right_btn = dcg.Button(context, label=">", width=20,
+                self._right_btn = dcg.Button(context, label=">", width=30,
                                            callback=self._on_next_click)
+                self._right_btn.theme = self._nav_button_colors
             
             # Calendar grid
             self._grid = dcg.Layout(context)
             self._update_grid()
-            
+
+    def _update_theme_style(self):
+        """Update all theme objects based on current theme settings"""
+        # Get base colors from current theme
+        text_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "text")
+        button_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "button")
+        button_hovered = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "button_hovered")
+        button_active = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "button_active")
+        child_bg = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "child_bg")
+        border_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "border")
+
+        # Here we follow closely the current theme style, but
+        # you can adapt to your needs.
+        
+        # Get accent color for highlights
+        accent_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "check_mark")
+        accent_color = dcg.color_as_floats(accent_color)
+        if sum(accent_color[:3]) < 0.1:  # Fallback if too dark or not found
+            accent_color = (0.4, 0.5, 0.8, 0.7)
+        
+        # Calculate complementary color for today highlight
+        h, s, v = colorsys.rgb_to_hsv(*accent_color[:3])
+        h = (h + 0.5) % 1.0  # Complementary hue
+        today_color = colorsys.hsv_to_rgb(h, s * 0.8, v)
+        today_color = today_color[:3] + (0.7,)
+        
+        # Update container theme
+        self._container_colors.text = text_color
+        self._container_colors.button = button_color
+        self._container_colors.child_bg = child_bg
+        self._container_colors.border = border_color
+        
+        # Update navigation button themes
+        self._nav_button_colors.button = button_color
+        self._nav_button_colors.button_hovered = button_hovered
+        self._nav_button_colors.button_active = button_active
+        self._nav_button_colors.text = text_color
+        
+        # Update header button theme (slightly lighter than normal buttons)
+        button_color = dcg.color_as_floats(button_color)
+        header_bg = tuple(min(1.0, c * 1.1) for c in button_color[:3]) + (button_color[3],)
+        self._header_button_colors.button = header_bg
+        self._header_button_colors.button_hovered = tuple(min(1.0, c * 1.05) for c in header_bg[:3]) + (header_bg[3],)
+        self._header_button_colors.button_active = tuple(max(0.0, c * 0.95) for c in header_bg[:3]) + (header_bg[3],)
+        self._header_button_colors.text = accent_color[:3] + (1.0,)  # Use accent color for header text
+        
+        # Update weekday header theme
+        self._weekday_header_colors.text = tuple(0.6 * c + 0.4 * accent_color[i] for i, c in enumerate(text_color[:3])) + (text_color[3],)
+        
+        # Update day button themes
+        self._day_button_colors.text = text_color
+        self._day_button_colors.button = button_color
+        self._day_button_colors.button_hovered = button_hovered
+        self._day_button_colors.button_active = button_active
+        
+        # Selected day theme
+        self._selected_day_colors.button = accent_color
+        self._selected_day_colors.button_hovered = tuple(min(1.0, c * 1.2) for c in accent_color[:3]) + (min(1.0, accent_color[3] * 1.1),)
+        self._selected_day_colors.button_active = tuple(min(1.0, c * 1.4) for c in accent_color[:3]) + (min(1.0, accent_color[3] * 1.2),)
+        self._selected_day_colors.text = (1.0, 1.0, 1.0, 1.0)
+        
+        # Today theme
+        self._today_day_colors.button = today_color
+        self._today_day_colors.button_hovered = tuple(min(1.0, c * 1.2) for c in today_color[:3]) + (min(1.0, today_color[3] * 1.1),)
+        self._today_day_colors.button_active = tuple(min(1.0, c * 1.4) for c in today_color[:3]) + (min(1.0, today_color[3] * 1.2),)
+        self._today_day_colors.text = (1.0, 1.0, 1.0, 1.0)
+        
+        # Disabled day theme
+        self._disabled_day_colors.text = text_color[:3] + (0.5,)  # Dimmed text
+        
+        # Update grid to apply new themes if it exists
+        if hasattr(self, '_grid') and self._grid:
+            self._update_grid()
+
     def _get_header_text(self):
         """
         Generate the header text based on current view level.
@@ -367,18 +543,19 @@ class DatePicker(dcg.Layout):
             self._build_year_grid()
             
     def _build_day_grid(self):
-        """
-        Build the day view calendar grid.
+        """Build the day view calendar grid."""
+        # Create a table for better layout
+        table = dcg.Table(self.context, parent=self._grid, 
+                          flags=dcg.TableFlag.SIZING_STRETCH_SAME | 
+                                dcg.TableFlag.NO_HOST_EXTEND_X,
+                          header=False)
         
-        Creates a calendar grid showing days of the current month with appropriate
-        padding for previous/next months. Highlights the currently selected day
-        and disables days outside the allowed range.
-        """
-        # Add weekday headers
-        with dcg.HorizontalLayout(self.context, parent=self._grid):
+        # Add weekday headers with themed styling
+        with table.next_row:
             for day in self.WEEKDAY_ABBREV:
-                dcg.Text(self.context, value=day)
-                
+                header_cell = dcg.Text(self.context, value=day)
+                header_cell.theme = self._weekday_header_colors
+        
         # Calculate first day of month
         first_day = datetime(self._current_year, self._current_month + 1, 1)
         days_in_month = (datetime(self._current_year + (self._current_month == 11),
@@ -392,84 +569,136 @@ class DatePicker(dcg.Layout):
         else:
             prev_month_days = (datetime(self._current_year, self._current_month + 1, 1) -
                              datetime(self._current_year, self._current_month, 1)).days
+
+        # Today's date for highlighting
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
         # Build calendar grid
         day = 1
-        with dcg.Layout(self.context, parent=self._grid):
-            for week in range(6):
-                with dcg.HorizontalLayout(self.context):
-                    for weekday in range(7):
-                        if week == 0 and weekday < first_day.weekday():
-                            # Previous month padding
-                            pad_day = prev_month_days - first_day.weekday() + weekday + 1
-                            btn = dcg.Button(self.context, label=str(pad_day), enabled=False)
-                        elif day > days_in_month:
-                            # Next month padding
-                            btn = dcg.Button(self.context, label=str(day - days_in_month), enabled=False)
-                            day += 1
+        start_weekday = first_day.weekday()
+        
+        # Create weeks (6 rows max in a month view)
+        for week in range(6):
+            with table.next_row:
+                for weekday in range(7):
+                    if week == 0 and weekday < start_weekday:
+                        # Previous month padding
+                        pad_day = prev_month_days - start_weekday + weekday + 1
+                        btn = dcg.Button(self.context, 
+                                      label=str(pad_day), 
+                                      enabled=False,
+                                      width=-1)
+                        # Use theme colors for disabled days
+                        btn.theme = self._disabled_day_colors
+                    elif day > days_in_month:
+                        # Next month padding
+                        next_day = day - days_in_month
+                        btn = dcg.Button(self.context, 
+                                      label=str(next_day), 
+                                      enabled=False,
+                                      width=-1)
+                        # Use theme colors for disabled days
+                        btn.theme = self._disabled_day_colors
+                        day += 1
+                    else:
+                        # Current month
+                        date = datetime(self._current_year, self._current_month + 1, day)
+                        enabled = self._min_date <= date <= self._max_date
+                        
+                        btn = dcg.Button(self.context, 
+                                      label=str(day),
+                                      enabled=enabled,
+                                      callback=self._on_day_select,
+                                      width=-1)
+                        
+                        # Apply appropriate theme based on day state
+                        is_selected = date.date() == self.value_as_datetime.date()
+                        is_today = date.date() == today.date()
+                        
+                        if is_selected:
+                            btn.theme = self._selected_day_colors
+                        elif is_today:
+                            btn.theme = self._today_day_colors
                         else:
-                            # Current month
-                            date = datetime(self._current_year, self._current_month + 1, day)
-                            enabled = self._min_date <= date <= self._max_date
-                            btn = dcg.Button(self.context, 
-                                          label=str(day),
-                                          enabled=enabled,
-                                          callback=self._on_day_select)
-                            if date.date() == self.value_as_datetime.date():
-                                btn.theme = dcg.ThemeColorImGui(self.context,
-                                                                button=(0.6, 0.6, 1.0, 0.6))
-                            day += 1
-                            
+                            btn.theme = self._day_button_colors
+                        
+                        day += 1
+            
+            # If we've displayed all days in this month and next month, stop
+            if day > days_in_month and week >= 3:  # At least 4 rows always
+                break
+
     def _build_month_grid(self):
-        """
-        Build the month selection grid.
+        """Build the month selection grid."""
+        table = dcg.Table(self.context, parent=self._grid,
+                        flags=dcg.TableFlag.SIZING_STRETCH_SAME | 
+                              dcg.TableFlag.NO_HOST_EXTEND_X,
+                        header=False)
         
-        Creates a 3x4 grid of month buttons, highlighting the current month
-        and disabling months outside the allowed range.
-        """
-        with dcg.Layout(self.context, parent=self._grid):
-            for row in range(3):
-                with dcg.HorizontalLayout(self.context):
-                    for col in range(4):
-                        month = row * 4 + col
-                        date = datetime(self._current_year, month + 1, 1)
-                        enabled = (self._min_date.year < self._current_year or 
-                                 (self._min_date.year == self._current_year and 
-                                  self._min_date.month <= month + 1))
-                        enabled &= (self._max_date.year > self._current_year or
-                                  (self._max_date.year == self._current_year and
-                                   self._max_date.month >= month + 1))
-                        btn = dcg.Button(self.context,
-                                       label=self.MONTH_ABBREV[month],
-                                       enabled=enabled,
-                                       callback=self._on_month_select)
-                        if (month == self.value_as_datetime.month - 1 and 
-                            self._current_year == self.value_as_datetime.year):
-                            btn.theme = dcg.ThemeColorImGui(self.context,
-                                                            button=(0.6, 0.6, 1.0, 0.6))
-                            
+        # Get current selected month for highlighting
+        selected_date = self.value_as_datetime
+        
+        # Build 3x4 grid of months
+        month = 0
+        for row in range(3):
+            with table.next_row:
+                for col in range(4):
+                    date = datetime(self._current_year, month + 1, 1)
+                    enabled = (self._min_date.year < self._current_year or 
+                             (self._min_date.year == self._current_year and 
+                              self._min_date.month <= month + 1))
+                    enabled &= (self._max_date.year > self._current_year or
+                              (self._max_date.year == self._current_year and
+                               self._max_date.month >= month + 1))
+                    
+                    btn = dcg.Button(self.context,
+                                   label=self.MONTH_ABBREV[month],
+                                   enabled=enabled,
+                                   callback=self._on_month_select,
+                                   width=-1)
+                    
+                    # Apply appropriate theme
+                    is_selected = (month == selected_date.month - 1 and 
+                                 self._current_year == selected_date.year)
+                    
+                    if is_selected:
+                        btn.theme = self._selected_day_colors
+                    else:
+                        btn.theme = self._day_button_colors
+                    
+                    month += 1
+
     def _build_year_grid(self):
-        """
-        Build the year selection grid.
+        """Build the year selection grid."""
+        table = dcg.Table(self.context, parent=self._grid,
+                        flags=dcg.TableFlag.SIZING_STRETCH_SAME | 
+                              dcg.TableFlag.NO_HOST_EXTEND_X,
+                        header=False)
         
-        Creates a 5x4 grid of year buttons for a 20-year block, highlighting
-        the current year and disabling years outside the allowed range.
-        """
-        with dcg.Layout(self.context, parent=self._grid):
-            year = self._current_year_block
-            for row in range(5):
-                with dcg.HorizontalLayout(self.context):
-                    for col in range(4):
-                        if year <= 2999:
-                            enabled = self._min_date.year <= year <= self._max_date.year
-                            btn = dcg.Button(self.context,
-                                           label=str(year),
-                                           enabled=enabled,
-                                           callback=self._on_year_select)
-                            if year == self.value_as_datetime.year:
-                                btn.theme = dcg.ThemeColorImGui(self.context,
-                                                                button=(0.6, 0.6, 1.0, 0.6))
-                        year += 1
+        # Current selected year for highlighting
+        selected_date = self.value_as_datetime
+        
+        # Build 5x4 grid of years (20 years total)
+        year = self._current_year_block
+        for row in range(5):
+            with table.next_row:
+                for col in range(4):
+                    if year <= 2999:
+                        enabled = self._min_date.year <= year <= self._max_date.year
+                        btn = dcg.Button(self.context,
+                                       label=str(year),
+                                       enabled=enabled,
+                                       callback=self._on_year_select,
+                                       width=-1)
+                        
+                        # Apply appropriate theme
+                        is_selected = year == selected_date.year
+                        if is_selected:
+                            btn.theme = self._selected_day_colors
+                        else:
+                            btn.theme = self._day_button_colors
+                    
+                    year += 1
                             
     def _on_prev_click(self):
         """
@@ -574,6 +803,54 @@ class DatePicker(dcg.Layout):
         self._current_month = value.month - 1
         self._current_year = value.year
         self._current_year_block = value.year - (value.year % 20)
+        self._update_grid()
+
+    @property
+    def min_date(self):
+        """
+        The minimum selectable date for the calendar.
+        
+        Dates before this value will be displayed as disabled in the calendar view.
+        """
+        return self._min_date
+
+    @min_date.setter
+    def min_date(self, value):
+        """Set the minimum selectable date"""
+        if not isinstance(value, datetime):
+            raise ValueError("min_date must be a datetime object")
+        self._min_date = value
+        
+        # Make sure current value is still valid
+        current_date = self.value_as_datetime
+        if current_date < self._min_date:
+            self._value.value = self._min_date.timestamp()
+        
+        # Update the calendar view
+        self._update_grid()
+
+    @property
+    def max_date(self):
+        """
+        The maximum selectable date for the calendar.
+        
+        Dates after this value will be displayed as disabled in the calendar view.
+        """
+        return self._max_date
+
+    @max_date.setter
+    def max_date(self, value):
+        """Set the maximum selectable date"""
+        if not isinstance(value, datetime):
+            raise ValueError("max_date must be a datetime object")
+        self._max_date = value
+        
+        # Make sure current value is still valid
+        current_date = self.value_as_datetime
+        if current_date > self._max_date:
+            self._value.value = self._max_date.timestamp()
+        
+        # Update the calendar view
         self._update_grid()
 
     @property
@@ -1031,13 +1308,14 @@ class InputValueN(dcg.ChildWindow):
             'no_horizontal_scroll', 'no_undo_redo'
         ]
     
-    def __init__(self, context, *, values=None, shareable_values=None, width="0.65*fillx", **kwargs):
+    def __init__(self, context, *, values=None, shareable_values=None, **kwargs):
         # Configure visuals
         self.border = False
         self.auto_resize_y = True
         self.no_scroll_with_mouse = True
         self.no_scrollbar = True
         self.theme = dcg.ThemeColorImGui(context, child_bg=0)
+        kwargs.setdefault("width", "0.65*fillx")
 
         # Extract InputValue-specific properties to apply later
         input_value_props = {}
@@ -1073,7 +1351,7 @@ class InputValueN(dcg.ChildWindow):
             self.shareable_values = shareable_values
 
         # Initialize base class
-        super().__init__(context, width=width, **kwargs)
+        super().__init__(context, **kwargs)
     
     def _create_inputs(self, count):
         """Create or resize to the specified number of input fields"""
@@ -1448,13 +1726,14 @@ class SliderN(dcg.ChildWindow):
         'no_input', 'print_format', 'no_round', 'speed', 'vertical'
     ]
     
-    def __init__(self, context, *, values=None, shareable_values=None, width="0.65*fillx", **kwargs):
+    def __init__(self, context, *, values=None, shareable_values=None, **kwargs):
         # Configure visuals
         self.border = False
         self.auto_resize_y = True
         self.no_scroll_with_mouse = True
         self.no_scrollbar = True
         self.theme = dcg.ThemeColorImGui(context, child_bg=0)
+        kwargs.setdefault("width", "0.65*fillx")
 
         # Extract Slider-specific properties to apply later
         slider_props = {}
@@ -1491,7 +1770,7 @@ class SliderN(dcg.ChildWindow):
             self.shareable_values = shareable_values
 
         # Initialize base class
-        super().__init__(context, width=width, **kwargs)
+        super().__init__(context, **kwargs)
     
     def _create_sliders(self, count):
         """Create or resize to the specified number of sliders"""
