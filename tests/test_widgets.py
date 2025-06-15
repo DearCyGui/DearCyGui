@@ -210,13 +210,6 @@ def test_shared_string(ctx):
     shared_str.value = "New Value"
     assert shared_str.value == "New Value"
 
-def test_shared_float4(ctx):
-    shared_float4 = dcg.SharedFloat4(ctx, (1.0, 2.0, 3.0, 4.0))
-    assert tuple(shared_float4.value) == (1.0, 2.0, 3.0, 4.0)
-
-    shared_float4.value = [5.0, 6.0, 7.0, 8.0]
-    assert tuple(shared_float4.value) == (5.0, 6.0, 7.0, 8.0)
-
 def test_shared_float_vect(ctx):
     shared_float_vect = dcg.SharedFloatVect(ctx, (1.0, 2.0, 3.0))
     assert tuple(shared_float_vect.value) == (1.0, 2.0, 3.0)
@@ -257,9 +250,9 @@ def test_text_basic():
     ctx = dcg.Context()
     text = dcg.Text(ctx, value="Test Text")
     assert text.value == "Test Text"
-    assert not text.bullet
-    text.bullet = True
-    assert text.bullet
+    assert text.marker is None
+    text.marker = "bullet"
+    assert text.marker is dcg.TextMarker.BULLET
 
 def test_checkbox_basic():
     """Test basic Checkbox functionality"""
@@ -327,9 +320,6 @@ def test_shared_values():
     
     color_val = dcg.SharedColor(ctx, 0xFF0000FF)  # Red
     assert isinstance(color_val.value, int)
-
-    float4_val = dcg.SharedFloat4(ctx, [1.0, 2.0, 3.0, 4.0])
-    assert float4_val.value == [1.0, 2.0, 3.0, 4.0]
 
 def test_tooltip_basic():
     """Test basic Tooltip functionality"""
