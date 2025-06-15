@@ -19,7 +19,7 @@ from dearcygui.wrapper cimport imgui
 from .core cimport drawingItem, \
     lock_gil_friendly, draw_drawing_children
 from .widget cimport SharedBool, SharedFloat, \
-    SharedColor, SharedFloat4, SharedStr
+    SharedColor, SharedStr
 from .imgui_types cimport unparse_color, parse_color
 from .c_types cimport DCGMutex, DCGString, unique_lock, make_Vec2,\
     string_from_bytes, string_from_str, string_to_str, Vec4
@@ -4276,7 +4276,7 @@ cdef class DrawValue(drawingItem):
         of the drawing. This same object can be passed to other items to share its value.
         
         Supported types include SharedBool, SharedFloat,
-        SharedColor, SharedFloat4, and SharedStr.
+        SharedColor and SharedStr.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -4291,7 +4291,6 @@ cdef class DrawValue(drawingItem):
         if not(isinstance(value, SharedBool) or
                isinstance(value, SharedFloat) or
                isinstance(value, SharedColor) or
-               isinstance(value, SharedFloat4) or
                isinstance(value, SharedStr)):
             raise ValueError(f"Unsupported type. Received {type(value)}")
         if isinstance(value, SharedBool):
@@ -4300,8 +4299,6 @@ cdef class DrawValue(drawingItem):
             self._type = 2
         elif isinstance(value, SharedColor):
             self._type = 4
-        elif isinstance(value, SharedFloat4):
-            self._type = 6
         elif isinstance(value, SharedStr):
             self._type = 9
         self._value.dec_num_attached()
@@ -4317,7 +4314,7 @@ cdef class DrawValue(drawingItem):
         is displayed. The format depends on the type of the SharedValue:
         
         - %f for SharedFloat
-        - (%f, %f, %f, %f) for SharedFloat4 or SharedColor
+        - (%f, %f, %f, %f) for SharedColor
         - %s for SharedStr
         
         The default format for floating-point values is "%.3f".
@@ -4368,9 +4365,6 @@ cdef class DrawValue(drawingItem):
         elif self._type == 4:
             value_color = SharedColor.getF4(<SharedColor>self._value)
             ret = imgui.ImFormatString(self.buffer, 256, self._print_format.c_str(), value_color.x, value_color.y, value_color.z, value_color.w)
-        elif self._type == 6:
-            SharedFloat4.get(<SharedFloat4>self._value, value_float4)
-            ret = imgui.ImFormatString(self.buffer, 256, self._print_format.c_str(), value_float4[0], value_float4[1], value_float4[2], value_float4[3])
         elif self._type == 9:
             SharedStr.get(<SharedStr>self._value, value_str)
             ret = imgui.ImFormatString(self.buffer, 256, self._print_format.c_str(), value_str.c_str())

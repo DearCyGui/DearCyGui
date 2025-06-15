@@ -1010,3 +1010,756 @@ class DraggableBar(dcg.DrawInWindow):
                              color=border_color,
                              thickness=thickness)
         self.context.viewport.wake(delay=0.033) # redraw in max 30 FPS
+
+
+class InputValueN(dcg.ChildWindow):
+    """
+    A widget for entering multiple numeric values with optional step buttons.
+    
+    This widget combines multiple InputValue instances in a horizontal layout
+    to simulate a multi-field numeric input. The number of input fields is 
+    determined dynamically by the length of values passed.
+    
+    All InputValue properties are supported and applied to all contained fields.
+    The label is only displayed on the rightmost input field.
+    """
+    __properties = [
+            'step', 'step_fast', 'min_value', 'max_value', 'print_format',
+            'decimal', 'hexadecimal', 'scientific', 'callback_on_enter',
+            'escape_clears_all', 'readonly', 'password', 'always_overwrite',
+            'auto_select_all', 'empty_as_zero', 'empty_if_zero',
+            'no_horizontal_scroll', 'no_undo_redo'
+        ]
+    
+    def __init__(self, context, *, values=None, shareable_values=None, width="0.65*fillx", **kwargs):
+        # Configure visuals
+        self.border = False
+        self.auto_resize_y = True
+        self.no_scroll_with_mouse = True
+        self.no_scrollbar = True
+        self.theme = dcg.ThemeColorImGui(context, child_bg=0)
+
+        # Extract InputValue-specific properties to apply later
+        input_value_props = {}
+        for prop in self.__properties:
+            if prop in kwargs:
+                input_value_props[prop] = kwargs.pop(prop)
+
+        label = kwargs.pop('label', "")
+        
+        self._inputs = []
+        self._callbacks = []
+        self._label = dcg.Text(context, value=label, parent=self)
+        self._label.show = label != ""
+        self._shareable_values = None
+        
+        # Create reference InputValue with all properties
+        self._reference_input = dcg.InputValue(
+            context,
+            parent=None,  # Not added to layout
+            attach=False,
+            label="",
+            callback=self._handle_input_callback,
+            **input_value_props  # Apply all InputValue-specific properties
+        )
+        
+        # Create at least one input
+        self._create_inputs(1)
+        
+        # Set values or shareable_values if provided
+        if values is not None:
+            self.values = values
+        elif shareable_values is not None:
+            self.shareable_values = shareable_values
+
+        # Initialize base class
+        super().__init__(context, width=width, **kwargs)
+    
+    def _create_inputs(self, count):
+        """Create or resize to the specified number of input fields"""
+        if count < 1:
+            count = 1
+            
+        # Save current values if any
+        current_values = self.values if self._inputs else [0.0]
+        
+        # Ensure we have enough values
+        while len(current_values) < count:
+            current_values.append(0.0)
+            
+        # Remove excess inputs if needed
+        while len(self._inputs) > count:
+            self._inputs[-1].delete_item()
+            self._inputs.pop()
+            
+        # Add new inputs if needed
+        while len(self._inputs) < count:
+            # Copy properties from reference input
+            new_input = dcg.InputValue(self.context)
+            for prop in self.__properties:
+                setattr(new_input, prop, getattr(self._reference_input, prop))
+            new_input.callback = self._handle_input_callback
+            new_input.parent = self
+            new_input.no_newline = True
+            self._inputs.append(new_input)
+            
+        # Put the label last
+        self._label.parent = self
+
+        # Update positions of all inputs
+        self._update_positions()
+        
+        # Restore values
+        for i, value in enumerate(current_values[:count]):
+            self._inputs[i].value = value
+
+    def _update_positions(self):
+        """Update positions of all input fields (and the label)"""
+        num_inputs = len(self._inputs)
+        num_items = (1 if self._label.show else 0) + num_inputs
+        field_width = f"(parent.width - {num_items - 1} * theme.item_inner_spacing.x)/{num_inputs}"
+        if self._label.show:
+            field_width = field_width - self._label.width / num_inputs
+        x = "parent.x1"
+        for i, input_field in enumerate(self._inputs):
+            input_field.x = x
+            input_field.width = field_width
+            x = input_field.x + input_field.width + "theme.item_inner_spacing.x"
+        self._label.x = x
+    
+    def _handle_input_callback(self, sender, target, value):
+        """Handler for individual input callbacks that forwards to parent callback"""
+        # Call parent callbacks with all values
+        for callback in self._callbacks:
+            callback(self, self, self.values)
+
+    @property
+    def callbacks(self):
+        """List of callbacks to be called when values change"""
+        return self._callbacks
+        
+    @callbacks.setter
+    def callbacks(self, value):
+        """Set callbacks for value changes"""
+        if value is None:
+            value = []
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+        # we override the callbacks attribute to prevent
+        # callback calls from the layout
+        self._callbacks = [dcg.Callback(c) for c in value]
+        
+        # Set callbacks for each input field
+        for input_field in self._inputs:
+            input_field.callback = self._handle_input_callback
+    
+    @property
+    def values(self):
+        """Get values from all input fields as a list"""
+        return [input_field.value for input_field in self._inputs]
+    
+    @values.setter
+    def values(self, values):
+        """Set values and adjust number of input fields if needed"""
+        if not isinstance(values, (list, tuple)):
+            values = [values]
+        
+        # Resize inputs if needed
+        if len(values) != len(self._inputs):
+            self._create_inputs(len(values))
+        
+        # Set values
+        for i, value in enumerate(values):
+            self._inputs[i].value = value
+    
+    @property
+    def value(self):
+        """Get values as a list (alias for values)"""
+        return self.values
+    
+    @value.setter
+    def value(self, value):
+        """Set value(s), handling both scalar and list inputs"""
+        self.values = value
+    
+    @property
+    def shareable_values(self):
+        """Get the list of SharedFloat objects used by the input fields"""
+        return self._shareable_values or [input_field.shareable_value for input_field in self._inputs]
+    
+    @shareable_values.setter
+    def shareable_values(self, values):
+        """Link with external SharedFloat objects"""
+        if not isinstance(values, (list, tuple)):
+            values = [values]
+        
+        # Resize inputs if needed
+        if len(values) != len(self._inputs):
+            self._create_inputs(len(values))
+        
+        # Set shareable values
+        for i, shareable_value in enumerate(values):
+            self._inputs[i].shareable_value = shareable_value
+        
+        self._shareable_values = values
+    
+    @property
+    def shareable_value(self):
+        """Get first SharedFloat object (for backward compatibility)"""
+        return self.shareable_values[0] if self._inputs else None
+    
+    @shareable_value.setter
+    def shareable_value(self, value):
+        """Set a single shareable value (extends to list if needed)"""
+        if isinstance(value, (list, tuple)):
+            self.shareable_values = value
+        else:
+            self.shareable_values = [value]
+    
+    @property
+    def label(self):
+        """Get the label displayed next to the last input field"""
+        return self._label.value
+    
+    @label.setter
+    def label(self, value):
+        """Set the label for the last input field"""
+        self._label.value = value
+            
+    # Forward all InputValue properties to reference input and all active inputs
+    @property
+    def step(self):
+        """Step size for incrementing/decrementing the values"""
+        return self._reference_input.step
+    
+    @step.setter
+    def step(self, value):
+        self._reference_input.step = value
+        for input_field in self._inputs:
+            input_field.step = value
+    
+    @property
+    def step_fast(self):
+        """Fast step size for quick value changes with modifier keys"""
+        return self._reference_input.step_fast
+    
+    @step_fast.setter
+    def step_fast(self, value):
+        self._reference_input.step_fast = value
+        for input_field in self._inputs:
+            input_field.step_fast = value
+    
+    @property
+    def min_value(self):
+        """Minimum value the inputs will be clamped to"""
+        return self._reference_input.min_value
+    
+    @min_value.setter
+    def min_value(self, value):
+        self._reference_input.min_value = value
+        for input_field in self._inputs:
+            input_field.min_value = value
+    
+    @property
+    def max_value(self):
+        """Maximum value the inputs will be clamped to"""
+        return self._reference_input.max_value
+    
+    @max_value.setter
+    def max_value(self, value):
+        self._reference_input.max_value = value
+        for input_field in self._inputs:
+            input_field.max_value = value
+    
+    @property
+    def print_format(self):
+        """Format string for displaying the numeric values"""
+        return self._reference_input.print_format
+    
+    @print_format.setter
+    def print_format(self, value):
+        self._reference_input.print_format = value
+        for input_field in self._inputs:
+            input_field.print_format = value
+    
+    @property
+    def decimal(self):
+        """Restricts input to decimal numeric characters"""
+        return self._reference_input.decimal
+    
+    @decimal.setter
+    def decimal(self, value):
+        self._reference_input.decimal = value
+        for input_field in self._inputs:
+            input_field.decimal = value
+    
+    @property
+    def hexadecimal(self):
+        """Restricts input to hexadecimal characters"""
+        return self._reference_input.hexadecimal
+    
+    @hexadecimal.setter
+    def hexadecimal(self, value):
+        self._reference_input.hexadecimal = value
+        for input_field in self._inputs:
+            input_field.hexadecimal = value
+    
+    @property
+    def scientific(self):
+        """Restricts input to scientific notation characters"""
+        return self._reference_input.scientific
+    
+    @scientific.setter
+    def scientific(self, value):
+        self._reference_input.scientific = value
+        for input_field in self._inputs:
+            input_field.scientific = value
+    
+    @property
+    def callback_on_enter(self):
+        """Triggers callback when Enter key is pressed"""
+        return self._reference_input.callback_on_enter
+    
+    @callback_on_enter.setter
+    def callback_on_enter(self, value):
+        self._reference_input.callback_on_enter = value
+        for input_field in self._inputs:
+            input_field.callback_on_enter = value
+    
+    @property
+    def escape_clears_all(self):
+        """Makes Escape key clear the field's content"""
+        return self._reference_input.escape_clears_all
+    
+    @escape_clears_all.setter
+    def escape_clears_all(self, value):
+        self._reference_input.escape_clears_all = value
+        for input_field in self._inputs:
+            input_field.escape_clears_all = value
+    
+    @property
+    def readonly(self):
+        """Makes the input fields non-editable by the user"""
+        return self._reference_input.readonly
+    
+    @readonly.setter
+    def readonly(self, value):
+        self._reference_input.readonly = value
+        for input_field in self._inputs:
+            input_field.readonly = value
+    
+    @property
+    def password(self):
+        """Hides the input by displaying asterisks"""
+        return self._reference_input.password
+    
+    @password.setter
+    def password(self, value):
+        self._reference_input.password = value
+        for input_field in self._inputs:
+            input_field.password = value
+    
+    @property
+    def always_overwrite(self):
+        """Enables overwrite mode for text input"""
+        return self._reference_input.always_overwrite
+    
+    @always_overwrite.setter
+    def always_overwrite(self, value):
+        self._reference_input.always_overwrite = value
+        for input_field in self._inputs:
+            input_field.always_overwrite = value
+    
+    @property
+    def auto_select_all(self):
+        """Automatically selects all content when the field is focused"""
+        return self._reference_input.auto_select_all
+    
+    @auto_select_all.setter
+    def auto_select_all(self, value):
+        self._reference_input.auto_select_all = value
+        for input_field in self._inputs:
+            input_field.auto_select_all = value
+    
+    @property
+    def empty_as_zero(self):
+        """Treats empty input fields as zero values"""
+        return self._reference_input.empty_as_zero
+    
+    @empty_as_zero.setter
+    def empty_as_zero(self, value):
+        self._reference_input.empty_as_zero = value
+        for input_field in self._inputs:
+            input_field.empty_as_zero = value
+    
+    @property
+    def empty_if_zero(self):
+        """Displays an empty field when the value is zero"""
+        return self._reference_input.empty_if_zero
+    
+    @empty_if_zero.setter
+    def empty_if_zero(self, value):
+        self._reference_input.empty_if_zero = value
+        for input_field in self._inputs:
+            input_field.empty_if_zero = value
+    
+    @property
+    def no_horizontal_scroll(self):
+        """Disables automatic horizontal scrolling during input"""
+        return self._reference_input.no_horizontal_scroll
+    
+    @no_horizontal_scroll.setter
+    def no_horizontal_scroll(self, value):
+        self._reference_input.no_horizontal_scroll = value
+        for input_field in self._inputs:
+            input_field.no_horizontal_scroll = value
+    
+    @property
+    def no_undo_redo(self):
+        """Disables the undo/redo functionality for input fields"""
+        return self._reference_input.no_undo_redo
+    
+    @no_undo_redo.setter
+    def no_undo_redo(self, value):
+        self._reference_input.no_undo_redo = value
+        for input_field in self._inputs:
+            input_field.no_undo_redo = value
+
+
+class SliderN(dcg.ChildWindow):
+    """
+    A widget for multiple sliders arranged horizontally.
+    
+    This widget combines multiple Slider instances in a horizontal layout
+    to create a multi-dimensional value editor. The number of sliders is 
+    determined dynamically by the length of values passed.
+    
+    All Slider properties are supported and applied to all contained sliders.
+    The label is displayed at the right side of the widget.
+    
+    Parameters:
+        context: The DearCyGui context
+        values: Initial values for the sliders (determines number of sliders)
+        shareable_values: SharedFloat objects to link with the sliders
+        **kwargs: Additional keyword arguments for configuring the widget and sliders
+    """
+    __properties = [
+        'keyboard_clamped', 'drag', 'logarithmic', 'min_value', 'max_value',
+        'no_input', 'print_format', 'no_round', 'speed', 'vertical'
+    ]
+    
+    def __init__(self, context, *, values=None, shareable_values=None, width="0.65*fillx", **kwargs):
+        # Configure visuals
+        self.border = False
+        self.auto_resize_y = True
+        self.no_scroll_with_mouse = True
+        self.no_scrollbar = True
+        self.theme = dcg.ThemeColorImGui(context, child_bg=0)
+
+        # Extract Slider-specific properties to apply later
+        slider_props = {}
+        for prop in self.__properties:
+            if prop in kwargs:
+                slider_props[prop] = kwargs.pop(prop)
+
+        label = kwargs.pop('label', "")
+        
+        self._sliders = []
+        self._callbacks = []
+        self._label = dcg.Text(context, value=label, parent=self)
+        self._label.show = label != ""
+        self._shareable_values = None
+        
+        # Create reference Slider with all properties
+        self._reference_slider = dcg.Slider(
+            context,
+            parent=None,  # Not added to layout
+            attach=False,
+            label="",
+            y=0, height=0,
+            callbacks=self._handle_slider_callback,
+            **slider_props  # Apply all Slider-specific properties
+        )
+        
+        # Create at least one slider
+        self._create_sliders(1)
+        
+        # Set values or shareable_values if provided
+        if values is not None:
+            self.values = values
+        elif shareable_values is not None:
+            self.shareable_values = shareable_values
+
+        # Initialize base class
+        super().__init__(context, width=width, **kwargs)
+    
+    def _create_sliders(self, count):
+        """Create or resize to the specified number of sliders"""
+        if count < 1:
+            count = 1
+            
+        # Save current values if any
+        current_values = self.values if self._sliders else [0.0]
+        
+        # Ensure we have enough values
+        while len(current_values) < count:
+            current_values.append(0.0)
+            
+        # Remove excess sliders if needed
+        while len(self._sliders) > count:
+            self._sliders[-1].delete_item()
+            self._sliders.pop()
+            
+        # Add new sliders if needed
+        while len(self._sliders) < count:
+            # Copy properties from reference slider
+            #new_slider = self._reference_slider.copy()
+            new_slider = dcg.Slider(self.context)
+            for prop in self.__properties:
+                setattr(new_slider, prop, getattr(self._reference_slider, prop))
+            new_slider.callback=self._handle_slider_callback
+            new_slider.parent = self
+            new_slider.no_newline = True
+            self._sliders.append(new_slider)
+            
+        # Put the label last
+        self._label.parent = self
+
+        # Update positions of all sliders
+        self._update_positions()
+        
+        # Restore values
+        for i, value in enumerate(current_values[:count]):
+            self._sliders[i].value = value
+
+    def _update_positions(self):
+        """Update positions and sizes of all sliders (and the label)"""
+        num_sliders = len(self._sliders)
+        num_items = (1 if self._label.show else 0) + num_sliders
+        
+        # Calculate field width
+        field_width = f"(parent.width - {num_items - 1} * theme.item_inner_spacing.x)/{num_sliders}"
+        if self._label.show:
+            field_width = field_width - self._label.width / num_sliders
+            
+        # Set positions of sliders
+        x = "parent.x1"
+        for i, slider in enumerate(self._sliders):
+            slider.x = x
+            slider.width = field_width
+            x = slider.x + slider.width + "theme.item_inner_spacing.x"
+        
+        # Position label at the end
+        self._label.x = x
+    
+    def _handle_slider_callback(self, sender, target, value):
+        """Handler for individual slider callbacks that forwards to parent callback"""
+        # Call parent callbacks with all values
+        for callback in self._callbacks:
+            callback(self, self, self.values)
+
+    @property
+    def callbacks(self):
+        """List of callbacks to be called when values change"""
+        return self._callbacks
+        
+    @callbacks.setter
+    def callbacks(self, value):
+        """Set callbacks for value changes"""
+        if value is None:
+            value = []
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+        # Override the callbacks attribute to prevent
+        # callback calls from the layout
+        self._callbacks = [dcg.Callback(c) for c in value]
+        
+        # Set callbacks for each slider
+        for slider in self._sliders:
+            slider.callback = self._handle_slider_callback
+    
+    @property
+    def values(self):
+        """Get values from all sliders as a list"""
+        return [slider.value for slider in self._sliders]
+    
+    @values.setter
+    def values(self, values):
+        """Set values and adjust number of sliders if needed"""
+        if not isinstance(values, (list, tuple)):
+            values = [values]
+        
+        # Resize sliders if needed
+        if len(values) != len(self._sliders):
+            self._create_sliders(len(values))
+        
+        # Set values
+        for i, value in enumerate(values):
+            self._sliders[i].value = value
+    
+    @property
+    def value(self):
+        """Get values as a list (alias for values)"""
+        return self.values
+    
+    @value.setter
+    def value(self, value):
+        """Set value(s), handling both scalar and list inputs"""
+        self.values = value
+    
+    @property
+    def shareable_values(self):
+        """Get the list of SharedFloat objects used by the sliders"""
+        return self._shareable_values or [slider.shareable_value for slider in self._sliders]
+    
+    @shareable_values.setter
+    def shareable_values(self, values):
+        """Link with external SharedFloat objects"""
+        if not isinstance(values, (list, tuple)):
+            values = [values]
+        
+        # Resize sliders if needed
+        if len(values) != len(self._sliders):
+            self._create_sliders(len(values))
+        
+        # Set shareable values
+        for i, shareable_value in enumerate(values):
+            self._sliders[i].shareable_value = shareable_value
+        
+        self._shareable_values = values
+    
+    @property
+    def shareable_value(self):
+        """Get first SharedFloat object (for backward compatibility)"""
+        return self.shareable_values[0] if self._sliders else None
+    
+    @shareable_value.setter
+    def shareable_value(self, value):
+        """Set a single shareable value (extends to list if needed)"""
+        if isinstance(value, (list, tuple)):
+            self.shareable_values = value
+        else:
+            self.shareable_values = [value]
+    
+    @property
+    def label(self):
+        """Get the label displayed next to the last slider"""
+        return self._label.value
+    
+    @label.setter
+    def label(self, value):
+        """Set the label for the widget"""
+        self._label.value = value
+        self._label.show = value != ""
+        self._update_positions()
+            
+    # Forward all Slider properties to reference slider and all active sliders
+    @property
+    def keyboard_clamped(self):
+        """Whether slider values are clamped even when set via keyboard"""
+        return self._reference_slider.keyboard_clamped
+    
+    @keyboard_clamped.setter
+    def keyboard_clamped(self, value):
+        self._reference_slider.keyboard_clamped = value
+        for slider in self._sliders:
+            slider.keyboard_clamped = value
+    
+    @property
+    def drag(self):
+        """Whether to use 'drag' sliders rather than regular ones"""
+        return self._reference_slider.drag
+    
+    @drag.setter
+    def drag(self, value):
+        self._reference_slider.drag = value
+        for slider in self._sliders:
+            slider.drag = value
+    
+    @property
+    def logarithmic(self):
+        """Whether sliders should use logarithmic scaling"""
+        return self._reference_slider.logarithmic
+    
+    @logarithmic.setter
+    def logarithmic(self, value):
+        self._reference_slider.logarithmic = value
+        for slider in self._sliders:
+            slider.logarithmic = value
+    
+    @property
+    def min_value(self):
+        """Minimum value the sliders will be clamped to"""
+        return self._reference_slider.min_value
+    
+    @min_value.setter
+    def min_value(self, value):
+        self._reference_slider.min_value = value
+        for slider in self._sliders:
+            slider.min_value = value
+    
+    @property
+    def max_value(self):
+        """Maximum value the sliders will be clamped to"""
+        return self._reference_slider.max_value
+    
+    @max_value.setter
+    def max_value(self, value):
+        self._reference_slider.max_value = value
+        for slider in self._sliders:
+            slider.max_value = value
+    
+    @property
+    def no_input(self):
+        """Whether to disable keyboard input for the sliders"""
+        return self._reference_slider.no_input
+    
+    @no_input.setter
+    def no_input(self, value):
+        self._reference_slider.no_input = value
+        for slider in self._sliders:
+            slider.no_input = value
+    
+    @property
+    def print_format(self):
+        """Format string for displaying slider values"""
+        return self._reference_slider.print_format
+    
+    @print_format.setter
+    def print_format(self, value):
+        self._reference_slider.print_format = value
+        for slider in self._sliders:
+            slider.print_format = value
+    
+    @property
+    def no_round(self):
+        """Whether to disable rounding of values according to print_format"""
+        return self._reference_slider.no_round
+    
+    @no_round.setter
+    def no_round(self, value):
+        self._reference_slider.no_round = value
+        for slider in self._sliders:
+            slider.no_round = value
+    
+    @property
+    def speed(self):
+        """Speed at which values change in drag mode"""
+        return self._reference_slider.speed
+    
+    @speed.setter
+    def speed(self, value):
+        self._reference_slider.speed = value
+        for slider in self._sliders:
+            slider.speed = value
+    
+    @property
+    def vertical(self):
+        """Whether to display sliders vertically"""
+        return self._reference_slider.vertical
+    
+    @vertical.setter
+    def vertical(self, value):
+        self._reference_slider.vertical = value
+        for slider in self._sliders:
+            slider.vertical = value

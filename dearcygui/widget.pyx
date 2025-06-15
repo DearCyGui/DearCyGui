@@ -1326,13 +1326,11 @@ cdef class Slider(uiItem):
     controls that adjust values based on mouse movement distance rather than 
     absolute position.
     
-    Sliders can display 
-    single values or vectors of up to 4 components. The appearance and behavior 
+    The appearance and behavior 
     can be customized with various options including logarithmic scaling and 
     different display formats.
     """
     def __cinit__(self):
-        self._size = 1
         self._drag = False
         self._drag_speed = 1.
         self._print_format = string_from_bytes(b"%.3f")
@@ -1347,72 +1345,6 @@ cdef class Slider(uiItem):
         self.state.cap.can_be_edited = True
         self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
-
-    @property
-    def shareable_value(self):
-        """
-        Reference to the underlying value that can be shared between items.
-        
-        Unlike the value property which returns a copy, this returns a reference
-        to the underlying SharedValue object. This object can be assigned to other
-        items' shareable_value properties, creating a link where all items share
-        and update the same underlying value.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._value
-
-    @shareable_value.setter
-    def shareable_value(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if self._value is value:
-            return
-        if not isinstance(self._value, SharedFloat) or not isinstance(value, SharedFloat4):
-            raise ValueError(f"Expected a shareable value of type SharedFloat or SharedFloat4. Received {type(value)}")
-        self._value.dec_num_attached()
-        self._value = value
-        self._value.inc_num_attached()
-        if isinstance(value, SharedFloat4) and self._size == 1:
-            self._size = 4
-        elif isinstance(value, SharedFloat) and self._size > 1:
-            self._size = 1
-
-    @property
-    def size(self):
-        """
-        Number of components controlled by the slider.
-        
-        Can be 1, 2, 3 or 4. When size is 1, the item's value is held with a 
-        scalar shared value. For sizes greater than 1, the value is held with a 
-        vector of 4 elements (even for size 2 and 3).
-        
-        Changing this value will reallocate the internal value storage.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._size
-
-    @size.setter
-    def size(self, int32_t target_size):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if target_size < 0 or target_size > 4:
-            raise ValueError(f"Expected 1, 2, 3, or 4 for size. Got {target_size}")
-        if self._size == target_size:
-            return
-        if (self._size > 1 and target_size > 1):
-            self._size = target_size
-            return
-        # Reallocate the internal vector
-        previous_value = self.value # Pass though the property to do the conversion for us
-        if target_size == 1:
-            self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
-            self.value = previous_value[0]
-        else:
-            self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
-            self.value = (previous_value, 0, 0, 0)
-        self._size = target_size
 
     @property
     def keyboard_clamped(self):
@@ -1543,6 +1475,8 @@ cdef class Slider(uiItem):
         enabled, the value will be rounded according to this format.
         
         Examples: "%.3f" for 3 decimal places (Default), "%.0f" for integers.
+
+        If the value is not printed (for instance ""), the value is not rounded.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1604,7 +1538,7 @@ cdef class Slider(uiItem):
         
         When enabled, the slider will be displayed as a vertical bar. 
 
-        This is only supported for sliders with size=1 and drag=False.
+        This is only supported for sliders with drag=False.
         The setting will be ignored else.
         """
         cdef unique_lock[DCGMutex] m
@@ -1623,7 +1557,6 @@ cdef class Slider(uiItem):
             flags |= imgui.ImGuiSliderFlags_NoInput
         cdef imgui.ImGuiDataType type = imgui.ImGuiDataType_Double
         cdef double value_float
-        cdef double[4] value_float4
         cdef void *data
         cdef void *data_min
         cdef void *data_max
@@ -1633,73 +1566,45 @@ cdef class Slider(uiItem):
         data_max = &self._max
 
         # Read the value
-        if self._size == 1:
-            value_float = SharedFloat.get(<SharedFloat>self._value)
-            data = &value_float
-        else:
-            SharedFloat4.get(<SharedFloat4>self._value, value_float4)
-            data = &value_float4
+        value_float = SharedFloat.get(<SharedFloat>self._value)
+        data = &value_float
 
         # Draw
         cdef Vec2 requested_size = self.get_requested_size()
-        if requested_size.x != 0 and (self._drag or self._size != 1 or not self._vertical):
+        if requested_size.x != 0 and (self._drag or not self._vertical):
             imgui.SetNextItemWidth(requested_size.x)
 
         if self._drag:
-            if self._size == 1:
-                modified = imgui.DragScalar(self._imgui_label.c_str(),
-                                            type,
-                                            data,
-                                            self._drag_speed,
-                                            data_min,
-                                            data_max,
-                                            self._print_format.c_str(),
-                                            flags)
-            else:
-                modified = imgui.DragScalarN(self._imgui_label.c_str(),
-                                             type,
-                                             data,
-                                             self._size,
-                                             self._drag_speed,
-                                             data_min,
-                                             data_max,
-                                             self._print_format.c_str(),
-                                             flags)
+            modified = imgui.DragScalar(self._imgui_label.c_str(),
+                                        type,
+                                        data,
+                                        self._drag_speed,
+                                        data_min,
+                                        data_max,
+                                        self._print_format.c_str(),
+                                        flags)
         else:
-            if self._size == 1:
-                if self._vertical:
-                    modified = imgui.VSliderScalar(self._imgui_label.c_str(),
-                                                   GetDefaultItemSize(Vec2ImVec2(self.get_requested_size())),
-                                                   type,
-                                                   data,
-                                                   data_min,
-                                                   data_max,
-                                                   self._print_format.c_str(),
-                                                   flags)
-                else:
-                    modified = imgui.SliderScalar(self._imgui_label.c_str(),
-                                                  type,
-                                                  data,
-                                                  data_min,
-                                                  data_max,
-                                                  self._print_format.c_str(),
-                                                  flags)
+            if self._vertical:
+                modified = imgui.VSliderScalar(self._imgui_label.c_str(),
+                                                GetDefaultItemSize(Vec2ImVec2(self.get_requested_size())),
+                                                type,
+                                                data,
+                                                data_min,
+                                                data_max,
+                                                self._print_format.c_str(),
+                                                flags)
             else:
-                modified = imgui.SliderScalarN(self._imgui_label.c_str(),
-                                               type,
-                                               data,
-                                               self._size,
-                                               data_min,
-                                               data_max,
-                                               self._print_format.c_str(),
-                                               flags)
-		
+                modified = imgui.SliderScalar(self._imgui_label.c_str(),
+                                                type,
+                                                data,
+                                                data_min,
+                                                data_max,
+                                                self._print_format.c_str(),
+                                                flags)
+
         # Write the value
         if self._enabled:
-            if self._size == 1:
-                SharedFloat.set(<SharedFloat>self._value, value_float)
-            else:
-                SharedFloat4.set(<SharedFloat4>self._value, value_float4)
+            SharedFloat.set(<SharedFloat>self._value, value_float)
         self.update_current_state()
         return modified
 
@@ -2471,24 +2376,10 @@ cdef inline void clamp1(clamp_types &value, double lower, double upper) noexcept
     if upper != INFINITY:
         value = <clamp_types>min(<double>value, upper)
 
-cdef inline void clamp4(clamp_types[4] &value, double lower, double upper) noexcept nogil:
-    if lower != -INFINITY:
-        value[0] = <clamp_types>max(<double>value[0], lower)
-        value[1] = <clamp_types>max(<double>value[1], lower)
-        value[2] = <clamp_types>max(<double>value[2], lower)
-        value[3] = <clamp_types>max(<double>value[3], lower)
-    if upper != INFINITY:
-        value[0] = <clamp_types>min(<double>value[0], upper)
-        value[1] = <clamp_types>min(<double>value[1], upper)
-        value[2] = <clamp_types>min(<double>value[2], upper)
-        value[3] = <clamp_types>min(<double>value[3], upper)
-
 cdef class InputValue(uiItem):
     """
     A widget for entering numeric values with optional step buttons.
 
-    This versatile input widget accepts scalar or vector numeric values with support
-    for different dimensions (1-4 components).
     It offers precise control over value ranges, step sizes, and formatting options.
 
     The widget can be configured with various input restrictions, keyboard behaviors,
@@ -2497,7 +2388,6 @@ cdef class InputValue(uiItem):
     """
 
     def __cinit__(self):
-        self._size = 1
         self._print_format = string_from_bytes(b"%.3f")
         self._flags = 0
         self._min = -INFINITY
@@ -2512,72 +2402,6 @@ cdef class InputValue(uiItem):
         self.state.cap.can_be_edited = True
         self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
-
-    @property
-    def shareable_value(self):
-        """
-        Reference to the underlying value that can be shared between items.
-        
-        Unlike the value property which returns a copy, this returns a reference
-        to the underlying SharedValue object. This object can be assigned to other
-        items' shareable_value properties, creating a link where all items share
-        and update the same underlying value.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._value
-
-    @shareable_value.setter
-    def shareable_value(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if self._value is value:
-            return
-        if not isinstance(self._value, SharedFloat) or not isinstance(value, SharedFloat4):
-            raise ValueError(f"Expected a shareable value of type SharedFloat or SharedFloat4. Received {type(value)}")
-        self._value.dec_num_attached()
-        self._value = value
-        self._value.inc_num_attached()
-        if isinstance(value, SharedFloat4) and self._size == 1:
-            self._size = 4
-        elif isinstance(value, SharedFloat) and self._size > 1:
-            self._size = 1
-
-    @property
-    def size(self):
-        """
-        Number of components controlled by the input widget.
-        
-        Can be 1, 2, 3 or 4. When size is 1, the item's value is held with a
-        scalar shared value. For sizes greater than 1, the value is held with a
-        vector of 4 elements (even for size 2 and 3).
-        
-        Changing this value will reallocate the internal value storage.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._size
-
-    @size.setter
-    def size(self, int32_t target_size):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if target_size < 0 or target_size > 4:
-            raise ValueError(f"Expected 1, 2, 3, or 4 for size. Got {target_size}")
-        if self._size == target_size:
-            return
-        if (self._size > 1 and target_size > 1):
-            self._size = target_size
-            return
-        # Reallocate the internal vector
-        previous_value = self.value # Pass though the property to do the conversion for us
-        if target_size == 1:
-            self._value = <SharedValue>(SharedFloat.__new__(SharedFloat, self.context))
-            self.value = previous_value[0]
-        else:
-            self._value = <SharedValue>(SharedFloat4.__new__(SharedFloat4, self.context))
-            self.value = (previous_value, 0, 0, 0)
-        self._size = target_size
 
     @property
     def step(self):
@@ -2950,7 +2774,6 @@ cdef class InputValue(uiItem):
             flags |= imgui.ImGuiInputTextFlags_ReadOnly
         cdef imgui.ImGuiDataType type = imgui.ImGuiDataType_Double
         cdef double value_float
-        cdef double[4] value_float4
         cdef void *data
         cdef void *data_step = NULL
         cdef void *data_step_fast = NULL
@@ -2965,46 +2788,27 @@ cdef class InputValue(uiItem):
             data_step_fast = &fstep_fast
 
         # Read the value
-        if self._size == 1:
-            value_float = SharedFloat.get(<SharedFloat>self._value)
-            data = &value_float
-        else:
-            SharedFloat4.get(<SharedFloat4>self._value, value_float4)
-            data = &value_float4
+        value_float = SharedFloat.get(<SharedFloat>self._value)
+        data = &value_float
 
         # Draw
         cdef Vec2 requested_size = self.get_requested_size()
         if requested_size.x != 0:
             imgui.SetNextItemWidth(requested_size.x)
 
-        if self._size == 1:
-            modified = imgui.InputScalar(self._imgui_label.c_str(),
-                                         type,
-                                         data,
-                                         data_step,
-                                         data_step_fast,
-                                         self._print_format.c_str(),
-                                         flags)
-        else:
-            modified = imgui.InputScalarN(self._imgui_label.c_str(),
-                                          type,
-                                          data,
-                                          self._size,
-                                          data_step,
-                                          data_step_fast,
-                                          self._print_format.c_str(),
-                                          flags)
+        modified = imgui.InputScalar(self._imgui_label.c_str(),
+                                     type,
+                                     data,
+                                     data_step,
+                                     data_step_fast,
+                                     self._print_format.c_str(),
+                                     flags)
 
         # Clamp and write the value
         if self._enabled:
-            if self._size == 1:
-                if modified:
-                    clamp1[double](value_float, self._min, self._max)
-                SharedFloat.set(<SharedFloat>self._value, value_float)
-            else:
-                if modified:
-                    clamp4[double](value_float4, self._min, self._max)
-                SharedFloat4.set(<SharedFloat4>self._value, value_float4)
+            if modified:
+                clamp1[double](value_float, self._min, self._max)
+            SharedFloat.set(<SharedFloat>self._value, value_float)
             modified = modified and (self._value._last_frame_update == self._value._last_frame_change)
         self.update_current_state()
         return modified
@@ -3177,7 +2981,7 @@ cdef class TextValue(uiItem):
         update automatically whenever the source value changes.
         
         Supported types include SharedBool, SharedFloat,
-        SharedColor, SharedFloat4, and SharedFloatVect.
+        SharedColor, and SharedFloatVect.
         
         For displaying string values, use the Text widget instead.
         """
@@ -3194,17 +2998,14 @@ cdef class TextValue(uiItem):
         if not(isinstance(value, SharedBool) or
                isinstance(value, SharedFloat) or
                isinstance(value, SharedColor) or
-               isinstance(value, SharedFloat4) or
                isinstance(value, SharedFloatVect)):
-            raise ValueError(f"Expected a shareable value of type SharedBool, SharedFloat, SharedColor, SharedFloat4 or SharedColor. Received {type(value)}")
+            raise ValueError(f"Expected a shareable value of type SharedBool, SharedFloat, SharedColor or SharedColor. Received {type(value)}")
         if isinstance(value, SharedBool):
             self._type = 0
         elif isinstance(value, SharedFloat):
             self._type = 2
         elif isinstance(value, SharedColor):
             self._type = 4
-        elif isinstance(value, SharedFloat4):
-            self._type = 6
         elif isinstance(value, SharedFloatVect):
             self._type = 8
         self._value.dec_num_attached()
@@ -3218,9 +3019,6 @@ cdef class TextValue(uiItem):
         
         Uses printf-style format specifiers to control how values are displayed.
         For scalar values, use a single format specifier like '%d' or '%.2f'.
-        
-        For vector types, provide multiple format specifiers within a template,
-        such as '(%.1f, %.1f, %.1f, %.1f)'.
         
         For SharedFloatVect, the format is applied individually to each element
         in the vector as they are displayed on separate lines.
@@ -3261,11 +3059,6 @@ cdef class TextValue(uiItem):
             imgui.Text(self._print_format.c_str(), 
                        value_color.x, value_color.y, 
                        value_color.z, value_color.w)
-        elif self._type == 6:
-            SharedFloat4.get(<SharedFloat4>self._value, value_float4)
-            imgui.Text(self._print_format.c_str(),
-                       value_float4[0], value_float4[1],
-                       value_float4[2], value_float4[3])
         elif self._type == 8:
             value_vect = SharedFloatVect.get(<SharedFloatVect>self._value)
             for i in range(value_vect.shape[0]):
@@ -6586,35 +6379,6 @@ cdef class SharedStr(SharedValue):
     cdef void set(self, DCGString value) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._value = value
-        self.on_update(True)
-
-cdef class SharedFloat4(SharedValue):
-    def __init__(self, Context context, value):
-        read_vec4[double](self._value, value)
-        self._num_attached = 0
-    @property
-    def value(self):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return list(self._value)
-    @value.setter
-    def value(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        read_vec4[double](self._value, value)
-        self.on_update(True)
-    cdef void get(self, double *dst) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        dst[0] = self._value[0]
-        dst[1] = self._value[1]
-        dst[2] = self._value[2]
-        dst[3] = self._value[3]
-    cdef void set(self, double[4] value) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        self._value[0] = value[0]
-        self._value[1] = value[1]
-        self._value[2] = value[2]
-        self._value[3] = value[3]
         self.on_update(True)
 
 

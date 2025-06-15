@@ -11398,7 +11398,7 @@ class DrawValue(drawingItem):
         is displayed. The format depends on the type of the SharedValue:
 
         - %f for SharedFloat
-        - (%f, %f, %f, %f) for SharedFloat4 or SharedColor
+        - (%f, %f, %f, %f) for SharedColor
         - %s for SharedStr
 
         The default format for floating-point values is "%.3f".
@@ -11422,7 +11422,7 @@ class DrawValue(drawingItem):
         of the drawing. This same object can be passed to other items to share its value.
 
         Supported types include SharedBool, SharedFloat,
-        SharedColor, SharedFloat4, and SharedStr.
+        SharedColor and SharedStr.
 
         """
         ...
@@ -13444,8 +13444,6 @@ class InputValue(uiItem):
     """
     A widget for entering numeric values with optional step buttons.
 
-    This versatile input widget accepts scalar or vector numeric values with support
-    for different dimensions (1-4 components).
     It offers precise control over value ranges, step sizes, and formatting options.
 
     The widget can be configured with various input restrictions, keyboard behaviors,
@@ -13453,7 +13451,7 @@ class InputValue(uiItem):
     to multi-dimensional vector editing.
 
     """
-    def __init__(self, context : Context, *, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, *, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : Any = ..., callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -13490,7 +13488,6 @@ class InputValue(uiItem):
         - scientific: Restricts input to scientific notation characters.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
-        - size: Number of components controlled by the input widget.
         - step: Step size for incrementing/decrementing the value with buttons.
         - step_fast: Fast step size for quick incrementing/decrementing with modifier keys.
         - theme: Visual styling applied to this item and its children.
@@ -13503,7 +13500,7 @@ class InputValue(uiItem):
         ...
 
 
-    def configure(self, *, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, size : int = 1, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, *, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : None  = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : baseItemSubCls | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, password : bool = False, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -13538,7 +13535,6 @@ class InputValue(uiItem):
         - scientific: Restricts input to scientific notation characters.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
-        - size: Number of components controlled by the input widget.
         - step: Step size for incrementing/decrementing the value with buttons.
         - step_fast: Fast step size for quick incrementing/decrementing with modifier keys.
         - theme: Visual styling applied to this item and its children.
@@ -13853,26 +13849,6 @@ class InputValue(uiItem):
 
     @shareable_value.setter
     def shareable_value(self, value : SharedFloat | SharedFloat4):
-        ...
-
-
-    @property
-    def size(self) -> int:
-        """
-        Number of components controlled by the input widget.
-
-        Can be 1, 2, 3 or 4. When size is 1, the item's value is held with a
-        scalar shared value. For sizes greater than 1, the value is held with a
-        vector of 4 elements (even for size 2 and 3).
-
-        Changing this value will reallocate the internal value storage.
-
-        """
-        ...
-
-
-    @size.setter
-    def size(self, value : int):
         ...
 
 
@@ -20614,77 +20590,6 @@ class SharedFloat(SharedValue):
         ...
 
 
-class SharedFloat4(SharedValue):
-    def __init__(self, context : Context, *, value : Sequence[float]):
-        ...
-
-
-    @property
-    def last_frame_change(self) -> int:
-        """
-        (Read-only) Frame index when the value was last changed to a different value.
-
-        Records the frame number when the value actually changed. For scalar
-        types, this differs from last_frame_update when a value is set to
-        its current value (no actual change). For complex data types like
-        vectors or colors, this equals last_frame_update for efficiency.
-
-        """
-        ...
-
-
-    @property
-    def last_frame_update(self) -> int:
-        """
-        (Read-only) Frame index when the value was last updated.
-
-        Tracks the frame number when the value was last modified or validated,
-        even if the new value was identical to the previous one. This can be
-        used to detect when any access or modification attempt occurred.
-
-        """
-        ...
-
-
-    @property
-    def num_attached(self) -> int:
-        """
-        (Read-only) Number of items currently sharing this value.
-
-        Counts how many UI items are currently using this shared value. When
-        this count reaches zero, the shared value becomes eligible for garbage
-        collection if no other references exist.
-
-        """
-        ...
-
-
-    @property
-    def shareable_value(self) -> SharedFloat4:
-        """
-        (Read-only) Reference to the shared value object itself.
-
-        Returns a reference to this SharedValue instance, allowing it to be
-        assigned to another item's shareable_value property to establish
-        value sharing between items.
-
-        This property is primarily used when connecting multiple UI elements
-        to the same data source.
-
-        """
-        ...
-
-
-    @property
-    def value(self) -> Sequence[float]:
-        ...
-
-
-    @value.setter
-    def value(self, value : Sequence[float]):
-        ...
-
-
 class SharedFloatVect(SharedValue):
     def __init__(self, context : Context, *, value : array):
         ...
@@ -21127,13 +21032,12 @@ class Slider(uiItem):
     controls that adjust values based on mouse movement distance rather than
     absolute position.
 
-    Sliders can display
-    single values or vectors of up to 4 components. The appearance and behavior
+    The appearance and behavior
     can be customized with various options including logarithmic scaling and
     different display formats.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -21162,7 +21066,6 @@ class Slider(uiItem):
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
-        - size: Number of components controlled by the slider.
         - speed: The speed at which the value changes when using drag mode.
         - theme: Visual styling applied to this item and its children.
         - user_data: User data of any type.
@@ -21175,7 +21078,7 @@ class Slider(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, size : int = 1, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
+    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : None  = [], drag : bool = False, enabled : bool = True, font : Font = None, handlers : Sequence[baseHandlerSubCls] | baseHandlerSubCls | None = [], height : float | str | baseSizing = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : baseItemSubCls | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : uiItemSubCls | plotElementSubCls | None = None, previous_sibling : baseItemSubCls | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat | SharedFloat4 = ..., show : bool = True, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float | int | Sequence[float] | Sequence[int] = 0.0, vertical : bool = False, width : float | str | baseSizing = 0.0, x : float | str | baseSizing = 0.0, y : float | str | baseSizing = 0.0):
         """
         Parameters
         ----------
@@ -21202,7 +21105,6 @@ class Slider(uiItem):
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
-        - size: Number of components controlled by the slider.
         - speed: The speed at which the value changes when using drag mode.
         - theme: Visual styling applied to this item and its children.
         - user_data: User data of any type.
@@ -21352,6 +21254,8 @@ class Slider(uiItem):
 
         Examples: "%.3f" for 3 decimal places (Default), "%.0f" for integers.
 
+        If the value is not printed (for instance ""), the value is not rounded.
+
         """
         ...
 
@@ -21377,26 +21281,6 @@ class Slider(uiItem):
 
     @shareable_value.setter
     def shareable_value(self, value : SharedFloat | SharedFloat4):
-        ...
-
-
-    @property
-    def size(self) -> int:
-        """
-        Number of components controlled by the slider.
-
-        Can be 1, 2, 3 or 4. When size is 1, the item's value is held with a
-        scalar shared value. For sizes greater than 1, the value is held with a
-        vector of 4 elements (even for size 2 and 3).
-
-        Changing this value will reallocate the internal value storage.
-
-        """
-        ...
-
-
-    @size.setter
-    def size(self, value : int):
         ...
 
 
@@ -21444,7 +21328,7 @@ class Slider(uiItem):
 
         When enabled, the slider will be displayed as a vertical bar.
 
-        This is only supported for sliders with size=1 and drag=False.
+        This is only supported for sliders with drag=False.
         The setting will be ignored else.
 
         """
@@ -23596,9 +23480,6 @@ class TextValue(uiItem):
         Uses printf-style format specifiers to control how values are displayed.
         For scalar values, use a single format specifier like '%d' or '%.2f'.
 
-        For vector types, provide multiple format specifiers within a template,
-        such as '(%.1f, %.1f, %.1f, %.1f)'.
-
         For SharedFloatVect, the format is applied individually to each element
         in the vector as they are displayed on separate lines.
 
@@ -23627,7 +23508,7 @@ class TextValue(uiItem):
         update automatically whenever the source value changes.
 
         Supported types include SharedBool, SharedFloat,
-        SharedColor, SharedFloat4, and SharedFloatVect.
+        SharedColor, and SharedFloatVect.
 
         For displaying string values, use the Text widget instead.
 
@@ -24927,27 +24808,27 @@ class ThemeColorImPlot(baseThemeColor):
     If a is missing, it defaults to 255.
 
     Keyword Arguments:
-        line: Plot line color. Auto - derived from Text color
-        fill: Plot fill color. Auto - derived from Line color
-        marker_outline: Plot marker outline color. Auto - derived from Line color
-        marker_fill: Plot marker fill color. Auto - derived from Line color
+        line: Plot line color. Auto - derived from text color
+        fill: Plot fill color. Auto - derived from line color
+        marker_outline: Plot marker outline color. Auto - derived from line color
+        marker_fill: Plot marker fill color. Auto - derived from line color
         error_bar: Error bar color. Auto - derived from Text color
-        frame_bg: Plot frame background color. Auto - derived from FrameBg color
-        plot_bg: Plot area background color. Auto - derived from WindowBg color
-        plot_border: Plot area border color. Auto - derived from Border color
-        legend_bg: Legend background color. Auto - derived from PopupBg color
-        legend_border: Legend border color. Auto - derived from Border color
-        legend_text: Legend text color. Auto - derived from Text color
-        title_text: Plot title text color. Auto - derived from Text color
-        inlay_text: Color of text appearing inside plots. Auto - derived from Text color
-        axis_text: Axis text labels color. Auto - derived from Text color
-        axis_grid: Axis grid color. Auto - derived from Text color with reduced alpha
-        axis_tick: Axis tick marks color. Auto - derived from AxisGrid color
+        frame_bg: Plot frame background color. Auto - derived from frame_bg color
+        plot_bg: Plot area background color. Auto - derived from window_bg color
+        plot_border: Plot area border color. Auto - derived from border color
+        legend_bg: Legend background color. Auto - derived from popup_bg color
+        legend_border: Legend border color. Auto - derived from border color
+        legend_text: Legend text color. Auto - derived from text color
+        title_text: Plot title text color. Auto - derived from text color
+        inlay_text: Color of text appearing inside plots. Auto - derived from text color
+        axis_text: Axis text labels color. Auto - derived from text color
+        axis_grid: Axis grid color. Auto - derived from text color with reduced alpha
+        axis_tick: Axis tick marks color. Auto - derived from axis_grid color
         axis_bg: Background color of axis hover region. Auto - transparent
-        axis_bg_hovered: Axis background color when hovered. Auto - derived from ButtonHovered color
-        axis_bg_active: Axis background color when clicked. Auto - derived from ButtonActive color
+        axis_bg_hovered: Axis background color when hovered. Auto - derived from button_hovered color
+        axis_bg_active: Axis background color when clicked. Auto - derived from button_active color
         selection: Box-selection color. Default: (1.00, 1.00, 0.00, 1.00)
-        crosshairs: Crosshairs color. Auto - derived from PlotBorder color
+        crosshairs: Crosshairs color. Auto - derived from plot_border color
 
     """
     def __init__(self, context : Context, *, attach : Color| None = None, axis_bg : Color| None = None, axis_bg_active : Color| None = None, axis_bg_hovered : Color| None = None, axis_grid : Color| None = None, axis_text : Color| None = None, axis_tick : Color| None = None, before : Color| None = None, children : None  = [], crosshairs : Color| None = None, enabled : bool = True, error_bar : Color| None = None, fill : Color = None, frame_bg : Color| None = None, inlay_text : Color| None = None, legend_bg : Color| None = None, legend_border : Color| None = None, legend_text : Color| None = None, line : Color| None = None, marker_fill : Color| None = None, marker_outline : Color| None = None, next_sibling : baseItemSubCls | None = None, parent : baseThemeSubCls | None = None, plot_bg : Color| None = None, plot_border : Color| None = None, previous_sibling : baseItemSubCls | None = None, selection : Color| None = None, title_text : Color| None = None, user_data : Color| None = None):
@@ -25046,7 +24927,7 @@ Get the default color value for the given color name.
     @property
     def axis_bg_active(self) -> Color| None:
         """Axis background color when clicked.
-        Default: Auto - derived from ButtonActive color
+        Default: Auto - derived from button_active color
         """
         ...
 
@@ -25059,7 +24940,7 @@ Get the default color value for the given color name.
     @property
     def axis_bg_hovered(self) -> Color| None:
         """Axis background color when hovered.
-        Default: Auto - derived from ButtonHovered color
+        Default: Auto - derived from button_hovered color
         """
         ...
 
@@ -25072,7 +24953,7 @@ Get the default color value for the given color name.
     @property
     def axis_grid(self) -> Color| None:
         """Axis grid color.
-        Default: Auto - derived from Text color
+        Default: Auto - derived from text color
         """
         ...
 
@@ -25085,7 +24966,7 @@ Get the default color value for the given color name.
     @property
     def axis_text(self) -> Color| None:
         """Axis text labels color.
-        Default: Auto - derived from Text color
+        Default: Auto - derived from text color
         """
         ...
 
@@ -25098,7 +24979,7 @@ Get the default color value for the given color name.
     @property
     def axis_tick(self) -> Color| None:
         """Axis tick marks color.
-        Default: Auto - derived from AxisGrid color
+        Default: Auto - derived from axis_grid color
         """
         ...
 
@@ -25111,7 +24992,7 @@ Get the default color value for the given color name.
     @property
     def crosshairs(self) -> Color| None:
         """Crosshairs color.
-        Default: Auto - derived from PlotBorder color
+        Default: Auto - derived from plot_border color
         """
         ...
 
@@ -25124,7 +25005,7 @@ Get the default color value for the given color name.
     @property
     def error_bar(self) -> Color| None:
         """Error bar color.
-        Default: Auto - derived from Text color
+        Default: Auto - derived from text color
         """
         ...
 
@@ -25137,7 +25018,7 @@ Get the default color value for the given color name.
     @property
     def fill(self) -> Color:
         """Plot fill color.
-        Default: Auto - derived from Line color
+        Default: Auto - derived from line color
         """
         ...
 
@@ -25150,7 +25031,7 @@ Get the default color value for the given color name.
     @property
     def frame_bg(self) -> Color| None:
         """Plot frame background color.
-        Default: Auto - derived from FrameBg color
+        Default: Auto - derived from frame_bg color
         """
         ...
 
@@ -25176,7 +25057,7 @@ Get the default color value for the given color name.
     @property
     def legend_bg(self) -> Color| None:
         """Legend background color.
-        Default: Auto - derived from PopupBg color
+        Default: Auto - derived from popup_bg color
         """
         ...
 
@@ -25189,7 +25070,7 @@ Get the default color value for the given color name.
     @property
     def legend_border(self) -> Color| None:
         """Legend border color.
-        Default: Auto - derived from Border color
+        Default: Auto - derived from border color
         """
         ...
 
@@ -25202,7 +25083,7 @@ Get the default color value for the given color name.
     @property
     def legend_text(self) -> Color| None:
         """Legend text color.
-        Default: Auto - derived from Text color
+        Default: Auto - derived from text color
         """
         ...
 
@@ -25215,7 +25096,7 @@ Get the default color value for the given color name.
     @property
     def line(self) -> Color| None:
         """Plot line color.
-        Default: Auto - derived from Text color
+        Default: Auto - derived from text color
         """
         ...
 
@@ -25228,7 +25109,7 @@ Get the default color value for the given color name.
     @property
     def marker_fill(self) -> Color| None:
         """Plot marker fill color.
-        Default: Auto - derived from Line color
+        Default: Auto - derived from line color
         """
         ...
 
@@ -25241,7 +25122,7 @@ Get the default color value for the given color name.
     @property
     def marker_outline(self) -> Color| None:
         """Plot marker outline color.
-        Default: Auto - derived from Line color
+        Default: Auto - derived from line color
         """
         ...
 
@@ -25254,7 +25135,7 @@ Get the default color value for the given color name.
     @property
     def plot_bg(self) -> Color| None:
         """Plot area background color.
-        Default: Auto - derived from WindowBg color
+        Default: Auto - derived from window_bg color
         """
         ...
 
@@ -25267,7 +25148,7 @@ Get the default color value for the given color name.
     @property
     def plot_border(self) -> Color| None:
         """Plot area border color.
-        Default: Auto - derived from Border color
+        Default: Auto - derived from border color
         """
         ...
 
@@ -25293,7 +25174,7 @@ Get the default color value for the given color name.
     @property
     def title_text(self) -> Color| None:
         """Plot title text color.
-        Default: Auto - derived from Text color
+        Default: Auto - derived from text color
         """
         ...
 

@@ -506,16 +506,16 @@ class StyleEditor(dcg.Window):
                                 except:
                                     pass
                                 setattr(self.imgui_style_theme, style_name, d)
-
-                            dcg.Slider(context,
-                                       print_format=print_format,
-                                       size=size,
-                                       label=style_name,
-                                       logarithmic=True,
-                                       value=default_style,
-                                       user_data=default_style, # for Reset
-                                       callback=callback_imgui_style
-                                       )
+                            with dcg.HorizontalLayout(context, no_wrap=True):
+                                utils.SliderN(context,
+                                              print_format=print_format,
+                                              label="",
+                                              logarithmic=True,
+                                              value=default_style,
+                                              user_data=default_style, # for Reset
+                                              callback=callback_imgui_style
+                                              )
+                                dcg.Text(context, value=style_name)
                     with dcg.Tab(context, label="ImPlot"):
                         implot_style_names = [name for name in dir(self.implot_style_theme) if _is_style_element(dcg.ThemeStyleImPlot, name)]
                         for style_name in implot_style_names:
@@ -551,15 +551,16 @@ class StyleEditor(dcg.Window):
                                 except:
                                     pass
                                 setattr(self.implot_style_theme, style_name, d)
-                            dcg.Slider(context,
-                                       print_format=print_format,
-                                       size=size,
-                                       logarithmic=True,
-                                       label=style_name,
-                                       value=default_style,
-                                       user_data=default_style, # for Reset
-                                       callback=callback_implot_style
-                                       )
+                            with dcg.HorizontalLayout(context, no_wrap=True):
+                                utils.SliderN(context,
+                                              print_format=print_format,
+                                              logarithmic=True,
+                                              label="",
+                                              value=default_style,
+                                              user_data=default_style, # for Reset
+                                              callback=callback_implot_style
+                                              )
+                                dcg.Text(context, value=style_name)
 
     def _recursive_reset_values(self, item):
         """Recursively reset all theme values to their defaults.
@@ -733,7 +734,7 @@ class StyleEditor(dcg.Window):
                                   value=demo_colors.get_default("button_hovered"),
                                   callback=lambda s,t,d: setattr(demo_colors, "button_hovered", d))
                     dcg.ColorEdit(C, label="Button Active",
-                                  value=demo_colors.get_default("ButtonActive"),
+                                  value=demo_colors.get_default("Button_active"),
                                   callback=lambda s,t,d: setattr(demo_colors, "button_active", d))
                     dcg.ColorEdit(C, label="Text",
                                   value=demo_colors.get_default("text"),
@@ -741,10 +742,11 @@ class StyleEditor(dcg.Window):
                 
                 with dcg.VerticalLayout(C):
                     dcg.Text(C, value="Styles:")
-                    dcg.Slider(C, label="Frame Padding",
-                               value=demo_styles.get_default("frame_padding"),
-                               size=2,
-                               callback=lambda s,t,d: setattr(demo_styles, "frame_padding", d[:2]))
+                    with dcg.HorizontalLayout(context, no_wrap=True):
+                        utils.SliderN(C,
+                                      value=demo_styles.get_default("frame_padding"),
+                                      callback=lambda s,t,d: setattr(demo_styles, "frame_padding", d[:2]))
+                        dcg.Text(C, value="Frame Padding")
                     dcg.Slider(C, label="Frame Rounding",
                                value=demo_styles.get_default("frame_rounding"),
                                min_value=0, max_value=12,

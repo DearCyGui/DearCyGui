@@ -58,7 +58,6 @@ cdef class Checkbox(uiItem):
 
 
 cdef class Slider(uiItem):
-    cdef int32_t _size
     cdef bint _drag
     cdef float _drag_speed
     cdef double _min
@@ -92,7 +91,6 @@ cdef class InputText(uiItem):
 
 
 cdef class InputValue(uiItem):
-    cdef int32_t _size
     cdef double _step
     cdef double _step_fast
     cdef double _min
@@ -219,11 +217,6 @@ cdef class SharedStr(SharedValue):
     cdef DCGString _value
     cdef void get(self, DCGString&) noexcept nogil
     cdef void set(self, DCGString) noexcept nogil
-
-cdef class SharedFloat4(SharedValue):
-    cdef double[4] _value
-    cdef void get(self, double *) noexcept nogil# cython doesn't support double[4] as return value
-    cdef void set(self, double[4]) noexcept nogil
 
 cdef class SharedFloatVect(SharedValue):
     cdef float[::1] _value
