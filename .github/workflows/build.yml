@@ -65,7 +65,8 @@ jobs:
         choco install windows-sdk-10.0
 
     - name: Create build directories
-      run: mkdir -p C:\build\wheelhouse
+      run: |
+        mkdir C:\build\wheelhouse
 
     - name: Build wheels
       run: python -m cibuildwheel --platform windows --output-dir C:\build\wheelhouse
@@ -73,7 +74,7 @@ jobs:
         CIBW_BUILD: "cp310-win_amd64 cp311-win_amd64 cp312-win_amd64 cp313-win_amd64 cp313t-win_amd64 pp310-win_amd64"
         CIBW_ENABLE: "cpython-freethreading pypy"
         CIBW_ENVIRONMENT: "TEMP=C:\\temp TMP=C:\\temp TMPDIR=C:\\temp"
-        CIBW_BEFORE_BUILD: "mkdir -p C:\\temp"
+        CIBW_BEFORE_BUILD: "IF NOT EXIST C:\\temp mkdir C:\\temp"
         CIBW_BUILD_FRONTEND: "build"
         # Explicitly use C drive for all operations
         TEMP: "C:\\temp"
