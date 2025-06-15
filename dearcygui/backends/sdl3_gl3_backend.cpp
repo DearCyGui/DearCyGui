@@ -138,8 +138,12 @@ SDL_HitTestResult SDLViewport::ProcessHitTest(const SDL_Point* area) {
     }
 
     // Clamp to surface bounds just to be sure
-    surfaceX = std::max(0, std::min(hitTestWidth - 1, surfaceX));
-    surfaceY = std::max(0, std::min(hitTestHeight - 1, surfaceY));
+    //surfaceX = std::max(0, std::min(hitTestWidth - 1, surfaceX)); -> breaks windows build
+    //surfaceY = std::max(0, std::min(hitTestHeight - 1, surfaceY));
+    if (surfaceX < 0) surfaceX = 0;
+    if (surfaceX >= hitTestWidth) surfaceX = hitTestWidth - 1;
+    if (surfaceY < 0) surfaceY = 0;
+    if (surfaceY >= hitTestHeight) surfaceY = hitTestHeight - 1;
     
     // Get hit test value at mapped position
     uint8_t hitValue = hitTestSurface[surfaceY * hitTestWidth + surfaceX];
@@ -322,7 +326,7 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
     // Setup filtering parameters for display
     if (filtering_mode == 3) {  // New mode for mipmapped pattern textures
         // Calculate mipmap levels based primarily on width for pattern textures
-        int mip_levels = 1 + floor(log2(width));
+        int mip_levels = 1 + (int)floor(log2(width));
 
         // Set trilinear filtering for smooth transitions between mip levels
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -337,7 +341,7 @@ void* SDLViewport::allocateTexture(unsigned width, unsigned height, unsigned num
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mip_levels - 1);
 
-        float maxLod = log2f(width);
+        float maxLod = log2f((float)width);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, 0.0f);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, maxLod);
 
