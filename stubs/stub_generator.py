@@ -774,7 +774,7 @@ def generate_docstring_for_class(object_class, instance):
                 include_enter = False
         
         if include_enter:        
-            result.append(f"{level1}def __enter__(self) -> Self")  #{object_class.__name__}:")
+            result.append(f"{level1}def __enter__(self) -> Self:")  #{object_class.__name__}:")
             result.append(f"{level2}...")
             result.append("\n")
 

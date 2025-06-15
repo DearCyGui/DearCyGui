@@ -3267,7 +3267,7 @@ class baseItem(object):
         ...
 
 
-    def __enter__(self) -> Self
+    def __enter__(self) -> Self:
         ...
 
 
@@ -4970,7 +4970,7 @@ Sort the rows using the value in ref_col as index.
         ...
 
 
-    def __enter__(self) -> Self
+    def __enter__(self) -> Self:
         ...
 
 
