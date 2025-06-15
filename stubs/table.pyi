@@ -6,7 +6,7 @@ from typing import Protocol
 class SupportsStr(Protocol):
     def __str__(self) -> str: ...
 
-TableValue = uiItem | TableElement | SupportsStr
+TableContentValue = 'uiItem' | SupportsStr
 
 class TableElement:
     """
@@ -20,11 +20,11 @@ class TableElement:
     Elements can be created directly or via the table's indexing operation.
     """
     def __init__(self,
-                 content: TableValue | None = None,
+                 content: TableContentValue | None = None,
                  *,
                  bg_color: Color = 0,
                  ordering_value: object | None = None,
-                 tooltip: TableValue | None = None
+                 tooltip: TableContentValue | None = None
                  ) -> None:
         """
         Content of a table cell.
@@ -39,10 +39,10 @@ class TableElement:
     
     def configure(self,
                   *,
-                  content: TableValue | None = None,
+                  content: TableContentValue | None = None,
                   bg_color: Color = 0,
                   ordering_value: object | None = None,
-                  tooltip: TableValue | None = None
+                  tooltip: TableContentValue | None = None
                   ) -> None:
     
         """
@@ -57,7 +57,7 @@ class TableElement:
         ...
     
     @property
-    def content(self) -> TableValue:
+    def content(self) -> TableContentValue:
         """
         The item to display in the table cell.
         
@@ -68,11 +68,11 @@ class TableElement:
         ...
     
     @content.setter
-    def content(self, value: TableValue) -> None:
+    def content(self, value: TableContentValue) -> None:
         ...
     
     @property
-    def tooltip(self) -> TableValue | None:
+    def tooltip(self) -> TableContentValue | None:
         """
         The tooltip displayed when hovering over the cell.
         
@@ -83,7 +83,7 @@ class TableElement:
         ...
     
     @tooltip.setter
-    def tooltip(self, value: TableValue | None) -> None:
+    def tooltip(self, value: TableContentValue | None) -> None:
         ...
     
     @property
@@ -115,6 +115,7 @@ class TableElement:
         ...
     
 
+TableValue = 'uiItem' | TableElement | SupportsStr
 
 class TableRowView:
     """
@@ -241,11 +242,11 @@ class TableColConfigView:
     def __init__(self) -> None:
         ...
     
-    def __getitem__(self, col_idx: int) -> TableColConfig:
+    def __getitem__(self, col_idx: int) -> 'TableColConfig':
         """Get the column configuration for the specified column."""
         ...
     
-    def __setitem__(self, col_idx: int, config: TableColConfig) -> None:
+    def __setitem__(self, col_idx: int, config: 'TableColConfig') -> None:
         """Set the column configuration for the specified column."""
         ...
     
@@ -253,7 +254,7 @@ class TableColConfigView:
         """Delete the column configuration for the specified column."""
         ...
     
-    def __call__(self, col_idx: int, attribute: str, value) -> TableColConfig:
+    def __call__(self, col_idx: int, attribute: str, value) -> 'TableColConfig':
         """Set an attribute of the column configuration for the specified column."""
         ...
     
@@ -274,7 +275,7 @@ class TableRowConfigView:
     def __init__(self) -> None:
         ...
     
-    def __getitem__(self, row_idx: int) -> TableRowConfig:
+    def __getitem__(self, row_idx: int) -> 'TableRowConfig':
         """
         Get the row configuration for the specified row.
         
@@ -284,7 +285,7 @@ class TableRowConfigView:
         """
         ...
     
-    def __setitem__(self, row_idx: int, config: TableRowConfig) -> None:
+    def __setitem__(self, row_idx: int, config: 'TableRowConfig') -> None:
         """
         Set the row configuration for the specified row.
         
@@ -304,7 +305,7 @@ class TableRowConfigView:
         """
         ...
     
-    def __call__(self, row_idx: int, attribute: str, value: Any) -> TableRowConfig:
+    def __call__(self, row_idx: int, attribute: str, value: Any) -> 'TableRowConfig':
         """
         Set a specific attribute on a row's configuration.
         
@@ -315,3 +316,4 @@ class TableRowConfigView:
         Example: table.row_config(0, 'bg_color', (1.0, 0.0, 0.0, 1.0))
         """
         ...
+

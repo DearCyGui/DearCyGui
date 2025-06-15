@@ -704,6 +704,7 @@ cdef class FontTexture(baseItem):
         return self._texture
 
     def __len__(self):
+        """The number of fonts in the texture"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(self._built):
@@ -712,6 +713,7 @@ cdef class FontTexture(baseItem):
         return <int>atlas.Fonts.size()
 
     def __getitem__(self, index):
+        """Get a built Font object by index"""
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(self._built):

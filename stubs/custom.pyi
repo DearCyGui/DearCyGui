@@ -1,7 +1,7 @@
 from typing import TypeAlias, Any
 from enum import IntEnum
 from collections.abc import Sequence
-from typing import Protocol, Self, TypeVar, Iterator
+from typing import Protocol, Self, TypeVar, Iterator, Callable
 from .types import *
 from .core import *
 from .sizing import baseSizing

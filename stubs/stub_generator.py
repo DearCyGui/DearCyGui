@@ -295,8 +295,9 @@ def indent(s: list[str] | str, trim_start=False, short=False):
 
 hardcoded = {
     "parent": "baseItemSubCls | None",
-    "pos_policy": "tuple[Positioning, Positioning]",
-    "font": "Font",
+    "pos_policy": "tuple['Positioning', 'Positioning']",
+    "font": "'baseFont'",
+    "fonts": "Sequence['Font']",
     "children": "Sequence[baseItemSubCls]",
     "previous_sibling": "baseItemSubCls | None",
     "next_sibling": "baseItemSubCls | None",
@@ -304,12 +305,31 @@ hardcoded = {
     "callbacks" : "Sequence[DCGCallable]",
     "color" : "Color",
     "fill" : "Color",
-    "texture" : "Texture | None",
-    "pattern" : "Pattern | None",
-    "width": "float | str | baseSizing",
-    "height": "float | str | baseSizing",
-    "x": "float | str | baseSizing",
-    "y": "float | str | baseSizing",
+    "texture" : "'Texture' | None",
+    "pattern" : "'Pattern' | None",
+    "width": "float | str | 'baseSizing'",
+    "height": "float | str | 'baseSizing'",
+    "x": "float | str | 'baseSizing'",
+    "y": "float | str | 'baseSizing'",
+    "handlers": "Sequence[baseHandlerSubCls] | baseHandlerSubCls | None",
+    "legend_handlers": "Sequence[baseHandlerSubCls] | baseHandlerSubCls | None",
+    "recent_scales": "Sequence[float]",
+}
+
+subcls_to_cls = {
+    'baseItemSubCls': "'baseItem'",
+    'drawingItemSubCls': "'drawingItem'",
+    'plotElementSubCls': "'plotElement'",
+    'uiItemSubCls': "'uiItem'",
+    'baseHandlerSubCls': "'baseHandler'",
+    'baseThemeSubCls': "'baseTheme'",
+    'ChildWindowSubCls': "'ChildWindow'",
+    'DrawInWindowSubCls': "'DrawInWindow'",
+    'DrawInPlotSubCls': "'DrawInPlot'",
+    'MenuBarSubCls': "'MenuBar'",
+    'PlotSubCls': "'Plot'",
+    'ViewportDrawListSubCls': "'ViewportDrawList'",
+    'WindowSubCls': "'Window'",
 }
 
 
@@ -357,11 +377,11 @@ def typename(object_class, instance, name, value):
             return "None "
     if name == "parent":
         if issubclass(object_class, dcg.Window):
-            return "Viewport | None"
+            return "'Viewport' | None"
         if issubclass(object_class, dcg.MenuBar):
-            return "Viewport | WindowSubCls | ChildWindowSubCls | None"
+            return "'Viewport' | WindowSubCls | ChildWindowSubCls | None"
         if issubclass(object_class, dcg.ViewportDrawList):
-            return "Viewport | None"
+            return "'Viewport' | None"
         if issubclass(object_class, dcg.drawingItem):
             return "DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None"
         if issubclass(object_class, dcg.uiItem):
@@ -377,11 +397,8 @@ def typename(object_class, instance, name, value):
         return "Array"
 
     if name == "shareable_value":
-        if issubclass(object_class, dcg.InputValue) or \
-           issubclass(object_class, dcg.Slider):
-            return "SharedFloat | SharedFloat4" # these accept two choices
         if issubclass(object_class, dcg.DrawValue) or issubclass(object_class, dcg.TextValue):
-            return "SharedValue"
+            return "'SharedValue'"
 
     if name.startswith("uv") and isinstance(value, list) and len(value) == 2:
         return "Sequence[float] | tuple[float, float]"
@@ -392,18 +409,15 @@ def typename(object_class, instance, name, value):
            issubclass(object_class, dcg.ColorEdit) or \
            issubclass(object_class, dcg.ColorButton):
                 return "Color"
-        if issubclass(object_class, dcg.InputValue) or \
-           issubclass(object_class, dcg.Slider):
-            return "float | int | Sequence[float] | Sequence[int]"
+        #if issubclass(object_class, dcg.InputValue) or \
+        #   issubclass(object_class, dcg.Slider):
+        #    return "float | int | Sequence[float] | Sequence[int]"
 
     if name == "items" and issubclass(object_class, dcg.uiItem):
         return "Sequence[str]"
 
     if name == "positions" and issubclass(object_class, dcg.Layout):
         return "Sequence[int] | Sequence[float]"
-
-    if name == "handlers":
-        return "Sequence[baseHandlerSubCls] | baseHandlerSubCls | None"
 
     default = None if value is None else type(value).__name__
     if isinstance(value, list):
@@ -447,11 +461,24 @@ def typename(object_class, instance, name, value):
             except:
                 pass
     if isinstance(value, dcg.Coord):
-        return "Sequence[float] | tuple[float, float] | Coord"
+        return "Sequence[float] | tuple[float, float] | 'Coord'"
     if issubclass(object_class, dcg.Texture):
         if name == "width" or name == "height":
             return "int"
-
+    if issubclass(object_class, dcg.PlotAxisConfig):
+        if name == "labels":
+            return "Sequence[str] | None"
+        if name == "labels_coord":
+            return "Array | None"
+    if issubclass(object_class, dcg.plotElement) or issubclass(object_class, dcg.Subplots):
+        if "ratios" in name:
+            return "Array"
+    if issubclass(object_class, dcg.drawingItem):
+        if name == "points":
+            return "Sequence['Coord'] | Array"
+    if issubclass(object_class, dcg.Font):
+        if name == "texture":
+            return "'FontTexture'"
     return default
 
 
@@ -525,7 +552,7 @@ def generate_docstring_for_class(object_class, instance):
             if object_class.__name__ == "baseTable":
                 if method.__name__ == "__getitem__":
                     result.append(
-                        level1 + f"def __getitem__(self, key: tuple[int, int]) -> TableElement:"
+                        level1 + f"def __getitem__(self, key: tuple[int, int]) -> 'TableElement':"
                     )
                     result.append(level2 + '"""Get an element by index"""')
                     result.append(level2 + "...")
@@ -608,6 +635,21 @@ def generate_docstring_for_class(object_class, instance):
                     )
                     result.append(level2 + '"""Iterate over (style_name, style_value) pairs in the theme"""')
                     result.append(level2 + "...")
+            if object_class.__name__ == "FontTexture":
+                if method.__name__ == "__getitem__":
+                    result.append(
+                        level1 + f"def __getitem__(self, key: int) -> 'Font':"
+                    )
+                    result.append(level2 + '"""Get a built Font object by index"""')
+                    result.append(level2 + "...")
+                    continue
+                elif method.__name__ == "__len__":
+                    result.append(
+                        level1 + f"def __len__(self) -> int:"
+                    )
+                    result.append(level2 + '"""The number of fonts in the texture"""')
+                    result.append(level2 + "...")
+                    continue
             continue
             
         additional_properties = copy.deepcopy(properties)
@@ -645,6 +687,9 @@ def generate_docstring_for_class(object_class, instance):
                 params_str.append("context : Context")
                 if object_class.__name__ == "Texture":
                     params_str.append("content: Array | None = None")
+                if object_class.__name__ == "AutoFont":
+                    params_str.append("base_size: float = 17.0")
+                    params_str.append("font_creator: Callable[[float, ...], 'GlyphSet'] | None = None")
                 continue
             if param.name == 'kwargs':
                 if "callbacks" in additional_properties and "callback" in additional_properties:
@@ -686,7 +731,11 @@ def generate_docstring_for_class(object_class, instance):
                 params_str.append(str(param))
         if len(params_str_kw) > 0:
             # kwargs parameters are keyword-only
-            params_str = params_str + ["*"] + params_str_kw
+            # workaround issue to investigate:
+            if issubclass(object_class, dcg.SharedValue):
+                params_str = params_str + params_str_kw
+            else:
+                params_str = params_str + ["*"] + params_str_kw
         call_str += ", ".join(params_str) + ')'
         if call_sig.return_annotation == inspect.Signature.empty:
             call_str += ':'
@@ -761,10 +810,10 @@ def generate_docstring_for_class(object_class, instance):
             tname_read = tname
             if isinstance(default_value, dcg.Coord):
                 # property read is always Coord 
-                tname_read = "Coord"
+                tname_read = "'Coord'"
             elif isinstance(default_value, dcg.baseSizing):
                 # property read is always baseSizing
-                tname_read = "baseSizing"
+                tname_read = "'baseSizing'"
             elif property == "handlers":
                 # handlers is always list of baseHandlerSubCls
                 tname_read = "list[baseHandlerSubCls]"
@@ -777,6 +826,11 @@ def generate_docstring_for_class(object_class, instance):
             elif property.startswith("uv") and isinstance(default_value, list) and len(default_value) == 2:
                 # uv properties are always list of float
                 tname_read = "list[float]"
+            # For tname_read, replace subcls with cls
+            # type checkers seem to have issues with subcls as
+            # return values
+            for subcls, cls in subcls_to_cls.items():
+                tname_read = tname_read.replace(subcls, cls)
 
             result.append(f"{level1}{definition} -> {tname_read}:")
         docstring = docs[property]
@@ -840,6 +894,19 @@ def get_pyi_for_classes(C):
     #dcg_items = [i for i in dcg_items if i[0].isupper() and i[-1] != '_']
     #remove items that are not subclasses of the target.
     dcg_items = [i for i in dcg_items if is_item_sub_class(i, parent_classes)]
+
+    # Custom sorting by: lowercase first, MRO length, alphabetical
+    # This should help typing tools as it gets closer to a topological sort
+    def custom_sort_key(name):
+        obj = getattr(dcg, name)
+        # 0 for lowercase (to sort first), 1 for uppercase
+        case_priority = 0 if name[0].islower() else 1
+        # Get MRO length (inheritance depth)
+        mro_length = len(obj.__mro__)
+        return (case_priority, mro_length, name)
+    
+    dcg_items.sort(key=custom_sort_key)
+
     result = []
     for name in dcg_items:
         object_class = getattr(dcg, name)

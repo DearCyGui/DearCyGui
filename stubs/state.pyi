@@ -143,7 +143,7 @@ class ItemStateView:
         ...
     
     @property
-    def rect_size(self) -> Coord:
+    def rect_size(self) -> 'Coord':
         """
         Actual pixel size of the element including margins.
         
@@ -158,35 +158,35 @@ class ItemStateView:
         ...
     
     @property
-    def pos_to_viewport(self) -> Coord:
+    def pos_to_viewport(self) -> 'Coord':
         """
         Position relative to the viewport's top-left corner.
         """
         ...
     
     @property
-    def pos_to_window(self) -> Coord:
+    def pos_to_window(self) -> 'Coord':
         """
         Position relative to the containing window's content area.
         """
         ...
     
     @property
-    def pos_to_parent(self) -> Coord:
+    def pos_to_parent(self) -> 'Coord':
         """
         Position relative to the parent item's content area.
         """
         ...
     
     @property
-    def pos_to_default(self) -> Coord:
+    def pos_to_default(self) -> 'Coord':
         """
         Offset from the item's default layout position.
         """
         ...
     
     @property
-    def content_region_avail(self) -> Coord:
+    def content_region_avail(self) -> 'Coord':
         """
         Available space for child items.
         
@@ -200,7 +200,7 @@ class ItemStateView:
         ...
     
     @property
-    def content_pos(self) -> Coord:
+    def content_pos(self) -> 'Coord':
         """
         Position of the content area's top-left corner.
         
