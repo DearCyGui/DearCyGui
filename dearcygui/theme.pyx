@@ -986,27 +986,27 @@ cdef class ThemeColorImPlot(baseThemeColor):
     If a is missing, it defaults to 255.
 
     Keyword Arguments:
-        line: Plot line color. Auto - derived from Text color
-        fill: Plot fill color. Auto - derived from Line color
-        marker_outline: Plot marker outline color. Auto - derived from Line color
-        marker_fill: Plot marker fill color. Auto - derived from Line color 
+        line: Plot line color. Auto - derived from text color
+        fill: Plot fill color. Auto - derived from line color
+        marker_outline: Plot marker outline color. Auto - derived from line color
+        marker_fill: Plot marker fill color. Auto - derived from line color 
         error_bar: Error bar color. Auto - derived from Text color
-        frame_bg: Plot frame background color. Auto - derived from FrameBg color
-        plot_bg: Plot area background color. Auto - derived from WindowBg color
-        plot_border: Plot area border color. Auto - derived from Border color
-        legend_bg: Legend background color. Auto - derived from PopupBg color
-        legend_border: Legend border color. Auto - derived from Border color
-        legend_text: Legend text color. Auto - derived from Text color
-        title_text: Plot title text color. Auto - derived from Text color
-        inlay_text: Color of text appearing inside plots. Auto - derived from Text color
-        axis_text: Axis text labels color. Auto - derived from Text color
-        axis_grid: Axis grid color. Auto - derived from Text color with reduced alpha
-        axis_tick: Axis tick marks color. Auto - derived from AxisGrid color
+        frame_bg: Plot frame background color. Auto - derived from frame_bg color
+        plot_bg: Plot area background color. Auto - derived from window_bg color
+        plot_border: Plot area border color. Auto - derived from border color
+        legend_bg: Legend background color. Auto - derived from popup_bg color
+        legend_border: Legend border color. Auto - derived from border color
+        legend_text: Legend text color. Auto - derived from text color
+        title_text: Plot title text color. Auto - derived from text color
+        inlay_text: Color of text appearing inside plots. Auto - derived from text color
+        axis_text: Axis text labels color. Auto - derived from text color
+        axis_grid: Axis grid color. Auto - derived from text color with reduced alpha
+        axis_tick: Axis tick marks color. Auto - derived from axis_grid color
         axis_bg: Background color of axis hover region. Auto - transparent
-        axis_bg_hovered: Axis background color when hovered. Auto - derived from ButtonHovered color
-        axis_bg_active: Axis background color when clicked. Auto - derived from ButtonActive color
+        axis_bg_hovered: Axis background color when hovered. Auto - derived from button_hovered color
+        axis_bg_active: Axis background color when clicked. Auto - derived from button_active color
         selection: Box-selection color. Default: (1.00, 1.00, 0.00, 1.00)
-        crosshairs: Crosshairs color. Auto - derived from PlotBorder color
+        crosshairs: Crosshairs color. Auto - derived from plot_border color
     """
     def __cinit__(self):
         self._names = [
@@ -1036,7 +1036,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def line(self):
         """Plot line color.
-        Default: Auto - derived from Text color"""
+        Default: Auto - derived from text color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.LINE)
 
     @line.setter
@@ -1046,7 +1046,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def fill(self):
         """Plot fill color.
-        Default: Auto - derived from Line color"""
+        Default: Auto - derived from line color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.FILL)
 
     @fill.setter
@@ -1056,7 +1056,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def marker_outline(self):
         """Plot marker outline color.
-        Default: Auto - derived from Line color"""
+        Default: Auto - derived from line color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.MARKER_OUTLINE)
 
     @marker_outline.setter
@@ -1066,7 +1066,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def marker_fill(self):
         """Plot marker fill color.
-        Default: Auto - derived from Line color"""
+        Default: Auto - derived from line color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.MARKER_FILL)
 
     @marker_fill.setter
@@ -1076,7 +1076,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def error_bar(self):
         """Error bar color.
-        Default: Auto - derived from Text color"""
+        Default: Auto - derived from text color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.ERROR_BAR)
 
     @error_bar.setter
@@ -1086,7 +1086,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def frame_bg(self):
         """Plot frame background color.
-        Default: Auto - derived from FrameBg color"""
+        Default: Auto - derived from frame_bg color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.FRAME_BG)
 
     @frame_bg.setter
@@ -1096,7 +1096,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def plot_bg(self):
         """Plot area background color.
-        Default: Auto - derived from WindowBg color"""
+        Default: Auto - derived from window_bg color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.PLOT_BG)
 
     @plot_bg.setter
@@ -1106,7 +1106,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def plot_border(self):
         """Plot area border color.
-        Default: Auto - derived from Border color"""
+        Default: Auto - derived from border color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.PLOT_BORDER)
 
     @plot_border.setter
@@ -1116,7 +1116,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def legend_bg(self):
         """Legend background color.
-        Default: Auto - derived from PopupBg color"""
+        Default: Auto - derived from popup_bg color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.LEGEND_BG)
 
     @legend_bg.setter
@@ -1126,7 +1126,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def legend_border(self):
         """Legend border color.
-        Default: Auto - derived from Border color"""
+        Default: Auto - derived from border color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.LEGEND_BORDER)
 
     @legend_border.setter
@@ -1136,7 +1136,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def legend_text(self):
         """Legend text color.
-        Default: Auto - derived from Text color"""
+        Default: Auto - derived from text color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.LEGEND_TEXT)
 
     @legend_text.setter
@@ -1146,7 +1146,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def title_text(self):
         """Plot title text color.
-        Default: Auto - derived from Text color"""
+        Default: Auto - derived from text color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.TITLE_TEXT)
 
     @title_text.setter
@@ -1166,7 +1166,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def axis_text(self):
         """Axis text labels color.
-        Default: Auto - derived from Text color"""
+        Default: Auto - derived from text color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AXIS_TEXT)
 
     @axis_text.setter
@@ -1176,7 +1176,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def axis_grid(self):
         """Axis grid color.
-        Default: Auto - derived from Text color"""
+        Default: Auto - derived from text color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AXIS_GRID)
 
     @axis_grid.setter
@@ -1186,7 +1186,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def axis_tick(self):
         """Axis tick marks color.
-        Default: Auto - derived from AxisGrid color"""
+        Default: Auto - derived from axis_grid color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AXIS_TICK)
 
     @axis_tick.setter
@@ -1206,7 +1206,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def axis_bg_hovered(self):
         """Axis background color when hovered.
-        Default: Auto - derived from ButtonHovered color"""
+        Default: Auto - derived from button_hovered color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AXIS_BG_HOVERED)
 
     @axis_bg_hovered.setter
@@ -1216,7 +1216,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def axis_bg_active(self):
         """Axis background color when clicked.
-        Default: Auto - derived from ButtonActive color"""
+        Default: Auto - derived from button_active color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.AXIS_BG_ACTIVE)
 
     @axis_bg_active.setter
@@ -1236,7 +1236,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     @property
     def crosshairs(self):
         """Crosshairs color.
-        Default: Auto - derived from PlotBorder color"""
+        Default: Auto - derived from plot_border color"""
         return baseThemeColor._common_getter(self, <int>ImPlotColorIndex.CROSSHAIRS)
 
     @crosshairs.setter
@@ -1247,7 +1247,7 @@ cdef class ThemeColorImPlot(baseThemeColor):
     def get_default(cls, str color_name):
         """Get the default color value for the given color name."""
         if color_name == "line":
-            return ThemeColorImGui.get_default("Text")
+            return ThemeColorImGui.get_default("text")
         elif color_name == "fill":
             return cls.get_default("line")
         elif color_name == "marker_outline":
@@ -1255,36 +1255,36 @@ cdef class ThemeColorImPlot(baseThemeColor):
         elif color_name == "marker_fill":
             return cls.get_default("line")
         elif color_name == "error_bar":
-            return ThemeColorImGui.get_default("Text")
+            return ThemeColorImGui.get_default("text")
         elif color_name == "frame_bg":
-            return ThemeColorImGui.get_default("FrameBg")
+            return ThemeColorImGui.get_default("frame_bg")
         elif color_name == "plot_bg":
-            return ThemeColorImGui.get_default("WindowBg")
+            return ThemeColorImGui.get_default("window_bg")
         elif color_name == "plot_border":
-            return ThemeColorImGui.get_default("Border")
+            return ThemeColorImGui.get_default("border")
         elif color_name == "legend_bg":
-            return ThemeColorImGui.get_default("PopupBg")
+            return ThemeColorImGui.get_default("popup_bg")
         elif color_name == "legend_border":
-            return ThemeColorImGui.get_default("Border")
+            return ThemeColorImGui.get_default("border")
         elif color_name == "legend_text":
-            return ThemeColorImGui.get_default("Text")
+            return ThemeColorImGui.get_default("text")
         elif color_name == "title_text":
-            return ThemeColorImGui.get_default("Text")
+            return ThemeColorImGui.get_default("text")
         elif color_name == "inlay_text":
-            return ThemeColorImGui.get_default("Text")
+            return ThemeColorImGui.get_default("text")
         elif color_name == "axis_text":
-            return ThemeColorImGui.get_default("Text")
+            return ThemeColorImGui.get_default("text")
         elif color_name == "axis_grid":
-            (r, g, b, a) = ThemeColorImGui.get_default("Text")
+            (r, g, b, a) = ThemeColorImGui.get_default("text")
             return (r, g, b, 0.25 * a)
         elif color_name == "axis_tick":
             return cls.get_default("axis_grid")
         elif color_name == "axis_bg":
             return (0.00, 0.00, 0.00, 0.00)  # Transparent
         elif color_name == "axis_bg_hovered":
-            return ThemeColorImGui.get_default("ButtonHovered")
+            return ThemeColorImGui.get_default("button_hovered")
         elif color_name == "axis_bg_active":
-            return ThemeColorImGui.get_default("ButtonActive")
+            return ThemeColorImGui.get_default("button_active")
         elif color_name == "selection":
             return (1.00, 1.00, 0.00, 1.00)
         elif color_name == "crosshairs":
