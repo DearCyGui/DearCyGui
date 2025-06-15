@@ -81,15 +81,15 @@ cdef class BackendRenderingContext:
         raise ValueError("Cannot create a BackendRenderingContext directly. Use the context object.")
 
     @property
-    def name(self):
+    def name(self) -> str:
         return "GL" # For now only GL is supported
 
-    def __enter__(self):
+    def __enter__(self) -> BackendRenderingContext:
         # TODO: check thread safety
         (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
         (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
         return False
 
@@ -857,7 +857,7 @@ cdef class Context:
     cdef int32_t c_get_keymod_mask(self) noexcept nogil:
         return <int>imgui.GetIO().KeyMods
 
-    def is_key_down(self, key, keymod = None):
+    def is_key_down(self, key, keymod = None) -> bool:
         """
         Check if a key is being held down.
 
@@ -886,7 +886,7 @@ cdef class Context:
     cdef bint c_is_key_pressed(self, int32_t key, bint repeat) noexcept nogil:
         return imgui.IsKeyPressed(<imgui.ImGuiKey>key, repeat)
 
-    def is_key_pressed(self, key, keymod = None, bint repeat=True):
+    def is_key_pressed(self, key, keymod = None, repeat: bool = True) -> bool:
         """
         Check if a key was pressed (went from !Down to Down).
 
@@ -917,7 +917,7 @@ cdef class Context:
     cdef bint c_is_key_released(self, int32_t key) noexcept nogil:
         return imgui.IsKeyReleased(<imgui.ImGuiKey>key)
 
-    def is_key_released(self, key, keymod = None):
+    def is_key_released(self, key, keymod = None) -> bool:
         """
         Check if a key was released (went from Down to !Down).
 
@@ -946,7 +946,7 @@ cdef class Context:
     cdef bint c_is_mouse_down(self, int32_t button) noexcept nogil:
         return imgui.IsMouseDown(button)
 
-    def is_mouse_down(self, button):
+    def is_mouse_down(self, button) -> bool:
         """
         Check if a mouse button is held down.
 
@@ -971,7 +971,7 @@ cdef class Context:
     cdef bint c_is_mouse_clicked(self, int32_t button, bint repease) noexcept nogil:
         return imgui.IsMouseClicked(button, repease)
 
-    def is_mouse_clicked(self, button, bint repeat=False):
+    def is_mouse_clicked(self, button, repeat: bool = False) -> bool:
         """
         Check if a mouse button was clicked (went from !Down to Down).
 
@@ -995,7 +995,7 @@ cdef class Context:
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.IsMouseClicked(<int>button, repeat)
 
-    def is_mouse_double_clicked(self, button):
+    def is_mouse_double_clicked(self, button) -> bool:
         """
         Check if a mouse button was double-clicked.
 
@@ -1020,7 +1020,7 @@ cdef class Context:
     cdef int32_t c_get_mouse_clicked_count(self, int32_t button) noexcept nogil:
         return imgui.GetMouseClickedCount(button)
 
-    def get_mouse_clicked_count(self, button):
+    def get_mouse_clicked_count(self, button) -> int:
         """
         Get the number of times a mouse button is clicked in a row.
 
@@ -1045,7 +1045,7 @@ cdef class Context:
     cdef bint c_is_mouse_released(self, int32_t button) noexcept nogil:
         return imgui.IsMouseReleased(button)
 
-    def is_mouse_released(self, button):
+    def is_mouse_released(self, button) -> bool:
         """
         Check if a mouse button was released (went from Down to !Down).
 
@@ -1074,7 +1074,7 @@ cdef class Context:
         cdef imgui.ImGuiIO io = imgui.GetIO()
         return ImVec2Vec2(io.MousePosPrev)
 
-    def get_mouse_position(self):
+    def get_mouse_position(self) -> Coord:
         """
         Retrieve the mouse position (x, y).
 
@@ -1098,7 +1098,7 @@ cdef class Context:
     cdef bint c_is_mouse_dragging(self, int32_t button, float lock_threshold) noexcept nogil:
         return imgui.IsMouseDragging(button, lock_threshold)
 
-    def is_mouse_dragging(self, button, float lock_threshold=-1.):
+    def is_mouse_dragging(self, button, lock_threshold : float = -1.) -> bool:
         """
         Check if the mouse is dragging.
 
@@ -1125,7 +1125,7 @@ cdef class Context:
     cdef Vec2 c_get_mouse_drag_delta(self, int32_t button, float threshold) noexcept nogil:
         return ImVec2Vec2(imgui.GetMouseDragDelta(button, threshold))
 
-    def get_mouse_drag_delta(self, button, float lock_threshold=-1.):
+    def get_mouse_drag_delta(self, button, lock_threshold : float = -1.) -> Coord:
         """
         Return the delta (dx, dy) from the initial clicking position while the mouse button is pressed or was just released.
 
@@ -1151,7 +1151,7 @@ cdef class Context:
         cdef double[2] coord = [delta.x, delta.y]
         return Coord.build(coord)
 
-    def reset_mouse_drag_delta(self, button):
+    def reset_mouse_drag_delta(self, button) -> None:
         """
         Reset the drag delta for the target button to 0.
 
@@ -1169,7 +1169,7 @@ cdef class Context:
         lock_gil_friendly(m, self.imgui_mutex)
         return imgui.ResetMouseDragDelta(<int>button)
 
-    def inject_key_down(self, key):
+    def inject_key_down(self, key) -> None:
         """
         Inject a key down event for the next frame.
 
@@ -1185,7 +1185,7 @@ cdef class Context:
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddKeyEvent(keycode, True)
 
-    def inject_key_up(self, key):
+    def inject_key_up(self, key) -> None:
         """
         Inject a key up event for the next frame.
 
@@ -1201,7 +1201,7 @@ cdef class Context:
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddKeyEvent(keycode, False)
 
-    def inject_mouse_down(self, button):
+    def inject_mouse_down(self, button) -> None:
         """
         Inject a mouse down event for the next frame.
 
@@ -1219,7 +1219,7 @@ cdef class Context:
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMouseButtonEvent(<int>button, True)
 
-    def inject_mouse_up(self, button):
+    def inject_mouse_up(self, button) -> None:
         """
         Inject a mouse up event for the next frame.
 
@@ -1237,7 +1237,7 @@ cdef class Context:
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMouseButtonEvent(<int>button, False)
 
-    def inject_mouse_wheel(self, float wheel_x, float wheel_y):
+    def inject_mouse_wheel(self, wheel_x : float, wheel_y : float) -> None:
         """
         Inject a mouse wheel event for the next frame.
 
@@ -1252,7 +1252,7 @@ cdef class Context:
         lock_gil_friendly(m, self.imgui_mutex)
         imgui.GetIO().AddMouseWheelEvent(wheel_x, wheel_y)
 
-    def inject_mouse_pos(self, float x, float y):
+    def inject_mouse_pos(self, x : float, y : float) -> None:
         """
         Inject a mouse position event for the next frame.
 
@@ -1423,7 +1423,7 @@ cdef class baseItem:
         self.can_have_sibling = False
         self.element_child_category = -1
 
-    def configure(self, **kwargs):
+    def configure(self, **kwargs) -> None:
         """
         Shortcut to set multiple attributes at once.
         """
@@ -1433,13 +1433,13 @@ cdef class baseItem:
     def __dealloc__(self):
         clear_obj_vector(self._handlers)
 
-    def __reduce__(self):
+    def __reduce__(self) -> tuple:
         """
         Pickle support.
         """
         return (self.__class__, (self.context,), self.__getstate__())
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         """
         Retrieve the item configuration and child tree (Pickle support.)
         """
@@ -1492,7 +1492,7 @@ cdef class baseItem:
 
         return result
 
-    def __setstate__(self, state):
+    def __setstate__(self, state) -> None:
         """
         Restore the item configuration and child tree (Pickle support.)
         """
@@ -1849,7 +1849,7 @@ cdef class baseItem:
         self.context.push_next_parent(self)
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
         self.context.pop_next_parent()
         return False # Do not catch exceptions
 
@@ -2680,9 +2680,9 @@ cdef class baseItem:
 class wrap_mutex:
     def __init__(self, target):
         self.target = target
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.target.lock_mutex(wait=True)
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
         self.target.unlock_mutex()
         return False # Do not catch exceptions
 
@@ -3022,7 +3022,7 @@ cdef class Viewport(baseItem):
             (<platformViewport*>self._platform).cleanup()
             self._platform = NULL
 
-    def initialize(self, **kwargs):
+    def initialize(self, **kwargs) -> None:
         """
         Initialize the viewport for rendering and show it.
 
@@ -4149,7 +4149,7 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m, self.mutex)
         self._close_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
-    def copy(self, target_context=None):
+    def copy(self, target_context=None) -> None:
         raise TypeError("The viewport cannot be copied")
 
     @property
@@ -4422,7 +4422,7 @@ cdef class Viewport(baseItem):
                 has_events = True # Either has_events was already True, or we meet internal timeout event
         return has_events
 
-    def render_frame(self):
+    def render_frame(self) -> bool:
         """Render one frame of the application.
 
         Rendering occurs in several sequential steps:
