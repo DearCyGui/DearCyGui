@@ -1,5 +1,6 @@
 import datetime
 import dearcygui as dcg
+from collections.abc import Sized
 
 class PlotCandleStick(dcg.DrawInPlot):
     """
@@ -23,17 +24,17 @@ class PlotCandleStick(dcg.DrawInPlot):
     def __init__(self,
                  context : dcg.Context,
                  no_legend=False,
-                 dates=None,
-                 opens=None,
-                 closes=None,
-                 lows=None,
-                 highs=None,
+                 dates: Sized = [],
+                 opens: Sized = [],
+                 closes: Sized = [],
+                 lows: Sized = [],
+                 highs: Sized = [],
                  bull_color=(0, 255, 113, 255),
                  bear_color=(218, 13, 79, 255),
                  weight=0.25,
                  tooltip=True,
                  time_formatter=None,
-                 **kwargs):
+                 **kwargs) -> None:
         super().__init__(context, **kwargs)
         # For DrawInPlot, default no_legend is True
         # Thus the override.
@@ -60,7 +61,7 @@ class PlotCandleStick(dcg.DrawInPlot):
         self.render()
 
 
-    def render(self):
+    def render(self) -> None:
         count = self._dates.shape[0]
         width_percent = self._weight
         half_width = ((self._dates[1] - self._dates[0]) * width_percent) if count > 1 else width_percent

@@ -14,7 +14,7 @@ class _SimpleBarrier:
     A simple barrier that can be set/checked only once,
     and goes back to a pool after being checked.
     """
-    def __init__(self, barrier_pool: list['_SimpleBarrier'], pool_mutex: threading.Lock):
+    def __init__(self, barrier_pool: list['_SimpleBarrier'], pool_mutex: threading.Lock) -> None:
         self._set = False
         self._checked = False
         self._barrier_pool = barrier_pool
@@ -170,12 +170,12 @@ class AsyncPoolExecutor:
         self._barrier_pool = []
         self._pool_mutex = threading.Lock()
         self._loop_thread_id = None
-        def _set_loop_thread_id():
+        def _set_loop_thread_id() -> None:
             """Set the thread ID of the loop to the current thread."""
             self._loop_thread_id = threading.get_ident()
         self._loop.call_soon(_set_loop_thread_id)
 
-    def __del__(self):
+    def __del__(self) -> None:
         return
 
     def shutdown(self, *args, **kwargs) -> None:
@@ -289,7 +289,7 @@ class BatchingEventLoop(_DefaultEventLoop):
     contention.
     """
     
-    def __init__(self, time_slot=0.010):
+    def __init__(self, time_slot=0.010) -> None:
         """
         Initialize the quantized event loop.
         

@@ -314,7 +314,7 @@ class ItemInspecter(dcg.Window):
         self.inspected_items += children_list
         for c in children_list:
             try:
-                c.handlers += [self.item_handler]
+                c.handlers += [self.item_handler] # type: ignore
             except Exception:
                 # Pass incompatible items
                 pass
@@ -349,8 +349,8 @@ class ItemInspecter(dcg.Window):
             self.dragging_item = item
             self.dragging_item_original_pos = item.state.pos_to_parent
         new_pos = [
-            self.dragging_item_original_pos[0] + drag_deltas[0],
-            self.dragging_item_original_pos[1] + drag_deltas[1]
+            self.dragging_item_original_pos[0] + drag_deltas[0], # type: ignore
+            self.dragging_item_original_pos[1] + drag_deltas[1] # type: ignore
         ]
         item.x = f"parent.x1 + {new_pos[0]}"
         item.y = f"parent.y1 + {new_pos[1]}"
@@ -416,14 +416,14 @@ class ItemInspecter(dcg.Window):
                 with left:
                     dcg.Text(C, value=f"{state}:")
                 with right:
-                    dcg.Text(C, value=value)
+                    dcg.Text(C, value=str(value))
 
-def _is_style_element(class_obj: dcg.baseTheme, name: str) -> bool:
+def _is_style_element(class_obj, name: str) -> bool:
     """
     Returns True if name is a valid theme element
     """
     try:
-        class_obj.get_default(name)
+        class_obj.get_default(name) # type: ignore
         return True
     except KeyError:
         return False
@@ -464,7 +464,7 @@ class StyleEditor(dcg.Window):
                         imgui_color_names = [name for name in dir(self.imgui_color_theme) if _is_style_element(dcg.ThemeColorImGui, name)]
                         for color_name in imgui_color_names:
                             default_color = self.imgui_color_theme.get_default(color_name)
-                            def callback_imgui_color(s, t, d, color_name=color_name):
+                            def callback_imgui_color(s, t, d, color_name=color_name) -> None:
                                 setattr(self.imgui_color_theme, color_name, d)
                             dcg.ColorEdit(context,
                                           label=color_name,
@@ -476,7 +476,7 @@ class StyleEditor(dcg.Window):
                         implot_color_names = [name for name in dir(self.implot_color_theme) if _is_style_element(dcg.ThemeColorImPlot, name)]
                         for color_name in implot_color_names:
                             default_color = self.implot_color_theme.get_default(color_name)
-                            def callback_implot_color(s, t, d, color_name=color_name):
+                            def callback_implot_color(s, t, d, color_name=color_name) -> None:
                                 setattr(self.implot_color_theme, color_name, d)
                             dcg.ColorEdit(context,
                                           label=color_name,
@@ -502,7 +502,7 @@ class StyleEditor(dcg.Window):
                                 print_format="%.0f"
                             else:
                                 continue # Skip unsupported types
-                            def callback_imgui_style(s, t, d, style_name=style_name):
+                            def callback_imgui_style(s, t, d, style_name=style_name) -> None:
                                 try:
                                     if len(d) == 1:
                                         d = d[0]
@@ -534,7 +534,7 @@ class StyleEditor(dcg.Window):
                             elif item_type is int:
                                 print_format="%.0f"
                             elif item_type is dcg.PlotMarker:
-                                def callback_implot_style_marker(s, t, d, style_name=style_name):
+                                def callback_implot_style_marker(s, t, d, style_name=style_name) -> None:
                                     setattr(self.implot_style_theme, style_name, dcg.PlotMarker[d])
                                 dcg.Combo(context,
                                           label=style_name,
@@ -546,7 +546,7 @@ class StyleEditor(dcg.Window):
                                 continue
                             else:
                                 continue # Skip unsupported types
-                            def callback_implot_style(s, t, d, style_name=style_name):
+                            def callback_implot_style(s, t, d, style_name=style_name) -> None:
                                 try:
                                     if len(d) == 1:
                                         d = d[0]
@@ -564,7 +564,7 @@ class StyleEditor(dcg.Window):
                                               )
                                 dcg.Text(context, value=style_name)
 
-    def _recursive_reset_values(self, item):
+    def _recursive_reset_values(self, item) -> None:
         """Recursively reset all theme values to their defaults.
         
         This internal method traverses the widget hierarchy and resets all
@@ -583,7 +583,7 @@ class StyleEditor(dcg.Window):
                 child.value = child.user_data.name
                 child.callbacks[0](self, child, child.value)
 
-    def reset_values(self):
+    def reset_values(self) -> None:
         """Reset all theme values to their defaults.
         
         This method resets all color and style values to their default states
@@ -591,7 +591,7 @@ class StyleEditor(dcg.Window):
         """
         self._recursive_reset_values(self)
 
-    def export_to_text(self):
+    def export_to_text(self) -> str:
         """Convert the current theme to Python code.
         
         This method generates Python code that recreates the current theme
@@ -698,7 +698,7 @@ class StyleEditor(dcg.Window):
         full_text += "]\n"
         return full_text
 
-    def export_to_clipboard(self):
+    def export_to_clipboard(self) -> None:
         """Copy the current theme as Python code to the clipboard.
         
         This method generates Python code for the current theme and places it
@@ -708,7 +708,7 @@ class StyleEditor(dcg.Window):
         with dcg.utils.TemporaryTooltip(self.context, target=self.export_button, parent=self):
             dcg.Text(self.context, value="Theme copied to clipboard")
 
-    def launch_help_window(self):
+    def launch_help_window(self) -> None:
         """Display a help window with information about theming.
         
         This method creates a modal window explaining theme concepts and 

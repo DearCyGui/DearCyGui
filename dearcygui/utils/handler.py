@@ -1,8 +1,8 @@
 from asyncio import Queue as asyncio_Queue, get_event_loop
+from collections.abc import Generator, AsyncGenerator
 from concurrent.futures import Future
 import dearcygui as dcg
 from threading import Event, Lock
-from typing import Generator, AsyncGenerator, Any
 from warnings import warn
 
 
@@ -47,7 +47,7 @@ def auto_cleanup_callback(sender: dcg.baseHandler, target: dcg.baseItem) -> None
     """
     if hasattr(target, 'handlers'):
         with target.mutex:
-            target.handlers = [h for h in target.handlers if h is not sender]
+            target.handlers = [h for h in target.handlers if h is not sender] # type: ignore
     if sender.parent is not None:
         warn(
             "auto_cleanup_callback may have no effect on handlers"
@@ -142,7 +142,7 @@ def future_from_handlers(*handlers, cleanup=False) -> Future:
                 if hasattr(target, 'handlers'):
                     # Remove this handler from the target's handlers
                     # if it is still attached to the target
-                    target.handlers = [h for h in target.handlers if h is not sender]
+                    target.handlers = [h for h in target.handlers if h is not sender] # type: ignore
             if sender.parent is not None:
                 warn(
                     "cleanup=True may have no effect on handlers"
