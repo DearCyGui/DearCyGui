@@ -11,7 +11,7 @@ from glob import glob
 import shutil
 import subprocess
 
-wip_version = "0.0.17"
+wip_version = "0.1.0"
 
 def version_number():
     return wip_version
@@ -341,7 +341,7 @@ def setup_package():
         license = 'MIT',
         python_requires='>=3.10',
         classifiers=[
-                'Development Status :: 3 - Alpha',
+                'Development Status :: 4 - Beta',
                 'Intended Audience :: Education',
                 'Intended Audience :: Developers',
                 'Intended Audience :: Science/Research',
@@ -351,8 +351,19 @@ def setup_package():
                 'Operating System :: Unix',
                 'Programming Language :: Cython',
                 'Programming Language :: Python :: 3',
+                'Programming Language :: Python :: 3.10',
+                'Programming Language :: Python :: 3.11',
+                'Programming Language :: Python :: 3.12',
+                'Programming Language :: Python :: 3.13',
+                'Programming Language :: Python :: Free Threading'
+                'License :: OSI Approved :: MIT License',
+                'Environment :: X11 Applications',
+                'Environment :: Win32 (MS Windows)',
+                'Environment :: MacOS X',
+                'Natural Language :: English',
                 'Topic :: Software Development :: User Interfaces',
                 'Topic :: Software Development :: Libraries :: Python Modules',
+                'Topic :: Multimedia :: Graphics',
             ],
         packages=['dearcygui', 'dearcygui.docs', 'dearcygui.utils', 'dearcygui.backends', 'dearcygui.wrapper'],
         install_requires=[
