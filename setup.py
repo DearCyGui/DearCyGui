@@ -355,7 +355,7 @@ def setup_package():
                 'Programming Language :: Python :: 3.11',
                 'Programming Language :: Python :: 3.12',
                 'Programming Language :: Python :: 3.13',
-                'Programming Language :: Python :: Free Threading'
+                'Programming Language :: Python :: Free Threading',
                 'License :: OSI Approved :: MIT License',
                 'Environment :: X11 Applications',
                 'Environment :: Win32 (MS Windows)',

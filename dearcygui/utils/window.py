@@ -63,7 +63,7 @@ class MetricsWindow(dcg.Window):
         }
         self.times = ScrollingBuffer()
         self.self_metrics = deque(maxlen=10)
-        self.metrics = deque(maxlen=10)
+        self.metrics : deque[dcg.ViewportMetrics] = deque(maxlen=10)
         self.plots = {}
 
         self.low_framerate_theme = dcg.ThemeColorImPlot(c)
@@ -154,6 +154,7 @@ class MetricsWindow(dcg.Window):
         # Move the ui children to TimeWatcher
         for child in children:
             try:
+                assert not isinstance(child, dcg.MenuBar)
                 child.parent = tw
             except TypeError:
                 pass
@@ -161,7 +162,7 @@ class MetricsWindow(dcg.Window):
         self.start_time = self.context.viewport.metrics.last_time_before_rendering
         self.rendering_metrics = self.context.viewport.metrics
 
-    def log_times(self, watcher, target, watcher_data):
+    def log_times(self, watcher, target, watcher_data) -> None:
         """Record timing data from a time watcher.
         
         This method processes the timing information collected by the time watcher
@@ -181,7 +182,7 @@ class MetricsWindow(dcg.Window):
         self.log_metrics()
         self.update_plot(frame_count)
 
-    def log_metrics(self):
+    def log_metrics(self) -> None:
         """Record viewport metrics for performance tracking.
         
         This method captures the current viewport metrics and stores them in the
@@ -190,7 +191,7 @@ class MetricsWindow(dcg.Window):
         """
         self.metrics.append(self.context.viewport.metrics)
 
-    def update_plot(self, frame_count):
+    def update_plot(self, frame_count) -> None:
         """Update visualization plots with the latest metrics data.
         
         This method processes collected metrics data, updates the various 
@@ -202,13 +203,11 @@ class MetricsWindow(dcg.Window):
         treated_self_metrics = []
         # Treat frames where we have received both infos
         for rendering_metrics in self.metrics:
-            found = False
             for self_metric in self.self_metrics:
                 (frame_count, metrics_window_rendering_time, t_check) = self_metric
                 if frame_count == rendering_metrics.frame_count:
-                    found = True
                     break
-            if not(found):
+            else:
                 continue
             treated_metrics.append(rendering_metrics)
             treated_self_metrics.append(self_metric)
@@ -222,6 +221,8 @@ class MetricsWindow(dcg.Window):
             self.metrics.remove(rendering_metrics)
         for self_metric in treated_self_metrics:
             self.self_metrics.remove(self_metric)
+        # Update the plots
+        rendering_metrics = self.context.viewport.metrics
         rendered_vertices = rendering_metrics.rendered_vertices
         rendered_indices = rendering_metrics.rendered_indices
         rendered_windows = rendering_metrics.rendered_windows
@@ -254,7 +255,7 @@ class MetricsWindow(dcg.Window):
             self.plots[key].X = self.times.get()
             self.plots[key].Y = self.data[key].get()
 
-def get_children_recursive(item):
+def get_children_recursive(item: dcg.baseItem) -> list[dcg.baseItem]:
     """Recursively collect all children of an item.
     
     This function traverses the item hierarchy and returns a flat list containing
@@ -273,8 +274,8 @@ class ItemInspecter(dcg.Window):
         C = context
         with self:
             with dcg.HorizontalLayout(C, alignment_mode=dcg.Alignment.LEFT):
-                dcg.Button(C, label="Install handlers", callbacks=self.setup_handlers)
-                dcg.Button(C, label="Remove handlers", callbacks=self.remove_handlers)
+                dcg.Button(C, label="Install handlers", callback=self.setup_handlers)
+                dcg.Button(C, label="Remove handlers", callback=self.remove_handlers)
             with dcg.HorizontalLayout(C, alignment_mode=dcg.Alignment.CENTER):
                 with dcg.VerticalLayout(C):
                     dcg.Text(C, wrap=0).value = \
@@ -299,7 +300,7 @@ class ItemInspecter(dcg.Window):
         self.dragging_item = None
         self.dragging_item_original_pos = None
 
-    def setup_handlers(self):
+    def setup_handlers(self) -> None:
         """Install inspection handlers on all UI elements.
         
         This method installs event handlers on all UI elements in the viewport,
@@ -318,7 +319,7 @@ class ItemInspecter(dcg.Window):
                 # Pass incompatible items
                 pass
 
-    def remove_handlers(self):
+    def remove_handlers(self) -> None:
         """Remove all inspection handlers from UI elements.
         
         This method removes the previously installed inspection handlers from
@@ -334,7 +335,7 @@ class ItemInspecter(dcg.Window):
                 pass
         self.inspected_items = []
 
-    def handle_item_dragging(self, handler, item: dcg.uiItem, drag_deltas):
+    def handle_item_dragging(self, handler, item: dcg.uiItem, drag_deltas) -> None:
         """Process UI element dragging events.
         
         This method handles the dragging of UI elements, updating their position
@@ -354,7 +355,7 @@ class ItemInspecter(dcg.Window):
         item.x = f"parent.x1 + {new_pos[0]}"
         item.y = f"parent.y1 + {new_pos[1]}"
 
-    def handle_item_dragged(self, handler, item):
+    def handle_item_dragged(self, handler, item) -> None:
         """Handle the completion of a UI element drag operation.
         
         This method is called when a drag operation ends, cleaning up the 
@@ -434,7 +435,7 @@ class StyleEditor(dcg.Window):
     spacing and other visual aspects of the UI. It allows real-time preview
     of changes and provides options to apply, reset or export the theme.
     """
-    def __init__(self, context : dcg.Context, **kwargs):
+    def __init__(self, context : dcg.Context, **kwargs) -> None:
         super().__init__(context, **kwargs)
         self.current_theme = context.viewport.theme
         self.main_theme = dcg.ThemeList(self.context)
@@ -444,17 +445,17 @@ class StyleEditor(dcg.Window):
         self.implot_style_theme = dcg.ThemeStyleImPlot(self.context, parent=self.main_theme)
 
         with dcg.HorizontalLayout(context, parent=self, alignment_mode=dcg.Alignment.CENTER):
-            dcg.Button(context, label="Reset", callbacks=self.reset_values)
-            dcg.Button(context, label="Apply", callbacks=lambda: context.viewport.configure(theme=self.main_theme))
-            dcg.Button(context, label="Cancel", callbacks=lambda: context.viewport.configure(theme=self.current_theme))
-            self.export_button = dcg.Button(context, label="Export", callbacks=self.export_to_clipboard)
+            dcg.Button(context, label="Reset", callback=self.reset_values)
+            dcg.Button(context, label="Apply", callback=lambda: context.viewport.configure(theme=self.main_theme))
+            dcg.Button(context, label="Cancel", callback=lambda: context.viewport.configure(theme=self.current_theme))
+            self.export_button = dcg.Button(context, label="Export", callback=self.export_to_clipboard)
             with dcg.Tooltip(context):
                 dcg.Text(context, value = "Export the current theme to the clipboard")
             self.filter_defaults = dcg.Checkbox(context, label="Filter defaults", value=True)
             with dcg.Tooltip(context):
                 dcg.Text(context, value="Include only non-default values in the export")
                 dcg.Text(context, value="Generates shorter code, but may be affected if defaults change")
-            dcg.Button(context, label="Help", callbacks=lambda: self.launch_help_window())
+            dcg.Button(context, label="Help", callback=lambda: self.launch_help_window())
 
         with dcg.TabBar(context, label="Style Editor", parent=self):
             with dcg.Tab(context, label="Colors"):
@@ -743,7 +744,7 @@ class StyleEditor(dcg.Window):
                 
                 with dcg.VerticalLayout(C):
                     dcg.Text(C, value="Styles:")
-                    with dcg.HorizontalLayout(context, no_wrap=True):
+                    with dcg.HorizontalLayout(C, no_wrap=True):
                         utils.SliderN(C,
                                       value=demo_styles.get_default("frame_padding"),
                                       callback=lambda s,t,d: setattr(demo_styles, "frame_padding", d[:2]))

@@ -65,6 +65,37 @@ class DCGCallable3Kw(Protocol[SenderT, TargetT]):
 
 DCGCallable = DCGCallable0 | DCGCallable1 | DCGCallable2 | DCGCallable3 | DCGCallable0Kw | DCGCallable1Kw | DCGCallable2Kw | DCGCallable3Kw
 
+
+class Callback(DCGCallable3[SenderT, TargetT]):
+    """
+    Wrapper class that automatically encapsulates callbacks.
+
+    Callbacks in DCG mode can take up to 3 arguments:
+        - source_item: the item to which the callback was attached
+        - target_item: the item for which the callback was raised.
+            Is only different to source_item for handlers' callback.
+        - call_info: If applicable information about the call (key button, etc)
+
+    This class adapts callbacks with fewer parameters to the full 3-parameter form.
+    """
+    def __init__(self, callback: DCGCallable) -> None:
+        ...
+    
+    def __call__(self, sender: SenderT, target: TargetT, value: Any) -> Any:
+        """
+        Call the wrapped callback with appropriate number of arguments.
+        
+        Automatically adapts between callbacks that accept 0, 1, 2, or 3 arguments.
+        """
+        ...
+
+    @property
+    def callback(self) -> DCGCallable:
+        """(Read-only) The original wrapped callback
+        """
+        ...
+
+
 Color = int | tuple[int, int, int] | tuple[int, int, int, int] | tuple[float, float, float] | tuple[float, float, float, float] | Sequence[int] | Sequence[float]
 
 
@@ -3740,7 +3771,7 @@ class baseHandler(baseItem):
 
 
     @property
-    def callback(self) -> list[DCGCallable3]:
+    def callback(self) -> list[Callback]:
         """
         Function called when the handler's condition is met.
 
@@ -4426,7 +4457,7 @@ class uiItem(baseItem):
 
 
     @property
-    def callback(self) -> list[DCGCallable3]:
+    def callback(self) -> list[Callback]:
         """
         Callback to invoke when the item's value changes
 
@@ -4442,7 +4473,7 @@ class uiItem(baseItem):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable3]:
+    def callbacks(self) -> list[Callback]:
         """
         List of callbacks to invoke when the item's value changes.
 
@@ -5918,28 +5949,6 @@ class plotElementXYY(plotElementWithLegend):
         ...
 
 
-class Callback(object):
-    """
-    Wrapper class that automatically encapsulate callbacks.
-
-    Callbacks in DCG mode can take up to 3 arguments:
-        - source_item: the item to which the callback was attached
-        - target_item: the item for which the callback was raised.
-            Is only different to source_item for handlers' callback.
-        - call_info: If applicable information about the call (key button, etc)
-
-    """
-    def __init__(self, callback : DCGCallable):
-        ...
-
-
-    @property
-    def callback(self) -> list[DCGCallable3]:
-        """(Read-only) Wrapped callback
-        """
-        ...
-
-
 class Context(object):
     """
     Main class managing the DearCyGui items and imgui context.
@@ -6617,7 +6626,7 @@ class DPGCallback(Callback):
 
 
     @property
-    def callback(self) -> list[DCGCallable3]:
+    def callback(self) -> list[Callback]:
         """(Read-only) Wrapped callback
         """
         ...
@@ -18511,7 +18520,7 @@ class FontMultiScales(baseFont):
 
 
     @property
-    def callbacks(self) -> list[DCGCallable3]:
+    def callbacks(self) -> list[Callback]:
         """
         Callbacks triggered when a new scale is encountered.
 

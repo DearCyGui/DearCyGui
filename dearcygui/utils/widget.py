@@ -1,6 +1,7 @@
 import colorsys
 import dearcygui as dcg
 from datetime import datetime
+import typing
 
 class TemporaryTooltip(dcg.Tooltip):
     """
@@ -120,11 +121,11 @@ class TimePicker(dcg.Layout):
         # Get base colors from current theme
         parent = self.parent
         assert parent is not None
-        text_color = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "text")
-        frame_bg = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg")
-        frame_bg_hovered = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg_hovered")
-        frame_bg_active = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg_active")
-        child_bg = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "child_bg") 
+        text_color = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "text"))
+        frame_bg = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg"))
+        frame_bg_hovered = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg_hovered"))
+        frame_bg_active = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg_active"))
+        child_bg = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "child_bg"))
 
         # Get accent color for highlights
         accent_color = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "check_mark")
@@ -437,21 +438,23 @@ class DatePicker(dcg.ChildWindow):
             self._grid = dcg.Layout(context)
             self._update_grid()
 
-    def _update_theme_style(self):
+    def _update_theme_style(self) -> None:
         """Update all theme objects based on current theme settings"""
         # Get base colors from current theme
-        text_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "text")
-        button_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "button")
-        button_hovered = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "button_hovered")
-        button_active = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "button_active")
-        child_bg = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "child_bg")
-        border_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "border")
+        parent = self.parent
+        assert parent is not None
+        text_color = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "text"))
+        button_color = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "button"))
+        button_hovered = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "button_hovered"))
+        button_active = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "button_active"))
+        child_bg = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "child_bg"))
+        border_color = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "border"))
 
         # Here we follow closely the current theme style, but
         # you can adapt to your needs.
         
         # Get accent color for highlights
-        accent_color = dcg.resolve_theme(self.parent, dcg.ThemeColorImGui, "check_mark")
+        accent_color = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "check_mark")
         accent_color = dcg.color_as_floats(accent_color)
         if sum(accent_color[:3]) < 0.1:  # Fallback if too dark or not found
             accent_color = (0.4, 0.5, 0.8, 0.7)
@@ -461,6 +464,8 @@ class DatePicker(dcg.ChildWindow):
         h = (h + 0.5) % 1.0  # Complementary hue
         today_color = colorsys.hsv_to_rgb(h, s * 0.8, v)
         today_color = today_color[:3] + (0.7,)
+
+        text_color = dcg.color_as_floats(text_color)
         
         # Update container theme
         self._container_colors.text = text_color
@@ -510,7 +515,7 @@ class DatePicker(dcg.ChildWindow):
         if hasattr(self, '_grid') and self._grid:
             self._update_grid()
 
-    def _get_header_text(self):
+    def _get_header_text(self) -> str:
         """
         Generate the header text based on current view level.
         
@@ -524,7 +529,7 @@ class DatePicker(dcg.ChildWindow):
         else:  # Year view
             return f"{self._current_year_block}-{self._current_year_block+19}"
             
-    def _update_grid(self):
+    def _update_grid(self) -> None:
         """
         Update the calendar grid based on current view level.
         
@@ -544,7 +549,7 @@ class DatePicker(dcg.ChildWindow):
         else:  # Year view
             self._build_year_grid()
             
-    def _build_day_grid(self):
+    def _build_day_grid(self) -> None:
         """Build the day view calendar grid."""
         # Create a table for better layout
         table = dcg.Table(self.context, parent=self._grid, 
@@ -630,7 +635,7 @@ class DatePicker(dcg.ChildWindow):
             if day > days_in_month and week >= 3:  # At least 4 rows always
                 break
 
-    def _build_month_grid(self):
+    def _build_month_grid(self) -> None:
         """Build the month selection grid."""
         table = dcg.Table(self.context, parent=self._grid,
                         flags=dcg.TableFlag.SIZING_STRETCH_SAME | 
@@ -670,7 +675,7 @@ class DatePicker(dcg.ChildWindow):
                     
                     month += 1
 
-    def _build_year_grid(self):
+    def _build_year_grid(self) -> None:
         """Build the year selection grid."""
         table = dcg.Table(self.context, parent=self._grid,
                         flags=dcg.TableFlag.SIZING_STRETCH_SAME | 
@@ -702,7 +707,7 @@ class DatePicker(dcg.ChildWindow):
                     
                     year += 1
                             
-    def _on_prev_click(self):
+    def _on_prev_click(self) -> None:
         """
         Handle previous button click.
         
@@ -721,7 +726,7 @@ class DatePicker(dcg.ChildWindow):
             self._current_year_block -= 20
         self._update_grid()
         
-    def _on_next_click(self):
+    def _on_next_click(self) -> None:
         """
         Handle next button click.
         
@@ -740,7 +745,7 @@ class DatePicker(dcg.ChildWindow):
             self._current_year_block += 20
         self._update_grid()
         
-    def _on_header_click(self):
+    def _on_header_click(self) -> None:
         """
         Handle header button click.
         
@@ -749,7 +754,7 @@ class DatePicker(dcg.ChildWindow):
         self._view_level = (self._view_level + 1) % 3
         self._update_grid()
         
-    def _on_day_select(self, sender):
+    def _on_day_select(self, sender) -> None:
         """
         Handle day selection.
         
@@ -759,7 +764,7 @@ class DatePicker(dcg.ChildWindow):
         new_date = datetime(self._current_year, self._current_month + 1, day)
         self._set_value_and_run_callbacks(new_date)
         
-    def _on_month_select(self, sender):
+    def _on_month_select(self, sender) -> None:
         """
         Handle month selection.
         
@@ -770,7 +775,7 @@ class DatePicker(dcg.ChildWindow):
         self._view_level = 0
         self._update_grid()
         
-    def _on_year_select(self, sender):
+    def _on_year_select(self, sender) -> None:
         """
         Handle year selection.
         
@@ -780,7 +785,7 @@ class DatePicker(dcg.ChildWindow):
         self._view_level = 1
         self._update_grid()
         
-    def _set_value_and_run_callbacks(self, value):
+    def _set_value_and_run_callbacks(self, value) -> None:
         """
         Set date value and trigger callbacks.
         
@@ -789,7 +794,7 @@ class DatePicker(dcg.ChildWindow):
         self._set_value(value)
         self.run_callbacks()
 
-    def _set_value(self, value):
+    def _set_value(self, value) -> None:
         """
         Internal method to set value without triggering callbacks.
         
@@ -808,7 +813,7 @@ class DatePicker(dcg.ChildWindow):
         self._update_grid()
 
     @property
-    def min_date(self):
+    def min_date(self) -> datetime:
         """
         The minimum selectable date for the calendar.
         
@@ -817,7 +822,7 @@ class DatePicker(dcg.ChildWindow):
         return self._min_date
 
     @min_date.setter
-    def min_date(self, value):
+    def min_date(self, value) -> None:
         """Set the minimum selectable date"""
         if not isinstance(value, datetime):
             raise ValueError("min_date must be a datetime object")
@@ -832,7 +837,7 @@ class DatePicker(dcg.ChildWindow):
         self._update_grid()
 
     @property
-    def max_date(self):
+    def max_date(self) -> datetime:
         """
         The maximum selectable date for the calendar.
         
@@ -841,7 +846,7 @@ class DatePicker(dcg.ChildWindow):
         return self._max_date
 
     @max_date.setter
-    def max_date(self, value):
+    def max_date(self, value) -> None:
         """Set the maximum selectable date"""
         if not isinstance(value, datetime):
             raise ValueError("max_date must be a datetime object")
@@ -856,7 +861,7 @@ class DatePicker(dcg.ChildWindow):
         self._update_grid()
 
     @property
-    def value(self):
+    def value(self) -> float: # type: ignore
         """
         Current date value represented as seconds since epoch.
         
@@ -866,7 +871,7 @@ class DatePicker(dcg.ChildWindow):
         return self._value.value
 
     @property
-    def value_as_datetime(self):
+    def value_as_datetime(self) -> datetime:
         """
         Current selected date as a datetime object.
         
@@ -874,7 +879,7 @@ class DatePicker(dcg.ChildWindow):
         """
         return datetime.fromtimestamp(self._value.value)
 
-    def run_callbacks(self):
+    def run_callbacks(self) -> None:
         """
         Execute all registered callbacks with the current date value.
         
@@ -904,7 +909,7 @@ class DateTimePicker(dcg.Layout):
                  layout="horizontal",
                  use_24hr=False,
                  show_seconds=True,
-                 **kwargs):
+                 **kwargs) -> None:
         super().__init__(context, **kwargs)
         
         # Initialize shared value
@@ -950,7 +955,7 @@ class DateTimePicker(dcg.Layout):
         else:
             self.value = datetime.now()
 
-    def _on_change(self, sender, target, value):
+    def _on_change(self, sender, target, value) -> None:
         """
         Handle date/time changes from either picker.
         
@@ -972,11 +977,11 @@ class DateTimePicker(dcg.Layout):
         return self._value.value
     
     @value.setter
-    def value(self, value):
+    def value(self, value) -> None:
         self._value.value = value.timestamp() if isinstance(value, datetime) else float(value)
 
     @property
-    def value_as_datetime(self):
+    def value_as_datetime(self) -> datetime:
         """
         Current value as a datetime object.
         
@@ -986,7 +991,7 @@ class DateTimePicker(dcg.Layout):
         return datetime.fromtimestamp(self._value.value)
     
     @value_as_datetime.setter
-    def value_as_datetime(self, value):
+    def value_as_datetime(self, value) -> None:
         if not isinstance(value, datetime):
             raise ValueError("Value must be a datetime object")
         self.value = value
@@ -1002,7 +1007,7 @@ class DateTimePicker(dcg.Layout):
             callback(self, self, self.value_as_datetime)
 
     @property
-    def use_24hr(self):
+    def use_24hr(self) -> bool:
         """
         Whether the time picker uses 24-hour format.
         
@@ -1012,11 +1017,11 @@ class DateTimePicker(dcg.Layout):
         return self._time_picker.use_24hr
 
     @use_24hr.setter 
-    def use_24hr(self, value):
+    def use_24hr(self, value) -> None:
         self._time_picker.use_24hr = value
 
     @property
-    def show_seconds(self):
+    def show_seconds(self) -> bool:
         """
         Whether seconds are shown in the time picker.
         
@@ -1026,11 +1031,11 @@ class DateTimePicker(dcg.Layout):
         return self._time_picker.show_seconds
     
     @show_seconds.setter
-    def show_seconds(self, value):
+    def show_seconds(self, value) -> None:
         self._time_picker.show_seconds = value
 
     @property
-    def date_picker(self):
+    def date_picker(self) -> DatePicker:
         """
         The internal DatePicker widget.
         
@@ -1040,7 +1045,7 @@ class DateTimePicker(dcg.Layout):
         return self._date_picker
 
     @property
-    def time_picker(self):
+    def time_picker(self) -> TimePicker:
         """
         The internal TimePicker widget.
         
@@ -1065,7 +1070,7 @@ class DraggableBar(dcg.DrawInWindow):
     """
     
     def __init__(self, context, *, vertical=True, position=0.5, 
-                 callback=None, **kwargs):
+                 callback=None, **kwargs) -> None:
         # for better dragging interactions
         kwargs["button"] = True
         # Do not include spacing for the frame
@@ -1111,17 +1116,17 @@ class DraggableBar(dcg.DrawInWindow):
         ]
 
         # Add conditional handler for cursor change when in grab area
-        cursor = dcg.MouseCursor.ResizeEW if vertical else dcg.MouseCursor.ResizeNS
+        cursor = dcg.MouseCursor.RESIZE_EW if vertical else dcg.MouseCursor.RESIZE_NS
 
         class InGrabAreaHandler(dcg.CustomHandler):
             """Custom handler to check if mouse is in the grab area."""
-            def __init__(self, context, **kwargs):
+            def __init__(self, context, **kwargs) -> None:
                 super().__init__(context, **kwargs)
 
-            def check_can_bind(self, item):
+            def check_can_bind(self, item) -> bool:
                 return isinstance(item, DraggableBar)
 
-            def check_status(self, item: DraggableBar):
+            def check_status(self, item: DraggableBar) -> bool:
                 """Check if mouse is in the grab area."""
                 return item._is_in_grab_area()
 
@@ -1135,12 +1140,12 @@ class DraggableBar(dcg.DrawInWindow):
         self.handlers += [handler]
     
     @property
-    def position(self):
+    def position(self) -> float:
         """Current position (0.0-1.0) of the bar along parent."""
         return self._position
     
     @position.setter
-    def position(self, value):
+    def position(self, value) -> None:
         """Set position and update bar location."""
         # Clamp position between 0 and 1
         value = max(0.0, min(1.0, value))
@@ -1159,28 +1164,28 @@ class DraggableBar(dcg.DrawInWindow):
             # Call any registered callbacks
             self.run_callbacks()
     
-    def run_callbacks(self):
+    def run_callbacks(self) -> None:
         """Execute all registered callbacks with current position."""
         for callback in self._callbacks:
             if callback:
                 callback(self, self, self._position)
 
-    def _on_got_hover(self):
+    def _on_got_hover(self) -> None:
         """Called when the widget is hovered."""
         # Resolve theme styles
-        self._grab_rounding = dcg.resolve_theme(self, dcg.ThemeStyleImGui, "grab_rounding")
-        self._grab_radius = dcg.resolve_theme(self, dcg.ThemeStyleImGui, "grab_min_size") / 2.0 +\
-            dcg.resolve_theme(self, dcg.ThemeStyleImGui, "separator_text_border_size") / 2.0
+        self._grab_rounding = typing.cast(float, dcg.resolve_theme(self, dcg.ThemeStyleImGui, "grab_rounding"))
+        self._grab_radius = typing.cast(float, dcg.resolve_theme(self, dcg.ThemeStyleImGui, "grab_min_size")) / 2.0 +\
+            typing.cast(float, dcg.resolve_theme(self, dcg.ThemeStyleImGui, "separator_text_border_size")) / 2.0
 
         # Show the bar
         self._drawing_list.show = True
         self._update_bar_appearance()
     
-    def _on_lost_hover(self, sender, target):
+    def _on_lost_hover(self, sender, target) -> None:
         """Called when the widget is no longer hovered."""
         self._drawing_list.show = self._dragging_in_grab
     
-    def _on_clicked(self, sender, target, button):
+    def _on_clicked(self, sender, target, button) -> None:
         """Check if click was in the grab area."""
         self._dragging_in_grab = self._is_in_grab_area()
     
@@ -1194,11 +1199,12 @@ class DraggableBar(dcg.DrawInWindow):
         parent = self.parent
         if parent is None:
             return
+        assert isinstance(parent, dcg.uiItem), "DraggableBar cannot be in a plot"
         parent_size = parent.state.rect_size
         parent_width = parent_size.x
         parent_height = parent_size.y
         mouse_pos = self.context.get_mouse_position()
-        
+
         # Update position based on orientation
         if self._vertical and parent_width > 0:
             new_position = (mouse_pos.x - parent.state.pos_to_viewport.x) / parent_width
@@ -1210,12 +1216,12 @@ class DraggableBar(dcg.DrawInWindow):
         # Update position (will clamp to 0-1 range)
         self.position = new_position
     
-    def _on_dragged(self):
+    def _on_dragged(self) -> None:
         """Reset dragging state when dragging ends."""
         self._dragging_in_grab = False
         self._drawing_list.show = self.state.hovered
     
-    def _is_in_grab_area(self):
+    def _is_in_grab_area(self) -> bool:
         """Check if mouse is within the grab area of the bar."""
         if self._dragging_in_grab:
             return True
@@ -1239,7 +1245,7 @@ class DraggableBar(dcg.DrawInWindow):
             return (abs(rel_y - 0.5 * widget_size.y) < self._grab_radius and 
                     self._grab_rounding <= rel_x <= widget_size.x - self._grab_rounding)
 
-    def _update_bar_appearance(self):
+    def _update_bar_appearance(self) -> None:
         """Update the visual appearance of the bar."""
         # Clear existing drawings
         self._drawing_list.children = []
@@ -1248,13 +1254,13 @@ class DraggableBar(dcg.DrawInWindow):
         size = self.state.rect_size
         width = size.x
         height = size.y
-        thickness = dcg.resolve_theme(self, dcg.ThemeStyleImGui, "separator_text_border_size")
+        thickness = typing.cast(float, dcg.resolve_theme(self, dcg.ThemeStyleImGui, "separator_text_border_size"))
         center_x = width / 2.
         center_y = height / 2.
 
         # Resolve theme colors
-        border_color = dcg.resolve_theme(self, dcg.ThemeColorImGui, "separator_hovered")
-        shadow_color = dcg.resolve_theme(self, dcg.ThemeColorImGui, "border_shadow")
+        border_color = typing.cast(int, dcg.resolve_theme(self, dcg.ThemeColorImGui, "separator_hovered"))
+        shadow_color = typing.cast(int, dcg.resolve_theme(self, dcg.ThemeColorImGui, "border_shadow"))
 
         # Draw based on orientation
         with self._drawing_list:
@@ -1355,7 +1361,7 @@ class InputValueN(dcg.ChildWindow):
         # Initialize base class
         super().__init__(context, **kwargs)
     
-    def _create_inputs(self, count):
+    def _create_inputs(self, count) -> None:
         """Create or resize to the specified number of input fields"""
         if count < 1:
             count = 1
@@ -1407,19 +1413,19 @@ class InputValueN(dcg.ChildWindow):
             x = input_field.x + input_field.width + "theme.item_inner_spacing.x"
         self._label.x = x
     
-    def _handle_input_callback(self, sender, target, value):
+    def _handle_input_callback(self, sender, target, value) -> None:
         """Handler for individual input callbacks that forwards to parent callback"""
         # Call parent callbacks with all values
         for callback in self._callbacks:
             callback(self, self, self.values)
 
     @property
-    def callbacks(self):
+    def callbacks(self) -> list[dcg.Callback]:
         """List of callbacks to be called when values change"""
         return self._callbacks
         
     @callbacks.setter
-    def callbacks(self, value):
+    def callbacks(self, value) -> None:
         """Set callbacks for value changes"""
         if value is None:
             value = []
@@ -1434,12 +1440,12 @@ class InputValueN(dcg.ChildWindow):
             input_field.callback = self._handle_input_callback
     
     @property
-    def values(self):
+    def values(self) -> list[float]:
         """Get values from all input fields as a list"""
         return [input_field.value for input_field in self._inputs]
     
     @values.setter
-    def values(self, values):
+    def values(self, values) -> None:
         """Set values and adjust number of input fields if needed"""
         if not isinstance(values, (list, tuple)):
             values = [values]
@@ -1453,17 +1459,17 @@ class InputValueN(dcg.ChildWindow):
             self._inputs[i].value = value
     
     @property
-    def value(self):
+    def value(self) -> list[float]:
         """Get values as a list (alias for values)"""
         return self.values
     
     @value.setter
-    def value(self, value):
+    def value(self, value) -> None:
         """Set value(s), handling both scalar and list inputs"""
         self.values = value
     
     @property
-    def shareable_values(self):
+    def shareable_values(self) -> list[dcg.SharedFloat]:
         """Get the list of SharedFloat objects used by the input fields"""
         return self._shareable_values or [input_field.shareable_value for input_field in self._inputs]
     
@@ -1484,12 +1490,12 @@ class InputValueN(dcg.ChildWindow):
         self._shareable_values = values
     
     @property
-    def shareable_value(self):
+    def shareable_value(self) -> dcg.SharedFloat | None:
         """Get first SharedFloat object (for backward compatibility)"""
         return self.shareable_values[0] if self._inputs else None
     
     @shareable_value.setter
-    def shareable_value(self, value):
+    def shareable_value(self, value) -> None:
         """Set a single shareable value (extends to list if needed)"""
         if isinstance(value, (list, tuple)):
             self.shareable_values = value
@@ -1502,13 +1508,13 @@ class InputValueN(dcg.ChildWindow):
         return self._label.value
     
     @label.setter
-    def label(self, value):
+    def label(self, value) -> None:
         """Set the label for the last input field"""
         self._label.value = value
             
     # Forward all InputValue properties to reference input and all active inputs
     @property
-    def step(self):
+    def step(self) -> float:
         """Step size for incrementing/decrementing the values"""
         return self._reference_input.step
     
@@ -1535,40 +1541,40 @@ class InputValueN(dcg.ChildWindow):
         return self._reference_input.min_value
     
     @min_value.setter
-    def min_value(self, value):
+    def min_value(self, value) -> None:
         self._reference_input.min_value = value
         for input_field in self._inputs:
             input_field.min_value = value
     
     @property
-    def max_value(self):
+    def max_value(self) -> float:
         """Maximum value the inputs will be clamped to"""
         return self._reference_input.max_value
     
     @max_value.setter
-    def max_value(self, value):
+    def max_value(self, value) -> None:
         self._reference_input.max_value = value
         for input_field in self._inputs:
             input_field.max_value = value
     
     @property
-    def print_format(self):
+    def print_format(self) -> str:
         """Format string for displaying the numeric values"""
         return self._reference_input.print_format
     
     @print_format.setter
-    def print_format(self, value):
+    def print_format(self, value) -> None:
         self._reference_input.print_format = value
         for input_field in self._inputs:
             input_field.print_format = value
     
     @property
-    def decimal(self):
+    def decimal(self) -> bool:
         """Restricts input to decimal numeric characters"""
         return self._reference_input.decimal
     
     @decimal.setter
-    def decimal(self, value):
+    def decimal(self, value) -> None:
         self._reference_input.decimal = value
         for input_field in self._inputs:
             input_field.decimal = value
@@ -1579,7 +1585,7 @@ class InputValueN(dcg.ChildWindow):
         return self._reference_input.hexadecimal
     
     @hexadecimal.setter
-    def hexadecimal(self, value):
+    def hexadecimal(self, value) -> None:
         self._reference_input.hexadecimal = value
         for input_field in self._inputs:
             input_field.hexadecimal = value
@@ -1590,13 +1596,13 @@ class InputValueN(dcg.ChildWindow):
         return self._reference_input.scientific
     
     @scientific.setter
-    def scientific(self, value):
+    def scientific(self, value) -> None:
         self._reference_input.scientific = value
         for input_field in self._inputs:
             input_field.scientific = value
     
     @property
-    def callback_on_enter(self):
+    def callback_on_enter(self) -> bool:
         """Triggers callback when Enter key is pressed"""
         return self._reference_input.callback_on_enter
     
@@ -1607,7 +1613,7 @@ class InputValueN(dcg.ChildWindow):
             input_field.callback_on_enter = value
     
     @property
-    def escape_clears_all(self):
+    def escape_clears_all(self) -> bool:
         """Makes Escape key clear the field's content"""
         return self._reference_input.escape_clears_all
     
@@ -1618,67 +1624,67 @@ class InputValueN(dcg.ChildWindow):
             input_field.escape_clears_all = value
     
     @property
-    def readonly(self):
+    def readonly(self) -> bool:
         """Makes the input fields non-editable by the user"""
         return self._reference_input.readonly
     
     @readonly.setter
-    def readonly(self, value):
+    def readonly(self, value) -> None:
         self._reference_input.readonly = value
         for input_field in self._inputs:
             input_field.readonly = value
     
     @property
-    def password(self):
+    def password(self) -> bool:
         """Hides the input by displaying asterisks"""
         return self._reference_input.password
     
     @password.setter
-    def password(self, value):
+    def password(self, value) -> None:
         self._reference_input.password = value
         for input_field in self._inputs:
             input_field.password = value
     
     @property
-    def always_overwrite(self):
+    def always_overwrite(self) -> bool:
         """Enables overwrite mode for text input"""
         return self._reference_input.always_overwrite
     
     @always_overwrite.setter
-    def always_overwrite(self, value):
+    def always_overwrite(self, value) -> None:
         self._reference_input.always_overwrite = value
         for input_field in self._inputs:
             input_field.always_overwrite = value
     
     @property
-    def auto_select_all(self):
+    def auto_select_all(self) -> bool:
         """Automatically selects all content when the field is focused"""
         return self._reference_input.auto_select_all
     
     @auto_select_all.setter
-    def auto_select_all(self, value):
+    def auto_select_all(self, value) -> None:
         self._reference_input.auto_select_all = value
         for input_field in self._inputs:
             input_field.auto_select_all = value
     
     @property
-    def empty_as_zero(self):
+    def empty_as_zero(self) -> bool:
         """Treats empty input fields as zero values"""
         return self._reference_input.empty_as_zero
     
     @empty_as_zero.setter
-    def empty_as_zero(self, value):
+    def empty_as_zero(self, value) -> None:
         self._reference_input.empty_as_zero = value
         for input_field in self._inputs:
             input_field.empty_as_zero = value
     
     @property
-    def empty_if_zero(self):
+    def empty_if_zero(self) -> bool:
         """Displays an empty field when the value is zero"""
         return self._reference_input.empty_if_zero
     
     @empty_if_zero.setter
-    def empty_if_zero(self, value):
+    def empty_if_zero(self, value) -> None:
         self._reference_input.empty_if_zero = value
         for input_field in self._inputs:
             input_field.empty_if_zero = value
@@ -1689,18 +1695,18 @@ class InputValueN(dcg.ChildWindow):
         return self._reference_input.no_horizontal_scroll
     
     @no_horizontal_scroll.setter
-    def no_horizontal_scroll(self, value):
+    def no_horizontal_scroll(self, value) -> None:
         self._reference_input.no_horizontal_scroll = value
         for input_field in self._inputs:
             input_field.no_horizontal_scroll = value
     
     @property
-    def no_undo_redo(self):
+    def no_undo_redo(self) -> bool:
         """Disables the undo/redo functionality for input fields"""
         return self._reference_input.no_undo_redo
     
     @no_undo_redo.setter
-    def no_undo_redo(self, value):
+    def no_undo_redo(self, value) -> None:
         self._reference_input.no_undo_redo = value
         for input_field in self._inputs:
             input_field.no_undo_redo = value
@@ -1758,7 +1764,7 @@ class SliderN(dcg.ChildWindow):
             attach=False,
             label="",
             y=0, height=0,
-            callbacks=self._handle_slider_callback,
+            callback=self._handle_slider_callback,
             **slider_props  # Apply all Slider-specific properties
         )
         
@@ -1774,7 +1780,7 @@ class SliderN(dcg.ChildWindow):
         # Initialize base class
         super().__init__(context, **kwargs)
     
-    def _create_sliders(self, count):
+    def _create_sliders(self, count) -> None:
         """Create or resize to the specified number of sliders"""
         if count < 1:
             count = 1
@@ -1813,7 +1819,7 @@ class SliderN(dcg.ChildWindow):
         for i, value in enumerate(current_values[:count]):
             self._sliders[i].value = value
 
-    def _update_positions(self):
+    def _update_positions(self) -> None:
         """Update positions and sizes of all sliders (and the label)"""
         num_sliders = len(self._sliders)
         num_items = (1 if self._label.show else 0) + num_sliders
@@ -1833,19 +1839,19 @@ class SliderN(dcg.ChildWindow):
         # Position label at the end
         self._label.x = x
     
-    def _handle_slider_callback(self, sender, target, value):
+    def _handle_slider_callback(self, sender, target, value) -> None:
         """Handler for individual slider callbacks that forwards to parent callback"""
         # Call parent callbacks with all values
         for callback in self._callbacks:
             callback(self, self, self.values)
 
     @property
-    def callbacks(self):
+    def callbacks(self) -> list[dcg.Callback]:
         """List of callbacks to be called when values change"""
         return self._callbacks
         
     @callbacks.setter
-    def callbacks(self, value):
+    def callbacks(self, value) -> None:
         """Set callbacks for value changes"""
         if value is None:
             value = []
@@ -1860,12 +1866,12 @@ class SliderN(dcg.ChildWindow):
             slider.callback = self._handle_slider_callback
     
     @property
-    def values(self):
+    def values(self) -> list[float]:
         """Get values from all sliders as a list"""
         return [slider.value for slider in self._sliders]
     
     @values.setter
-    def values(self, values):
+    def values(self, values) -> None:
         """Set values and adjust number of sliders if needed"""
         if not isinstance(values, (list, tuple)):
             values = [values]
@@ -1879,22 +1885,22 @@ class SliderN(dcg.ChildWindow):
             self._sliders[i].value = value
     
     @property
-    def value(self):
+    def value(self) -> list[float]:
         """Get values as a list (alias for values)"""
         return self.values
     
     @value.setter
-    def value(self, value):
+    def value(self, value) -> None:
         """Set value(s), handling both scalar and list inputs"""
         self.values = value
     
     @property
-    def shareable_values(self):
+    def shareable_values(self) -> list[dcg.SharedFloat]:
         """Get the list of SharedFloat objects used by the sliders"""
         return self._shareable_values or [slider.shareable_value for slider in self._sliders]
     
     @shareable_values.setter
-    def shareable_values(self, values):
+    def shareable_values(self, values) -> None:
         """Link with external SharedFloat objects"""
         if not isinstance(values, (list, tuple)):
             values = [values]
@@ -1910,12 +1916,12 @@ class SliderN(dcg.ChildWindow):
         self._shareable_values = values
     
     @property
-    def shareable_value(self):
+    def shareable_value(self) -> dcg.SharedFloat | None:
         """Get first SharedFloat object (for backward compatibility)"""
         return self.shareable_values[0] if self._sliders else None
     
     @shareable_value.setter
-    def shareable_value(self, value):
+    def shareable_value(self, value) -> None:
         """Set a single shareable value (extends to list if needed)"""
         if isinstance(value, (list, tuple)):
             self.shareable_values = value
@@ -1923,12 +1929,12 @@ class SliderN(dcg.ChildWindow):
             self.shareable_values = [value]
     
     @property
-    def label(self):
+    def label(self) -> str:
         """Get the label displayed next to the last slider"""
         return self._label.value
     
     @label.setter
-    def label(self, value):
+    def label(self, value) -> None:
         """Set the label for the widget"""
         self._label.value = value
         self._label.show = value != ""
@@ -1936,111 +1942,111 @@ class SliderN(dcg.ChildWindow):
             
     # Forward all Slider properties to reference slider and all active sliders
     @property
-    def keyboard_clamped(self):
+    def keyboard_clamped(self) -> bool:
         """Whether slider values are clamped even when set via keyboard"""
         return self._reference_slider.keyboard_clamped
     
     @keyboard_clamped.setter
-    def keyboard_clamped(self, value):
+    def keyboard_clamped(self, value) -> None:
         self._reference_slider.keyboard_clamped = value
         for slider in self._sliders:
             slider.keyboard_clamped = value
     
     @property
-    def drag(self):
+    def drag(self) -> bool:
         """Whether to use 'drag' sliders rather than regular ones"""
         return self._reference_slider.drag
     
     @drag.setter
-    def drag(self, value):
+    def drag(self, value) -> None:
         self._reference_slider.drag = value
         for slider in self._sliders:
             slider.drag = value
     
     @property
-    def logarithmic(self):
+    def logarithmic(self) -> bool:
         """Whether sliders should use logarithmic scaling"""
         return self._reference_slider.logarithmic
     
     @logarithmic.setter
-    def logarithmic(self, value):
+    def logarithmic(self, value) -> None:
         self._reference_slider.logarithmic = value
         for slider in self._sliders:
             slider.logarithmic = value
     
     @property
-    def min_value(self):
+    def min_value(self) -> float:
         """Minimum value the sliders will be clamped to"""
         return self._reference_slider.min_value
     
     @min_value.setter
-    def min_value(self, value):
+    def min_value(self, value) -> None:
         self._reference_slider.min_value = value
         for slider in self._sliders:
             slider.min_value = value
     
     @property
-    def max_value(self):
+    def max_value(self) -> float:
         """Maximum value the sliders will be clamped to"""
         return self._reference_slider.max_value
     
     @max_value.setter
-    def max_value(self, value):
+    def max_value(self, value) -> None:
         self._reference_slider.max_value = value
         for slider in self._sliders:
             slider.max_value = value
     
     @property
-    def no_input(self):
+    def no_input(self) -> bool:
         """Whether to disable keyboard input for the sliders"""
         return self._reference_slider.no_input
     
     @no_input.setter
-    def no_input(self, value):
+    def no_input(self, value) -> None:
         self._reference_slider.no_input = value
         for slider in self._sliders:
             slider.no_input = value
     
     @property
-    def print_format(self):
+    def print_format(self) -> str:
         """Format string for displaying slider values"""
         return self._reference_slider.print_format
     
     @print_format.setter
-    def print_format(self, value):
+    def print_format(self, value) -> None:
         self._reference_slider.print_format = value
         for slider in self._sliders:
             slider.print_format = value
     
     @property
-    def no_round(self):
+    def no_round(self) -> bool:
         """Whether to disable rounding of values according to print_format"""
         return self._reference_slider.no_round
     
     @no_round.setter
-    def no_round(self, value):
+    def no_round(self, value) -> None:
         self._reference_slider.no_round = value
         for slider in self._sliders:
             slider.no_round = value
     
     @property
-    def speed(self):
+    def speed(self) -> float:
         """Speed at which values change in drag mode"""
         return self._reference_slider.speed
     
     @speed.setter
-    def speed(self, value):
+    def speed(self, value) -> None:
         self._reference_slider.speed = value
         for slider in self._sliders:
             slider.speed = value
     
     @property
-    def vertical(self):
+    def vertical(self) -> bool:
         """Whether to display sliders vertically"""
         return self._reference_slider.vertical
     
     @vertical.setter
-    def vertical(self, value):
+    def vertical(self, value) -> None:
         self._reference_slider.vertical = value
         for slider in self._sliders:
             slider.vertical = value
