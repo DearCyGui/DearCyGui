@@ -5199,37 +5199,40 @@ cdef void update_current_mouse_states(itemState& state) noexcept nogil:
                 state.cur.clicked[i] = False
                 state.cur.double_clicked[i] = False
     cdef bint dragging
+    cdef int32_t start_button = 0
     if state.cap.can_be_dragged:
         for i in range(<int>imgui.ImGuiMouseButton_COUNT):
             state.cur.dragging[i] = False
         # An item can be dragged while not hovered anymore. Activation (clicked + press maintained)
         # is the most reliable criteria. If the item does not support activation, rely on hovering
-        # test, and keeping dragging active
-        if state.cap.can_be_active and state.cur.active:
-            for i in range(<int>imgui.ImGuiMouseButton_COUNT):
-                dragging = imgui.IsMouseDragging(i, -1.)
+        # test, and keeping dragging active.
+        # We do this only for left click as it is usually the button for activation
+
+        if state.cap.can_be_active:
+            if state.cur.active:
+                dragging = imgui.IsMouseDragging(0, -1.)
                 if dragging:
-                    state.cur.drag_deltas[i] = ImVec2Vec2(imgui.GetMouseDragDelta(i, -1.))
-                    state.cur.dragging[i] = True
-        if not(state.cap.can_be_active):
-            for i in range(<int>imgui.ImGuiMouseButton_COUNT):
-                dragging = imgui.IsMouseDragging(i, -1.)
-                if dragging:
-                    if not state.prev.dragging[i]:
-                        if state.cur.hovered:
-                            # check if the item was hovered when the mouse was pressed
-                            if state.cur.pos_to_viewport.x > imgui.GetIO().MouseClickedPos[i].x or \
-                               state.cur.pos_to_viewport.y > imgui.GetIO().MouseClickedPos[i].y or \
-                               (state.cur.pos_to_viewport.x + state.cur.rect_size.x) < imgui.GetIO().MouseClickedPos[i].x or \
-                               (state.cur.pos_to_viewport.y + state.cur.rect_size.y) < imgui.GetIO().MouseClickedPos[i].y:
-                                # The item was not hovered when the mouse was pressed
-                                dragging = False
-                        else:
-                            # Item is not hovered at all, so we cannot be starting dragging it
+                    state.cur.drag_deltas[0] = ImVec2Vec2(imgui.GetMouseDragDelta(0, -1.))
+                    state.cur.dragging[0] = True
+            start_button = 1
+        for i in range(start_button, <int>imgui.ImGuiMouseButton_COUNT):
+            dragging = imgui.IsMouseDragging(i, -1.)
+            if dragging:
+                if not state.prev.dragging[i]:
+                    if state.cur.hovered:
+                        # check if the item was hovered when the mouse was pressed
+                        if state.cur.pos_to_viewport.x > imgui.GetIO().MouseClickedPos[i].x or \
+                            state.cur.pos_to_viewport.y > imgui.GetIO().MouseClickedPos[i].y or \
+                            (state.cur.pos_to_viewport.x + state.cur.rect_size.x) < imgui.GetIO().MouseClickedPos[i].x or \
+                            (state.cur.pos_to_viewport.y + state.cur.rect_size.y) < imgui.GetIO().MouseClickedPos[i].y:
+                            # The item was not hovered when the mouse was pressed
                             dragging = False
-                if dragging:
-                    state.cur.drag_deltas[i] = ImVec2Vec2(imgui.GetMouseDragDelta(i, -1.))
-                    state.cur.dragging[i] = True
+                    else:
+                        # Item is not hovered at all, so we cannot be starting dragging it
+                        dragging = False
+            if dragging:
+                state.cur.drag_deltas[i] = ImVec2Vec2(imgui.GetMouseDragDelta(i, -1.))
+                state.cur.dragging[i] = True
 
 # Drawing items base class
 

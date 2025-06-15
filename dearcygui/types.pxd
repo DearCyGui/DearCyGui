@@ -76,18 +76,18 @@ cdef bint is_MouseButtonMask(value)
 cdef object make_MouseButtonMask(value)
 
 cpdef enum class MouseCursor:
-    CursorNone = -1,
-    CursorArrow = 0,
-    CursorTextInput,         # When hovering over InputText, etc.
-    ResizeAll,         # (Unused by Dear ImGui functions)
-    ResizeNS,          # When hovering over a horizontal border
-    ResizeEW,          # When hovering over a vertical border or a column
-    ResizeNESW,        # When hovering over the bottom-left corner of a window
-    ResizeNWSE,        # When hovering over the bottom-right corner of a window
-    Hand,              # (Unused by Dear ImGui functions. Use for e.g. hyperlinks)
-    Wait,
-    Progress,
-    NotAllowed
+    NONE = -1,
+    ARROW = 0,
+    TEXTINPUT,         # When hovering over InputText, etc.
+    RESIZE_ALL,         # (Unused by Dear ImGui functions)
+    RESIZE_NS,          # When hovering over a horizontal border
+    RESIZE_EW,          # When hovering over a vertical border or a column
+    RESIZE_NESW,        # When hovering over the bottom-left corner of a window
+    RESIZE_NWSE,        # When hovering over the bottom-right corner of a window
+    HAND,              # (Unused by Dear ImGui functions. Use for e.g. hyperlinks)
+    WAIT,
+    PROGRESS,
+    NOT_ALLOWED
 
 cdef bint is_MouseCursor(value)
 cdef object make_MouseCursor(value)

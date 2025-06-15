@@ -1104,7 +1104,7 @@ cdef class MouseCursorHandler(baseHandler):
     combined with a HoverHandler.
     """
     def __cinit__(self):
-        self._mouse_cursor = MouseCursor.CursorArrow
+        self._mouse_cursor = MouseCursor.ARROW
 
     @property
     def cursor(self):

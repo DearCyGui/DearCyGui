@@ -53,7 +53,7 @@ class DragPoint(dcg.DrawingList):
         # and do not need the mutex
         set_cursor_on_hover = dcg.ConditionalHandler(self.context)
         with set_cursor_on_hover:
-            dcg.MouseCursorHandler(self.context, cursor=dcg.MouseCursor.ResizeAll)
+            dcg.MouseCursorHandler(self.context, cursor=dcg.MouseCursor.RESIZE_ALL)
             dcg.HoverHandler(self.context)
         self.invisible.handlers += [
             dcg.HoverHandler(self.context, callback=self.handler_hover),

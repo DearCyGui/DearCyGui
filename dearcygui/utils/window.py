@@ -81,7 +81,7 @@ class MetricsWindow(dcg.Window):
 
         with dcg.TabBar(c, label="Main Tabbar", parent=self):
             with dcg.Tab(c, label="General"):
-                dcg.Text(c, label="DearCyGui Version: 0.0.1")
+                dcg.Text(c, value="DearCyGui Version: 0.1.0")
                 self.text1 = dcg.Text(c)
                 self.text2 = dcg.Text(c)
                 self.text3 = dcg.Text(c)
@@ -286,15 +286,13 @@ class ItemInspecter(dcg.Window):
             # If an item is hovered and the Alt key is pressed,
             # handle dragging an item.
             with dcg.ConditionalHandler(C):
-                with dcg.HandlerList(C):
-                    dcg.DraggingHandler(C, button=1, callback=self.handle_item_dragging)
-                    dcg.DraggedHandler(C, button=1, callback=self.handle_item_dragged)
-                dcg.HoverHandler(C)
-                dcg.KeyDownHandler(C, key=dcg.Key.LEFTALT) # TODO: modifiers
+                dcg.DraggingHandler(C, button=dcg.MouseButton.RIGHT, callback=self.handle_item_dragging)
+                dcg.KeyDownHandler(C, key=dcg.Key.LEFTALT)
+            dcg.DraggedHandler(C, button=dcg.MouseButton.RIGHT, callback=self.handle_item_dragged)
             # If a compatible item is hovered and the ALT key is set,
             # change the cursor to show we can drag
             with dcg.ConditionalHandler(C):
-                dcg.MouseCursorHandler(C, cursor=dcg.MouseCursor.Hand)
+                dcg.MouseCursorHandler(C, cursor=dcg.MouseCursor.HAND)
                 dcg.HoverHandler(C)
                 dcg.KeyDownHandler(C, key=dcg.Key.LEFTALT)
 
@@ -377,42 +375,47 @@ class ItemInspecter(dcg.Window):
         # Attach the tooltip to our window.
         # This is to not perturb the item states
         # and child tree.
-        default_item = item.__class__(C, attach=False)
+        try:
+            default_item = item.__class__(C, attach=False)
+        except:
+            default_item = None
         ignore_list = [
             "shareable_value",
         ]
         with utils.TemporaryTooltip(C, target=item, parent=self):
             dcg.Text(C).value = f"{item}:"
-            with dcg.HorizontalLayout(C, indent=-1, theme=dcg.ThemeStyleImGui(C, item_spacing=(40., -3.))):
-                left = dcg.VerticalLayout(C)
-                right = dcg.VerticalLayout(C)
-                for state in item_states:
-                    if state[0] == "_":
+            dcg.Spacer(C, width="theme.indent_spacing.x - theme.item_spacing.x", no_newline=True)
+            left = dcg.VerticalLayout(C,
+                theme=dcg.ThemeStyleImGui(C, item_spacing=(40., -3.)),
+                no_newline=True)
+            right = dcg.VerticalLayout(C, theme=left.theme)
+            for state in item_states:
+                if state[0] == "_":
+                    continue
+                try:
+                    value = getattr(item, state)
+                    if hasattr(value, '__code__'):
+                        # ignore methods
                         continue
+                    if state == "handlers":
+                        # remove ourselves
+                        value = [v for v in value if v is not self.item_handler]
                     try:
-                        value = getattr(item, state)
-                        if hasattr(value, '__code__'):
-                            # ignore methods
+                        if value == getattr(default_item, state):
+                            # ignore non defaults
                             continue
-                        if state == "handlers":
-                            # remove ourselves
-                            value = [v for v in value if v is not self.item_handler]
-                        try:
-                            if value == getattr(default_item, state):
-                                # ignore non defaults
-                                continue
-                        except Exception: # Not all states can be compared
-                            pass
-                        if state in ignore_list:
-                            continue
-                    except AttributeError:
-                        # Some states are advertised, but not
-                        # available
+                    except Exception: # Not all states can be compared
+                        pass
+                    if state in ignore_list:
                         continue
-                    with left:
-                        dcg.Text(C, value=f"{state}:")
-                    with right:
-                        dcg.Text(C, value=value)
+                except AttributeError:
+                    # Some states are advertised, but not
+                    # available
+                    continue
+                with left:
+                    dcg.Text(C, value=f"{state}:")
+                with right:
+                    dcg.Text(C, value=value)
 
 def _is_style_element(class_obj: dcg.baseTheme, name: str) -> bool:
     """
@@ -500,9 +503,8 @@ class StyleEditor(dcg.Window):
                                 continue # Skip unsupported types
                             def callback_imgui_style(s, t, d, style_name=style_name):
                                 try:
-                                    # remove extra values if tuple
-                                    if len(d) > 2:
-                                        d = (d[0], d[1])
+                                    if len(d) == 1:
+                                        d = d[0]
                                 except:
                                     pass
                                 setattr(self.imgui_style_theme, style_name, d)
@@ -545,9 +547,8 @@ class StyleEditor(dcg.Window):
                                 continue # Skip unsupported types
                             def callback_implot_style(s, t, d, style_name=style_name):
                                 try:
-                                    # remove extra values if tuple
-                                    if len(d) > 2:
-                                        d = (d[0], d[1])
+                                    if len(d) == 1:
+                                        d = d[0]
                                 except:
                                     pass
                                 setattr(self.implot_style_theme, style_name, d)
@@ -760,7 +761,7 @@ class StyleEditor(dcg.Window):
             
             # Display the demo button with applied theme
             dcg.Text(C, value="Live Preview:")
-            dcg.Button(C, indent=-1, label="Demo Button", theme=demo_theme)
+            dcg.Button(C, x="parent.x1 + theme.item_spacing.x", label="Demo Button", theme=demo_theme)
             
             dcg.Separator(C)
             
