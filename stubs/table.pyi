@@ -6,7 +6,7 @@ from typing import Protocol
 class SupportsStr(Protocol):
     def __str__(self) -> str: ...
 
-TableContentValue = 'uiItem' | SupportsStr
+TableContentValue : TypeAlias = 'uiItem' | SupportsStr
 
 class TableElement:
     """
@@ -115,7 +115,7 @@ class TableElement:
         ...
     
 
-TableValue = 'uiItem' | TableElement | SupportsStr
+TableValue : TypeAlias = 'uiItem' | TableElement | SupportsStr
 
 class TableRowView:
     """
@@ -138,7 +138,7 @@ class TableRowView:
         """
         ...
     
-    def __exit__(self, exc_type, exc_value, traceback) -> False:
+    def __exit__(self, exc_type, exc_value, traceback) -> Literal[False]:
         """
         Convert children added during context into row values.
         
@@ -197,7 +197,7 @@ class TableColView:
         """
         ...
     
-    def __exit__(self, exc_type, exc_value, traceback) -> False:
+    def __exit__(self, exc_type, exc_value, traceback) -> Literal[False]:
         """
         Convert children added during context into column values.
         

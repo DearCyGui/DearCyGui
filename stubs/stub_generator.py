@@ -1,5 +1,6 @@
 import copy
 import dearcygui as dcg
+import enum
 import inspect
 import functools
 
@@ -294,13 +295,13 @@ def indent(s: list[str] | str, trim_start=False, short=False):
 
 
 hardcoded = {
-    "parent": "baseItemSubCls | None",
+    "parent": "'baseItem' | None",
     "pos_policy": "tuple['Positioning', 'Positioning']",
-    "font": "'baseFont'",
+    "font": "'baseFont' | None",
     "fonts": "Sequence['Font']",
-    "children": "Sequence[baseItemSubCls]",
-    "previous_sibling": "baseItemSubCls | None",
-    "next_sibling": "baseItemSubCls | None",
+    "children": "Sequence['baseItem']",
+    "previous_sibling": "'baseItem' | None",
+    "next_sibling": "'baseItem' | None",
     "callback": "DCGCallable | None",
     "callbacks" : "Sequence[DCGCallable]",
     "color" : "Color",
@@ -311,25 +312,10 @@ hardcoded = {
     "height": "float | str | 'baseSizing'",
     "x": "float | str | 'baseSizing'",
     "y": "float | str | 'baseSizing'",
-    "handlers": "Sequence[baseHandlerSubCls] | baseHandlerSubCls | None",
-    "legend_handlers": "Sequence[baseHandlerSubCls] | baseHandlerSubCls | None",
+    "handlers": "Sequence['baseHandler'] | 'baseHandler' | None",
+    "legend_handlers": "Sequence['baseHandler'] | 'baseHandler' | None",
     "recent_scales": "Sequence[float]",
-}
-
-subcls_to_cls = {
-    'baseItemSubCls': "'baseItem'",
-    'drawingItemSubCls': "'drawingItem'",
-    'plotElementSubCls': "'plotElement'",
-    'uiItemSubCls': "'uiItem'",
-    'baseHandlerSubCls': "'baseHandler'",
-    'baseThemeSubCls': "'baseTheme'",
-    'ChildWindowSubCls': "'ChildWindow'",
-    'DrawInWindowSubCls': "'DrawInWindow'",
-    'DrawInPlotSubCls': "'DrawInPlot'",
-    'MenuBarSubCls': "'MenuBar'",
-    'PlotSubCls': "'Plot'",
-    'ViewportDrawListSubCls': "'ViewportDrawList'",
-    'WindowSubCls': "'Window'",
+    "queue": "TaskSubmitter",
 }
 
 
@@ -339,59 +325,59 @@ def typename(object_class, instance, name, value):
            issubclass(object_class, dcg.DrawInPlot) or \
            issubclass(object_class, dcg.ViewportDrawList) or \
            issubclass(object_class, dcg.DrawInvisibleButton):
-            return "Sequence[drawingItemSubCls]"
+            return "Sequence['drawingItem']"
         if issubclass(object_class, dcg.Plot):
-            return "Sequence[plotElementSubCls]"
+            return "Sequence['plotElement']"
         if issubclass(object_class, dcg.Window):
-            return "Sequence[uiItemSubCls | MenuBarSubCls]"
+            return "Sequence['uiItem' | 'MenuBar']"
         if issubclass(object_class, dcg.ChildWindow):
-            return "Sequence[uiItemSubCls | MenuBarSubCls]"
+            return "Sequence['uiItem' | 'MenuBar']"
         if issubclass(object_class, dcg.Viewport):
-            return "Sequence[WindowSubCls | ViewportDrawListSubCls | MenuBarSubCls]"
+            return "Sequence['Window' | 'ViewportDrawList' | 'MenuBar']"
         if issubclass(object_class, dcg.drawingItem):
             try:
                 instance.children = [dcg.DrawLine(instance.context)]
-                return "Sequence[drawingItemSubCls]"
+                return "Sequence['drawingItem']"
             except:
-                return "None "
+                return "list[Never]"
         if issubclass(object_class, dcg.uiItem) or \
            issubclass(object_class, dcg.plotElement):
             try:
                 instance.children = [dcg.Button(instance.context)]
-                return "Sequence[uiItemSubCls]"
+                return "Sequence['uiItem']"
             except:
-                return "None " # Space to not be filtered by the code later...
+                return "list[Never]"
         if issubclass(object_class, dcg.baseHandler):
             try:
                 instance.children = [dcg.HandlerList(instance.context)]
-                return "Sequence[baseHandlerSubCls]"
+                return "Sequence['baseHandler']"
             except:
-                return "None "
+                return "list[Never]"
         if issubclass(object_class, dcg.baseTheme):
             try:
                 instance.children = [dcg.ThemeColorImGui(instance.context)]
-                return "Sequence[baseThemeSubCls]"
+                return "Sequence['baseTheme']"
             except:
-                return "None "
+                return "list[Never]"
         if issubclass(object_class, dcg.SharedValue):
-            return "None "
+            return "list[Never]"
     if name == "parent":
         if issubclass(object_class, dcg.Window):
             return "'Viewport' | None"
         if issubclass(object_class, dcg.MenuBar):
-            return "'Viewport' | WindowSubCls | ChildWindowSubCls | None"
+            return "'Viewport' | 'Window' | 'ChildWindow' | None"
         if issubclass(object_class, dcg.ViewportDrawList):
             return "'Viewport' | None"
         if issubclass(object_class, dcg.drawingItem):
-            return "DrawInWindowSubCls | DrawInPlotSubCls | ViewportDrawListSubCls | drawingItemSubCls | None"
+            return "'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None"
         if issubclass(object_class, dcg.uiItem):
-            return "uiItemSubCls | plotElementSubCls | None"
+            return "'uiItem' | 'plotElement' | None"
         if issubclass(object_class, dcg.plotElement):
-            return "PlotSubCls | None"
+            return "'Plot' | None"
         if issubclass(object_class, dcg.baseHandler):
-            return "baseHandlerSubCls | None"
+            return "'baseHandler' | None"
         if issubclass(object_class, dcg.baseTheme):
-            return "baseThemeSubCls | None"
+            return "'baseTheme' | None"
 
     if issubclass(object_class, dcg.plotElement) and type(value).__name__ == "_memoryviewslice":
         return "Array"
@@ -409,6 +395,8 @@ def typename(object_class, instance, name, value):
            issubclass(object_class, dcg.ColorEdit) or \
            issubclass(object_class, dcg.ColorButton):
                 return "Color"
+        if object_class.__name__ == "SharedFloatVect":
+            return "Array"
         #if issubclass(object_class, dcg.InputValue) or \
         #   issubclass(object_class, dcg.Slider):
         #    return "float | int | Sequence[float] | Sequence[int]"
@@ -436,7 +424,7 @@ def typename(object_class, instance, name, value):
             else:
                 default = "Sequence[Any]"
     default = hardcoded.get(name, default)
-    if issubclass(object_class, dcg.baseTheme) and default is None:
+    if issubclass(object_class, dcg.baseTheme) and default is None or name in ['fill']:
         if issubclass(object_class, dcg.baseThemeColor):
             return hardcoded["color"] + "| None"
         if issubclass(object_class, dcg.baseThemeStyle):
@@ -462,6 +450,8 @@ def typename(object_class, instance, name, value):
                 pass
     if isinstance(value, dcg.Coord):
         return "Sequence[float] | tuple[float, float] | 'Coord'"
+    if isinstance(value, dcg.Rect):
+        return "Sequence[float] | tuple[float, float] | 'Rect'"
     if issubclass(object_class, dcg.Texture):
         if name == "width" or name == "height":
             return "int"
@@ -549,6 +539,12 @@ def generate_docstring_for_class(object_class, instance):
             call_sig = inspect.signature(method)
         except:
             # Manual handling of a few failure cases:
+            if object_class.__name__ == "Context" and method.__name__ == "__init__":
+                result.append(
+                    level1 + f"def __init__(self, queue: TaskSubmitter | None = None) -> None:"
+                )
+                result.append(level2 + '"""Initialize the Context with an optional TaskSubmitter"""')
+                result.append(level2 + "...")
             if object_class.__name__ == "baseTable":
                 if method.__name__ == "__getitem__":
                     result.append(
@@ -689,7 +685,7 @@ def generate_docstring_for_class(object_class, instance):
                     params_str.append("content: Array | None = None")
                 if object_class.__name__ == "AutoFont":
                     params_str.append("base_size: float = 17.0")
-                    params_str.append("font_creator: Callable[[float, ...], 'GlyphSet'] | None = None")
+                    params_str.append("font_creator: Callable[Concatenate[float, ...], 'GlyphSet'] | None = None")
                 continue
             if param.name == 'kwargs':
                 if "callbacks" in additional_properties and "callback" in additional_properties:
@@ -718,6 +714,10 @@ def generate_docstring_for_class(object_class, instance):
                         v = "..."
                     elif v is not None and '<' in str(v): # default is a class
                         v = "..."
+                    elif v is not None and hasattr(dcg, v_type) and isinstance(v, int) and issubclass(getattr(dcg, v_type), enum.Enum):
+                        v = getattr(dcg, v_type)(v)
+                        # Retrieve the enum name
+                        v = f"{v_type}.{v.name}"                                                                      
                     elif v_type == "NoneType": # Likely a class
                         v_type = "Any"
                         v = "..."
@@ -788,7 +788,7 @@ def generate_docstring_for_class(object_class, instance):
                 include_exit = False
         
         if include_exit:
-            result.append(f"{level1}def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> False:")
+            result.append(f"{level1}def __exit__(self, exc_type : Any, exc_value : Any, traceback : Any) -> Literal[False]:")
             result.append(f"{level2}...")
             result.append("\n")
 
@@ -811,12 +811,14 @@ def generate_docstring_for_class(object_class, instance):
             if isinstance(default_value, dcg.Coord):
                 # property read is always Coord 
                 tname_read = "'Coord'"
+            elif isinstance(default_value, dcg.Rect):
+                tname_read = "'Rect'"
             elif isinstance(default_value, dcg.baseSizing):
                 # property read is always baseSizing
                 tname_read = "'baseSizing'"
             elif property == "handlers" or property == "legend_handlers":
-                # handlers is always list of baseHandlerSubCls
-                tname_read = "list[baseHandlerSubCls]"
+                # handlers is always list of 'baseHandler'
+                tname_read = "list['baseHandler']"
             elif property == "children":
                 # replace Sequence with list
                 tname_read = tname.replace("Sequence[", "list[")
@@ -826,11 +828,6 @@ def generate_docstring_for_class(object_class, instance):
             elif property.startswith("uv") and isinstance(default_value, list) and len(default_value) == 2:
                 # uv properties are always list of float
                 tname_read = "list[float]"
-            # For tname_read, replace subcls with cls
-            # type checkers seem to have issues with subcls as
-            # return values
-            for subcls, cls in subcls_to_cls.items():
-                tname_read = tname_read.replace(subcls, cls)
 
             result.append(f"{level1}{definition} -> {tname_read}:")
         docstring = docs[property]
@@ -1012,6 +1009,9 @@ with open("../dearcygui/core.pyi", "w") as f:
         f.write(f2.read())
     f.write("\n")
     with open("types.pyi", "r") as f2:
+        f.write(f2.read())
+    f.write("\n")
+    with open("imgui_types.pyi", "r") as f2:
         f.write(f2.read())
     f.write("\n")
     with open("state.pyi", "r") as f2:

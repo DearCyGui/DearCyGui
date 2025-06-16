@@ -1468,10 +1468,10 @@ def make_bold_italic(text: str) -> str:
 
 # Replace make_extended_latin_font implementation with:
 def make_extended_latin_font(size: int,
-                             main_font_path: str = None,
-                             italic_font_path: str = None, 
-                             bold_font_path: str = None,
-                             bold_italic_path: str = None,
+                             main_font_path: str | None = None,
+                             italic_font_path: str | None = None, 
+                             bold_font_path: str | None = None,
+                             bold_italic_path: str | None = None,
                              **kwargs) -> GlyphSet:
     """Create an extended latin font with bold/italic variants for the target size"""
 

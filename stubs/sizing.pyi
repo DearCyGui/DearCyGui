@@ -1,7 +1,6 @@
 
-from typing import Union, overload, TypeVar, Literal, NotImplementedType
-
-NumStrT = Union[int, float, str]
+from types import NotImplementedType
+NumStrT = int | float | str
 
 
 class baseSizing:
@@ -31,25 +30,25 @@ class baseSizing:
     def value(self, v: float) -> None:
         ...
     
-    def __add__(self, other: Union[NumStrT, 'baseSizing']) -> Union[NotImplementedType, 'AddSize']:
+    def __add__(self, other: NumStrT | 'baseSizing') -> NotImplementedType | 'AddSize':
         ...
     
-    def __sub__(self, other: Union[NumStrT, 'baseSizing']) -> Union[NotImplementedType, 'SubtractSize']:
+    def __sub__(self, other: NumStrT | 'baseSizing') -> NotImplementedType | 'SubtractSize':
         ...
     
-    def __mul__(self, other: Union[NumStrT, 'baseSizing']) -> Union[NotImplementedType, 'MultiplySize']:
+    def __mul__(self, other: NumStrT | 'baseSizing') -> NotImplementedType | 'MultiplySize':
         ...
     
-    def __truediv__(self, other: Union[NumStrT, 'baseSizing']) -> Union[NotImplementedType, 'DivideSize']:
+    def __truediv__(self, other: NumStrT | 'baseSizing') -> NotImplementedType | 'DivideSize':
         ...
     
-    def __floordiv__(self, other: Union[NumStrT, 'baseSizing']) -> Union[NotImplementedType, 'FloorDivideSize']:
+    def __floordiv__(self, other: NumStrT | 'baseSizing') -> NotImplementedType | 'FloorDivideSize':
         ...
     
-    def __mod__(self, other: Union[NumStrT, 'baseSizing']) -> Union[NotImplementedType, 'ModuloSize']:
+    def __mod__(self, other: NumStrT | 'baseSizing') -> NotImplementedType | 'ModuloSize':
         ...
     
-    def __pow__(self, other: Union[NumStrT, 'baseSizing'], modulo=...) -> Union[NotImplementedType, 'PowerSize']:
+    def __pow__(self, other: NumStrT | 'baseSizing', modulo=...) -> NotImplementedType | 'PowerSize':
         ...
     
     # Right-side operations
@@ -818,7 +817,7 @@ class Size:
         ...
     
     @staticmethod
-    def RELATIVEX(item: uiItem) -> RefWidth:
+    def RELATIVEX(item: 'uiItem') -> RefWidth:
         """
         Create a size relative to another item's width.
 
@@ -831,7 +830,7 @@ class Size:
         ...
     
     @staticmethod
-    def RELATIVEY(item: uiItem) -> RefHeight:
+    def RELATIVEY(item: 'uiItem') -> RefHeight:
         """
         Create a size relative to another item's height.
         
@@ -1200,7 +1199,7 @@ class Size:
         ...
     
     @staticmethod
-    def RELATIVE_X1(item: uiItem) -> RefX1:
+    def RELATIVE_X1(item: 'uiItem') -> RefX1:
         """
         Create a size relative to another item's left x coordinate.
         
@@ -1213,7 +1212,7 @@ class Size:
         ...
     
     @staticmethod
-    def RELATIVE_X2(item: uiItem) -> RefX2:
+    def RELATIVE_X2(item: 'uiItem') -> RefX2:
         """
         Create a size relative to another item's right x coordinate.
         
@@ -1226,7 +1225,7 @@ class Size:
         ...
     
     @staticmethod
-    def RELATIVE_Y1(item: uiItem) -> RefY1:
+    def RELATIVE_Y1(item: 'uiItem') -> RefY1:
         """
         Create a size relative to another item's top y coordinate.
         
@@ -1239,7 +1238,7 @@ class Size:
         ...
     
     @staticmethod
-    def RELATIVE_Y2(item: uiItem) -> RefY2:
+    def RELATIVE_Y2(item: 'uiItem') -> RefY2:
         """
         Create a size relative to another item's bottom y coordinate.
         
@@ -1272,7 +1271,7 @@ class Size:
         ...
     
     @staticmethod
-    def RELATIVE_XC(item: uiItem) -> RefXC:
+    def RELATIVE_XC(item: 'uiItem') -> RefXC:
         """
         Create a size relative to another item's x center coordinate.
         
@@ -1285,7 +1284,7 @@ class Size:
         ...
     
     @staticmethod
-    def RELATIVE_YC(item: uiItem) -> RefYC:
+    def RELATIVE_YC(item: 'uiItem') -> RefYC:
         """
         Create a size relative to another item's y center coordinate.
         

@@ -1,10 +1,10 @@
-from typing import Dict, Iterator, List, Optional, Set, Tuple, Union, overload
+from typing import Iterator, overload
 
 class GlyphSet:
     height: int
     origin_y: int
-    images: Dict[int, Array]
-    positioning: Dict[int, Tuple[float, float, float]]
+    images: dict[int, Array]
+    positioning: dict[int, tuple[float, float, float]]
     
     def __init__(self, height: int, origin_y: int) -> None:
         """Initialize empty GlyphSet with specified dimensions
@@ -43,18 +43,18 @@ class GlyphSet:
         ...
     
     @overload
-    def __getitem__(self, key: int) -> Tuple[Array, float, float, float]:
+    def __getitem__(self, key: int) -> tuple[Array, float, float, float]:
         """Returns the information stored for a given character.
         The output Format is (image, dy, dx, advance)"""
         ...
     
     @overload
-    def __getitem__(self, key: str) -> Tuple[Array, float, float, float]:
+    def __getitem__(self, key: str) -> tuple[Array, float, float, float]:
         """Returns the information stored for a given character.
         The output Format is (image, dy, dx, advance)"""
         ...
     
-    def __iter__(self) -> Iterator[Tuple[int, Array, float, float, float]]:
+    def __iter__(self) -> Iterator[tuple[int, Array, float, float, float]]:
         """Iterate over all glyphs.
 
         Elements are of signature (unicode_key, image, dy, dx, advance)
@@ -104,8 +104,8 @@ class GlyphSet:
         ...
     
     def remap(self,
-             src_codes: Union[List[int], List[str]],
-             dst_codes: Union[List[int], List[str]]) -> None:
+             src_codes: list[int] | list[str],
+             dst_codes: list[int] | list[str]) -> None:
         """
         Provide the set of dst_codes unicode codes by
         using the glyphs from src_codes
@@ -113,7 +113,7 @@ class GlyphSet:
         ...
     
     @classmethod
-    def fit_glyph_sets(cls, glyphs: List['GlyphSet']) -> None:
+    def fit_glyph_sets(cls, glyphs: list['GlyphSet']) -> None:
         """
         Given list of GlyphSets, update the positioning
         information of the glyphs such that the glyphs of
@@ -127,7 +127,7 @@ class GlyphSet:
         ...
     
     @classmethod
-    def merge_glyph_sets(cls, glyphs: List['GlyphSet']) -> 'GlyphSet':
+    def merge_glyph_sets(cls, glyphs: list['GlyphSet']) -> 'GlyphSet':
         """
         Merge together a list of GlyphSet-s into a single
         GlyphSet.
@@ -168,7 +168,7 @@ class FontRenderer:
                            align_to_pixels: bool = True,
                            enable_kerning: bool = True,
                            hinter: str = "light",
-                           allow_color: bool = True) -> Tuple[memoryview, int]:
+                           allow_color: bool = True) -> tuple[memoryview, int]:
         """
         Render text string to an array and return the array and bitmap_top.
         
@@ -181,7 +181,7 @@ class FontRenderer:
             allow_color: Whether to render color glyphs if available
         
         Returns:
-            Tuple of (image memoryview, bitmap_top)
+            tuple of (image memoryview, bitmap_top)
         """
         ...
     
@@ -189,7 +189,7 @@ class FontRenderer:
                                text: str, 
                                load_flags: int, 
                                align_to_pixels: bool, 
-                               enable_kerning: bool) -> Tuple[float, float, float, float]:
+                               enable_kerning: bool) -> tuple[float, float, float, float]:
         """
         Calculate the dimensions needed for the text.
         
@@ -200,15 +200,15 @@ class FontRenderer:
             enable_kerning: Whether to apply kerning between characters
         
         Returns:
-            Tuple of (width, height, max_top, max_bottom)
+            tuple of (width, height, max_top, max_bottom)
         """
         ...
     
     def render_glyph_set(self,
-                       target_pixel_height: Optional[float] = None,
+                       target_pixel_height: float | None = None,
                        target_size: int = 0,
                        hinter: str = "light",
-                       restrict_to: Optional[Set[int]] = None,
+                       restrict_to: set[int] | None = None,
                        allow_color: bool = True) -> GlyphSet:
         """
         Render the glyphs of the font at the target scale,
