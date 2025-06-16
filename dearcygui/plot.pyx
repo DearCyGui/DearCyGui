@@ -1943,6 +1943,13 @@ cdef class Plot(uiItem):
             self._Y1.after_plot(implot.ImAxis_Y1)
             self._Y2.after_plot(implot.ImAxis_Y2)
             self._Y3.after_plot(implot.ImAxis_Y3)
+
+            # If we show the mouse position text,
+            # a mouse motion impacts the visual
+            if (self._flags & implot.ImPlotFlags_NoMouseText) == 0:
+                if self.state.cur.hovered or self.state.prev.hovered:
+                    self.context.viewport.force_present()
+
         elif self.state.cur.rendered:
             self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
             self._X1.set_hidden()
