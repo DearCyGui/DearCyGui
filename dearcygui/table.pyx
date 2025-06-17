@@ -631,7 +631,7 @@ cdef class baseTable(uiItem):
                 if element.ui_item == item:
                     found = True
                     break
-                if element.tooltip_ui_item != item:
+                if element.tooltip_ui_item == item:
                     found = True
                     break
             # This check is because we allow the child to appear
