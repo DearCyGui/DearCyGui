@@ -3629,7 +3629,8 @@ cdef class MenuBar(uiItem):
         self.state.cap.can_be_clicked = True
         self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
-        self.state.cap.has_content_region = True # TODO
+        self.state.cap.has_content_region = True
+        #self.state.cap.has_rect_size = False -> Unsure about current advertised size
 
     cdef void draw(self) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
@@ -3670,6 +3671,10 @@ cdef class MenuBar(uiItem):
             self.state.cur.content_region_size = ImVec2Vec2(imgui.GetContentRegionAvail())
             # Only one row is reserved for menubar, while the content region avail sees the whole window.
             self.state.cur.content_region_size.y = imgui.GetFrameHeight()
+            # TODO: compute real size. At least this is not what update_current_state
+            # seems to fill (it is significantly too large)
+            self.state.cur.rect_size.x = self.state.cur.content_region_size.x
+            self.state.cur.rect_size.y = self.state.cur.content_region_size.y
             if self.last_widgets_child is not None:
                 # We are at the top of the window, but behave as if popup
                 pos_w = ImVec2Vec2(imgui.GetCursorScreenPos())
