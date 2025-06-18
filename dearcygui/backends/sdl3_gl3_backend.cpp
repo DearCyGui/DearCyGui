@@ -105,34 +105,107 @@ SDL_HitTestResult SDLViewport::ProcessHitTest(const SDL_Point* area) {
 
     // Map window coordinates to hit test surface coordinates
     // Get current window size
-    int windowWidth, windowHeight;
-    SDL_GetWindowSize(windowHandle, &windowWidth, &windowHeight);
+    int windowWidthLogical, windowHeightLogical;
+    SDL_GetWindowSize(windowHandle, &windowWidthLogical, &windowHeightLogical);
 
-    if (area->x < 0 || area->x >= windowWidth ||
-        area->y < 0 || area->y >= windowHeight) {
+    if (area->x < 0 || area->x >= windowWidthLogical ||
+        area->y < 0 || area->y >= windowHeightLogical) {
         // Out of bounds, return normal
         return SDL_HITTEST_NORMAL;
     }
 
-    // TODO: unsure about DPI scaling
+    // Map window logical coordinates to hit test surface coordinates
+
+    /* Logic for hit test in scaled pixel coordinates
+    // Get DPI scaling factors
+    float logical_to_pixel_factor = SDL_GetWindowPixelDensity(windowHandle);
+    float display_scale = dpiScale;
+    
+    // Safety check for zero division
+    if (display_scale <= 0.f) display_scale = 1.0f;
+    if (logical_to_pixel_factor <= 0.f) logical_to_pixel_factor = 1.0f;
+
+    int frameWidth, frameHeight;
+    SDL_GetWindowSizeInPixels(windowHandle, &frameWidth, &frameHeight);
+
+    // size of the window in dpi scaled pixels
+    int scaled_window_width = (int)((float)frameWidth / display_scale);
+    int scaled_window_height = (int)((float)frameHeight / display_scale);
+
+    // Calculate the scale factor to convert from logical coordinates to hit test surface coordinates
+    float logical_to_scaled = logical_to_pixel_factor / display_scale;
+
+    // We also have
+    // scaled_window_width = (int)((float)windowWidthLogical * logical_to_pixel_factor);
+    // scaled_window_height = (int)((float)windowHeightLogical * logical_to_pixel_factor);
+
+    // round to lowest on the left of the hit test surface, and to highest on the right
+    float scaled_x_float = (float)area->x * logical_to_scaled;
+    float scaled_y_float = (float)area->y * logical_to_scaled;
+
     int half_hit_width = hitTestWidth / 2;
     int half_hit_height = hitTestHeight / 2;
+
+    int scaled_x, scaled_y;
+
+    if (scaled_x <= scaled_window_width / 2) {
+        scaled_x = static_cast<int>(scaled_x_float);
+    } else {
+        scaled_x = -static_cast<int>(-scaled_x_float);
+    }
+    if (scaled_y <= scaled_window_height / 2) {
+        scaled_y = static_cast<int>(scaled_y_float);
+    } else {
+        scaled_y = -static_cast<int>(-scaled_y_float);
+    }
     
     // Map to hit test surface coordinates with the specific interpolation behavior:
     // - Use edges exactly, center for the middle, and proportionally between
     int surfaceX, surfaceY;
 
-    if (area->x <= half_hit_width) {
-        surfaceX = area->x;
-    } else if (area->x >= windowWidth - half_hit_width) {
-        surfaceX = area->x - windowWidth + hitTestWidth;
+    if (scaled_x <= half_hit_width) {
+        surfaceX = scaled_x;
+    } else if (scaled_x >= scaled_window_width - half_hit_width) {
+        surfaceX = scaled_x - scaled_window_width + hitTestWidth;
     } else {
         surfaceX = half_hit_width;
     }
-    if (area->y <= half_hit_height) {
-        surfaceY = area->y;
-    } else if (area->y >= windowHeight - half_hit_height) {
-        surfaceY = area->y - windowHeight + hitTestHeight;
+    
+    if (scaled_y <= half_hit_height) {
+        surfaceY = scaled_y;
+    } else if (scaled_y >= scaled_window_height - half_hit_height) {
+        surfaceY = scaled_y - scaled_window_height + hitTestHeight;
+    } else {
+        surfaceY = half_hit_height;
+    }
+    */
+
+    /* Logic for hit test surface in (unscaled) pixel coordinates */
+    float logical_to_pixel_factor = SDL_GetWindowPixelDensity(windowHandle);
+    int frameWidth, frameHeight;
+    SDL_GetWindowSizeInPixels(windowHandle, &frameWidth, &frameHeight);
+
+    int pixelX = (int)((float)area->x * logical_to_pixel_factor);
+    int pixelY = (int)((float)area->y * logical_to_pixel_factor);
+
+    // Map to hit test surface coordinates with the specific interpolation behavior:
+    // - Use edges exactly, center for the middle, and proportionally between
+    int half_hit_width = hitTestWidth / 2;
+    int half_hit_height = hitTestHeight / 2;
+    int surfaceX, surfaceY;
+
+    if (pixelX <= half_hit_width) {
+        surfaceX = pixelX;
+    } else if (pixelX >= frameWidth - half_hit_width) {
+        surfaceX = pixelX - frameWidth + hitTestWidth;
+    } else {
+        surfaceX = half_hit_width;
+    }
+
+    if (pixelY <= half_hit_height) {
+        surfaceY = pixelY;
+    } else if (pixelY >= frameHeight - half_hit_height) {
+        surfaceY = pixelY - frameHeight + hitTestHeight;
     } else {
         surfaceY = half_hit_height;
     }
