@@ -727,7 +727,7 @@ static void ImGui_ImplSDL3_UpdateGamepads()
     ImGui_ImplSDL3_UpdateGamepadAnalog(bd, io, ImGuiKey_GamepadRStickDown,  SDL_GAMEPAD_AXIS_RIGHTY, +thumb_dead_zone, +32767);
 }
 
-void ImGui_ImplSDL3_NewFrame()
+void ImGui_ImplSDL3_NewFrame(int display_h, int display_w)
 {
     ImGui_ImplSDL3_Data* bd = ImGui_ImplSDL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplSDL3_Init()?");
@@ -735,11 +735,11 @@ void ImGui_ImplSDL3_NewFrame()
 
     // Setup display size (every frame to accommodate for window resizing)
     //int w, h;
-    int display_w, display_h;
+    //int display_w, display_h;
     //SDL_GetWindowSize(bd->Window, &w, &h);
     //if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_MINIMIZED)
     //    w = h = 0;
-    SDL_GetWindowSizeInPixels(bd->Window, &display_w, &display_h);
+    //SDL_GetWindowSizeInPixels(bd->Window, &display_w, &display_h); -> move to argument to be sure we use the same size
     if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_MINIMIZED)
         display_w = display_h = 0;
     // Let imgui see only the window as high resolution

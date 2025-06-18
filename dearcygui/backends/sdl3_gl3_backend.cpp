@@ -55,20 +55,10 @@ bool platformViewport::fastActivityCheck() {
 
 // Move prepare_present implementation into class method
 void SDLViewport::preparePresentFrame() {
-    SDL_GetWindowPosition(windowHandle, &positionX, &positionY);
-
     // Rendering
     ImGui::Render();
     renderContextLock.lock();
     SDL_GL_MakeCurrent(windowHandle, glContext);
-    if (hasResized) {
-        dpiScale = SDL_GetWindowDisplayScale(windowHandle);
-        SDL_GetWindowSizeInPixels(windowHandle, &frameWidth, &frameHeight);
-        windowWidth = (int)((float)frameWidth / dpiScale);
-        windowHeight = (int)((float)frameHeight / dpiScale);
-        hasResized = false;
-        resizeCallback(callbackData);
-    }
 
     int current_interval, desired_interval;
     SDL_GL_GetSwapInterval(&current_interval);
@@ -1194,6 +1184,17 @@ bool SDLViewport::processEvents(int timeout_ms) {
         }
     }
 
+    // Update position and size if changed
+    SDL_GetWindowPosition(windowHandle, &positionX, &positionY);
+    if (hasResized) {
+        dpiScale = SDL_GetWindowDisplayScale(windowHandle);
+        SDL_GetWindowSizeInPixels(windowHandle, &frameWidth, &frameHeight);
+        windowWidth = (int)((float)frameWidth / dpiScale);
+        windowHeight = (int)((float)frameHeight / dpiScale);
+        hasResized = false;
+        resizeCallback(callbackData);
+    }
+
     // If we have a user requested refresh, we need to render
     if (user_requested_refresh) 
         needsRefresh.store(true);
@@ -1234,7 +1235,7 @@ bool SDLViewport::renderFrame(bool can_skip_presenting) {
     }
     
     renderContextLock.unlock();
-    ImGui_ImplSDL3_NewFrame();
+    ImGui_ImplSDL3_NewFrame(frameHeight, frameWidth);
     ImGui::NewFrame();
 
     bool does_needs_refresh = needsRefresh.load();

@@ -36,7 +36,7 @@ IMGUI_IMPL_API bool     ImGui_ImplSDL3_InitForMetal(SDL_Window* window);
 IMGUI_IMPL_API bool     ImGui_ImplSDL3_InitForSDLRenderer(SDL_Window* window, SDL_Renderer* renderer);
 IMGUI_IMPL_API bool     ImGui_ImplSDL3_InitForOther(SDL_Window* window);
 IMGUI_IMPL_API void     ImGui_ImplSDL3_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplSDL3_NewFrame();
+IMGUI_IMPL_API void     ImGui_ImplSDL3_NewFrame(int h, int w);
 IMGUI_IMPL_API bool     ImGui_ImplSDL3_ProcessEvent(const SDL_Event* event);
 
 // Gamepad selection automatically starts in AutoFirst mode, picking first available SDL_Gamepad. You may override this.
