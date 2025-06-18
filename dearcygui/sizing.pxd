@@ -10,34 +10,26 @@ cdef class baseSizing:
     cdef bint _frozen
     cdef int32_t _last_frame_resolved
     cdef float _current_value
-    cdef DCGVector[PyObject*] _registered_items
-    cdef void register(self, uiItem target)
-    cdef void unregister(self, uiItem target)
     cdef float resolve(self, uiItem target) noexcept nogil
     cdef void _push(self, uiItem target) noexcept nogil
     cdef float _update_value(self, uiItem target) noexcept nogil
     @staticmethod
     cdef baseSizing Size(value)
 
-cdef class RefX1(baseSizing):
+cdef class baseRefSizing(baseSizing):
     cdef uiItem _ref
-    cdef void register(self, uiItem target)
+
+cdef class RefX0(baseRefSizing):
     cdef float _update_value(self, uiItem target) noexcept nogil
 
-cdef class RefY1(baseSizing):
-    cdef uiItem _ref
-    cdef void register(self, uiItem target)
+cdef class RefY0(baseRefSizing):
     cdef float _update_value(self, uiItem target) noexcept nogil
 
-cdef class RefWidth(baseSizing):
-    cdef uiItem _ref
+cdef class RefWidth(baseRefSizing):
     cdef float _update_value(self, uiItem target) noexcept nogil
 
-cdef class RefHeight(baseSizing):
-    cdef uiItem _ref
+cdef class RefHeight(baseRefSizing):
     cdef float _update_value(self, uiItem target) noexcept nogil
-
-
 
 # Implementation of sizing resolution function
 cdef inline float resolve_size(ValueOrItem& sv, uiItem target) noexcept nogil:

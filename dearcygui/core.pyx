@@ -33,7 +33,7 @@ from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t, string_to_str,
     set_composite_label, set_uuid_label, string_from_str, Vec2, make_Vec2
 from .font cimport AutoFont
 from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color
-from .sizing cimport resolve_size, set_size, RefX1, RefY1, RefWidth, RefHeight
+from .sizing cimport resolve_size, set_size, RefX0, RefY0, RefWidth, RefHeight
 from .texture cimport Texture
 from .types cimport Vec2, child_type,\
     Coord, parse_texture, Display,\
@@ -6286,7 +6286,7 @@ cdef class uiItem(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         try:
-            ref = RefX1(self)
+            ref = RefX0(self)
             if self.state.cap.has_position and \
                self.state.cur.pos_to_viewport.x > 0:
                 ref.value = self.state.cur.pos_to_viewport.x
@@ -6327,7 +6327,7 @@ cdef class uiItem(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         try:
-            ref = RefY1(self)
+            ref = RefY0(self)
             if self.state.cap.has_position and \
                self.state.cur.pos_to_viewport.y > 0:
                 ref.value = self.state.cur.pos_to_viewport.y
@@ -7376,7 +7376,7 @@ cdef class Window(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        ref = RefX1(self)
+        ref = RefX0(self)
         if self.state.cur.pos_to_viewport.x > 0:
             ref.value = self.state.cur.pos_to_viewport.x
         else:
@@ -7412,7 +7412,7 @@ cdef class Window(uiItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        ref = RefY1(self)
+        ref = RefY0(self)
         if self.state.cur.pos_to_viewport.y > 0:
             ref.value = self.state.cur.pos_to_viewport.y
         else:
