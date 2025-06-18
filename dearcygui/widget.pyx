@@ -3668,6 +3668,8 @@ cdef class MenuBar(uiItem):
         if menu_allowed:
             self.update_current_state()
             self.state.cur.content_region_size = ImVec2Vec2(imgui.GetContentRegionAvail())
+            # Only one row is reserved for menubar, while the content region avail sees the whole window.
+            self.state.cur.content_region_size.y = imgui.GetFrameHeight()
             if self.last_widgets_child is not None:
                 # We are at the top of the window, but behave as if popup
                 pos_w = ImVec2Vec2(imgui.GetCursorScreenPos())
@@ -3936,6 +3938,13 @@ cdef class Tooltip(uiItem):
         cdef Vec2 pos_w, pos_p, parent_size_backup
         cdef Vec2 content_min, content_max
         if display_condition and imgui.BeginTooltip():
+            #self.state.cur.pos_to_viewport = ImVec2Vec2(imgui.GetWindowPos())
+            #self.state.cur.pos_to_window.x = 0.
+            #self.state.cur.pos_to_window.y = 0.
+            #self.state.cur.pos_to_parent.x = 0.
+            #self.state.cur.pos_to_parent.y = 0.
+            #self.state.cur.rect_size = ImVec2Vec2(imgui.GetWindowSize()) # Note: breaks layouts
+            # Supported field
             self.state.cur.content_region_size = ImVec2Vec2(imgui.GetContentRegionAvail())
             if self.last_widgets_child is not None:
                 # We are in a popup window
@@ -4256,6 +4265,7 @@ cdef class Tab(uiItem):
                 swap_Vec2(pos_p, self.context.viewport.parent_pos)
                 parent_size_backup = self.context.viewport.parent_size
                 # TODO: is there a frame border on the right to subtract ?
+                
                 self.context.viewport.parent_size.x = parent_size_backup.x - dx
                 self.context.viewport.parent_size.y = parent_size_backup.y - dy
                 draw_ui_children(self)
@@ -4500,13 +4510,22 @@ cdef class TabBar(uiItem):
         cdef bint visible = imgui.BeginTabBar(self._imgui_label.c_str(),
                                               self._flags)
         self.update_current_state()
-        cdef Vec2 pos_p
+        cdef Vec2 pos_p, parent_size_backup
+        cdef float dx, dy
         if visible:
             if self.last_tab_child is not None:
                 pos_p = ImVec2Vec2(imgui.GetCursorScreenPos())
+                dx = pos_p.x - self.context.viewport.parent_pos.x
+                dy = pos_p.y - self.context.viewport.parent_pos.y
+
+                parent_size_backup = self.context.viewport.parent_size
+                self.context.viewport.parent_size.x = parent_size_backup.x - dx
+                self.context.viewport.parent_size.y = parent_size_backup.y - dy
+
                 swap_Vec2(pos_p, self.context.viewport.parent_pos)
                 draw_tab_children(self)
                 self.context.viewport.parent_pos = pos_p
+                self.context.viewport.parent_size = parent_size_backup
             imgui.EndTabBar()
         else:
             self.propagate_hidden_state_to_children_with_handlers()
