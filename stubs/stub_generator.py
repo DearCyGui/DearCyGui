@@ -886,9 +886,9 @@ def generate_docstring_for_class(object_class, instance):
                 tname_read = "'Coord'"
             elif isinstance(default_value, dcg.Rect):
                 tname_read = "'Rect'"
-            elif isinstance(default_value, dcg.baseSizing):
-                # property read is always baseSizing
-                tname_read = "'baseSizing'"
+            elif isinstance(default_value, dcg.baseRefSizing):
+                # property read is always baseRefSizing
+                tname_read = "'baseRefSizing'"
             elif property == "handlers" or property == "legend_handlers":
                 # handlers is always list of 'baseHandler'
                 tname_read = "list['baseHandler']"

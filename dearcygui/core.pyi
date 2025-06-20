@@ -1842,9 +1842,26 @@ class ParentWidth(baseSizing):
     
 
 
+class ParentX0(baseSizing):
+    """
+    Parent actual left x coordinate (x0) without content padding.
+    This refers to the outer position of the parent item.
+    """
+    def __repr__(self) -> str: # -> Literal['ParentX0()']:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@ParentX0], tuple[()], dict[str, bint]]:
+        ...
+    
+
+
 class ParentX1(baseSizing):
     """
-    Parent left x coordinate (x1).
+    Parent left content area x coordinate (x1).
+    This is the left edge of the parent's content area, accounting for padding.
     """
     def __repr__(self) -> str: # -> Literal['ParentX1()']:
         ...
@@ -1859,7 +1876,8 @@ class ParentX1(baseSizing):
 
 class ParentX2(baseSizing):
     """
-    Parent right x coordinate (x2).
+    Parent right content area x coordinate (x2).
+    This is the right edge of the parent's content area, accounting for padding.
     """
     def __repr__(self) -> str: # -> Literal['ParentX2()']:
         ...
@@ -1872,9 +1890,27 @@ class ParentX2(baseSizing):
     
 
 
+class ParentX3(baseSizing):
+    """
+    Parent right-most x coordinate (x3).
+    This is the right-most edge of the parent's accounting for padding and border.
+    It is equivalent to parent.x0 + parent.width.
+    """
+    def __repr__(self) -> str: # -> Literal['ParentX3()']:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@ParentX3], tuple[()], dict[str, bint]]:
+        ...
+    
+
+
 class ParentXC(baseSizing):
     """
-    Parent x center coordinate.
+    Parent content area x center coordinate.
+    This is the horizontal center of the parent's content area.
     """
     def __repr__(self) -> str: # -> Literal['ParentXC()']:
         ...
@@ -1887,9 +1923,26 @@ class ParentXC(baseSizing):
     
 
 
+class ParentY0(baseSizing):
+    """
+    Parent actual top y coordinate (y0) without content padding.
+    This refers to the outer position of the parent item.
+    """
+    def __repr__(self) -> str: # -> Literal['ParentY0()']:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@ParentY0], tuple[()], dict[str, bint]]:
+        ...
+    
+
+
 class ParentY1(baseSizing):
     """
-    Parent top y coordinate (y1).
+    Parent top content area y coordinate (y1).
+    This is the top edge of the parent's content area, accounting for padding.
     """
     def __repr__(self) -> str: # -> Literal['ParentY1()']:
         ...
@@ -1904,7 +1957,8 @@ class ParentY1(baseSizing):
 
 class ParentY2(baseSizing):
     """
-    Parent bottom y coordinate (y2).
+    Parent bottom content area y coordinate (y2).
+    This is the bottom edge of the parent's content area, accounting for padding.
     """
     def __repr__(self) -> str: # -> Literal['ParentY2()']:
         ...
@@ -1917,9 +1971,27 @@ class ParentY2(baseSizing):
     
 
 
+class ParentY3(baseSizing):
+    """
+    Parent bottom-most y coordinate (y3).
+    This is the bottom-most edge of the parent's accounting for padding and border.
+    It is equivalent to parent.y0 + parent.height.
+    """
+    def __repr__(self) -> str: # -> Literal['ParentY3()']:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@ParentY3], tuple[()], dict[str, bint]]:
+        ...
+    
+
+
 class ParentYC(baseSizing):
     """
-    Parent y center coordinate.
+    Parent content area y center coordinate.
+    This is the vertical center of the parent's content area.
     """
     def __repr__(self) -> str: # -> Literal['ParentYC()']:
         ...
@@ -1932,7 +2004,162 @@ class ParentYC(baseSizing):
     
 
 
-class RefHeight(baseSizing):
+class baseRefSizing(baseSizing):
+    """
+    Base class for references to an item's size
+    and positioning attribute.
+
+    Defines various properties to access other
+    size and position attributes of this item
+    """
+    @property
+    def content_height(self) -> baseSizing:
+        """
+        Height of the area available for the children
+        inside the item.
+        This is equivalent to y2 - y1
+
+        For items which do not accept children, this is equal
+        to the height.
+        """
+        ...
+    
+    @property
+    def content_width(self) -> baseSizing:
+        """
+        Width of the area available for the children
+        inside the item.
+        This is equivalent to x2 - x1
+
+        For items which do not accept children, this is equal
+        to the width.
+        """
+        ...
+    
+    @property
+    def height(self) -> baseSizing:
+        """
+        Height of the area taken by the item.
+
+        Note for items with children, this may be larger
+        that the area available for the children, if the
+        item adds padding.
+        """
+        ...
+    
+    @property
+    def width(self) -> baseSizing:
+        """
+        Width of the area taken by the item.
+
+        Note for items with children, this may be larger
+        that the area available for the children, if the
+        item adds padding.
+        """
+        ...
+    
+    @property
+    def x0(self) -> baseSizing:
+        """
+        Reference to the left-most x position of the item
+        """
+        ...
+    
+    @property
+    def x1(self) -> baseSizing:
+        """
+        Reference to the left x position of the item.
+
+        This only differs from X0 for items with children
+        and padding. In which case the position corresponds
+        to the starting position of the area available for
+        the children.
+        """
+        ...
+    
+    @property
+    def xc(self) -> baseSizing:
+        """
+        Reference to the center position between x1 and x2 of the item.
+        """
+        ...
+    
+    @property
+    def x2(self) -> baseSizing:
+        """
+        Reference to the right position of the item.
+
+        For items with children and padding, this position is
+        placed at the end of the area available for children.
+
+        If you intend to get the right-most position for any item,
+        including the case described above, you can get it by adding
+        x0 and width, or by using x3.
+        """
+        ...
+    
+    @property
+    def x3(self) -> baseSizing:
+        """
+        Reference to the right-most position of the item.
+
+        This corresponds to adding x0 and width.
+        """
+        ...
+    
+    @property
+    def y0(self) -> baseSizing:
+        """
+        Reference to the top-most y position of the item
+        """
+        ...
+    
+    @property
+    def y1(self) -> baseSizing:
+        """
+        Reference to the top y position of the item.
+
+        This only differs from Y0 for items with children
+        and padding. In which case the position corresponds
+        to the starting position of the area available for
+        the children.
+        """
+        ...
+    
+    @property
+    def yc(self) -> baseSizing:
+        """
+        Reference to the center position between y1 and y2 of the item.
+        """
+        ...
+    
+    @property
+    def y2(self) -> baseSizing:
+        """
+        Reference to the bottom position of the item.
+
+        For items with children and padding, this position is
+        placed at the end of the area available for children.
+
+        If you intend to get the bottom-most position for any item,
+        including the case described above, you can get it by adding
+        y0 and height.
+        """
+        ...
+    
+    @property
+    def y3(self) -> baseSizing:
+        """
+        Reference to the bottom-most position of the item.
+
+        This corresponds to adding
+        y0 and height.
+        """
+        ...
+    
+
+
+class RefHeight(baseRefSizing):
     """
     References another item height.
     """
@@ -1944,7 +2171,7 @@ class RefHeight(baseSizing):
     
 
 
-class RefWidth(baseSizing):
+class RefWidth(baseRefSizing):
     """
     References another item width.
     """
@@ -1956,9 +2183,32 @@ class RefWidth(baseSizing):
     
 
 
-class RefX1(baseSizing):
+class RefX0(baseRefSizing):
+    """
+    References another item's left x coordinate (x0).
+
+    x0 is the left most position of the item.
+
+    For items which accept children, and which add padding,
+    x1 can be different to x0.
+    """
+    def __repr__(self) -> str: # -> str:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+
+
+class RefX1(baseRefSizing):
     """
     References another item's left x coordinate (x1).
+
+    x1 is the left x position of the item.
+
+    For item which accept children, this refers to the x position
+    of the area available for children. If the item adds
+    padding, it can thus differ from x0.
     """
     def __repr__(self) -> str: # -> str:
         ...
@@ -1968,9 +2218,11 @@ class RefX1(baseSizing):
     
 
 
-class RefX2(baseSizing):
+class RefX2(baseRefSizing):
     """
     References another item's right x coordinate (x2).
+    This is the right edge of the item's content area, accounting for padding if available.
+    If the item has no content area, this is equivalent to x0 + width.
     """
     def __repr__(self) -> str: # -> str:
         ...
@@ -1980,21 +2232,13 @@ class RefX2(baseSizing):
     
 
 
-class RefXC(baseSizing):
+class RefX3(baseRefSizing):
     """
-    References another item's x center coordinate.
-    """
-    def __repr__(self) -> str: # -> str:
-        ...
-    
-    def __str__(self) -> str:
-        ...
-    
-
-
-class RefY1(baseSizing):
-    """
-    References another item's top y coordinate (y1).
+    References another item's right-most x coordinate (x3).
+    This is equivalent to x0 + width.
+    It is useful for items which do not have a content area,
+    or when you want to get the right-most position regardless
+    of padding.
     """
     def __repr__(self) -> str: # -> str:
         ...
@@ -2004,9 +2248,11 @@ class RefY1(baseSizing):
     
 
 
-class RefY2(baseSizing):
+class RefXC(baseRefSizing):
     """
-    References another item's bottom y coordinate (y2).
+    References another item's content x center coordinate.
+    This is the horizontal center of the item's content area if available.
+    If the item has no content area, this is equivalent to x0 + width/2.
     """
     def __repr__(self) -> str: # -> str:
         ...
@@ -2016,9 +2262,69 @@ class RefY2(baseSizing):
     
 
 
-class RefYC(baseSizing):
+class RefY0(baseRefSizing):
     """
-    References another item's y center coordinate.
+    References another item's outer top y coordinate (y0).
+    This is the actual position of the item, not accounting for content area padding.
+    """
+    def __repr__(self) -> str: # -> str:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+
+
+class RefY1(baseRefSizing):
+    """
+    References another item's content top y coordinate (y1).
+    This is the top edge of the item's content area, accounting for padding if available.
+    If the item has no content area, this is equivalent to y0.
+    """
+    def __repr__(self) -> str: # -> str:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+
+
+class RefY2(baseRefSizing):
+    """
+    References another item's content bottom y coordinate (y2).
+    This is the bottom edge of the item's content area, accounting for padding if available.
+    If the item has no content area, this is equivalent to y0 + height.
+    """
+    def __repr__(self) -> str: # -> str:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+
+
+class RefY3(baseRefSizing):
+    """
+    References another item's bottom-most y coordinate (y3).
+    This is equivalent to y0 + height.
+
+    It is useful for items which do not have a content area,
+    or when you want to get the bottom-most position regardless
+    of padding.
+    """
+    def __repr__(self) -> str: # -> str:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+
+
+class RefYC(baseRefSizing):
+    """
+    References another item's content y center coordinate.
+    This is the vertical center of the item's content area if available.
+    If the item has no content area, this is equivalent to (y1 + y2)/2.
     """
     def __repr__(self) -> str: # -> str:
         ...
@@ -2058,9 +2364,27 @@ class SelfWidth(baseSizing):
     
 
 
+class SelfX0(baseSizing):
+    """
+    References the left-most x coordinate (x0) of the item using this sizing.
+    """
+    def __repr__(self) -> str: # -> Literal['SelfX0()']:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@SelfX0], tuple[()], dict[str, Any]]:
+        ...
+    
+
+
 class SelfX1(baseSizing):
     """
     References the left x coordinate (x1) of the item using this sizing.
+
+    x1 is the start of the children area of the item.
+    Else it is equal to x0.
     """
     def __repr__(self) -> str: # -> Literal['SelfX1()']:
         ...
@@ -2088,6 +2412,21 @@ class SelfX2(baseSizing):
     
 
 
+class SelfX3(baseSizing):
+    """
+    References the right-most x coordinate (x3) of the item using this sizing.
+    """
+    def __repr__(self) -> str: # -> Literal['SelfX3()']:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@SelfX3], tuple[()], dict[str, Any]]:
+        ...
+    
+
+
 class SelfXC(baseSizing):
     """
     References the x center coordinate of the item using this sizing.
@@ -2103,9 +2442,28 @@ class SelfXC(baseSizing):
     
 
 
+class SelfY0(baseSizing):
+    """
+    References the top-most y coordinate (y0) of the item using this sizing.
+    This refers to the outer position of the item.
+    """
+    def __repr__(self) -> str: # -> Literal['SelfY0()']:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@SelfY0], tuple[()], dict[str, Any]]:
+        ...
+    
+
+
 class SelfY1(baseSizing):
     """
     References the top y coordinate (y1) of the item using this sizing.
+
+    y1 is the start of the children area of the item, if any.
+    Else it is equal to y0.
     """
     def __repr__(self) -> str: # -> Literal['SelfY1()']:
         ...
@@ -2121,6 +2479,9 @@ class SelfY1(baseSizing):
 class SelfY2(baseSizing):
     """
     References the bottom y coordinate (y2) of the item using this sizing.
+
+    y2 is the end of the children area of the item, if any.
+    Else it is equal to y0 + height.
     """
     def __repr__(self) -> str: # -> Literal['SelfY2()']:
         ...
@@ -2129,6 +2490,22 @@ class SelfY2(baseSizing):
         ...
     
     def __reduce__(self): # -> tuple[Type[Self@SelfY2], tuple[()], dict[str, Any]]:
+        ...
+    
+
+
+class SelfY3(baseSizing):
+    """
+    References the bottom-most y coordinate (y3) of the item using this sizing.
+    This is equivalent to y0 + height.
+    """
+    def __repr__(self) -> str: # -> Literal['SelfY3()']:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@SelfY3], tuple[()], dict[str, Any]]:
         ...
     
 
@@ -2144,6 +2521,27 @@ class SelfYC(baseSizing):
         ...
     
     def __reduce__(self): # -> tuple[Type[Self@SelfYC], tuple[()], dict[str, Any]]:
+        ...
+    
+
+
+class ThemeStyleSize(baseSizing):
+    """
+    References an theme style value.
+    """
+    def _get_style_name(self) -> str:
+        """
+        Retrieve the original style name
+        """
+        ...
+    
+    def __repr__(self) -> str: # -> str:
+        ...
+    
+    def __str__(self) -> str:
+        ...
+    
+    def __reduce__(self): # -> tuple[Type[Self@ThemeStyleSize], tuple[int32_t, bint], dict[str, Any]]:
         ...
     
 
@@ -2194,22 +2592,31 @@ def parse_size(size_str: str) -> baseSizing:
         "0.8*my_button.width": MultiplySize(RefWidth(my_button), 0.8)
 
     The following keywords are supported:
-    - fillx: Fill available width
-    - filly: Fill available height
-    - fullx: Full parent width (no position offset)
-    - fully: Full parent height (no position offset)
-    - min: Take minimum of two size values
-    - max: Take maximum of two size values
-    - mean: Calculate the mean (average) of two or more size values
-    - dpi: Current global scale factor
-    - self.width: Reference to the width of the current item
-    - self.height: Reference to the height of the current item
-    - parent.width/height: Reference to the parent item's size (usually larger than fullx/fully)
-    - item.width/item.height: Reference to another item's size (item must be in globals()/locals())
-    - For all the above, you can also use x1/x2/y1/y2/xc/yc to retrieve coordinates in viewport space
-    - viewport.width/height: Reference to the viewport size
-    - +, -, *, /, //, %, **: Arithmetic operators. Parentheses can be used for grouping.
-    - abs(): Absolute value function
+    - `fillx`: Fill available width
+    - `filly`: Fill available height
+    - `fullx`: Full parent content width (no position offset)
+    - `fully`: Full parent content height (no position offset)
+    - `parent.width`: Width of the parent item (larger than fullx as contains parent borders)
+    - `parent.height`: Height of the parent item (larger than fully as contains parent borders)
+    - `viewport.width`: Width of the viewport (application window)
+    - `viewport.height`: Height of the viewport (application window)
+    - `min`: Take minimum of two size values
+    - `max`: Take maximum of two size values
+    - `mean`: Calculate the mean (average) of two or more size values
+    - `dpi`: Current global scale factor
+    - `self.width`: Reference to the width of the current item
+    - `self.height`: Reference to the height of the current item
+    - `item.width`/`item.height`: Reference to another item's size (item must be in globals()/locals())
+    - `{self, parent, item}.{x0, x1, x2, x3, xc, y0, y1, y2, y3, yc}`:
+            Reference to left/center/right/top/bottom of the current, parent, or a target item.
+            x0: left-most position
+            x1: left position (=left-most if does not accept children. left of children area else)
+            x2: right position (=right-most if does not accept children. right of children area else)
+            x3: right-most position (right edge of the item, including borders)
+            For most items, x0 == x1 and x2 == x3. width = x3 - x0.
+            Same for y0, y1, y2, y3 (top-most/top/bottom/bottom-most)
+    - `+`, `-`, `*`, `/`, `//`, `%`, `**`: Arithmetic operators. Parentheses can be used for grouping.
+    - `abs()`: Absolute value function
     - Numbers: Fixed size in pixels (NOT dpi scaled. Use dpi keyword for that)
 
     Returns:
@@ -2339,82 +2746,90 @@ class Size:
         ...
     
     @staticmethod
-    def PARENT_WIDTH() -> ParentWidth:
+    def PARENT_X0() -> ParentX0:
         """
-        Create a size that references the parent's width.
+        Create a size that references the parent's outer left x coordinate.
+        This refers to the actual position of the parent item, not accounting for padding.
         
         Returns:
-            ParentWidth: Size object referencing the parent's width
-        """
-        ...
-    
-    @staticmethod
-    def PARENT_HEIGHT() -> ParentHeight:
-        """
-        Create a size that references the parent's height.
-        
-        Returns:
-            ParentHeight: Size object referencing the parent's height
+            ParentX0: Size object referencing the parent's outer x position
         """
         ...
     
     @staticmethod
     def PARENT_X1() -> ParentX1:
         """
-        Create a size that references the parent's left x coordinate.
+        Create a size that references the parent's content left x coordinate.
+        This is the left edge of the parent's content area, accounting for padding.
         
         Returns:
-            ParentX1: Size object referencing the parent's x1
+            ParentX1: Size object referencing the parent's content x1
         """
         ...
     
     @staticmethod
     def PARENT_X2() -> ParentX2:
         """
-        Create a size that references the parent's right x coordinate.
+        Create a size that references the parent's content right x coordinate.
+        This is the right edge of the parent's content area, accounting for padding.
         
         Returns:
-            ParentX2: Size object referencing the parent's x2
+            ParentX2: Size object referencing the parent's content x2
+        """
+        ...
+    
+    @staticmethod
+    def PARENT_Y0() -> ParentY0:
+        """
+        Create a size that references the parent's outer top y coordinate.
+        This refers to the actual position of the parent item, not accounting for padding.
+        
+        Returns:
+            ParentY0: Size object referencing the parent's outer y position
         """
         ...
     
     @staticmethod
     def PARENT_Y1() -> ParentY1:
         """
-        Create a size that references the parent's top y coordinate.
+        Create a size that references the parent's content top y coordinate.
+        This is the top edge of the parent's content area, accounting for padding.
         
         Returns:
-            ParentY1: Size object referencing the parent's y1
+            ParentY1: Size object referencing the parent's content y1
         """
         ...
     
     @staticmethod
     def PARENT_Y2() -> ParentY2:
         """
-        Create a size that references the parent's bottom y coordinate.
+        Create a size that references the parent's content bottom y coordinate.
+        This is the bottom edge of the parent's content area, accounting for padding.
         
         Returns:
-            ParentY2: Size object referencing the parent's y2
+            ParentY2: Size object referencing the parent's content y2
         """
         ...
     
     @staticmethod
     def PARENT_XC() -> ParentXC:
         """
-        Create a size that references the parent's x center coordinate.
+        Create a size that references the parent's content x center coordinate.
+        This is the horizontal center of the parent's content area.
         
         Returns:
-            ParentXC: Size object referencing the parent's x center
+            ParentXC: Size object referencing the parent's content x center
         """
         ...
     
     @staticmethod
     def PARENT_YC() -> ParentYC:
         """
-        Create a size that references the parent's y center coordinate.
+        Create a size that references the parent's content y center coordinate.
+        This is the vertical center of the parent's content area.
         
         Returns:
-            ParentYC: Size object referencing the parent's y center
+            ParentYC: Size object referencing the parent's content y center
         """
         ...
     
@@ -2422,10 +2837,6 @@ class Size:
     def SELF_WIDTH() -> SelfWidth:
         """
         Create a size relative to the item's own width.
-        
-        Args:
-            factor (float, optional): Multiplier for the width (default: 1.0)
-            offset (float, optional): Offset to add to the scaled width (default: 0)
             
         Returns:
             baseSizing: Size object relative to the item's own width
@@ -2436,10 +2847,6 @@ class Size:
     def SELF_HEIGHT() -> SelfHeight:
         """
         Create a size relative to the item's own height.
-        
-        Args:
-            factor (float, optional): Multiplier for the height (default: 1.0)
-            offset (float, optional): Offset to add to the scaled height (default: 0)
             
         Returns:
             baseSizing: Size object relative to the item's own height
@@ -2655,94 +3062,160 @@ class Size:
         ...
     
     @staticmethod
-    def SELF_X1() -> SelfX1:
+    def SELF_X0() -> SelfX0:
         """
-        Create a size that references the item's own left x coordinate (x1).
+        Create a size that references the item's own outer left x coordinate (x0).
+        This is the actual position of the item, not accounting for content area padding.
         
         Returns:
-            SelfX1: Size object referencing the item's x1
+            SelfX0: Size object referencing the item's outer x position
+        """
+        ...
+    
+    @staticmethod
+    def SELF_X1() -> SelfX1:
+        """
+        Create a size that references the item's own content left x coordinate (x1).
+        This is the left edge of the item's content area, accounting for padding if available.
+        If the item has no content area, this is equivalent to x0.
+        
+        Returns:
+            SelfX1: Size object referencing the item's content x1
         """
         ...
     
     @staticmethod
     def SELF_X2() -> SelfX2:
         """
-        Create a size that references the item's own right x coordinate (x2).
+        Create a size that references the item's own content right x coordinate (x2).
+        This is the right edge of the item's content area, accounting for padding if available.
+        If the item has no content area, this is equivalent to x0 + width.
         
         Returns:
-            SelfX2: Size object referencing the item's x2
+            SelfX2: Size object referencing the item's content x2
+        """
+        ...
+    
+    @staticmethod
+    def SELF_Y0() -> SelfY0:
+        """
+        Create a size that references the item's own outer top y coordinate (y0).
+        This is the actual position of the item, not accounting for content area padding.
+        
+        Returns:
+            SelfY0: Size object referencing the item's outer y position
         """
         ...
     
     @staticmethod
     def SELF_Y1() -> SelfY1:
         """
-        Create a size that references the item's own top y coordinate (y1).
+        Create a size that references the item's own content top y coordinate (y1).
+        This is the top edge of the item's content area, accounting for padding if available.
+        If the item has no content area, this is equivalent to y0.
         
         Returns:
-            SelfY1: Size object referencing the item's y1
+            SelfY1: Size object referencing the item's content y1
         """
         ...
     
     @staticmethod
     def SELF_Y2() -> SelfY2:
         """
-        Create a size that references the item's own bottom y coordinate (y2).
+        Create a size that references the item's own content bottom y coordinate (y2).
+        This is the bottom edge of the item's content area, accounting for padding if available.
+        If the item has no content area, this is equivalent to y0 + height.
         
         Returns:
-            SelfY2: Size object referencing the item's y2
+            SelfY2: Size object referencing the item's content y2
+        """
+        ...
+    
+    @staticmethod
+    def RELATIVE_X0(item: 'uiItem') -> RefX0:
+        """
+        Create a size relative to another item's outer left x coordinate (x0).
+        This is the actual position of the item, not accounting for content area padding.
+        
+        Args:
+            item (uiItem): The reference item
+            
+        Returns:
+            RefX0: Size object relative to the reference item's outer x position
         """
         ...
     
     @staticmethod
     def RELATIVE_X1(item: 'uiItem') -> RefX1:
         """
-        Create a size relative to another item's left x coordinate.
+        Create a size relative to another item's content left x coordinate (x1).
+        This is the left edge of the item's content area, accounting for padding if available.
+        If the item has no content area, this is equivalent to x0.
         
         Args:
             item (uiItem): The reference item
             
         Returns:
-            RefX1: Size object relative to the reference item's x1
+            RefX1: Size object relative to the reference item's content x1
         """
         ...
     
     @staticmethod
     def RELATIVE_X2(item: 'uiItem') -> RefX2:
         """
-        Create a size relative to another item's right x coordinate.
+        Create a size relative to another item's content right x coordinate (x2).
+        This is the right edge of the item's content area, accounting for padding if available.
+        If the item has no content area, this is equivalent to x0 + width.
         
         Args:
             item (uiItem): The reference item
             
         Returns:
-            RefX2: Size object relative to the reference item's x2
+            RefX2: Size object relative to the reference item's content x2
+        """
+        ...
+    
+    @staticmethod
+    def RELATIVE_Y0(item: 'uiItem') -> RefY0:
+        """
+        Create a size relative to another item's outer top y coordinate (y0).
+        This is the actual position of the item, not accounting for content area padding.
+        
+        Args:
+            item (uiItem): The reference item
+            
+        Returns:
+            RefY0: Size object relative to the reference item's outer y position
         """
         ...
     
     @staticmethod
     def RELATIVE_Y1(item: 'uiItem') -> RefY1:
         """
-        Create a size relative to another item's top y coordinate.
+        Create a size relative to another item's content top y coordinate (y1).
+        This is the top edge of the item's content area, accounting for padding if available.
+        If the item has no content area, this is equivalent to y0.
         
         Args:
             item (uiItem): The reference item
             
         Returns:
-            RefY1: Size object relative to the reference item's y1
+            RefY1: Size object relative to the reference item's content y1
         """
         ...
     
     @staticmethod
     def RELATIVE_Y2(item: 'uiItem') -> RefY2:
         """
-        Create a size relative to another item's bottom y coordinate.
+        Create a size relative to another item's content bottom y coordinate (y2).
+        This is the bottom edge of the item's content area, accounting for padding if available.
+        If the item has no content area, this is equivalent to y0 + height.
         
         Args:
             item (uiItem): The reference item
             
         Returns:
-            RefY2: Size object relative to the reference item's y2
+            RefY2: Size object relative to the reference item's content y2
         """
         ...
     
@@ -2789,6 +3262,24 @@ class Size:
             
         Returns:
             RefYC: Size object relative to the reference item's y center
+        """
+        ...
+    
+    @staticmethod
+    def THEME_STYLE(style_name: str, use_y_component: bool = False) -> ThemeStyleSize:
+        """
+        Create a size that references an ImGui style value.
+        
+        Args:
+            style_name (str): Name of the ImGui style (case insensitive)
+            use_y_component (bool): Whether to use the Y component for Vec2 styles
+            
+        Returns:
+            ThemeStyleSize: Size object referencing the theme style
+            
+        Examples:
+            Size.THEME_STYLE("item_spacing")     # X component by default
+            Size.THEME_STYLE("item_spacing", True) # Y component
         """
         ...
     
@@ -4741,7 +5232,7 @@ class uiItem(baseItem):
 
 
     @property
-    def height(self) -> 'baseSizing':
+    def height(self) -> 'baseRefSizing':
         """
         Requested height for the item.
 
@@ -5010,7 +5501,7 @@ class uiItem(baseItem):
 
 
     @property
-    def width(self) -> 'baseSizing':
+    def width(self) -> 'baseRefSizing':
         """
         Requested width for the item.
 
@@ -5039,7 +5530,7 @@ class uiItem(baseItem):
 
 
     @property
-    def x(self) -> 'baseSizing':
+    def x(self) -> 'baseRefSizing':
         """
         Requested horizontal position of the item.
 
@@ -5076,7 +5567,7 @@ class uiItem(baseItem):
 
 
     @property
-    def y(self) -> 'baseSizing':
+    def y(self) -> 'baseRefSizing':
         """
         Requested vertical position of the item.
 

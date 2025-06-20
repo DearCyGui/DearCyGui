@@ -3067,10 +3067,6 @@ class Size:
     def SELF_WIDTH():
         """
         Create a size relative to the item's own width.
-        
-        Args:
-            factor (float, optional): Multiplier for the width (default: 1.0)
-            offset (float, optional): Offset to add to the scaled width (default: 0)
             
         Returns:
             baseSizing: Size object relative to the item's own width
@@ -3081,10 +3077,6 @@ class Size:
     def SELF_HEIGHT():
         """
         Create a size relative to the item's own height.
-        
-        Args:
-            factor (float, optional): Multiplier for the height (default: 1.0)
-            offset (float, optional): Offset to add to the scaled height (default: 0)
             
         Returns:
             baseSizing: Size object relative to the item's own height
