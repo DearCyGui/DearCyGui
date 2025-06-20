@@ -334,10 +334,12 @@ def typename(object_class, instance, name, value):
             return "Sequence['plotElement']"
         if issubclass(object_class, dcg.Window):
             return "Sequence['uiItem' | 'MenuBar']"
+        if issubclass(object_class, dcg.WindowLayout):
+            return "Sequence['Window' | 'WindowLayout']"
         if issubclass(object_class, dcg.ChildWindow):
             return "Sequence['uiItem' | 'MenuBar']"
         if issubclass(object_class, dcg.Viewport):
-            return "Sequence['Window' | 'ViewportDrawList' | 'MenuBar']"
+            return "Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar']"
         if issubclass(object_class, dcg.drawingItem):
             try:
                 instance.children = [dcg.DrawLine(instance.context)]
@@ -366,8 +368,8 @@ def typename(object_class, instance, name, value):
         if issubclass(object_class, dcg.SharedValue):
             return "list[Never]"
     if name == "parent":
-        if issubclass(object_class, dcg.Window):
-            return "'Viewport' | None"
+        if issubclass(object_class, dcg.Window) or issubclass(object_class, dcg.WindowLayout):
+            return "'Viewport' | 'WindowLayout' | None"
         if issubclass(object_class, dcg.MenuBar):
             return "'Viewport' | 'Window' | 'ChildWindow' | None"
         if issubclass(object_class, dcg.ViewportDrawList):
@@ -382,6 +384,30 @@ def typename(object_class, instance, name, value):
             return "'baseHandler' | None"
         if issubclass(object_class, dcg.baseTheme):
             return "'baseTheme' | None"
+
+    if name.endswith("sibling") or name == "before":
+        try:
+            item_type = instance.item_type
+            if item_type == dcg.ChildType.DRAWING:
+                return "'drawingItem' | None"
+            if item_type == dcg.ChildType.HANDLER:
+                return "'baseHandler' | None"
+            if item_type == dcg.ChildType.MENUBAR:
+                return "'MenuBar' | None"
+            if item_type == dcg.ChildType.PLOTELEMENT:
+                return "'plotElement' | None"
+            if item_type == dcg.ChildType.TAB:
+                return "'Tab' | 'TabButton' | None"
+            if item_type == dcg.ChildType.THEME:
+                return "'baseTheme' | None"
+            if item_type == dcg.ChildType.VIEWPORTDRAWLIST:
+                return "'ViewportDrawList' | None"
+            if item_type == dcg.ChildType.WIDGET:
+                return "'uiItem' | None"
+            if item_type == dcg.ChildType.WINDOW:
+                return "'Window' | None"
+        except:
+            pass
 
     if issubclass(object_class, dcg.plotElement) and type(value).__name__ == "_memoryviewslice":
         return "Array"
