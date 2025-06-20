@@ -293,6 +293,10 @@ def indent(s: list[str] | str, trim_start=False, short=False):
         s = "\n".join(s)
     return s
 
+def is_dcg_enum(value: object, v_type: str) -> bool:
+    """Check if v is a DCG enum type."""
+    return value is not None and hasattr(dcg, v_type)\
+        and isinstance(value, int) and issubclass(getattr(dcg, v_type), enum.Enum)
 
 hardcoded = {
     "parent": "'baseItem' | None",
@@ -718,12 +722,15 @@ def generate_docstring_for_class(object_class, instance):
                     if v_type is None:
                         v_type = "Any"
                         v = "..."
-                    elif v is not None and '<' in str(v): # default is a class
-                        v = "..."
-                    elif v is not None and hasattr(dcg, v_type) and isinstance(v, int) and issubclass(getattr(dcg, v_type), enum.Enum):
+                    elif is_dcg_enum(v, v_type):
                         v = getattr(dcg, v_type)(v)
                         # Retrieve the enum name
-                        v = f"{v_type}.{v.name}"                                                                      
+                        v = f"{v_type}.{v.name}"
+                    elif prop == "axes" and isinstance(v, tuple) and len(v) == 2 and \
+                            all(isinstance(axis, dcg.Axis) for axis in v):
+                        v = f"(Axis.{v[0].name}, Axis.{v[1].name})"
+                    elif v is not None and '<' in str(v): # default is a class
+                        v = "..."
                     elif v_type == "NoneType": # Likely a class
                         v_type = "Any"
                         v = "..."

@@ -4225,7 +4225,7 @@ class plotElement(baseItem):
     They also support themes for consistent visual styling.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : list[Never] = [], label : str = "", next_sibling : 'baseItem' | None = None, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : list[Never] = [], label : str = "", next_sibling : 'baseItem' | None = None, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -4244,7 +4244,7 @@ class plotElement(baseItem):
         ...
 
 
-    def configure(self, *, axes : tuple['Axis', 'Axis'] = ..., children : list[Never] = [], label : str = "", next_sibling : 'baseItem' | None = None, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : list[Never] = [], label : str = "", next_sibling : 'baseItem' | None = None, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -5566,7 +5566,7 @@ class plotElementWithLegend(plotElement):
     element. Custom handlers can be attached to respond to these interactions.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -5591,7 +5591,7 @@ class plotElementWithLegend(plotElement):
         ...
 
 
-    def configure(self, *, axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -5759,7 +5759,7 @@ class plotElementWithLegend(plotElement):
 
 
 class plotElementX(plotElementWithLegend):
-    def __init__(self, context : Context, *, X : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -5785,7 +5785,7 @@ class plotElementX(plotElementWithLegend):
         ...
 
 
-    def configure(self, *, X : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -5830,7 +5830,7 @@ class plotElementX(plotElementWithLegend):
 
 
 class plotElementXY(plotElementWithLegend):
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -5857,7 +5857,7 @@ class plotElementXY(plotElementWithLegend):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -5921,7 +5921,7 @@ class plotElementXY(plotElementWithLegend):
 
 
 class plotElementXYY(plotElementWithLegend):
-    def __init__(self, context : Context, *, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -5949,7 +5949,7 @@ class plotElementXYY(plotElementWithLegend):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -10836,7 +10836,7 @@ class AxesResizeHandler(baseHandler):
     - Second tuple is for Y axis (default Y1)
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple = ..., before : Any = ..., callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseItem' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple = (Axis.X1, Axis.Y1), before : Any = ..., callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseItem' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -10855,7 +10855,7 @@ class AxesResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, *, axes : tuple = ..., callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseItem' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, axes : tuple = (Axis.X1, Axis.Y1), callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseItem' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -22604,7 +22604,7 @@ class PlotAnnotation(plotElement):
     background colors, offsets, and clamping behavior to ensure visibility.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : list[Never] = [], clamp : bool = False, label : str = "", next_sibling : 'baseItem' | None = None, offset : tuple = (0.0, 0.0), parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : list[Never] = [], clamp : bool = False, label : str = "", next_sibling : 'baseItem' | None = None, offset : tuple = (0.0, 0.0), parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22629,7 +22629,7 @@ class PlotAnnotation(plotElement):
         ...
 
 
-    def configure(self, *, axes : tuple['Axis', 'Axis'] = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : list[Never] = [], clamp : bool = False, label : str = "", next_sibling : 'baseItem' | None = None, offset : tuple = (0.0, 0.0), parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0) -> None:
+    def configure(self, *, axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : list[Never] = [], clamp : bool = False, label : str = "", next_sibling : 'baseItem' | None = None, offset : tuple = (0.0, 0.0), parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, text : str = "", theme : Any = ..., user_data : Any = ..., x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -27014,7 +27014,7 @@ class DrawInPlot(plotElementWithLegend):
     can be changed.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['drawingItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = True, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['drawingItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = True, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -27039,7 +27039,7 @@ class DrawInPlot(plotElementWithLegend):
         ...
 
 
-    def configure(self, *, axes : tuple['Axis', 'Axis'] = ..., children : Sequence['drawingItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = True, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['drawingItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = True, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -27350,7 +27350,7 @@ class PlotBarGroups(plotElementWithLegend):
     color), and each column represents a group position.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : Sequence[str] = ['Item 0'], legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : Sequence[str] = ['Item 0'], legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
         Parameters
         ----------
@@ -27381,7 +27381,7 @@ class PlotBarGroups(plotElementWithLegend):
         ...
 
 
-    def configure(self, *, axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : Sequence[str] = ['Item 0'], legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...) -> None:
+    def configure(self, *, axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, group_size : float = 0.67, horizontal : bool = False, ignore_fit : bool = False, label : str = "", labels : Sequence[str] = ['Item 0'], legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, shift : float = 0.0, show : bool = True, stacked : bool = False, theme : Any = ..., user_data : Any = ..., values : Array = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -27541,7 +27541,7 @@ class PlotHeatmap(plotElementWithLegend):
     and the color scaling can be automatic or manually specified.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence['uiItem'] = [], col_major : bool = False, enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence['uiItem'] = [], col_major : bool = False, enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...):
         """
         Parameters
         ----------
@@ -27573,7 +27573,7 @@ class PlotHeatmap(plotElementWithLegend):
         ...
 
 
-    def configure(self, *, axes : tuple['Axis', 'Axis'] = ..., bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence['uiItem'] = [], col_major : bool = False, enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...) -> None:
+    def configure(self, *, axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), bounds_max : tuple = (1.0, 1.0), bounds_min : tuple = (0.0, 0.0), children : Sequence['uiItem'] = [], col_major : bool = False, enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", label_format : str = "%.1f", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, scale_max : float = 0.0, scale_min : float = 0.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -27748,7 +27748,7 @@ class PlotPieChart(plotElementWithLegend):
     proportions of the values as provided.
 
     """
-    def __init__(self, context : Context, *, angle : float = 90.0, attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : Sequence[str] = ['Slice 0'], legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, normalize : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, angle : float = 90.0, attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : Sequence[str] = ['Slice 0'], legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, normalize : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27782,7 +27782,7 @@ class PlotPieChart(plotElementWithLegend):
         ...
 
 
-    def configure(self, *, angle : float = 90.0, axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : Sequence[str] = ['Slice 0'], legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, normalize : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0) -> None:
+    def configure(self, *, angle : float = 90.0, axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, ignore_hidden : bool = False, label : str = "", label_format : str = "%.1f", labels : Sequence[str] = ['Slice 0'], legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, normalize : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, radius : float = 1.0, show : bool = True, theme : Any = ..., user_data : Any = ..., values : Array = ..., x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -30843,7 +30843,7 @@ class PlotBars(plotElementXY):
     Suitable for histograms, bar charts, and column graphs.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0):
         """
         Parameters
         ----------
@@ -30872,7 +30872,7 @@ class PlotBars(plotElementXY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ..., weight : float = 1.0) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -30949,7 +30949,7 @@ class PlotDigital(plotElementXY):
     time.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -30976,7 +30976,7 @@ class PlotDigital(plotElementXY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -31014,7 +31014,7 @@ class PlotErrorBars(plotElementXY):
     or estimated uncertainties.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], negatives : Array = ..., next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, positives : Array = ..., previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], negatives : Array = ..., next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, positives : Array = ..., previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -31044,7 +31044,7 @@ class PlotErrorBars(plotElementXY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], negatives : Array = ..., next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, positives : Array = ..., previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], negatives : Array = ..., next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, positives : Array = ..., previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -31141,7 +31141,7 @@ class PlotHistogram(plotElementX):
     with cumulative counts, density normalization, and range constraints.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : Sequence['uiItem'] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, no_outliers : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), bar_scale : float = 1.0, before : Any = ..., bins : int = -1, children : Sequence['uiItem'] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, no_outliers : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -31174,7 +31174,7 @@ class PlotHistogram(plotElementX):
         ...
 
 
-    def configure(self, *, X : Array = ..., axes : tuple['Axis', 'Axis'] = ..., bar_scale : float = 1.0, bins : int = -1, children : Sequence['uiItem'] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, no_outliers : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), bar_scale : float = 1.0, bins : int = -1, children : Sequence['uiItem'] = [], cumulative : bool = False, density : bool = False, enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, no_outliers : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, range : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -31352,7 +31352,7 @@ class PlotHistogram2D(plotElementXY):
     Various binning methods are available for both X and Y dimensions.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], density : bool = False, enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, no_outliers : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], density : bool = False, enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, no_outliers : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1):
         """
         Parameters
         ----------
@@ -31385,7 +31385,7 @@ class PlotHistogram2D(plotElementXY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], density : bool = False, enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, no_outliers : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], density : bool = False, enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, no_outliers : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, range_x : Any = ..., range_y : Any = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., x_bins : int = -1, y_bins : int = -1) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -31545,7 +31545,7 @@ class PlotInfLines(plotElementX):
     thresholds, or reference points across the entire plotting area.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -31572,7 +31572,7 @@ class PlotInfLines(plotElementX):
         ...
 
 
-    def configure(self, *, X : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -31627,7 +31627,7 @@ class PlotLine(plotElementXY):
     shading beneath the line, and NaN handling can be configured.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], loop : bool = False, next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], loop : bool = False, next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -31659,7 +31659,7 @@ class PlotLine(plotElementXY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], loop : bool = False, next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], loop : bool = False, next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, segments : bool = False, shaded : bool = False, show : bool = True, skip_nan : bool = False, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -31792,7 +31792,7 @@ class PlotScatter(plotElementXY):
     between points is not continuous.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -31820,7 +31820,7 @@ class PlotScatter(plotElementXY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -31868,7 +31868,7 @@ class PlotScatter(plotElementXY):
 
 
 class PlotShadedLine(plotElementXYY):
-    def __init__(self, context : Context, *, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -31896,7 +31896,7 @@ class PlotShadedLine(plotElementXYY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y1 : Array = ..., Y2 : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -31934,7 +31934,7 @@ class PlotStairs(plotElementXY):
     signals that maintain a value until an event causes a change.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, pre_step : bool = False, previous_sibling : 'baseItem' | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, pre_step : bool = False, previous_sibling : 'baseItem' | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -31963,7 +31963,7 @@ class PlotStairs(plotElementXY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, pre_step : bool = False, previous_sibling : 'baseItem' | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, pre_step : bool = False, previous_sibling : 'baseItem' | None = None, shaded : bool = False, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -32041,7 +32041,7 @@ class PlotStems(plotElementXY):
     signals.
 
     """
-    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = ..., before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, X : Array = ..., Y : Array = ..., attach : Any = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), before : Any = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -32069,7 +32069,7 @@ class PlotStems(plotElementXY):
         ...
 
 
-    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = ..., children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, X : Array = ..., Y : Array = ..., axes : tuple['Axis', 'Axis'] = (Axis.X1, Axis.Y1), children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, horizontal : bool = False, ignore_fit : bool = False, label : str = "", legend_button : MouseButton = MouseButton.RIGHT, legend_handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], next_sibling : 'baseItem' | None = None, no_legend : bool = False, parent : 'Plot' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, theme : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
