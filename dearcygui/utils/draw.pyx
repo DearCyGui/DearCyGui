@@ -274,85 +274,16 @@ class DragPoint(dcg.DrawingList):
     # For the attributes themselves, self.invisible
     # will use its mutex
     @property
-    def active(self):
-        """Whether the point is in active state.
+    def state(self) -> dcg.ItemStateView:
+        """The current state of the point
         
-        Reflects whether the point is currently being interacted with.
-        """
-        return self.invisible.active
+        The state is an instance of ItemStateView which is a class
+        with property getters to retrieve various readonly states.
 
-    @property
-    def activated(self):
-        """Whether the point was activated this frame.
-        
-        True if the point transitioned to active state in the current frame.
+        The ItemStateView instance is just a view over the current states,
+        not a copy, thus the states get updated automatically.
         """
-        return self.invisible.activated
-
-    @property
-    def clicked(self):
-        """Whether the point was clicked this frame.
-        
-        True if the point was clicked in the current frame.
-        """
-        return self.invisible.clicked
-
-    @property
-    def double_clicked(self):
-        """Whether the point was double clicked this frame.
-        
-        True if the point was double clicked in the current frame.
-        """
-        return self.invisible.double_clicked
-
-    @property
-    def deactivated(self):
-        """Whether the point was deactivated this frame.
-        
-        True if the point transitioned from active to inactive in this frame.
-        """
-        return self.invisible.deactivated
-
-    @property
-    def pos_to_viewport(self):
-        """The point's position relative to viewport coordinates.
-        
-        Provides the position converted to the viewport's coordinate system.
-        """
-        return self.invisible.pos_to_viewport
-
-    @property
-    def pos_to_window(self):
-        """The point's position relative to window coordinates.
-        
-        Provides the position converted to the window's coordinate system.
-        """
-        return self.invisible.pos_to_window
-
-    @property
-    def pos_to_parent(self):
-        """The point's position relative to parent coordinates.
-        
-        Provides the position converted to the parent's coordinate system.
-        """
-        return self.invisible.pos_to_parent
-
-    @property
-    def rect_size(self):
-        """The rectangular size of the point's interactive area.
-        
-        Gives the dimensions of the rectangular area that responds to
-        mouse interactions.
-        """
-        return self.invisible.rect_size
-
-    @property
-    def resized(self):
-        """Whether the point's size changed this frame.
-        
-        True if the point was resized in the current frame.
-        """
-        return self.invisible.resized
+        return getattr(self.invisible, "state")
 
     @property
     def no_input(self):
@@ -370,8 +301,12 @@ class DragPoint(dcg.DrawingList):
     def capture_mouse(self):
         """Whether the point captures mouse events.
         
-        Controls how the point interacts with mouse events that occur
-        within its bounds.
+        This forces the point to catch the mouse if
+        it is in front of the points, even if another
+        element was being dragged.
+
+        This defaults to True, and resets to False
+        every frame.
         """
         return self.invisible.capture_mouse
 
