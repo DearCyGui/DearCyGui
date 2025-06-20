@@ -3385,7 +3385,7 @@ class baseItem(object):
         - Textures, themes, colormaps and fonts: Cannot be children but can be bound to items
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : list[Never] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3424,7 +3424,7 @@ class baseItem(object):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
+    def configure(self, *, children : list[Never] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -3552,7 +3552,7 @@ class baseItem(object):
 
 
     @property
-    def children(self) -> list['baseItem']:
+    def children(self) -> list[Never]:
         """
         List of all the children of the item, from first rendered, to last rendered.
 
@@ -3566,7 +3566,7 @@ class baseItem(object):
 
 
     @children.setter
-    def children(self, value : Sequence['baseItem']):
+    def children(self, value : list[Never]):
         ...
 
 
@@ -3773,7 +3773,7 @@ class baseItem(object):
 
 
 class baseFont(baseItem):
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : list[Never] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -3788,7 +3788,7 @@ class baseFont(baseItem):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
+    def configure(self, *, children : list[Never] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -3868,25 +3868,6 @@ class baseHandler(baseItem):
 
     @callback.setter
     def callback(self, value : DCGCallable | None):
-        ...
-
-
-    @property
-    def children(self) -> list[Never]:
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : list[Never]):
         ...
 
 
@@ -4061,25 +4042,6 @@ class baseTheme(baseItem):
 
 
     @property
-    def children(self) -> list[Never]:
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : list[Never]):
-        ...
-
-
-    @property
     def enabled(self) -> bool:
         """
         Controls whether the theme is currently active.
@@ -4221,25 +4183,6 @@ class drawingItem(baseItem):
         - show: Should the object be drawn/shown ?
         - user_data: User data of any type.
         """
-        ...
-
-
-    @property
-    def children(self) -> list[Never]:
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : list[Never]):
         ...
 
 
@@ -4420,25 +4363,6 @@ class plotElement(baseItem):
 
     @axes.setter
     def axes(self, value : tuple['Axis', 'Axis']):
-        ...
-
-
-    @property
-    def children(self) -> list[Never]:
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : list[Never]):
         ...
 
 
@@ -4757,25 +4681,6 @@ class uiItem(baseItem):
 
     @callbacks.setter
     def callbacks(self, value : Sequence[DCGCallable]):
-        ...
-
-
-    @property
-    def children(self) -> list[Never]:
-        """
-        List of all the children of the item, from first rendered, to last rendered.
-
-        When written to, an error is raised if the children already
-        have other parents. This error is meant to prevent programming
-        mistakes, as users might not realize the children were
-        unattached from their former parents.
-
-        """
-        ...
-
-
-    @children.setter
-    def children(self, value : list[Never]):
         ...
 
 
@@ -6822,7 +6727,7 @@ class AxisTag(baseItem):
     specified as a coordinate value on that axis.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : Sequence['baseItem'] = [], coord : float = 0.0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, text : str = "", user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : list[Never] = [], coord : float = 0.0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, text : str = "", user_data : Any = ...):
         """
         Parameters
         ----------
@@ -6841,7 +6746,7 @@ class AxisTag(baseItem):
         ...
 
 
-    def configure(self, *, bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : Sequence['baseItem'] = [], coord : float = 0.0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, text : str = "", user_data : Any = ...) -> None:
+    def configure(self, *, bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : list[Never] = [], coord : float = 0.0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, text : str = "", user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -6981,7 +6886,7 @@ class FontTexture(baseItem):
     scale, and implement 1) or 2) yourself.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, texture : 'Texture' | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : list[Never] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, texture : 'Texture' | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7047,7 +6952,7 @@ class FontTexture(baseItem):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, texture : 'Texture' | None = None, user_data : Any = ...) -> None:
+    def configure(self, *, children : list[Never] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, texture : 'Texture' | None = None, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -7095,7 +7000,7 @@ class Pattern(baseItem):
     interior to exterior).
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : 'Texture' | None = None, user_data : Any = ..., x_mode : str = "points"):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : list[Never] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : 'Texture' | None = None, user_data : Any = ..., x_mode : str = "points"):
         """
         Parameters
         ----------
@@ -7133,7 +7038,7 @@ class Pattern(baseItem):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : 'Texture' | None = None, user_data : Any = ..., x_mode : str = "points") -> None:
+    def configure(self, *, children : list[Never] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, scale_factor : float = 1.0, screen_space : bool = False, texture : 'Texture' | None = None, user_data : Any = ..., x_mode : str = "points") -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -7385,7 +7290,7 @@ class PlaceHolderParent(baseItem):
     Can be a parent to anything but cannot have any parent itself.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence[drawingItem | baseHandler | MenuBar | plotElement | Tab | TabButton | baseTheme | ViewportDrawList | uiItem | Window | AxisTag] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -7400,7 +7305,7 @@ class PlaceHolderParent(baseItem):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
+    def configure(self, *, children : Sequence[drawingItem | baseHandler | MenuBar | plotElement | Tab | TabButton | baseTheme | ViewportDrawList | uiItem | Window | AxisTag] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -7412,6 +7317,25 @@ class PlaceHolderParent(baseItem):
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[drawingItem | baseHandler | MenuBar | plotElement | Tab | TabButton | baseTheme | ViewportDrawList | uiItem | Window | AxisTag]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[drawingItem | baseHandler | MenuBar | plotElement | Tab | TabButton | baseTheme | ViewportDrawList | uiItem | Window | AxisTag]):
         ...
 
 
@@ -7427,7 +7351,7 @@ class PlotAxisConfig(baseItem):
     along the axis.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence['baseItem'] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
         Parameters
         ----------
@@ -7472,7 +7396,7 @@ class PlotAxisConfig(baseItem):
         ...
 
 
-    def configure(self, *, auto_fit : bool = False, children : Sequence['baseItem'] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0) -> None:
+    def configure(self, *, auto_fit : bool = False, children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -7544,6 +7468,25 @@ class PlotAxisConfig(baseItem):
 
     @auto_fit.setter
     def auto_fit(self, value : bool):
+        ...
+
+
+    @property
+    def children(self) -> list[AxisTag]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[AxisTag]):
         ...
 
 
@@ -8102,7 +8045,7 @@ class PlotLegendConfig(baseItem):
     interaction behavior and layout.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], horizontal : bool = False, location : LegendLocation = LegendLocation.NORTHWEST, next_sibling : 'baseItem' | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, sorted : bool = False, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : list[Never] = [], horizontal : bool = False, location : LegendLocation = LegendLocation.NORTHWEST, next_sibling : 'baseItem' | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, sorted : bool = False, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -8125,7 +8068,7 @@ class PlotLegendConfig(baseItem):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], horizontal : bool = False, location : LegendLocation = LegendLocation.NORTHWEST, next_sibling : 'baseItem' | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, sorted : bool = False, user_data : Any = ...) -> None:
+    def configure(self, *, children : list[Never] = [], horizontal : bool = False, location : LegendLocation = LegendLocation.NORTHWEST, next_sibling : 'baseItem' | None = None, no_buttons : bool = False, no_highlight_axis : bool = False, no_highlight_item : bool = False, no_menus : bool = False, outside : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, sorted : bool = False, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -8661,7 +8604,7 @@ class TableColConfig(baseItem):
     - HoveredHandler to detect when the user hovers over the column
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], default_sort : bool = False, enabled : bool = True, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], label : str = "", next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : 'baseItem' | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : 'baseItem' | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : list[Never] = [], default_sort : bool = False, enabled : bool = True, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], label : str = "", next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : 'baseItem' | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : 'baseItem' | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -8696,7 +8639,7 @@ class TableColConfig(baseItem):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], default_sort : bool = False, enabled : bool = True, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], label : str = "", next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : 'baseItem' | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : 'baseItem' | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | 'baseSizing' = 0.0) -> None:
+    def configure(self, *, children : list[Never] = [], default_sort : bool = False, enabled : bool = True, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], label : str = "", next_sibling : 'baseItem' | None = None, no_clip : bool = False, no_header_label : bool = False, no_header_width : bool = False, no_hide : bool = False, no_reorder : bool = False, no_resize : bool = False, no_scaling : bool = False, no_sort : bool = False, no_sort_ascending : bool = False, no_sort_descending : bool = False, parent : 'baseItem' | None = None, prefer_sort_ascending : bool = False, prefer_sort_descending : bool = False, previous_sibling : 'baseItem' | None = None, show : bool = True, stretch : Any = ..., stretch_weight : float = 1.0, user_data : Any = ..., width : float | str | 'baseSizing' = 0.0) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -9099,7 +9042,7 @@ class TablePlaceHolderParent(baseItem):
     table cells. This allows for a cleaner, more intuitive API for populating tables.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence[uiItem] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9114,7 +9057,7 @@ class TablePlaceHolderParent(baseItem):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
+    def configure(self, *, children : Sequence[uiItem] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -9126,6 +9069,25 @@ class TablePlaceHolderParent(baseItem):
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def children(self) -> list[uiItem]:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence[uiItem]):
         ...
 
 
@@ -9141,7 +9103,7 @@ class TableRowConfig(baseItem):
     control over the table's appearance.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : Sequence['baseItem'] = [], handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], min_height : float = 0.0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : list[Never] = [], handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], min_height : float = 0.0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -9160,7 +9122,7 @@ class TableRowConfig(baseItem):
         ...
 
 
-    def configure(self, *, bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : Sequence['baseItem'] = [], handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], min_height : float = 0.0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, bg_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], children : list[Never] = [], handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], min_height : float = 0.0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -9261,7 +9223,7 @@ class Texture(baseItem):
     and can be read from or written to.
 
     """
-    def __init__(self, context : Context, content: Array | None = None, *, antialiased : bool = False, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
+    def __init__(self, context : Context, content: Array | None = None, *, antialiased : bool = False, attach : Any = ..., before : Any = ..., children : list[Never] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False):
         """
         Parameters
         ----------
@@ -9304,7 +9266,7 @@ class Texture(baseItem):
         ...
 
 
-    def configure(self, *, antialiased : bool = False, children : Sequence['baseItem'] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False) -> None:
+    def configure(self, *, antialiased : bool = False, children : list[Never] = [], hint_dynamic : bool = False, nearest_neighbor_upsampling : int = 0, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ..., wrap_x : bool = False, wrap_y : bool = False) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -18688,7 +18650,7 @@ class Font(baseFont):
     FontTexture.add_custom_font() rather than directly instantiated.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, no_scaling : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., children : list[Never] = [], next_sibling : 'baseItem' | None = None, no_scaling : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -18706,7 +18668,7 @@ class Font(baseFont):
         ...
 
 
-    def configure(self, *, children : Sequence['baseItem'] = [], next_sibling : 'baseItem' | None = None, no_scaling : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, children : list[Never] = [], next_sibling : 'baseItem' | None = None, no_scaling : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, scale : float = 1.0, size : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -18805,7 +18767,7 @@ class FontMultiScales(baseFont):
     allowing for dynamic font creation as needed.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = [], children : Sequence['baseItem'] = [], fonts : Sequence['Font'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], fonts : Sequence['Font'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -18822,7 +18784,7 @@ class FontMultiScales(baseFont):
         ...
 
 
-    def configure(self, *, callbacks : Sequence[DCGCallable] = [], children : Sequence['baseItem'] = [], fonts : Sequence['Font'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
+    def configure(self, *, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], fonts : Sequence['Font'] = [], next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -27545,7 +27507,7 @@ class AutoFont(FontMultiScales):
         Additional arguments passed to font_creator
 
     """
-    def __init__(self, context : Context, base_size: float = 17.0, font_creator: Callable[Concatenate[float, ...], 'GlyphSet'] | None = None, *, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = ..., children : Sequence['baseItem'] = [], fonts : Sequence['Font'] = ..., next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
+    def __init__(self, context : Context, base_size: float = 17.0, font_creator: Callable[Concatenate[float, ...], 'GlyphSet'] | None = None, *, attach : Any = ..., before : Any = ..., callbacks : Sequence[DCGCallable] = ..., children : list[Never] = [], fonts : Sequence['Font'] = ..., next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -27562,7 +27524,7 @@ class AutoFont(FontMultiScales):
         ...
 
 
-    def configure(self, *, callbacks : Sequence[DCGCallable] = ..., children : Sequence['baseItem'] = [], fonts : Sequence['Font'] = ..., next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
+    def configure(self, *, callbacks : Sequence[DCGCallable] = ..., children : list[Never] = [], fonts : Sequence['Font'] = ..., next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 

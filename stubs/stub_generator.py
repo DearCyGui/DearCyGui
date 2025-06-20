@@ -367,6 +367,37 @@ def typename(object_class, instance, name, value):
                 return "list[Never]"
         if issubclass(object_class, dcg.SharedValue):
             return "list[Never]"
+        try:
+            children = ""
+            children_types = instance.children_types
+            if children_types & dcg.ChildType.DRAWING:
+                children += "drawingItem | "
+            if children_types & dcg.ChildType.HANDLER:
+                children += "baseHandler | "
+            if children_types & dcg.ChildType.MENUBAR:
+                children += "MenuBar | "
+            if children_types & dcg.ChildType.PLOTELEMENT:
+                children += "plotElement | "
+            if children_types & dcg.ChildType.TAB:
+                children += "Tab | TabButton | "
+            if children_types & dcg.ChildType.THEME:
+                children += "baseTheme | "
+            if children_types & dcg.ChildType.VIEWPORTDRAWLIST:
+                children += "ViewportDrawList | "
+            if children_types & dcg.ChildType.WIDGET:
+                children += "uiItem | "
+            if children_types & dcg.ChildType.WINDOW:
+                children += "Window | "
+            if children_types & dcg.ChildType.AXISTAG:
+                children += "AxisTag | "
+            if children == "":
+                return "list[Never]"
+            children = children[:-3]  # Remove the last " | "
+            return f"Sequence[{children}]"
+        except:
+            pass
+
+
     if name == "parent":
         if issubclass(object_class, dcg.Window) or issubclass(object_class, dcg.WindowLayout):
             return "'Viewport' | 'WindowLayout' | None"
