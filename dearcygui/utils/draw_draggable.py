@@ -1,4 +1,5 @@
 import dearcygui as dcg
+import weakref
 
 class DragPoint(dcg.DrawingList):
     """A draggable point represented as a circle.
@@ -8,6 +9,7 @@ class DragPoint(dcg.DrawingList):
     It can optionally be constrained to stay within plot boundaries when clamping
     is enabled.
     """
+    __handlers_ref: weakref.ReferenceType[dcg.baseHandler] | None = None
     def __init__(self, context : dcg.Context, *args, **kwargs):
         # Create the drawing elements
         with self:
@@ -22,11 +24,53 @@ class DragPoint(dcg.DrawingList):
         self._on_dragging = None
         self._clamp_inside = False
         self.was_dragging = False
+        self._handlers = DragPoint._get_handlers(context)
         # We do in a separate function to allow
         # subclasses to override the callbacks
         self.setup_callbacks()
         # Configure
         super().__init__(context, *args, **kwargs)
+
+    @classmethod
+    def _get_handlers(cls, context):
+        """Get or create handlers for DragPoint instances.
+        
+        While it is perfectly fine to recreate new
+        handlers for each instance, we demonstrate here
+        a better practice for performance:
+        reusing the same handlers for all instances.
+
+        This will impact performance positively
+        when creating a huge number of draggable points,
+        in which case you will notice:
+        - Reduced memory usage, as handlers are shared
+        - Faster DragPoint creation, as handlers are not recreated
+        - Faster Python garbage collection, as fewer objects are managed
+
+        We use a weakref to automatically release the handlers
+        when the last DragPoint is released.
+        """
+        # Check if we have valid shared handlers
+        if cls.__handlers_ref is not None:
+            handlers = cls.__handlers_ref()
+            if handlers is not None and handlers.context == context:
+                return handlers
+        
+        # Create new shared handlers
+        handlers = dcg.HandlerList(context)
+        with handlers:
+            dcg.HoverHandler(context, callback=cls.handler_hover)
+            dcg.DraggingHandler(context, callback=cls.handler_dragging)
+            dcg.DraggedHandler(context, callback=cls.handler_dragged)
+            # Conditional handler for cursor change
+            set_cursor_on_hover = dcg.ConditionalHandler(context)
+            with set_cursor_on_hover:
+                dcg.MouseCursorHandler(context, cursor=dcg.MouseCursor.RESIZE_ALL)
+                dcg.HoverHandler(context)
+        
+        # Store as weak reference
+        cls.__handlers_ref = weakref.ref(handlers)
+        return handlers
 
     def setup_callbacks(self):
         """Setup the handlers that respond to user interaction.
@@ -38,16 +82,7 @@ class DragPoint(dcg.DrawingList):
         # Note: Since this is done before configure,
         # we are not in the parent tree yet
         # and do not need the mutex
-        set_cursor_on_hover = dcg.ConditionalHandler(self.context)
-        with set_cursor_on_hover:
-            dcg.MouseCursorHandler(self.context, cursor=dcg.MouseCursor.RESIZE_ALL)
-            dcg.HoverHandler(self.context)
-        self.invisible.handlers += [
-            dcg.HoverHandler(self.context, callback=self.handler_hover),
-            dcg.DraggingHandler(self.context, callback=self.handler_dragging),
-            dcg.DraggedHandler(self.context, callback=self.handler_dragged),
-            set_cursor_on_hover
-        ]
+        self.invisible.handlers += [self._handlers]
 
     @property
     def radius(self):
@@ -202,10 +237,14 @@ class DragPoint(dcg.DrawingList):
                                isinstance(value, dcg.Callback) else \
                                dcg.Callback(value)
 
-    def handler_dragging(self, _, __, drag_deltas):
+    # We use classmethods to enable sharing the handlers
+
+    @classmethod
+    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, drag_deltas):
         # During the dragging we might not hover anymore the button
         # Note: we must not lock our mutex before we access viewport
         # attributes
+        self: DragPoint = target.parent
         with self.mutex:
             # backup coordinates before dragging
             if not(self.was_dragging):
@@ -216,21 +255,27 @@ class DragPoint(dcg.DrawingList):
             self.x = self.backup_x + drag_deltas[0]
             self.y = self.backup_y + drag_deltas[1]
             _on_dragging = self._on_dragging
+        self.context.viewport.wake() # The screen must be redrawn
         # Release our mutex before calling the callback
         if _on_dragging is not None:
             _on_dragging(self, self, (self.x, self.y))
 
-    def handler_dragged(self, _, __, drag_deltas):
+    @classmethod
+    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, drag_deltas):
+        self: DragPoint = target.parent
         with self.mutex:
             self.was_dragging = False
             # update the coordinates
             self.x = self.backup_x + drag_deltas[0]
             self.y = self.backup_y + drag_deltas[1]
             _on_dragged = self._on_dragged
+        self.context.viewport.wake() # The screen must be redrawn
         if _on_dragged is not None:
             _on_dragged(self, self, (self.x, self.y))
 
-    def handler_hover(self):
+    @classmethod
+    def handler_hover(cls, _, target: dcg.DrawInvisibleButton):
+        self: DragPoint = target.parent
         with self.mutex:
             _on_hover = self._on_hover
         if _on_hover is not None:
@@ -307,8 +352,13 @@ class DragPoint(dcg.DrawingList):
         
         Collection of handlers that process events for this draggable point.
         """
-        return self.invisible.handlers
+        # hide our handler
+        return [handler for handler in self.invisible.handlers if handler is not self._handlers]
 
     @handlers.setter
     def handlers(self, value):
         self.invisible.handlers = value
+        # add back our handler
+        # we do let self.invisible treat value
+        # to convert it to list if needed
+        self.invisible.handlers = [self._handlers] + self.invisible.handlers
