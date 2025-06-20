@@ -34,6 +34,9 @@ cpdef enum class Axis:
     Y2=implot.ImAxis_Y2
     Y3=implot.ImAxis_Y3
 
+cdef int32_t check_Axis(value)
+cdef object make_Axis(int32_t value)
+
 cpdef enum class LegendLocation:
     CENTER=implot.ImPlotLocation_Center
     NORTH=implot.ImPlotLocation_North

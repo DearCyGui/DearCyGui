@@ -407,6 +407,12 @@ def typename(object_class, instance, name, value):
     if name == "positions" and issubclass(object_class, dcg.Layout):
         return "Sequence[int] | Sequence[float]"
 
+    if name == "axes":
+        if issubclass(object_class, dcg.Plot):
+            return "Sequence['PlotAxisConfig']"
+        if issubclass(object_class, dcg.plotElement):
+            return "tuple['Axis', 'Axis']"
+
     default = None if value is None else type(value).__name__
     if isinstance(value, list):
         # if list is accepted, a sequence is accepted

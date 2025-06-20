@@ -32,7 +32,8 @@ cimport dearcygui.backends.time as ctime
 from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t, string_to_str,\
     set_composite_label, set_uuid_label, string_from_str, Vec2, make_Vec2
 from .font cimport AutoFont
-from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color
+from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color,\
+    check_Axis, make_Axis
 from .sizing cimport resolve_size, set_size, RefX0, RefY0, RefWidth, RefHeight
 from .texture cimport Texture
 from .types cimport Vec2, child_type,\
@@ -7787,23 +7788,15 @@ cdef class plotElement(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return (self._axes[0], self._axes[1])
+        return (make_Axis(self._axes[0]), make_Axis(self._axes[1]))
 
     @axes.setter
     def axes(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t axis_x, axis_y
-        try:
-            (axis_x, axis_y) = value
-            assert(axis_x in [implot.ImAxis_X1,
-                              implot.ImAxis_X2,
-                              implot.ImAxis_X3])
-            assert(axis_y in [implot.ImAxis_Y1,
-                              implot.ImAxis_Y2,
-                              implot.ImAxis_Y3])
-        except Exception as e:
-            raise ValueError("Axes must be a tuple of valid X/Y axes")
+        axis_x = check_Axis(value[0])
+        axis_y = check_Axis(value[1])
         self._axes[0] = axis_x
         self._axes[1] = axis_y
 

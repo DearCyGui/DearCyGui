@@ -33,7 +33,8 @@ from .c_types cimport unique_lock, DCGMutex, DCGString, DCGVector,\
     get_object_from_2D_array_view, DCG_DOUBLE, DCG_INT32, DCG_FLOAT,\
     DCG_UINT8, Vec2, make_Vec2, swap_Vec2, string_from_bytes
 from .imgui_types cimport imgui_ColorConvertU32ToFloat4, LegendLocation,\
-    Vec2ImVec2, ImVec2Vec2, parse_color, unparse_color, AxisScale
+    Vec2ImVec2, ImVec2Vec2, parse_color, unparse_color, AxisScale, \
+    check_Axis, make_Axis
 from .types cimport is_MouseButton, make_MouseButton,\
     is_KeyMod, make_KeyMod
 from .wrapper cimport imgui, implot
@@ -97,23 +98,15 @@ cdef class AxesResizeHandler(baseHandler):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return (self._axes[0], self._axes[1])
+        return (make_Axis(self._axes[0]), make_Axis(self._axes[1]))
 
     @axes.setter
     def axes(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef int32_t axis_x, axis_y
-        try:
-            (axis_x, axis_y) = value
-            assert(axis_x in [implot.ImAxis_X1,
-                              implot.ImAxis_X2,
-                              implot.ImAxis_X3])
-            assert(axis_y in [implot.ImAxis_Y1,
-                              implot.ImAxis_Y2,
-                              implot.ImAxis_Y3])
-        except Exception as e:
-            raise ValueError("Axes must be a tuple of valid X/Y axes")
+        axis_x = check_Axis(value[0])
+        axis_y = check_Axis(value[1])
         self._axes[0] = axis_x
         self._axes[1] = axis_y
 
