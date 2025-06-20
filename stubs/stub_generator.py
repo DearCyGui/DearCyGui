@@ -407,6 +407,9 @@ def typename(object_class, instance, name, value):
             return "'Viewport' | None"
         if issubclass(object_class, dcg.drawingItem):
             return "'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None"
+        if issubclass(object_class, dcg.Tab) or \
+           issubclass(object_class, dcg.TabButton):
+            return "'TabBar' | None"
         if issubclass(object_class, dcg.uiItem):
             return "'uiItem' | 'plotElement' | None"
         if issubclass(object_class, dcg.plotElement):

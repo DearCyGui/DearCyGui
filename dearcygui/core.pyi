@@ -24559,7 +24559,7 @@ class Tab(uiItem):
     addition to user interaction.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'Tab' | 'TabButton' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'Tab' | 'TabButton' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -24595,7 +24595,7 @@ class Tab(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -24744,6 +24744,49 @@ class Tab(uiItem):
 
     @no_tooltip.setter
     def no_tooltip(self, value : bool):
+        ...
+
+
+    @property
+    def parent(self) -> 'TabBar' | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : 'TabBar' | None):
         ...
 
 
@@ -25114,7 +25157,7 @@ class TabButton(uiItem):
     using themes.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'Tab' | 'TabButton' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'Tab' | 'TabButton' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25149,7 +25192,7 @@ class TabButton(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25258,6 +25301,49 @@ class TabButton(uiItem):
 
     @no_tooltip.setter
     def no_tooltip(self, value : bool):
+        ...
+
+
+    @property
+    def parent(self) -> 'TabBar' | None:
+        """
+        Parent of the item in the rendering tree.
+
+        Rendering starts from the viewport. Then recursively each child
+        is rendered from the first to the last, and each child renders
+        their subtree.
+
+        Only an item inserted in the rendering tree is rendered.
+        An item that is not in the rendering tree can have children.
+        Thus it is possible to build and configure various items, and
+        attach them to the tree in a second phase.
+
+        The children hold a reference to their parent, and the parent
+        holds a reference to its children. Thus to be release memory
+        held by an item, two options are possible:
+            - Remove the item from the tree, remove all your references.
+            If the item has children or siblings, the item will not be
+            released until Python's garbage collection detects a
+            circular reference.
+            - Use delete_item to remove the item from the tree, and remove
+            all the internal references inside the item structure and
+            the item's children, thus allowing them to be removed from
+            memory as soon as the user doesn't hold a reference on them.
+
+        Note the viewport is referenced by the context.
+
+        If you set this attribute, the item will be inserted at the last
+        position of the children of the parent (regardless whether this
+        item is already a child of the parent).
+        If you set None, the item will be removed from its parent's children
+        list.
+
+        """
+        ...
+
+
+    @parent.setter
+    def parent(self, value : 'TabBar' | None):
         ...
 
 
