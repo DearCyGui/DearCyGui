@@ -47,6 +47,7 @@ cdef bint is_ButtonDirection(value):
     return False
 
 cdef object make_ButtonDirection(value):
+    cdef int32_t value_int
     if isinstance(value, ButtonDirection):
         return value
     if isinstance(value, str):
@@ -55,8 +56,14 @@ cdef object make_ButtonDirection(value):
         except KeyError:
             raise ValueError(f"Invalid button direction name: {value}")
     if isinstance(value, int):
-        try:
-            return ButtonDirection(value)
-        except ValueError:
-            raise ValueError(f"Invalid button direction value: {value}")
+        value_int = <int32_t>value
+        if value_int == imgui.ImGuiDir_Left:
+            return ButtonDirection.LEFT
+        elif value_int == imgui.ImGuiDir_Right:
+            return ButtonDirection.RIGHT
+        elif value_int == imgui.ImGuiDir_Up:
+            return ButtonDirection.UP
+        elif value_int == imgui.ImGuiDir_Down:
+            return ButtonDirection.DOWN
+        raise ValueError(f"Invalid button direction value: {value}")
     raise TypeError(f"Expected ButtonDirection enum or string, got {type(value).__name__}")
