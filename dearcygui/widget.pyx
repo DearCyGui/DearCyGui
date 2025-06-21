@@ -313,8 +313,12 @@ cdef class DrawInvisibleButton(drawingItem):
         # Get button position in screen space
         cdef float[2] p1
         cdef float[2] p2
+        cdef bint plot_fit = self.context.viewport.plot_fit
+        # Disable plot fit for empty invisible buttons as it is invisible.
+        self.context.viewport.plot_fit = plot_fit and (self.last_drawings_child is not None)
         self.context.viewport.coordinate_to_screen(p1, self._p1)
         self.context.viewport.coordinate_to_screen(p2, self._p2)
+        self.context.viewport.plot_fit = plot_fit
         cdef imgui.ImVec2 top_left
         cdef imgui.ImVec2 bottom_right
         cdef imgui.ImVec2 center
