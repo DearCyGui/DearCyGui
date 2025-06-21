@@ -394,7 +394,7 @@ cdef class Context:
         """
         return BackendRenderingContext.from_context(self)
 
-    def create_new_shared_gl_context(self, int32_t major, int32_t minor):
+    def create_new_shared_gl_context(self, int32_t major, int32_t minor) -> SharedGLContext:
         """
         Create a new shared OpenGL context with the current context.
 

@@ -6695,7 +6695,7 @@ class Context(object):
         ...
 
 
-    def create_new_shared_gl_context(self, major, minor):
+    def create_new_shared_gl_context(self, major, minor) -> SharedGLContext:
         """
         Create a new shared OpenGL context with the current context.
 
