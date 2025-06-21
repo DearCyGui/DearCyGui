@@ -3983,7 +3983,7 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
         quad_h = sqrt((xc_top - xc_bottom) * (xc_top - xc_bottom) +
                       (yc_top - yc_bottom) * (yc_top - yc_bottom))
         # Use the minimum scale in all directions
-        scale = fmin(quad_w  * w_step, quad_h * h_step)
+        scale = fmin(quad_w * w_step, quad_h * h_step)
 
         # Deduce direction vectors
         dir_x_top = scale * (xc_right - xc_left) / quad_w
@@ -4034,10 +4034,6 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
         if glyph == NULL:
             continue
 
-        # Skip glyphs with no pixels
-        if glyph.Visible == 0:
-            continue
-
         # Calculate vertex positions for character quad
         c_xl = glyph.X0
         c_yb = glyph.Y0
@@ -4075,15 +4071,16 @@ cdef void t_draw_text_quad(Context context, void* drawlist,
             o_y + c_xr * dir_y_bottom + c_yb * up_y
         )
 
-        # Calculate UVs
-        uv0 = imgui.ImVec2(glyph.U0, glyph.V1) # top left
-        uv1 = imgui.ImVec2(glyph.U1, glyph.V1) # top right
-        uv2 = imgui.ImVec2(glyph.U1, glyph.V0) # bottom right
-        uv3 = imgui.ImVec2(glyph.U0, glyph.V0) # bottom left
-
         # Add vertices (6 per character - 2 triangles)
-        draw_list.PrimReserve(6, 4)
-        draw_list.PrimQuadUV(tl, tr, br, bl, uv0, uv1, uv2, uv3, color)
+        if glyph.Visible:
+            # Calculate UVs
+            uv0 = imgui.ImVec2(glyph.U0, glyph.V1) # top left
+            uv1 = imgui.ImVec2(glyph.U1, glyph.V1) # top right
+            uv2 = imgui.ImVec2(glyph.U1, glyph.V0) # bottom right
+            uv3 = imgui.ImVec2(glyph.U0, glyph.V0) # bottom left
+
+            draw_list.PrimReserve(6, 4)
+            draw_list.PrimQuadUV(tl, tr, br, bl, uv0, uv1, uv2, uv3, color)
 
         # Advance cursor
         x_top += glyph.AdvanceX * dir_x_top
