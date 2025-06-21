@@ -413,7 +413,7 @@ cdef class DrawInvisibleButton(drawingItem):
                                     ImVec2Vec2(size),
                                     self._button,
                                     True,
-                                    True,
+                                    not self._capture_mouse,
                                     self._capture_mouse,
                                     &hovered,
                                     &held)
@@ -422,7 +422,7 @@ cdef class DrawInvisibleButton(drawingItem):
         self._capture_mouse = False
         self.state.cur.active = activated or held
         self.state.cur.hovered = hovered
-        if activated:
+        if activated or (self.state.cur.active and not self.state.prev.active):
             cur_mouse_pos = ImVec2Vec2(imgui.GetMousePos())
             screen_p[0] = cur_mouse_pos.x
             screen_p[1] = cur_mouse_pos.y

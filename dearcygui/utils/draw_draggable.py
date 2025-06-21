@@ -1379,11 +1379,12 @@ class DragRect(dcg.DrawingList):
             return
         
         with self.mutex:
+            drag_type = self._get_button_type(target)
             # backup coordinates before dragging
-            if not(self._was_dragging):
+            if not(self._was_dragging) or self._drag_type != drag_type:
                 self._backup_rect = dcg.Rect(self._rect.x1, self._rect.y1, self._rect.x2, self._rect.y2)
                 self._was_dragging = True
-                self._drag_type = self._get_button_type(target)
+                self._drag_type = drag_type
                 self._hover_count += 1 # Increment hover count to ensure diagonals are shown
             
             # Apply the appropriate transformation based on which button is being dragged
@@ -1450,6 +1451,9 @@ class DragRect(dcg.DrawingList):
         if self is None:
             # deleted before we could handle drag
             return
+        if self._drag_type != self._get_button_type(target):
+            self._hover_count = max(0, self._hover_count - 1)
+            return  # Another button took priority for the drag
         with self.mutex:
             self._was_dragging = False
             self._hover_count = max(0, self._hover_count - 1)

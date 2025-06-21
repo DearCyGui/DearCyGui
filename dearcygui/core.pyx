@@ -5348,6 +5348,8 @@ cdef extern from * nogil:
                 }
             }
         }
+        if (catch_active && !first_hovered_wins)
+            toplevel = true;  // If we catch active, we are toplevel
 
         // Set status for next frame
         // if first_hovered_wins is False, only the top
@@ -5366,14 +5368,17 @@ cdef extern from * nogil:
         hovered = hovered && toplevel;
 
         // Maintain UI hover status (needed for HoveredWindow)
-        if (hovered && g.HoveredIdPreviousFrame == id)
+        if (hovered && g.HoveredIdPreviousFrame == id) {
             ImGui::SetHoveredID(id);
+        }
         // Catch hover if we requested to
-        else if (hovered && catch_ui_hover)
+        else if (hovered && catch_ui_hover) {
             ImGui::SetHoveredID(id);
+        }
         // No other UI item hovered rendered before
-        else if (hovered && (g.HoveredId == id || g.HoveredId == 0))
+        else if (hovered && (g.HoveredId == id || g.HoveredId == 0)) {
             ImGui::SetHoveredID(id);
+        }
 
         if (g.ActiveId != 0 && g.ActiveId != id && !catch_active) {
             // Another item is active, and we are not
