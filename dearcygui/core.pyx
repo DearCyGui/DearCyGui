@@ -5865,9 +5865,9 @@ cdef class uiItem(baseItem):
         #self.tracked = False
         self._value = SharedValue(self.context) # To be changed by class
 
-    def __init__(self, C, *args, **kwargs):
+    def __init__(self, context, *args, **kwargs):
         self.focus_requested = kwargs.pop('focused', False)
-        baseItem.__init__(self, C, *args, **kwargs)
+        baseItem.__init__(self, context, *args, **kwargs)
 
     def __dealloc__(self):
         clear_obj_vector(self._callbacks)
