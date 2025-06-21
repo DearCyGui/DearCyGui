@@ -101,7 +101,7 @@ class DragPoint(dcg.DrawingList):
     def radius(self, value: float) -> None:
         with self.mutex:
             self._radius: float = value
-            # We rely solely on min_size to make a
+            # We rely solely on min_side to make a
             # point with desired screen space size,
             # thus why we set p1 = p2
             self._invisible.min_side = value * 2.
