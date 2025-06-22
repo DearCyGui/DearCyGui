@@ -1,13 +1,11 @@
 import asyncio
+from collections.abc import Callable, Coroutine
 from concurrent.futures import Executor, Future
 import dearcygui as dcg
-import inspect
 import math
 import threading
 import time
 import warnings
-
-from typing import Callable
 
 class _SimpleBarrier:
     """
@@ -67,7 +65,7 @@ class _SimpleBarrier:
 
 async def _async_task(future: Future | asyncio.Future | None,
                       barrier: _SimpleBarrier | None,
-                      fn: Callable, args: tuple, kwargs: dict) -> None:
+                      fn: Callable | Coroutine, args: tuple, kwargs: dict) -> None:
     """
     Internal function to run a callable in the asyncio event loop.
     This function is designed to be run as a task in the event loop,
@@ -88,13 +86,10 @@ async def _async_task(future: Future | asyncio.Future | None,
         # we do not need to recheck the barrier after the first await
         await asyncio.sleep(0)
     try:
-        # If it's a coroutine function, await it directly
-        if inspect.iscoroutinefunction(fn):
-            result = await fn(*args, **kwargs)
-        elif callable(fn):
-            # For regular functions, call them and handle returned coroutines
+        if callable(fn):
+            # For functions, call them and handle returned coroutines
             result = fn(*args, **kwargs)
-            # If the function returned a coroutine, await it
+            # If the function returned a coroutine (async function), await it
             if asyncio.iscoroutine(result):
                 result = await result
         elif asyncio.iscoroutine(fn):
@@ -118,7 +113,7 @@ async def _async_task(future: Future | asyncio.Future | None,
 
 
 def _create_task(loop: asyncio.AbstractEventLoop,
-                 future: Future | None, fn: Callable, args: tuple,
+                 future: Future | None, fn: Callable | Coroutine, args: tuple,
                  kwargs: dict) -> asyncio.Task:
     """
     Helper function to instantiate an awaitable for the
@@ -157,7 +152,7 @@ class AsyncPoolExecutor:
     enabling seamless integration with asyncio-based applications.
     """
     
-    def __init__(self, loop: asyncio.AbstractEventLoop = None):
+    def __init__(self, loop: asyncio.AbstractEventLoop | None = None):
         """Initialize the executor with standard ThreadPoolExecutor parameters."""
         if loop is None:
             self._loop = asyncio.get_event_loop()
@@ -200,7 +195,7 @@ class AsyncPoolExecutor:
         """
         return self._loop
 
-    def submit(self, fn: Callable, *args, **kwargs) -> asyncio.Future:
+    def submit(self, fn: Callable | Coroutine, *args, **kwargs) -> asyncio.Future:
         """
         Submit a callable to be executed in the asyncio event loop.
         
@@ -238,7 +233,7 @@ class AsyncPoolExecutor:
 
         return future
 
-    def submit_threadsafe(self, fn: Callable, *args, **kwargs) -> Future:
+    def submit_threadsafe(self, fn: Callable | Coroutine, *args, **kwargs) -> Future:
         """
         Submit a callable to be executed in the asyncio event loop
         represented by this `AsyncPoolExecutor`.
@@ -470,7 +465,7 @@ class AsyncThreadPoolExecutor(Executor):
             if time.monotonic() - timer > 1.0:
                 raise RuntimeError("Background thread did not start within 1 second")
 
-    def submit(self, fn: Callable, *args, **kwargs) -> Future:
+    def submit(self, fn: Callable | Coroutine, *args, **kwargs) -> Future:
         """
         Submit a callable to be executed in the background thread's event loop.
 
