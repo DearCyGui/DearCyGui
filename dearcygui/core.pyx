@@ -2911,13 +2911,17 @@ cdef class ViewportMetrics:
         """
         Total time (seconds) for the complete frame lifecycle.
         
-        This measures the time from the start of event handling to the completion
-        of buffer swapping. It represents the total frame time and is the inverse
+        This measures the time from the end of the processing of the last frame
+        to its previous one. It represents the total frame time and is the inverse
         of the effective frame rate (1.0/delta_whole_frame = FPS).
 
         This time may differ from the time between
         last_time_before_event_handling and last_time_after_swapping,
         if frame processing is being run when the metrics were collected.
+        In addition it will be larger than the sum of
+        delta_event_handling, delta_rendering, and delta_presenting,
+        as it includes any additional time spent executing user code
+        between render_frame calls.
         """
         return (<double>self.delta_whole_frame) * 1e-9
         
