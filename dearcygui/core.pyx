@@ -4582,11 +4582,13 @@ cdef class Viewport(baseItem):
                             print(f"Failed to retrieve framebuffer: {e}")
                 (<platformViewport*>self._platform).present()
             backend_m.unlock()
-        if not(should_present) and (<platformViewport*>self._platform).hasVSync:
-            # cap 'cpu' framerate when not presenting
-            python_time.sleep(0.005) # TODO: use a timer instead and only wait if needed
-        lock_gil_friendly(self_m, self.mutex)
         cdef long long current_time = ctime.monotonic_ns()
+        if not(should_present) and (<platformViewport*>self._platform).hasVSync\
+           and (current_time - self.last_t_after_swapping) < 5000000: # 5 ms
+            # cap 'cpu' framerate when not presenting
+            python_time.sleep(0.005 - <double>(current_time - self.last_t_after_swapping) * 1e-9)
+            current_time = ctime.monotonic_ns()
+        lock_gil_friendly(self_m, self.mutex)
         self.delta_frame = current_time - self.last_t_after_swapping
         self.last_t_after_swapping = current_time
         self.delta_swapping = current_time - self.last_t_after_rendering
