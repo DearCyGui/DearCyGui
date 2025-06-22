@@ -206,7 +206,7 @@ public:
 	// Rendering properties
     float clearColor[4] = { 0., 0., 0., 1. };
     bool hasModesChanged = false;
-    bool hasVSync = true;
+    bool hasVSync = true; // TODO: maybe change that
     bool shouldSkipPresenting = false;
     std::atomic<bool> activityDetected{true};
     std::atomic<bool> needsRefresh{true};
