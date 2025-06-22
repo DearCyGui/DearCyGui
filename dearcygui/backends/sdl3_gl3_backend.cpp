@@ -1058,8 +1058,14 @@ bool SDLViewport::processEvents(int timeout_ms) {
     bool user_requested_refresh = false;
     bool user_requested_rendering = false;
 
+    SDL_PumpEvents();
+
     while (true) {
-        bool new_events = SDL_PollEvent(&event);
+        // We use PeepEvents instead of PollEvent as it seems
+        // on some platforms, the implicit PumpEvents from PollEvent
+        // does cause new events to be fired in some scenario, thus
+        // triggering an infinite loop (e.g. Windows window motion/resizing)
+        bool new_events = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST) > 0;
         if (!new_events) {
             if (remaining_timeout <= 0)
                 break;
@@ -1071,6 +1077,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 auto elapsed = current_time - start_time;
                 auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
                 remaining_timeout = timeout_ms - elapsed_ms;
+                SDL_PumpEvents(); // Probably not needed, but just in case
             } else
                 break; // Timeout occurred
         }
