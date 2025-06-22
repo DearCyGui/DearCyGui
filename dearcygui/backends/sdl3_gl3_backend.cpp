@@ -1101,6 +1101,12 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 case SDL_EVENT_MOUSE_MOTION:
                     activityDetected.store(true);
                     break;
+                case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+                    // For resize events on some platforms,
+                    // we need to perform a full refresh before
+                    // receiving the resize event.
+                    needsRefresh.store(true);
+                    break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 case SDL_EVENT_MOUSE_BUTTON_UP:
                 case SDL_EVENT_MOUSE_WHEEL:
