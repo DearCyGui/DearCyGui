@@ -7550,8 +7550,8 @@ cdef class Window(uiItem):
                 self.context.viewport.force_present()
             # else: DEFAULT
             imgui.SetNextWindowPos(Vec2ImVec2(pos), imgui.ImGuiCond_Always)
-            if not self.requested_x.is_item() and not self.requested_y.is_item() and\
-               (self._window_flags & imgui.ImGuiWindowFlags_NoMove) != imgui.ImGuiWindowFlags_None:
+            if (not self.requested_x.is_item() and not self.requested_y.is_item()) or\
+               (self._window_flags & imgui.ImGuiWindowFlags_NoMove) == imgui.ImGuiWindowFlags_None:
                 # Keep enforcing position when it is a string specification
                 # and the no_move attribute is set, at the intention of the dev
                 # is clear in this case. TODO: maybe better behaviour.
@@ -7561,8 +7561,8 @@ cdef class Window(uiItem):
         if self.size_update_requested:
             imgui.SetNextWindowSize(Vec2ImVec2(requested_size),
                                     imgui.ImGuiCond_Always)
-            if not self.requested_width.is_item() and not self.requested_height.is_item() and\
-               (self._window_flags & imgui.ImGuiWindowFlags_NoMove) != imgui.ImGuiWindowFlags_None:
+            if (not self.requested_width.is_item() and not self.requested_height.is_item()) or\
+               (self._window_flags & imgui.ImGuiWindowFlags_NoResize) == imgui.ImGuiWindowFlags_None:
                 self.size_update_requested = False
 
         if self._collapse_update_requested:
