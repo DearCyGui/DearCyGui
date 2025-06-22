@@ -29,3 +29,5 @@ del types
 del widget
 del bootstrap_cython_submodules
 from . import utils
+
+__version__ = "0.1.1"

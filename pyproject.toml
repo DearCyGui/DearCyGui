@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "Cython==3.1.1",
+    "Cython==3.1.1", # fails on 3.1.2 due to regression
     "freetype-py",
     "wheel",
     "click",
