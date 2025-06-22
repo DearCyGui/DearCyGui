@@ -218,9 +218,17 @@ class MetricsWindow(dcg.Window):
             self.data["Presentation"].push(1e3 * rendering_metrics.delta_presenting)
         # Remove treated data
         for rendering_metrics in treated_metrics:
-            self.metrics.remove(rendering_metrics)
+            try:
+                self.metrics.remove(rendering_metrics)
+            except ValueError:
+                # Removed by deque length limit
+                pass
         for self_metric in treated_self_metrics:
-            self.self_metrics.remove(self_metric)
+            try:
+                self.self_metrics.remove(self_metric)
+            except ValueError:
+                # Removed by deque length limit
+                pass
         # Update the plots
         rendering_metrics = self.context.viewport.metrics
         rendered_vertices = rendering_metrics.rendered_vertices
