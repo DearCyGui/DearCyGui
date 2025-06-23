@@ -18,7 +18,7 @@
 from libc.stdint cimport uint8_t, uint32_t, int32_t, int64_t, uint64_t
 from libc.string cimport memset, memcpy
 from libcpp cimport bool
-from libcpp.cmath cimport floor, ceil, round as cround, fmax
+from libcpp.cmath cimport floor, ceil, round as cround, fmin, fmax
 from libcpp.set cimport set as cpp_set
 from libcpp.string cimport string
 
@@ -7580,6 +7580,7 @@ cdef class Window(uiItem):
 
         cdef bint no_move = (self._window_flags & imgui.ImGuiWindowFlags_NoMove) == imgui.ImGuiWindowFlags_NoMove
         cdef imgui.ImVec2 current_pos, new_pos
+        cdef float visibility_padding, draggable_area_height, clamp_min, clamp_max
         if GetNamedWindowPos(self._imgui_label.c_str(), current_pos):
             # Window already exists, with current_pos
             # Note: current_pos differs from state.cur.pos_to_viewport
@@ -7604,7 +7605,12 @@ cdef class Window(uiItem):
                     new_pos.x = self.context.viewport.parent_pos.x + \
                         cround(self.context.viewport.global_scale * self.requested_x.get_value())
                 self.x_update_requested = False
-            # else: keep imgui position
+            else:
+                # keep imgui position, but apply clamping to the parent (formula from imgui)
+                visibility_padding = fmax(imgui.GetStyle().DisplayWindowPadding.x, imgui.GetStyle().DisplaySafeAreaPadding.x)
+                clamp_min = self.context.viewport.parent_pos.x + visibility_padding - self.state.prev.rect_size.x
+                clamp_max = self.context.viewport.parent_pos.x + self.context.viewport.parent_size.x - visibility_padding
+                new_pos.x = fmin(fmax(new_pos.x, clamp_min), clamp_max)
 
             # same for y:
             if no_move and not self.y_update_requested:
@@ -7618,6 +7624,17 @@ cdef class Window(uiItem):
                     new_pos.y = self.context.viewport.parent_pos.y + \
                         cround(self.context.viewport.global_scale * self.requested_y.get_value())
                 self.y_update_requested = False
+            else:
+                # keep imgui position, but apply clamping to the parent (formula from imgui)
+                visibility_padding = fmax(imgui.GetStyle().DisplayWindowPadding.y, imgui.GetStyle().DisplaySafeAreaPadding.y)
+                draggable_area_height = imgui.GetFontSize() + 2. * imgui.GetStyle().FramePadding.y
+                if (self._window_flags & imgui.ImGuiWindowFlags_NoTitleBar) == imgui.ImGuiWindowFlags_NoTitleBar:
+                    draggable_area_height = fmax(draggable_area_height, self.state.prev.rect_size.y)
+                clamp_min = self.context.viewport.parent_pos.y + visibility_padding - draggable_area_height
+                clamp_max = self.context.viewport.parent_pos.y + self.context.viewport.parent_size.y - visibility_padding
+                # Note: we use the parent size, not the viewport size
+                new_pos.y = fmin(fmax(new_pos.y, clamp_min), clamp_max)
+
 
             if new_pos.x != current_pos.x or new_pos.y != current_pos.y:
                 # There has been a change to show the user.
