@@ -618,8 +618,10 @@ cdef class TimeWatcher(uiItem):
     pass
 
 cdef class Window(uiItem):
-    cdef bint pos_update_requested
-    cdef bint size_update_requested
+    cdef bint x_update_requested
+    cdef bint y_update_requested
+    cdef bint width_update_requested
+    cdef bint height_update_requested
     cdef int32_t _window_flags # imgui.ImGuiWindowFlags
     cdef bint _main_window
     cdef bint _resized

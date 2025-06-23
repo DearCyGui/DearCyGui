@@ -4303,6 +4303,8 @@ cdef class Viewport(baseItem):
         self.window_pos = make_Vec2(0., 0.)
         imgui.PushID(self.uuid)
         draw_menubar_children(self)
+        # TODO: if menubar, we beed to shift parent_pos and parent_size
+        # to account for the menubar size
         draw_window_children(self)
         draw_viewport_drawlist_children(self)
         imgui.PopID()
@@ -6678,7 +6680,21 @@ cdef class TimeWatcher(uiItem):
                                                          time_end,
                                                          self.context.viewport.last_t_before_rendering,
                                                          self.context.viewport.frame_count)
-        
+
+
+cdef extern from * nogil:
+    """
+bool GetNamedWindowPos(const char* name, ImVec2& pos)
+{
+    if (ImGuiWindow* window = ImGui::FindWindowByName(name)) {
+        pos = window->Pos;
+        return true;
+    }
+    return false;
+}
+    """
+    cdef bint GetNamedWindowPos(const char* name, imgui.ImVec2& pos) noexcept
+
 
 cdef class Window(uiItem):
     """
@@ -6696,8 +6712,10 @@ cdef class Window(uiItem):
     menu bars can be attached using menubar items.
     """
     def __cinit__(self):
-        self.pos_update_requested = False
-        self.size_update_requested = False
+        self.x_update_requested = False
+        self.y_update_requested = False
+        self.width_update_requested = False
+        self.height_update_requested = False
         self._window_flags = imgui.ImGuiWindowFlags_None
         self._main_window = False
         self._modal = False
@@ -7296,7 +7314,10 @@ cdef class Window(uiItem):
             self.requested_y.set_value(0)
             self.requested_width.set_value(0)
             self.requested_height.set_value(0)
-            self.pos_update_requested = True
+            self.x_update_requested = True
+            self.y_update_requested = True
+            self.width_update_requested = True
+            self.height_update_requested = True
         else:
             # Restore previous state
             self._window_flags = self._backup_window_flags
@@ -7305,7 +7326,10 @@ cdef class Window(uiItem):
             self.requested_width = self._backup_requested_width
             self.requested_height = self._backup_requested_height
             # Tell imgui to update the window shape
-            self.pos_update_requested = True
+            self.x_update_requested = True
+            self.y_update_requested = True
+            self.width_update_requested = True
+            self.height_update_requested = True
 
         # Re-tell imgui the window hierarchy
         cdef Window w = self.context.viewport.last_window_child
@@ -7496,7 +7520,7 @@ cdef class Window(uiItem):
         if isinstance(value, (int, float)) and float(value) < 0:
             raise ValueError("Negative y values are not supported. Use a string specification instead.")
         set_size(self.requested_y, value)
-        self.pos_update_requested = True
+        self.y_update_requested = True
 
     @x.setter
     def x(self, value):
@@ -7505,21 +7529,21 @@ cdef class Window(uiItem):
         if isinstance(value, (int, float)) and float(value) < 0:
             raise ValueError("Negative x values are not supported. Use a string specification instead.")
         set_size(self.requested_x, value)
-        self.pos_update_requested = True
+        self.x_update_requested = True
 
     @height.setter
     def height(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         set_size(self.requested_height, value)
-        self.size_update_requested = True
+        self.height_update_requested = True
 
     @width.setter
     def width(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         set_size(self.requested_width, value)
-        self.size_update_requested = True
+        self.width_update_requested = True
 
     cdef void draw(self) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
@@ -7542,28 +7566,111 @@ cdef class Window(uiItem):
             imgui.SetNextWindowFocus()
             self.focus_requested = False
 
-        cdef Vec2 pos
-        if self.pos_update_requested:
-            pos.x = resolve_size(self.requested_x, self)
-            pos.y = resolve_size(self.requested_y, self)
-            if self.requested_x.has_changed() or self.requested_y.has_changed():
+        cdef bint no_move = (self._window_flags & imgui.ImGuiWindowFlags_NoMove) == imgui.ImGuiWindowFlags_NoMove
+        cdef imgui.ImVec2 current_pos, new_pos
+        if GetNamedWindowPos(self._imgui_label.c_str(), current_pos):
+            # Window already exists, with current_pos
+            # Note: current_pos differs from state.cur.pos_to_viewport
+            # in the case the window was moved by user input (this is
+            # resolved at the end of the frame)
+            new_pos = current_pos
+            if no_move and not self.x_update_requested:
+                # We shouldn't move relative to the parent. While imgui enforces
+                # no motion relative to the viewport, we set here the pos manually
+                # to enforce it against the parent which may be a window layout.
+                # We do not read requested_x because the no_move flag may
+                # have been set after the window was moved.
+                new_pos.x = self.context.viewport.parent_pos.x + self.state.prev.pos_to_parent.x
+                # However string positioning overrides that
+                if self.requested_x.is_item():
+                    new_pos.x = resolve_size(self.requested_x, self)
+            elif self.x_update_requested:
+                # There has been a request to update the x position
+                if self.requested_x.is_item():
+                    new_pos.x = resolve_size(self.requested_x, self)
+                else:
+                    new_pos.x = self.context.viewport.parent_pos.x + \
+                        cround(self.context.viewport.global_scale * self.requested_x.get_value())
+                self.x_update_requested = False
+            # else: keep imgui position
+
+            # same for y:
+            if no_move and not self.y_update_requested:
+                new_pos.y = self.context.viewport.parent_pos.y + self.state.prev.pos_to_parent.y
+                if self.requested_y.is_item():
+                    new_pos.y = resolve_size(self.requested_y, self)
+            elif self.y_update_requested:
+                if self.requested_y.is_item():
+                    new_pos.y = resolve_size(self.requested_y, self)
+                else:
+                    new_pos.y = self.context.viewport.parent_pos.y + \
+                        cround(self.context.viewport.global_scale * self.requested_y.get_value())
+                self.y_update_requested = False
+
+            if new_pos.x != current_pos.x or new_pos.y != current_pos.y:
+                # There has been a change to show the user.
                 self.context.viewport.force_present()
-            # else: DEFAULT
-            imgui.SetNextWindowPos(Vec2ImVec2(pos), imgui.ImGuiCond_Always)
-            if (not self.requested_x.is_item() and not self.requested_y.is_item()) or\
-               (self._window_flags & imgui.ImGuiWindowFlags_NoMove) == imgui.ImGuiWindowFlags_None:
-                # Keep enforcing position when it is a string specification
-                # and the no_move attribute is set, at the intention of the dev
-                # is clear in this case. TODO: maybe better behaviour.
-                self.pos_update_requested = False
+
+            imgui.SetNextWindowPos(new_pos, imgui.ImGuiCond_Always)
+
+        elif self.x_update_requested or self.y_update_requested:
+            # If the window does not exist, we need to set the position
+            # relative to the parent, which is the viewport in this case.
+            # Note in theory the window might not exist for imgui, but have a nonzero
+            # prev field, for instance if the window was hidden for some frames.
+            # in practice that is not the case, as imgui never frees the window
+
+            # We cannot set just x or just y, so we set both
+            if self.requested_x.is_item():
+                new_pos.x = resolve_size(self.requested_x, self)
+            else:
+                new_pos.x = self.context.viewport.parent_pos.x + \
+                    cround(self.context.viewport.global_scale * self.requested_x.get_value())
+
+            if self.requested_y.is_item():
+                new_pos.y = resolve_size(self.requested_y, self)
+            else:
+                new_pos.y = self.context.viewport.parent_pos.y + \
+                    cround(self.context.viewport.global_scale * self.requested_y.get_value())
+
+            self.x_update_requested = False
+            self.y_update_requested = False
+            self.context.viewport.force_present() # maybe self.context.redraw_needed = True as well ?
+
+            imgui.SetNextWindowPos(new_pos, imgui.ImGuiCond_Always)
 
         cdef Vec2 requested_size = self.get_requested_size()
-        if self.size_update_requested:
+        cdef bint no_resize = (self._window_flags & imgui.ImGuiWindowFlags_NoResize) == imgui.ImGuiWindowFlags_NoResize
+
+        if requested_size.x == 0:
+            requested_size.x = self.context.viewport.parent_size.x
+            if no_resize:
+                self.width_update_requested = True
+        if requested_size.y == 0:
+            requested_size.y = self.context.viewport.parent_size.y
+            if no_resize:
+                self.height_update_requested = True
+
+        if self.requested_width.is_item() and no_resize:
+            # Always take into account the formula when noresize is set
+            self.width_update_requested = True
+
+        if self.requested_height.is_item() and no_resize:
+            self.height_update_requested = True
+
+        if not self.width_update_requested:
+            # will fill the previous value here for the case we
+            # call SetNextWindowSize for the other dimension only
+            requested_size.x = self.state.prev.rect_size.x
+        if not self.height_update_requested:
+            requested_size.y = self.state.prev.rect_size.y
+
+        if self.width_update_requested or self.height_update_requested:
             imgui.SetNextWindowSize(Vec2ImVec2(requested_size),
                                     imgui.ImGuiCond_Always)
-            if (not self.requested_width.is_item() and not self.requested_height.is_item()) or\
-               (self._window_flags & imgui.ImGuiWindowFlags_NoResize) == imgui.ImGuiWindowFlags_None:
-                self.size_update_requested = False
+
+            self.width_update_requested = False
+            self.height_update_requested = False
 
         if self._collapse_update_requested:
             imgui.SetNextWindowCollapsed(not(self.state.cur.open), imgui.ImGuiCond_Always)
@@ -7604,8 +7711,6 @@ cdef class Window(uiItem):
             imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowRounding, 0.0)
             imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowPadding, imgui.ImVec2(0.0, 0.))
             imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowBorderSize, 0.)
-            imgui.SetNextWindowSize(Vec2ImVec2(self.context.viewport.get_size()),
-                                    imgui.ImGuiCond_Always)
 
         # handle fonts
         if self._font is not None:
@@ -7650,36 +7755,32 @@ cdef class Window(uiItem):
         # if has_close_button, show can be switched from True to False if closed
 
         cdef Vec2 parent_size_backup
+        cdef Vec2 parent_pos_backup
 
         if visible:
+            parent_size_backup = self.context.viewport.parent_size
+            parent_pos_backup = self.context.viewport.parent_pos
             # Retrieve the full region size before the cursor is moved.
             self.state.cur.content_region_size = ImVec2Vec2(imgui.GetContentRegionAvail())
-            # Draw the window content
-            self.context.viewport.window_pos = ImVec2Vec2(imgui.GetCursorScreenPos())
-            self.state.cur.content_pos = self.context.viewport.window_pos
-            self.context.viewport.parent_pos = self.context.viewport.window_pos # should we restore after ? TODO
-            parent_size_backup = self.context.viewport.parent_size
+            self.state.cur.content_pos = ImVec2Vec2(imgui.GetCursorScreenPos())
+
+            self.context.viewport.window_pos = self.state.cur.content_pos
+            self.context.viewport.parent_pos = self.state.cur.content_pos
             self.context.viewport.parent_size = self.state.cur.content_region_size
 
-            #if self._last_0_child is not None:
-            #    self._last_0_child.draw(this_drawlist, startx, starty)
-
+            draw_menubar_children(self) # TODO: should we shift content pos after the menubar ?
             draw_ui_children(self)
-            # TODO if self._children_widgets[i].tracked and show:
-            #    imgui.SetScrollHereY(self._children_widgets[i].trackOffset)
 
-            draw_menubar_children(self)
             self.context.viewport.parent_size = parent_size_backup
+            self.context.viewport.parent_pos = parent_pos_backup
+            self.context.viewport.window_pos = parent_pos_backup 
 
-        cdef Vec2 rect_size
         if visible:
             # Set current states
             self.state.cur.rendered = True
             self.state.cur.hovered = imgui.IsWindowHovered(imgui.ImGuiHoveredFlags_None)
             self.state.cur.focused = imgui.IsWindowFocused(imgui.ImGuiFocusedFlags_None)
-            rect_size = ImVec2Vec2(imgui.GetWindowSize())
-            self.state.cur.rect_size = rect_size
-            #self._last_frame_update = self.context.viewport.frame_count # TODO remove ?
+            self.state.cur.rect_size = ImVec2Vec2(imgui.GetWindowSize())
             self.state.cur.pos_to_viewport = ImVec2Vec2(imgui.GetWindowPos())
             self.state.cur.pos_to_window.x = self.state.cur.pos_to_viewport.x - self.context.viewport.window_pos.x
             self.state.cur.pos_to_window.y = self.state.cur.pos_to_viewport.y - self.context.viewport.window_pos.y
