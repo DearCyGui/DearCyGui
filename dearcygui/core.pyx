@@ -6692,8 +6692,19 @@ bool GetNamedWindowPos(const char* name, ImVec2& pos)
     }
     return false;
 }
+
+bool BringWindowToBack(const char* name)
+{
+    if (ImGuiWindow* window = ImGui::FindWindowByName(name))
+    {
+        ImGui::BringWindowToDisplayBack(window);
+        return true;
+    }
+    return false;
+}
     """
     cdef bint GetNamedWindowPos(const char* name, imgui.ImVec2& pos) noexcept
+    cdef bint BringWindowToBack(const char* name) noexcept
 
 
 cdef class Window(uiItem):
@@ -7318,6 +7329,8 @@ cdef class Window(uiItem):
             self.y_update_requested = True
             self.width_update_requested = True
             self.height_update_requested = True
+            # Put us in the back
+            self.focus_requested = True
         else:
             # Restore previous state
             self._window_flags = self._backup_window_flags
@@ -7330,16 +7343,8 @@ cdef class Window(uiItem):
             self.y_update_requested = True
             self.width_update_requested = True
             self.height_update_requested = True
-
-        # Re-tell imgui the window hierarchy
-        cdef Window w = self.context.viewport.last_window_child
-        cdef Window next = None
-        while w is not None:
-            lock_gil_friendly(m3, w.mutex)
-            w.focus_requested = True
-            next = w.prev_sibling
-            # TODO: previous code did restore previous states on each window. Figure out why
-            w = next
+            # Put us in front
+            self.focus_requested = True
 
     @property
     def min_size(self):
@@ -7563,8 +7568,15 @@ cdef class Window(uiItem):
 
         cdef bint focus_requested = self.focus_requested
         if focus_requested:
-            imgui.SetNextWindowFocus()
-            self.focus_requested = False
+            if self._main_window:
+                if BringWindowToBack(self._imgui_label.c_str()):
+                    # if failed (window doesn't exist), retry next frame
+                    self.focus_requested = False
+                else:
+                    self.context.viewport.redraw_needed = True
+            else:
+                imgui.SetNextWindowFocus()
+                self.focus_requested = False
 
         cdef bint no_move = (self._window_flags & imgui.ImGuiWindowFlags_NoMove) == imgui.ImGuiWindowFlags_NoMove
         cdef imgui.ImVec2 current_pos, new_pos
