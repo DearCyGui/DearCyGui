@@ -23,7 +23,7 @@ from libcpp.cmath cimport floor, fmax
 
 from .core cimport uiItem, Callback, lock_gil_friendly
 from .c_types cimport Vec2, make_Vec2, swap_Vec2, DCGMutex, unique_lock
-from .imgui_types cimport ImVec2Vec2
+from .imgui_types cimport ImVec2Vec2, Vec2ImVec2
 from .sizing cimport resolve_size
 from .sizing import Size
 from .types cimport child_type
@@ -908,6 +908,7 @@ cdef class WindowLayout(uiItem):
         self.element_child_category = child_type.cat_window
         self.can_be_disabled = False
         self._previous_last_child = NULL
+        self._clip = False
         self.state.cap.has_content_region = True
 
     def update_layout(self):
@@ -916,6 +917,21 @@ cdef class WindowLayout(uiItem):
         lock_gil_friendly(m, self.mutex)
         for i in range(<int>self._callbacks.size()):
             self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
+
+    @property
+    def clip(self):
+        """
+        Whether to clip the children to the size of this layout.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._clip
+
+    @clip.setter
+    def clip(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._clip = value
 
     # final enables inlining
     @cython.final
@@ -1039,12 +1055,29 @@ cdef class WindowLayout(uiItem):
 
         cdef Vec2 parent_pos_backup = self.context.viewport.parent_pos
         cdef Vec2 parent_size_backup = self.context.viewport.parent_size
+        cdef bint clip = self._clip
+        cdef imgui.ImVec2 Pos_backup, Size_backup
+        cdef imgui.ImVec2 WorkPos_backup, WorkSize_backup
         
         if self.last_window_child is not None:
             self.context.viewport.parent_pos = pos_to_viewport
             self.context.viewport.window_pos = pos_to_viewport
             self.context.viewport.parent_size = self.state.cur.content_region_size
+            if clip:
+                Pos_backup = imgui.GetMainViewport().Pos
+                Size_backup = imgui.GetMainViewport().Size
+                WorkPos_backup = imgui.GetMainViewport().WorkPos
+                WorkSize_backup = imgui.GetMainViewport().WorkSize
+                imgui.GetMainViewport().Pos = Vec2ImVec2(pos_to_viewport)
+                imgui.GetMainViewport().WorkPos = Vec2ImVec2(pos_to_viewport)
+                imgui.GetMainViewport().Size = Vec2ImVec2(self.state.cur.content_region_size)
+                imgui.GetMainViewport().WorkSize = Vec2ImVec2(self.state.cur.content_region_size)
             self.draw_children()
+            if clip:
+                imgui.GetMainViewport().Pos = Pos_backup
+                imgui.GetMainViewport().Size = Size_backup
+                imgui.GetMainViewport().WorkPos = WorkPos_backup
+                imgui.GetMainViewport().WorkSize = WorkSize_backup
             self.context.viewport.parent_size = parent_size_backup
             self.context.viewport.parent_pos = parent_pos_backup
             self.context.viewport.window_pos = parent_pos_backup

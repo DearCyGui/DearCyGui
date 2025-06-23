@@ -37,6 +37,7 @@ cdef class VerticalLayout(Layout):
 
 cdef class WindowLayout(uiItem):
     cdef bint _force_update
+    cdef bint _clip
     cdef PyObject* _previous_last_child
     cdef Vec2 update_content_area(self) noexcept nogil
     cdef void draw_child(self, uiItem child) noexcept nogil
