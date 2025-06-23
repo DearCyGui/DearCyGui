@@ -982,60 +982,89 @@ cdef class WindowLayout(uiItem):
         """
         if self.last_window_child is None:
             return
-        cdef Vec2 parent_size_backup = self.context.viewport.parent_size
-        self.context.viewport.parent_size = self.state.cur.content_region_size
-        cdef Vec2 pos_min, pos_max
-        pos_min = self.context.viewport.get_size()
-        pos_max = make_Vec2(0, 0)
+
         cdef PyObject *child = <PyObject*> self.last_window_child
         while (<uiItem>child).prev_sibling is not None:
             child = <PyObject *>(<uiItem>child).prev_sibling
         while (<uiItem>child) is not None:
             self.draw_child(<uiItem>child)
-            pos_min.x = min(pos_min.x, (<uiItem>child).state.cur.pos_to_viewport.x)
-            pos_min.y = min(pos_min.y, (<uiItem>child).state.cur.pos_to_viewport.y)
-            pos_max.x = max(pos_max.x, (<uiItem>child).state.cur.pos_to_viewport.x + (<uiItem>child).state.cur.rect_size.x)
-            pos_max.y = max(pos_max.y, (<uiItem>child).state.cur.pos_to_viewport.y + (<uiItem>child).state.cur.rect_size.y)
             child = <PyObject *>(<uiItem>child).next_sibling
-        self.state.cur.rect_size.x = pos_max.x - self.state.cur.pos_to_viewport.x #pos_min.x
-        self.state.cur.rect_size.y = pos_max.y - self.state.cur.pos_to_viewport.y #pos_min.y
-        self.context.viewport.parent_size = parent_size_backup
-
-    cdef void __update_layout(self) noexcept nogil:
-        cdef int32_t i
-
-        with gil:
-            for i in range(<int>self._callbacks.size()):
-                self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
 
     cdef void draw(self) noexcept nogil:
         if self.last_window_child is None:
             return
-        self.update_content_area()
-        cdef bint changed = self.check_change()
-        if changed:
-            self.last_window_child.lock_and_previous_siblings()
-            self.__update_layout()
 
-        cdef Vec2 pos_p
-        cdef Vec2 pos = self.context.viewport.parent_pos
+        if not(self._show):
+            if self._show_update_requested:
+                self.set_previous_states()
+                self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+                self.run_handlers()
+                self._show_update_requested = False
+            return
+
+        cdef float original_scale = self.context.viewport.global_scale
+        self.context.viewport.global_scale = original_scale * self._scaling_factor
+
+        self.set_previous_states()
+
+        cdef Vec2 pos_to_viewport = self.context.viewport.parent_pos
         cdef Vec2 pos_to_parent
         pos_to_parent.x = resolve_size(self.requested_x, self)
         pos_to_parent.y = resolve_size(self.requested_y, self)
-        pos.x = pos.x + pos_to_parent.x
-        pos.y = pos.y + pos_to_parent.y
+        pos_to_viewport.x = pos_to_viewport.x + pos_to_parent.x
+        pos_to_viewport.y = pos_to_viewport.y + pos_to_parent.y
+
+        self.state.cur.pos_to_window = pos_to_parent
+        self.state.cur.pos_to_parent = pos_to_parent
+        self.state.cur.pos_to_viewport = pos_to_viewport
+
+        # After setting position
+        self.update_content_area()
+        # At some point we have used the children size to determine the
+        # rect area (which could then be smaller than the content area),
+        # but if user specifies a size, he expects to have it as rect size.
+        self.state.cur.rect_size = self.state.cur.content_region_size
+
+        # handle fonts
+        if self._font is not None:
+            self._font.push()
+
+        # themes
+        if self._theme is not None:
+            self._theme.push()
+
+        cdef bint changed = self.check_change()
+        if changed:
+            self.last_window_child.lock_and_previous_siblings()
+
+        cdef Vec2 parent_pos_backup = self.context.viewport.parent_pos
+        cdef Vec2 parent_size_backup = self.context.viewport.parent_size
+        
         if self.last_window_child is not None:
-            pos_p = pos
-            swap_Vec2(pos_p, self.context.viewport.parent_pos)
-            self.context.viewport.window_pos = self.context.viewport.parent_pos
+            self.context.viewport.parent_pos = pos_to_viewport
+            self.context.viewport.window_pos = pos_to_viewport
+            self.context.viewport.parent_size = self.state.cur.content_region_size
             self.draw_children()
-            self.context.viewport.parent_pos = pos_p
-            self.context.viewport.window_pos = pos_p
+            self.context.viewport.parent_size = parent_size_backup
+            self.context.viewport.parent_pos = parent_pos_backup
+            self.context.viewport.window_pos = parent_pos_backup
 
         if changed:
             self.last_window_child.unlock_and_previous_siblings()
 
-        self.state.cur.pos_to_window = pos_to_parent
-        self.state.cur.pos_to_parent = pos_to_parent
-        self.state.cur.pos_to_viewport = pos
+        if self._theme is not None:
+            self._theme.pop()
+
+        if self._font is not None:
+            self._font.pop()
+
+        # Restore original scale
+        self.context.viewport.global_scale = original_scale 
+
+        cdef int i
+        if changed and not(self._callbacks.empty()):
+            for i in range(<int>self._callbacks.size()):
+                self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
+
+        self.run_handlers()
 

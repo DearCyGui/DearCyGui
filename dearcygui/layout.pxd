@@ -42,5 +42,4 @@ cdef class WindowLayout(uiItem):
     cdef void draw_child(self, uiItem child) noexcept nogil
     cdef void draw_children(self) noexcept nogil
     cdef bint check_change(self) noexcept nogil
-    cdef void __update_layout(self) noexcept nogil
     cdef void draw(self) noexcept nogil
