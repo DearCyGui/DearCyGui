@@ -3918,6 +3918,7 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m, self.mutex)
         cdef string title = value.encode("utf-8")
         (<platformViewport*>self._platform).windowTitle = title
+        (<platformViewport*>self._platform).titleChangeRequested = True
 
     @property
     def disable_close(self) -> bool:
