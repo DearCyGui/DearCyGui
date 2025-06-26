@@ -1331,6 +1331,247 @@ class ItemStateView:
         """
         ...
 
+    def snapshot(self) -> 'ItemStateCopy':
+        """
+        Create a snapshot copy of the current item state.
+        
+        This method captures the current state values and returns a new
+        ItemStateCopy instance containing those values. The snapshot is
+        immutable and does not change with future updates to the item.
+        
+        This is useful for preserving state at a specific point in time.
+        """
+        ...
+
+
+class ItemStateCopy:
+    """
+    A snapshot copy of UI item state properties at a specific point in time.
+    
+    This class contains a complete copy of an item's state values, allowing you
+    to capture and examine the state without maintaining a reference to the
+    original item. Unlike ItemStateView which provides live access to changing
+    states, itemStateCopy preserves the values as they were when the copy was made.
+    
+    This is useful for:
+    - Comparing states between frames
+    - Storing historical state information
+    - Analyzing state changes over time
+    - Debugging state-related issues
+    
+    All properties return the copied values and are read-only.
+    """
+    
+    @property
+    def active(self) -> bool:
+        """
+        Whether the item is in an active state.
+        
+        Active states vary by item type: for buttons it means pressed; for tabs,
+        selected; for input fields, being edited. This state is tracked between
+        frames to enable interactive behaviors.
+        """
+        ...
+    
+    @property
+    def activated(self) -> bool:
+        """
+        Whether the item just transitioned to the active state this frame.
+        
+        This property is only true during the frame when the item becomes active,
+        making it useful for one-time actions. For persistent monitoring, use 
+        event handlers instead as they provide more robust state tracking.
+        """
+        ...
+    
+    @property
+    def clicked(self) -> tuple[bool, bool, bool, bool, bool]:
+        """
+        Whether any mouse button was clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the click occurs.
+        For consistent event handling across frames, use click handlers instead.
+        """
+        ...
+    
+    @property
+    def double_clicked(self) -> tuple[bool, bool, bool, bool, bool]:
+        """
+        Whether any mouse button was double-clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the double-click occurs.
+        For consistent event handling across frames, use click handlers instead.
+        """
+        ...
+    
+    @property
+    def deactivated(self) -> bool:
+        """
+        Whether the item just transitioned from active to inactive this frame.
+        
+        This property is only true during the frame when deactivation occurs.
+        For persistent monitoring across frames, use event handlers instead
+        as they provide more robust state tracking.
+        """
+        ...
+    
+    @property
+    def deactivated_after_edited(self) -> bool:
+        """
+        Whether the item was edited and then deactivated in this frame.
+        
+        Useful for detecting when user completes an edit operation, such as
+        finishing text input or adjusting a value. This property is only true
+        for the frame when the deactivation occurs after editing.
+        """
+        ...
+    
+    @property
+    def edited(self) -> bool:
+        """
+        Whether the item's value was modified this frame.
+        
+        This flag indicates that the user has made a change to the item's value,
+        such as typing in an input field or adjusting a slider. It is only true
+        for the frame when the edit occurs.
+        """
+        ...
+    
+    @property
+    def focused(self) -> bool:
+        """
+        Whether this item has input focus.
+        
+        For windows, focus means the window is at the top of the stack. For
+        input items, focus means keyboard inputs are directed to this item.
+        Unlike hover state, focus persists until explicitly changed or lost.
+        """
+        ...
+    
+    @property
+    def hovered(self) -> bool:
+        """
+        Whether the mouse cursor is currently positioned over this item.
+
+        Only one element can be hovered at a time in the UI hierarchy. When
+        elements overlap, the topmost item (typically a child item rather than
+        a parent) receives the hover state.
+        """
+        ...
+    
+    @property
+    def resized(self) -> bool:
+        """
+        Whether the item's size changed this frame.
+        
+        This property is true only for the frame when the size change occurs.
+        It can detect both user-initiated resizing (like dragging a window edge)
+        and programmatic size changes.
+        """
+        ...
+    
+    @property
+    def toggled(self) -> bool:
+        """
+        Whether the item was just toggled open this frame.
+        
+        Applies to items that can be expanded or collapsed, such as tree nodes,
+        collapsing headers, or menus. This property is only true during the frame
+        when the toggle from closed to open occurs.
+        """
+        ...
+    
+    @property
+    def visible(self) -> bool:
+        """
+        Whether the item was rendered in the current frame.
+        
+        An item is visible when it and all its ancestors have show=True and are
+        within the visible region of their containers. Invisible items skip
+        rendering and event handling entirely.
+        """
+        ...
+    
+    @property
+    def rect_size(self) -> 'Coord':
+        """
+        Actual pixel size of the element including margins.
+        
+        This property represents the width and height of the rectangle occupied
+        by the item in the layout. The rectangle's top-left corner is at the
+        position given by the relevant position property.
+        
+        Note that this size refers only to the item within its parent window and
+        does not include any popup or child windows that might be spawned by
+        this item.
+        """
+        ...
+    
+    @property
+    def pos_to_viewport(self) -> 'Coord':
+        """
+        Position relative to the viewport's top-left corner.
+        """
+        ...
+    
+    @property
+    def pos_to_window(self) -> 'Coord':
+        """
+        Position relative to the containing window's content area.
+        """
+        ...
+    
+    @property
+    def pos_to_parent(self) -> 'Coord':
+        """
+        Position relative to the parent item's content area.
+        """
+        ...
+    
+    @property
+    def pos_to_default(self) -> 'Coord':
+        """
+        Offset from the item's default layout position.
+        """
+        ...
+    
+    @property
+    def content_region_avail(self) -> 'Coord':
+        """
+        Available space for child items.
+        
+        For container items like windows, child windows, this
+        property represents the available space for placing child items. This is
+        the item's inner area after accounting for padding, borders, and other
+        non-content elements.
+        
+        Areas that require scrolling to see are not included in this measurement.
+        """
+        ...
+    
+    @property
+    def content_pos(self) -> 'Coord':
+        """
+        Position of the content area's top-left corner.
+        
+        This property provides the viewport-relative coordinates of the starting
+        point for an item's content area. This is where child elements begin to be
+        placed by default.
+        
+        Used together with content_region_avail, this defines the rectangle
+        available for child elements.
+        """
+        ...
+    
+    @property
+    def item(self):
+        """
+        item from which the states are extracted.
+        """
+        ...
+
 
 class ViewportMetrics:
     """
@@ -14300,6 +14541,358 @@ class DoubleClickedHandler(baseHandler):
 
     @button.setter
     def button(self, value : MouseButton):
+        ...
+
+
+class DragDropActiveHandler(baseHandler):
+    """
+    *EXPERIMENTAL* Handler that is triggered when a drag
+    and drop event is occuring for the attached item,
+    or for any item.
+
+    The accepted_types attribute can be used
+    to define a list of drag-and-drop types
+    to accept. Defaults is any type.
+
+    The any_target attribute defines if the condition
+    should be raised if any item is being dragged,
+    or only the item this handler refers to.
+
+    """
+    def __init__(self, context : Context, *, accepted_types : Sequence[Any] = [], any_target : bool = False, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - accepted_types: List of text values corresponding to the types of payloads
+        - any_target: If True, the handler will be triggered
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, *, accepted_types : Sequence[Any] = [], any_target : bool = False, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - accepted_types: List of text values corresponding to the types of payloads
+        - any_target: If True, the handler will be triggered
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    @property
+    def accepted_types(self) -> Sequence[Any]:
+        """
+        List of text values corresponding to the types of payloads
+        that this handler accepts.
+
+        If empty, it will accept any type.
+
+        """
+        ...
+
+
+    @accepted_types.setter
+    def accepted_types(self, value : Sequence[Any]):
+        ...
+
+
+    @property
+    def any_target(self) -> bool:
+        """
+        If True, the handler will be triggered
+        when any item is being dragged, in regards to the
+        accepted types. Else it will only be triggered
+        when the item this handler is attached to is being dragged.
+
+        """
+        ...
+
+
+    @any_target.setter
+    def any_target(self, value : bool):
+        ...
+
+
+class DragDropSourceHandler(baseHandler):
+    """
+    *EXPERIMENTAL* Handler for drag-and-drop source events.
+
+    When called, this handler allows initiating a drag-and-drop operation.
+
+    Wrap it in a ConditionalHandler to control when it is active.
+
+    If set, the callback will be called when the drag starts.
+
+    Callback receives:
+        - sender: This handler instance
+        - target: The item that is being dragged
+        - data: A tuple containing:
+            - A dataclass containing a copy of the state field (if any)
+                of the item being dragged
+            - (mouse_x, mouse_y) the mouse position relative to the viewport.
+
+    """
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_disable_hover : bool = False, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - drag_type: An optional string that describes the type of the drag operation.
+        - enabled: Controls whether the handler is active and processing events.
+        - immediate_expiration: If True, the drag expires as soon as this handler
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_disable_hover: If True, the hover state of items below the mouse cursor
+        - no_open_on_hold: Disables the behaviour that holding the mouse during the drag
+        - overwrite: If True, overwrites any previous drag operation already occuring
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_disable_hover : bool = False, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - drag_type: An optional string that describes the type of the drag operation.
+        - enabled: Controls whether the handler is active and processing events.
+        - immediate_expiration: If True, the drag expires as soon as this handler
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_disable_hover: If True, the hover state of items below the mouse cursor
+        - no_open_on_hold: Disables the behaviour that holding the mouse during the drag
+        - overwrite: If True, overwrites any previous drag operation already occuring
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    @property
+    def drag_type(self) -> str:
+        """
+        An optional string that describes the type of the drag operation.
+        This is used to identify the drag operation in the target handler.
+
+        If not set, the default type "item" will be used.
+        If set, it will be appended to "item_" to form the payload type.
+        For example, if drag_type is "person", the payload type will be "item_person".
+
+        The target must have an exact match for this type
+        to accept the drag operation.
+
+        """
+        ...
+
+
+    @drag_type.setter
+    def drag_type(self, value : str):
+        ...
+
+
+    @property
+    def immediate_expiration(self) -> bool:
+        """
+        If True, the drag expires as soon as this handler
+        is not triggered a single frame, rather than when
+        the mouse is released.
+
+        """
+        ...
+
+
+    @immediate_expiration.setter
+    def immediate_expiration(self, value : bool):
+        ...
+
+
+    @property
+    def no_disable_hover(self) -> bool:
+        """
+        If True, the hover state of items below the mouse cursor
+        during the drag operation will not be cleared.
+
+        """
+        ...
+
+
+    @no_disable_hover.setter
+    def no_disable_hover(self, value : bool):
+        ...
+
+
+    @property
+    def no_open_on_hold(self) -> bool:
+        """
+        Disables the behaviour that holding the mouse during the drag
+        over an openable item (TreeNode, etc) opens it.
+
+        """
+        ...
+
+
+    @no_open_on_hold.setter
+    def no_open_on_hold(self, value : bool):
+        ...
+
+
+    @property
+    def overwrite(self) -> bool:
+        """
+        If True, overwrites any previous drag operation already occuring
+
+        """
+        ...
+
+
+    @overwrite.setter
+    def overwrite(self, value : bool):
+        ...
+
+
+class DragDropTargetHandler(baseHandler):
+    """
+    *EXPERIMENTAL* Handler for drag-and-drop target events.
+
+    When called, this handler allows receiving a drag-and-drop operation
+    on the attached item.
+
+    The expected usage is to add this handler to your list
+    of handlers without any conditions, so it is always active.
+
+    The callback will be called when the drop occurs.
+
+    Callback receives:
+        - sender: This handler instance
+        - target: The item that is being dropped onto
+        - data: A tuple containing:
+            - type: The type of the payload (as a string)
+            - payload: The dropped data.
+                - If type starts with "item", it will be the item that was dropped.
+                - If type is "text", it will be a list of strings (OS initiated).
+                - If type is "file", it will be a list of file paths (OS initiated).
+                - If type is "_COL3F" (from a color picker),
+                    it will be a tuple of 3 floats representing the color.
+                - If type is "_COL4F" (from a color picker),
+                    it will be a tuple of 4 floats representing the color with alpha.
+                - The content for other types is undefined.
+            - A dataclass containing a copy of the state field (if any)
+                of the target item.
+            - (mouse_x, mouse_y): The mouse position relative to the viewport
+                when the drop occurred.
+
+    Note for "text" and "file" types:
+        DearCyGui doesn't have a way to know before the drop what the content
+        of the payload will be. Thus the type will always be "text" until
+        the drop occurs. In addition, the content of the payload may
+        arrive later than the mouse release event. DearCyGui will remember
+        the parameters of the drop and call the callback when the content
+        is available. In practice that only means your callback may be
+        a little delayed compared to the other types.
+
+    """
+    def __init__(self, context : Context, *, accepted_types : Sequence[Any] = [], attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, no_draw_default_rect : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+        """
+        Parameters
+        ----------
+        - accepted_types: List of text values corresponding to the types of payloads
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_draw_default_rect: If True, the default highlight rectangle will not be drawn
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    def configure(self, *, accepted_types : Sequence[Any] = [], callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, no_draw_default_rect : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+        """
+        Shortcut to set multiple attributes at once.
+
+        Parameters
+        ----------
+        - accepted_types: List of text values corresponding to the types of payloads
+        - callback: Function called when the handler's condition is met.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - enabled: Controls whether the handler is active and processing events.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_draw_default_rect: If True, the default highlight rectangle will not be drawn
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - show: Alias for the enabled property provided for backward compatibility.
+        - user_data: User data of any type.
+        """
+        ...
+
+
+    @property
+    def accepted_types(self) -> Sequence[Any]:
+        """
+        List of text values corresponding to the types of payloads
+        that this handler accepts.
+
+        If empty, it will accept any type.
+
+        """
+        ...
+
+
+    @accepted_types.setter
+    def accepted_types(self, value : Sequence[Any]):
+        ...
+
+
+    @property
+    def no_draw_default_rect(self) -> bool:
+        """
+        If True, the default highlight rectangle will not be drawn
+        when hovering over the target item during a drag-and-drop operation.
+
+        Note the rectangle is never drawn if the drag type does not match
+        the accepted types of this handler.
+
+        """
+        ...
+
+
+    @no_draw_default_rect.setter
+    def no_draw_default_rect(self, value : bool):
         ...
 
 
@@ -27891,7 +28484,7 @@ class WindowLayout(uiItem):
     for the position and rect size.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'Window' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['Window' | 'WindowLayout'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'Window' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['Window' | 'WindowLayout'] = [], clip : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27900,6 +28493,7 @@ class WindowLayout(uiItem):
         - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
+        - clip: Whether to clip the children to the size of this layout.
         - enabled: Whether the item is interactive and fully styled.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
@@ -27922,13 +28516,14 @@ class WindowLayout(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['Window' | 'WindowLayout'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['Window' | 'WindowLayout'] = [], clip : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
         - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
+        - clip: Whether to clip the children to the size of this layout.
         - enabled: Whether the item is interactive and fully styled.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
@@ -27971,6 +28566,20 @@ class WindowLayout(uiItem):
 
     @children.setter
     def children(self, value : Sequence['Window' | 'WindowLayout']):
+        ...
+
+
+    @property
+    def clip(self) -> bool:
+        """
+        Whether to clip the children to the size of this layout.
+
+        """
+        ...
+
+
+    @clip.setter
+    def clip(self, value : bool):
         ...
 
 
