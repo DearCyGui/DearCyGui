@@ -1089,7 +1089,7 @@ cdef class Combo(uiItem):
         self._items.clear()
         if value is None:
             return
-        if value is str:
+        if isinstance(value, str):
             self._items.push_back(string_from_str(value))
         elif PySequence_Check(value) > 0:
             for v in value:
@@ -1668,7 +1668,7 @@ cdef class ListBox(uiItem):
         self._items.clear()
         if value is None:
             return
-        if value is str:
+        if isinstance(value, str):
             self._items.push_back(string_from_str(value))
         elif PySequence_Check(value) > 0:
             for v in value:
@@ -1798,7 +1798,7 @@ cdef class RadioButton(uiItem):
         self._items.clear()
         if value is None:
             return
-        if value is str:
+        if isinstance(value, str):
             self._items.push_back(string_from_str(value))
         elif PySequence_Check(value) > 0:
             for v in value:

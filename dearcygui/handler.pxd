@@ -1,6 +1,6 @@
 from libc.stdint cimport int32_t
 from .core cimport baseHandler, baseItem
-from .c_types cimport DCGVector
+from .c_types cimport DCGString, DCGVector
 from .types cimport MouseButton, Positioning, HandlerListOP, MouseCursor
 from .widget cimport SharedBool
 
@@ -252,5 +252,31 @@ cdef class AnyMouseReleaseHandler(baseHandler):
 cdef class AnyMouseDownHandler(baseHandler):
     cdef DCGVector[int32_t] _buttons_vector
     cdef DCGVector[float] _durations_vector
+    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class DragDropSourceHandler(baseHandler):
+    cdef int32_t _flags
+    cdef bint _overwrite
+    cdef DCGString _drag_type
+    cdef int _trigger_callback(self, baseItem item)
+    cdef void check_bind(self, baseItem item)
+    cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
+
+cdef class DragDropActiveHandler(baseHandler):
+    cdef bint _any_target
+    cdef DCGVector[DCGString] _items
+    cdef bint _check_payload_type(self, const void *payload) noexcept nogil
+    cdef bint _target_check(self, baseItem item, const void *payload) noexcept nogil
+    cdef void check_bind(self, baseItem item)
+    cdef bint check_state(self, baseItem item) noexcept nogil
+
+cdef class DragDropTargetHandler(baseHandler):
+    cdef int32_t _flags
+    cdef DCGVector[DCGString] _items
+    cdef object _extract_payload_data(self, baseItem item, const void* payload_p)
+    cdef int _trigger_callback(self, baseItem item, const void* payload_p)
+    cdef void check_bind(self, baseItem item)
     cdef bint check_state(self, baseItem item) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil

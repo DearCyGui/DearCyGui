@@ -254,10 +254,21 @@ cdef struct itemState:
 
 cdef class ItemStateView:
     cdef baseItem _item  # Reference to the original item
+    cdef itemState _state_copy
+    cdef itemState *p_state
 
     # Factory method to create a view for a specific item
     @staticmethod
     cdef ItemStateView create(baseItem item)
+
+
+cdef class ItemStateCopy:
+    cdef baseItem _item  # Reference to the original item
+    cdef itemState _state
+
+    # Factory method to create a view for a specific item
+    @staticmethod
+    cdef ItemStateCopy create_from_view(ItemStateView view)
 
 
 cdef void update_current_mouse_states(itemState&) noexcept nogil
@@ -301,6 +312,14 @@ cdef class Viewport(baseItem):
     cdef DCGVector[float] temp_normals # Temporary storage for normals data
     cdef DCGVector[uint32_t] temp_colors # Temporary storage for color data
     cdef DCGVector[uint32_t] temp_indices # Temporary storage for indices data
+    # Storage of current drag-drop item if any
+    cdef baseItem drag_drop
+    # OS drop
+    cdef bint drop_is_file_type
+    cdef DCGVector[DCGString] drop_data
+    cdef bint os_drop_pending
+    cdef bint os_drop_ready
+    cdef object pending_drop
     ### private variables ###
     cdef DCGMutex _mutex_backend
     cdef void *_platform # platformViewport
@@ -313,8 +332,6 @@ cdef class Viewport(baseItem):
     cdef baseFont _font
     cdef baseTheme _theme
     cdef bint _disable_close
-    cdef bint _drop_is_file_type
-    cdef DCGVector[DCGString] _drop_data
     cdef int32_t _cursor # imgui.ImGuiMouseCursor
     cdef float _scale
     cdef double _target_refresh_time

@@ -17,16 +17,21 @@
 
 from cpython.object cimport PyObject
 from cpython.sequence cimport PySequence_Check
+cimport cython
+from cython.operator cimport dereference
+from libc.string cimport strcmp
 
 from .core cimport baseHandler, baseItem, lock_gil_friendly,\
     itemState, ensure_correct_im_context
-from .c_types cimport DCGMutex, unique_lock
+from .c_types cimport DCGMutex, unique_lock, string_to_str, string_from_str
 from .types cimport make_Positioning, read_rect, Rect,\
     is_Key, make_Key, Positioning
 from .widget cimport SharedBool
 from .wrapper cimport imgui
 
 import traceback
+
+ctypedef void* void_p
 
 cdef class CustomHandler(baseHandler):
     """
@@ -2082,3 +2087,475 @@ cdef class AnyMouseDownHandler(baseHandler):
                     self,
                     item,
                     build_buttons_durations_tuple(self._buttons_vector, self._durations_vector))
+
+
+cdef class DragDropSourceHandler(baseHandler):
+    """
+    *EXPERIMENTAL* Handler for drag-and-drop source events.
+
+    When called, this handler allows initiating a drag-and-drop operation.
+
+    Wrap it in a ConditionalHandler to control when it is active.
+
+    If set, the callback will be called when the drag starts.
+
+    Callback receives:
+        - sender: This handler instance
+        - target: The item that is being dragged
+        - data: A tuple containing:
+            - A dataclass containing a copy of the state field (if any)
+                of the item being dragged
+            - (mouse_x, mouse_y) the mouse position relative to the viewport.
+    """
+
+    @property
+    def drag_type(self):
+        """
+        An optional string that describes the type of the drag operation.
+        This is used to identify the drag operation in the target handler.
+
+        If not set, the default type "item" will be used.
+        If set, it will be appended to "item_" to form the payload type.
+        For example, if drag_type is "person", the payload type will be "item_person".
+
+        The target must have an exact match for this type
+        to accept the drag operation.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef str name = string_to_str(self._drag_type)
+        if name == "item":
+            return ""
+        return name[5:]  # Remove "item_" prefix if present
+
+    @drag_type.setter
+    def drag_type(self, str value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        cdef str name = "item"
+        if value is not None and value != "":
+            name = "item_" + value
+        if len(name) > 30:
+            raise ValueError("Drag type string is too long, must be 30 characters or less")
+        self._drag_type = string_from_str(name)
+
+    @property
+    def no_disable_hover(self):
+        """
+        If True, the hover state of items below the mouse cursor
+        during the drag operation will not be cleared.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & <int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover) != 0
+
+    @no_disable_hover.setter
+    def no_disable_hover(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value:
+            self._flags |= <int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover
+        else:
+            self._flags &= ~<int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover
+
+    @property
+    def no_open_on_hold(self):
+        """
+        Disables the behaviour that holding the mouse during the drag
+        over an openable item (TreeNode, etc) opens it.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & <int32_t>imgui.ImGuiDragDropFlags_SourceNoHoldToOpenOthers) != 0
+
+    @no_open_on_hold.setter
+    def no_open_on_hold(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value:
+            self._flags |= <int32_t>imgui.ImGuiDragDropFlags_SourceNoHoldToOpenOthers
+        else:
+            self._flags &= ~<int32_t>imgui.ImGuiDragDropFlags_SourceNoHoldToOpenOthers
+
+    @property
+    def immediate_expiration(self):
+        """
+        If True, the drag expires as soon as this handler
+        is not triggered a single frame, rather than when
+        the mouse is released.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & <int32_t>imgui.ImGuiDragDropFlags_PayloadAutoExpire) != 0
+
+    @immediate_expiration.setter
+    def immediate_expiration(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value:
+            self._flags |= <int32_t>imgui.ImGuiDragDropFlags_PayloadAutoExpire
+        else:
+            self._flags &= ~<int32_t>imgui.ImGuiDragDropFlags_PayloadAutoExpire
+
+    @property
+    def overwrite(self):
+        """
+        If True, overwrites any previous drag operation already occuring
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._overwrite
+
+    @overwrite.setter
+    def overwrite(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._overwrite = value
+
+
+    cdef void check_bind(self, baseItem item):
+        if item is None:
+            raise ValueError("DragDropSourceHandler must be bound to a valid item")
+        return # all non None items are acceptable sources
+
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        # Check if we would drag if we could
+        if self._overwrite:
+            return True
+        return imgui.GetDragDropPayload() == NULL
+
+    cdef int _trigger_callback(self, baseItem item):
+        state_copy = None
+        try:
+            state_copy = item.state.snapshot()
+        except:
+            pass
+        cdef float mouse_x = imgui.GetIO().MousePos.x
+        cdef float mouse_y = imgui.GetIO().MousePos.y
+        self.context.queue_callback(
+            self._callback,
+            self,
+            item,
+            (state_copy, (mouse_x, mouse_y))
+        )
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not self.check_state(item):
+            return
+        cdef bint submitted = False
+        cdef void_p[1] data
+        if imgui.BeginDragDropSource(
+            self._flags |
+            imgui.ImGuiDragDropFlags_SourceNoPreviewTooltip | # Disable submitting tooltip below. Will be done by the user outside
+            imgui.ImGuiDragDropFlags_SourceExtern # Ignore the last item states and always submit
+            ):
+            # We store a pointer to the item, but we won't use it for accessing it.
+            # (we don't handle refcount either). It is used for validation that the
+            # drag-drop we manage has the correct expected item.
+            data[0] = <void_p><PyObject*>item
+            imgui.SetDragDropPayload(self._drag_type.c_str(), &data[0],
+                                     sizeof(void_p), imgui.ImGuiCond_Always)
+            submitted = True
+            imgui.EndDragDropSource()
+
+        if submitted:
+            with gil:
+                self.context.viewport.drag_drop = item
+                self._trigger_callback(item)
+                
+
+
+cdef class DragDropActiveHandler(baseHandler):
+    """
+    *EXPERIMENTAL* Handler that is triggered when a drag
+    and drop event is occuring for the attached item,
+    or for any item.
+
+    The accepted_types attribute can be used
+    to define a list of drag-and-drop types
+    to accept. Defaults is any type.
+
+    The any_target attribute defines if the condition
+    should be raised if any item is being dragged,
+    or only the item this handler refers to.
+    """
+
+    @property
+    def accepted_types(self):
+        """
+        List of text values corresponding to the types of payloads
+        that this handler accepts.
+
+        If empty, it will accept any type.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        result = []
+        cdef int i
+        for i in range(<int>self._items.size()):
+            result.append(string_to_str(self._items[i]))
+        return result
+
+    @accepted_types.setter
+    def accepted_types(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._items.clear()
+        if value is None:
+            return
+        if isinstance(value, str):
+            self._items.push_back(string_from_str(value))
+        elif PySequence_Check(value) > 0:
+            for v in value:
+                self._items.push_back(string_from_str(v))
+        else:
+            raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
+
+    @property
+    def any_target(self):
+        """
+        If True, the handler will be triggered
+        when any item is being dragged, in regards to the
+        accepted types. Else it will only be triggered
+        when the item this handler is attached to is being dragged.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._any_target
+
+    @any_target.setter
+    def any_target(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._any_target = value
+
+    @cython.final
+    cdef bint _check_payload_type(self, const void *payload) noexcept nogil:
+        if self._items.size() == 0:
+            return True
+        cdef int i
+        for i in range(<int>self._items.size()):
+            if (<const imgui.ImGuiPayload *>payload).IsDataType(self._items[i].c_str()):
+                return True
+        return False
+
+    @cython.final
+    cdef bint _target_check(self, baseItem item, const void *payload) noexcept nogil:
+        if self._any_target:
+            return True
+        if (<const imgui.ImGuiPayload *>payload).DataSize != sizeof(void_p):
+            return False
+        cdef void *expected = <PyObject*>item
+        cdef void *actual_ptr = dereference(<void_p*>(<const imgui.ImGuiPayload *>payload).Data)
+        return expected == actual_ptr
+
+    cdef void check_bind(self, baseItem item):
+        if item is None:
+            raise ValueError("DragDropActiveHandler must be bound to a valid item")
+        return # all non None items are acceptable sources
+
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        cdef const imgui.ImGuiPayload *payload = imgui.GetDragDropPayload()
+        if payload == NULL:
+            return False
+        cdef bint type_check = self._check_payload_type(<const void*>payload)
+        if not type_check:
+            return False
+        cdef bint target_check = self._target_check(item, <const void*>payload)
+        if not target_check:
+            return False
+        return True
+
+
+cdef class DragDropTargetHandler(baseHandler):
+    """
+    *EXPERIMENTAL* Handler for drag-and-drop target events.
+
+    When called, this handler allows receiving a drag-and-drop operation
+    on the attached item.
+
+    The expected usage is to add this handler to your list
+    of handlers without any conditions, so it is always active.
+
+    The callback will be called when the drop occurs.
+
+    Callback receives:
+        - sender: This handler instance
+        - target: The item that is being dropped onto
+        - data: A tuple containing:
+            - type: The type of the payload (as a string)
+            - payload: The dropped data.
+                - If type starts with "item", it will be the item that was dropped.
+                - If type is "text", it will be a list of strings (OS initiated).
+                - If type is "file", it will be a list of file paths (OS initiated).
+                - If type is "_COL3F" (from a color picker), 
+                    it will be a tuple of 3 floats representing the color.
+                - If type is "_COL4F" (from a color picker), 
+                    it will be a tuple of 4 floats representing the color with alpha.
+                - The content for other types is undefined.
+            - A dataclass containing a copy of the state field (if any)
+                of the target item.
+            - (mouse_x, mouse_y): The mouse position relative to the viewport
+                when the drop occurred.
+
+    Note for "text" and "file" types:
+        DearCyGui doesn't have a way to know before the drop what the content
+        of the payload will be. Thus the type will always be "text" until
+        the drop occurs. In addition, the content of the payload may
+        arrive later than the mouse release event. DearCyGui will remember
+        the parameters of the drop and call the callback when the content
+        is available. In practice that only means your callback may be
+        a little delayed compared to the other types.
+    """
+
+    @property
+    def accepted_types(self):
+        """
+        List of text values corresponding to the types of payloads
+        that this handler accepts.
+
+        If empty, it will accept any type.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        result = []
+        cdef int i
+        for i in range(<int>self._items.size()):
+            result.append(string_to_str(self._items[i]))
+        return result
+
+    @accepted_types.setter
+    def accepted_types(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._items.clear()
+        if value is None:
+            return
+        if isinstance(value, str):
+            self._items.push_back(string_from_str(value))
+        elif PySequence_Check(value) > 0:
+            for v in value:
+                self._items.push_back(string_from_str(v))
+        else:
+            raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
+
+    @property
+    def no_draw_default_rect(self):
+        """
+        If True, the default highlight rectangle will not be drawn
+        when hovering over the target item during a drag-and-drop operation.
+
+        Note the rectangle is never drawn if the drag type does not match
+        the accepted types of this handler.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & <int32_t>imgui.ImGuiDragDropFlags_AcceptNoDrawDefaultRect) != 0
+
+    @no_draw_default_rect.setter
+    def no_draw_default_rect(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value:
+            self._flags |= <int32_t>imgui.ImGuiDragDropFlags_AcceptNoDrawDefaultRect
+        else:
+            self._flags &= ~<int32_t>imgui.ImGuiDragDropFlags_AcceptNoDrawDefaultRect
+
+    cdef void check_bind(self, baseItem item):
+        if item is None:
+            raise ValueError("DragDropTargetHandler must be bound to a valid item")
+        return # all non None items are acceptable sources
+
+    cdef bint check_state(self, baseItem item) noexcept nogil:
+        return False
+
+    @cython.final
+    cdef object _extract_payload_data(self, baseItem item, const void* payload_p):
+        cdef const imgui.ImGuiPayload* payload = <const imgui.ImGuiPayload*> payload_p
+        cdef str payload_type = bytes(payload.DataType).decode('utf-8')
+        cdef bytes raw_data
+        cdef char* data_ptr
+        cdef float* color_data
+        cdef int start
+        
+        # For item drag & drop
+        if payload_type.startswith("item"):
+            if payload.DataSize == sizeof(void_p) and \
+               (<PyObject**>payload.Data)[0] == <PyObject*>self.context.viewport.drag_drop:
+                target_item = self.context.viewport.drag_drop
+                self.context.viewport.drag_drop = None  # Reset the stored drag item
+                return (payload_type, target_item)
+        
+        # For text and files from OS
+        elif strcmp(payload.DataType, "text") == 0 or strcmp(payload.DataType, "file") == 0:
+            if self.context.viewport.os_drop_ready:
+                element_list = []
+                for i in range(<int>self.context.viewport.drop_data.size()):
+                    element_list.append(string_to_str(self.context.viewport.drop_data[i]))
+                return ("file" if self.context.viewport.drop_is_file_type else "text",
+                        element_list)
+            return ("pending", None)  # Indicate that the data is pending
+
+        # For color picker (3 floats - RGB)
+        elif strcmp(payload.DataType, "_COL3F") == 0:
+            if payload.DataSize == sizeof(float) * 3:
+                color_data = <float*>payload.Data
+                return (payload_type, (color_data[0], color_data[1], color_data[2]))
+        
+        # For color picker (4 floats - RGBA)
+        elif strcmp(payload.DataType, "_COL4F") == 0:
+            if payload.DataSize == sizeof(float) * 4:
+                color_data = <float*>payload.Data
+                return (payload_type, (color_data[0], color_data[1], color_data[2], color_data[3]))
+        
+        # For any other type, return the raw data size (we don't interpret it)
+        elif payload.DataSize > 0:
+            raw_data = bytes(<char*>payload.Data, payload.DataSize)
+            # Return the raw data as a bytes object
+            return (payload_type, raw_data)
+        return (payload_type, None)
+
+    @cython.final
+    cdef int _trigger_callback(self, baseItem item, const void* payload):
+        cdef str payload_type
+        cdef object payload_data
+        payload_type, payload_data = self._extract_payload_data(item, payload)
+        state_copy = None
+        try:
+            state_copy = item.state.snapshot()
+        except:
+            pass
+        cdef float mouse_x = imgui.GetIO().MousePos.x
+        cdef float mouse_y = imgui.GetIO().MousePos.y
+        if payload_type == "pending":
+            # If the payload is pending, we will call the callback later
+            self.context.viewport.pending_drop = (self._callback, self, item, state_copy, mouse_x, mouse_y)
+            return 0
+        self.context.queue_callback(
+            self._callback,
+            self,
+            item,
+            (payload_type, payload_data, state_copy, (mouse_x, mouse_y))
+        )
+        return 0
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        cdef const imgui.ImGuiPayload *received_payload = NULL
+        cdef int i
+
+        if imgui.BeginDragDropTarget():
+            if self._items.size() == 0:
+                # accept any type:
+                received_payload = imgui.AcceptDragDropPayload(NULL, self._flags)
+            else:
+                for i in range(<int>self._items.size()):
+                    received_payload = imgui.AcceptDragDropPayload(self._items[i].c_str(), self._flags)
+                    if received_payload != NULL:
+                        break
+            if received_payload != NULL:
+                # We have a valid payload, let's process it
+                with gil:
+                    self._trigger_callback(item, <const void*>received_payload)
+            imgui.EndDragDropTarget()

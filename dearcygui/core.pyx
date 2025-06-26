@@ -4254,26 +4254,41 @@ cdef class Viewport(baseItem):
         cdef DCGString data_str
         if type == 0:
             # Start of a new drop operation
-            self._drop_data.clear()
+            self.drop_data.clear()
+            self.os_drop_ready = False
+            self.os_drop_pending = True
+            self.drop_is_file_type = False
         elif type == 1:
             # Drop file
             data_str = DCGString(data)
             self.drop_is_file_type = True
-            self._drop_data.push_back(data_str)
+            self.drop_data.push_back(data_str)
         elif type == 2:
             # Drop text
             data_str = DCGString(data)
             self.drop_is_file_type = False
-            self._drop_data.push_back(data_str)
+            self.drop_data.push_back(data_str)
         elif type == 3:
             # End of drop operation
-            self.context.queue_callback_arg1int1stringvector(
-                self._drop_callback,
-                self,
-                self,
-                1 if self.drop_is_file_type else 0,
-                self._drop_data)
-            self._drop_data.clear()
+            self.os_drop_ready = True
+            if self._pending_drop is not None:
+                # We had a pending drop, process it now
+                (callback, handler, item, state_copy, mouse_x, mouse_y) = self._pending_drop
+                element_list = []
+                for i in range(<int>self.context.viewport.drop_data.size()):
+                    element_list.append(string_to_str(self.context.viewport.drop_data[i]))
+                self.context.queue_callback(
+                    callback,
+                    handler,
+                    item,
+                    ("file" if self.drop_is_file_type else "text",
+                    element_list,
+                    state_copy,
+                    (mouse_x, mouse_y)))
+                self.os_drop_ready = False
+                self.os_drop_pending = False
+                self.drop_data.clear()
+                self._pending_drop = None
 
 
     cdef void __render(self) noexcept nogil:
@@ -4295,6 +4310,26 @@ cdef class Viewport(baseItem):
             self.context.prev_last_id_button_catch[i] = \
                 self.context.cur_last_id_button_catch[i]
             self.context.cur_last_id_button_catch[i] = 0
+        # Clean finished drop payload
+        cdef const imgui.ImGuiPayload *payload = imgui.GetDragDropPayload()
+        if self.drag_drop is not None:
+            if (payload == NULL): # It is sufficient to only check NULL
+                #payload.DataSize != 4 or
+                #(*<void**>payload.Data) != <PyObject*>self.drag_drop)): # we could also check the payload type
+                with gil:
+                    self.drag_drop = None
+        elif self.os_drop_pending:
+            if imgui.BeginDragDropSource(imgui.ImGuiDragDropFlags_SourceNoPreviewTooltip |
+                                         imgui.ImGuiDragDropFlags_SourceExtern |
+                                         imgui.ImGuiDragDropFlags_PayloadAutoExpire) != 0:
+                if imgui.SetDragDropPayload(<char*>r"file" if self.drop_is_file_type else <char*>r"text",
+                                            NULL, 0, imgui.ImGuiCond_Always):
+                    # Data has been accepted, we can clear it
+                    self.os_drop_pending = False
+                    self.os_drop_ready = False
+                    self.drop_data.clear()
+                imgui.EndDragDropSource()
+
         self.shifts = [0., 0.]
         self.scales = [1., 1.]
         self.in_plot = False
@@ -4785,6 +4820,8 @@ cdef class PlaceHolderParent(baseItem):
 States used by many items
 """
 
+
+
 @cython.freelist(8)
 cdef class ItemStateView:
     """
@@ -4797,6 +4834,9 @@ cdef class ItemStateView:
     
     The view references the original item and uses its mutex for thread safety.
     """
+    def __init__(self):
+        raise RuntimeError("ItemStateView cannot be instantiated directly. Read item.state instead.")
+
     @staticmethod
     cdef ItemStateView create(baseItem item):
         if item.p_state is NULL:
@@ -5127,21 +5167,6 @@ cdef class ItemStateView:
         return Coord.build_v(self._item.p_state.cur.pos_to_parent)
     
     @property
-    def pos_to_default(self):
-        """
-        Offset from the item's default layout position.
-        """
-        if self._item is None:
-            raise ValueError("Item has been deleted or is invalid")
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self._item.mutex)
-        if self._item.p_state is NULL:
-            raise ValueError("Item state is not available")
-        if not(self._item.p_state.cap.has_position):
-            raise AttributeError("Field undefined for this item type")
-        return Coord.build_v(self._item.p_state.cur.pos_to_default)
-    
-    @property
     def content_region_avail(self):
         """
         Available space for child items.
@@ -5190,6 +5215,311 @@ cdef class ItemStateView:
     def item(self):
         """
         item from which the states are extracted.
+        """
+        return self._item
+
+    def snapshot(self) -> ItemStateCopy:
+        """
+        Create a snapshot copy of the current item state.
+        
+        This method captures the current state values and returns a new
+        ItemStateCopy instance containing those values. The snapshot is
+        immutable and does not change with future updates to the item.
+        
+        This is useful for preserving state at a specific point in time.
+        """
+        return ItemStateCopy.create_from_view(self)
+
+
+cdef class ItemStateCopy:
+    """
+    A snapshot copy of UI item state properties at a specific point in time.
+    
+    This class contains a complete copy of an item's state values, allowing you
+    to capture and examine the state at a specific moment without being affected
+    by subsequent changes. Unlike ItemStateView which provides live access to changing
+    states, itemStateCopy preserves the values as they were when the copy was made.
+    
+    This is useful for:
+    - Comparing states between frames
+    - Storing historical state information
+    - Analyzing state changes over time
+    - Debugging state-related issues
+    
+    All properties return the copied values and are read-only.
+    """
+    def __init__(self):
+        raise RuntimeError("ItemStateCopy cannot be instantiated directly. Use item.state.snapshot() instead.")
+
+    @staticmethod
+    cdef ItemStateCopy create_from_view(ItemStateView view):
+        cdef baseItem item = view._item
+        if item is None:
+            raise ValueError("Cannot create a state copy for an item that has been deleted or is invalid")
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, item.mutex)
+        if item.p_state is NULL:
+            raise AttributeError("Cannot create a state view for an item without state")
+        cdef ItemStateCopy self = ItemStateCopy.__new__(ItemStateCopy)
+        self._item = item
+        # Create a copy of the state
+        memcpy(
+            <void*>&self._state,
+            <const void*>item.p_state,
+            sizeof(itemState)
+        )
+        return self
+
+    def __dir__(self):
+        default_dir = dir(type(self))
+        if hasattr(self, '__dict__'): # Can happen with python subclassing
+            default_dir += list(self.__dict__.keys())
+        # Remove invalid ones
+        results = set()
+        for e in default_dir:
+            if hasattr(self, e):
+                results.add(e)
+        return sorted(list(results))
+
+    # Note: Since all attributes are read-only and immutable, we don't need a mutex
+    @property
+    def active(self):
+        """
+        Whether the item is in an active state.
+        
+        Active states vary by item type: for buttons it means pressed; for tabs,
+        selected; for input fields, being edited. This state is tracked between
+        frames to enable interactive behaviors.
+        """
+        if not(self._state.cap.can_be_active):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.active
+    
+    @property
+    def activated(self):
+        """
+        Whether the item just transitioned to the active state this frame.
+        
+        This property is only true during the frame when the item becomes active,
+        making it useful for one-time actions. For persistent monitoring, use 
+        event handlers instead as they provide more robust state tracking.
+        """
+        if not(self._state.cap.can_be_active):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.active and not(self._state.prev.active)
+    
+    @property
+    def clicked(self):
+        """
+        Whether any mouse button was clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the click occurs.
+        For consistent event handling across frames, use click handlers instead.
+        """
+        if not(self._state.cap.can_be_clicked):
+            raise AttributeError("Field undefined for this item type")
+        return tuple(self._state.cur.clicked)
+    
+    @property
+    def double_clicked(self):
+        """
+        Whether any mouse button was double-clicked on this item this frame.
+        
+        Returns a tuple of five boolean values, one for each possible mouse button.
+        This property is only true during the frame when the double-click occurs.
+        For consistent event handling across frames, use click handlers instead.
+        """
+        if not(self._state.cap.can_be_clicked):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.double_clicked
+    
+    @property
+    def deactivated(self):
+        """
+        Whether the item just transitioned from active to inactive this frame.
+        
+        This property is only true during the frame when deactivation occurs.
+        For persistent monitoring across frames, use event handlers instead
+        as they provide more robust state tracking.
+        """
+        if not(self._state.cap.can_be_active):
+            raise AttributeError("Field undefined for this item type")
+        return not(self._state.cur.active) and self._state.prev.active
+    
+    @property
+    def deactivated_after_edited(self):
+        """
+        Whether the item was edited and then deactivated in this frame.
+        
+        Useful for detecting when user completes an edit operation, such as
+        finishing text input or adjusting a value. This property is only true
+        for the frame when the deactivation occurs after editing.
+        """
+        if not(self._state.cap.can_be_deactivated_after_edited):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.deactivated_after_edited
+    
+    @property
+    def edited(self):
+        """
+        Whether the item's value was modified this frame.
+        
+        This flag indicates that the user has made a change to the item's value,
+        such as typing in an input field or adjusting a slider. It is only true
+        for the frame when the edit occurs.
+        """
+        if not(self._state.cap.can_be_edited):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.edited
+    
+    @property
+    def focused(self):
+        """
+        Whether this item has input focus.
+        
+        For windows, focus means the window is at the top of the stack. For
+        input items, focus means keyboard inputs are directed to this item.
+        Unlike hover state, focus persists until explicitly changed or lost.
+        """
+        if not(self._state.cap.can_be_focused):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.focused
+    
+    @property
+    def hovered(self):
+        """
+        Whether the mouse cursor is currently positioned over this item.
+
+        Only one element can be hovered at a time in the UI hierarchy. When
+        elements overlap, the topmost item (typically a child item rather than
+        a parent) receives the hover state.
+        """
+        if not(self._state.cap.can_be_hovered):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.hovered
+    
+    @property
+    def resized(self):
+        """
+        Whether the item's size changed this frame.
+        
+        This property is true only for the frame when the size change occurs.
+        It can detect both user-initiated resizing (like dragging a window edge)
+        and programmatic size changes.
+        """
+        if not(self._state.cap.has_rect_size):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.rect_size.x != self._state.prev.rect_size.x or \
+               self._state.cur.rect_size.y != self._state.prev.rect_size.y
+    
+    @property
+    def toggled(self):
+        """
+        Whether the item was just toggled open this frame.
+        
+        Applies to items that can be expanded or collapsed, such as tree nodes,
+        collapsing headers, or menus. This property is only true during the frame
+        when the toggle from closed to open occurs.
+        """
+        if not(self._state.cap.can_be_toggled):
+            raise AttributeError("Field undefined for this item type")
+        return self._state.cur.open and not(self._state.prev.open)
+    
+    @property
+    def visible(self):
+        """
+        Whether the item was rendered in the current frame.
+        
+        An item is visible when it and all its ancestors have show=True and are
+        within the visible region of their containers. Invisible items skip
+        rendering and event handling entirely.
+        """
+        return self._state.cur.rendered
+    
+    # Position and size properties
+    
+    @property
+    def rect_size(self):
+        """
+        Actual pixel size of the element including margins.
+        
+        This property represents the width and height of the rectangle occupied
+        by the item in the layout. The rectangle's top-left corner is at the
+        position given by the relevant position property.
+        
+        Note that this size refers only to the item within its parent window and
+        does not include any popup or child windows that might be spawned by
+        this item.
+        """
+        if not(self._state.cap.has_rect_size):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._state.cur.rect_size)
+    
+    @property
+    def pos_to_viewport(self):
+        """
+        Position relative to the viewport's top-left corner.
+        """
+        if not(self._state.cap.has_position):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._state.cur.pos_to_viewport)
+    
+    @property
+    def pos_to_window(self):
+        """
+        Position relative to the containing window's content area.
+        """
+        if not(self._state.cap.has_position):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._state.cur.pos_to_window)
+    
+    @property
+    def pos_to_parent(self):
+        """
+        Position relative to the parent item's content area.
+        """
+        if not(self._state.cap.has_position):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._state.cur.pos_to_parent)
+    
+    @property
+    def content_region_avail(self):
+        """
+        Available space for child items.
+        
+        For container items like windows, child windows, this
+        property represents the available space for placing child items. This is
+        the item's inner area after accounting for padding, borders, and other
+        non-content elements.
+        
+        Areas that require scrolling to see are not included in this measurement.
+        """
+        if not(self._state.cap.has_content_region):
+            raise AttributeError("Field undefined for this item type")
+        return Coord.build_v(self._state.cur.content_region_size)
+
+    @property
+    def content_pos(self):
+        """
+        Position of the content area's top-left corner.
+        
+        This property provides the viewport-relative coordinates of the starting
+        point for an item's content area. This is where child elements begin to be
+        placed by default.
+        
+        Used together with content_region_avail, this defines the rectangle
+        available for child elements.
+        """
+        if not(self._state.cap.has_content_region):
+            raise AttributeError("Field undefined for type {}".format(type(self)))
+        return Coord.build_v(self._state.cur.content_pos)
+
+    # Accessor
+    @property
+    def item(self):
+        """
+        item from which the states were extracted.
         """
         return self._item
 
