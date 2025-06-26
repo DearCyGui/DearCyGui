@@ -335,6 +335,20 @@ bool ImGui_ImplSDL3_ProcessEvent(const SDL_Event* event)
             io.AddMousePosEvent(mouse_pos.x * dpi, mouse_pos.y * dpi);
             return true;
         }
+        case SDL_EVENT_DROP_POSITION:
+        {
+            // SDL_EVENT_DROP_POSITION is sent when a file is dropped on the window.
+            // Update the mouse position to the drop position.
+            SDL_Window* window = SDL_GetWindowFromID(event->drop.windowID);
+            if (ImGui_ImplSDL3_GetViewportForWindowID(event->drop.windowID) == NULL || window == NULL)
+                return false;
+            ImVec2 mouse_pos((float)event->drop.x, (float)event->drop.y);
+            io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
+            // Convert from logical to pixel coordinates
+            float dpi = SDL_GetWindowPixelDensity(window);
+            io.AddMousePosEvent(mouse_pos.x * dpi, mouse_pos.y * dpi);
+            return true;
+        }
         case SDL_EVENT_MOUSE_WHEEL:
         {
             if (ImGui_ImplSDL3_GetViewportForWindowID(event->wheel.windowID) == NULL)
@@ -365,6 +379,32 @@ bool ImGui_ImplSDL3_ProcessEvent(const SDL_Event* event)
             io.AddMouseSourceEvent(event->button.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
             io.AddMouseButtonEvent(mouse_button, (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN));
             bd->MouseButtonsDown = (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) ? (bd->MouseButtonsDown | (1 << mouse_button)) : (bd->MouseButtonsDown & ~(1 << mouse_button));
+            return true;
+        }
+        case SDL_EVENT_DROP_BEGIN:
+        {
+            // Simulate a mouse down event for the window that received the drop.
+            SDL_Window* window = SDL_GetWindowFromID(event->drop.windowID);
+            if (ImGui_ImplSDL3_GetViewportForWindowID(event->drop.windowID) == NULL || window == NULL)
+                return false;
+            bd->MouseWindowID = event->drop.windowID;
+            bd->MousePendingLeaveFrame = 0;
+            // Simulate a mouse button down event for the left mouse button.
+            io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
+            io.AddMouseButtonEvent(0, true); // Simulate left mouse button down
+            bd->MouseButtonsDown |= (1 << 0); // Set the left mouse button
+            return true;
+        }
+        case SDL_EVENT_DROP_COMPLETE:
+        {
+            // Simulate a mouse up event for the window that received the drop.
+            SDL_Window* window = SDL_GetWindowFromID(event->drop.windowID);
+            if (ImGui_ImplSDL3_GetViewportForWindowID(event->drop.windowID) == NULL || window == NULL)
+                return false;
+            // Simulate a mouse button up event for the left mouse button.
+            io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
+            io.AddMouseButtonEvent(0, false); // Simulate left mouse button up
+            bd->MouseButtonsDown &= ~(1 << 0); // Clear the left mouse button
             return true;
         }
         case SDL_EVENT_TEXT_INPUT:

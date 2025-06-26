@@ -393,6 +393,7 @@ private:
     bool hasOpenGL3Init = false;
     bool hasSDL3Init = false;
     bool hasResized = false;
+    bool dropPending = false;
     // Icon handling
     SDL_Surface* iconSurface = nullptr;
 

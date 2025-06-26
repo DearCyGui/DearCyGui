@@ -4271,9 +4271,9 @@ cdef class Viewport(baseItem):
         elif type == 3:
             # End of drop operation
             self.os_drop_ready = True
-            if self._pending_drop is not None:
+            if self.pending_drop is not None:
                 # We had a pending drop, process it now
-                (callback, handler, item, state_copy, mouse_x, mouse_y) = self._pending_drop
+                (callback, handler, item, state_copy, mouse_x, mouse_y) = self.pending_drop
                 element_list = []
                 for i in range(<int>self.context.viewport.drop_data.size()):
                     element_list.append(string_to_str(self.context.viewport.drop_data[i]))
@@ -4288,7 +4288,7 @@ cdef class Viewport(baseItem):
                 self.os_drop_ready = False
                 self.os_drop_pending = False
                 self.drop_data.clear()
-                self._pending_drop = None
+                self.pending_drop = None
 
 
     cdef void __render(self) noexcept nogil:
@@ -4320,8 +4320,7 @@ cdef class Viewport(baseItem):
                     self.drag_drop = None
         elif self.os_drop_pending:
             if imgui.BeginDragDropSource(imgui.ImGuiDragDropFlags_SourceNoPreviewTooltip |
-                                         imgui.ImGuiDragDropFlags_SourceExtern |
-                                         imgui.ImGuiDragDropFlags_PayloadAutoExpire) != 0:
+                                         imgui.ImGuiDragDropFlags_SourceExtern) != 0:
                 if imgui.SetDragDropPayload(<char*>r"file" if self.drop_is_file_type else <char*>r"text",
                                             NULL, 0, imgui.ImGuiCond_Always):
                     # Data has been accepted, we can clear it

@@ -1094,17 +1094,18 @@ bool SDLViewport::processEvents(int timeout_ms) {
         if (isOurWindowEvent || event_window == nullptr) {
             ImGui_ImplSDL3_ProcessEvent(&event);
             switch (event.type) {
-                case SDL_EVENT_WINDOW_MOUSE_ENTER:
                 case SDL_EVENT_WINDOW_FOCUS_GAINED:
                 case SDL_EVENT_WINDOW_FOCUS_LOST:
                 case SDL_EVENT_WINDOW_MOVED:
                 case SDL_EVENT_MOUSE_MOTION:
                     activityDetected.store(true);
                     break;
+                case SDL_EVENT_WINDOW_MOUSE_ENTER:
                 case SDL_EVENT_WINDOW_MOUSE_LEAVE:
                     // For resize events on some platforms,
                     // we need to perform a full refresh before
                     // receiving the resize event.
+                    // Same for drag and drop events.
                     needsRefresh.store(true);
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -1154,6 +1155,8 @@ bool SDLViewport::processEvents(int timeout_ms) {
                     break;
                 case SDL_EVENT_DROP_BEGIN:
                     dropCallback(callbackData, 0, nullptr);
+                    needsRefresh.store(true);
+                    dropPending = true;
                     break;
                 case SDL_EVENT_DROP_FILE:
                     dropCallback(callbackData, 1, event.drop.data);
@@ -1163,6 +1166,11 @@ bool SDLViewport::processEvents(int timeout_ms) {
                     break;
                 case SDL_EVENT_DROP_COMPLETE:
                     dropCallback(callbackData, 3, nullptr);
+                    needsRefresh.store(true);
+                    dropPending = false;
+                    break;
+                case SDL_EVENT_DROP_POSITION:
+                    needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_SHOWN:
                     isVisible = true;

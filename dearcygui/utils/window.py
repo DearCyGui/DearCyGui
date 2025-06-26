@@ -781,3 +781,4 @@ class StyleEditor(dcg.Window):
                 dcg.Text(C, marker="bullet", value="Styles control sizing, spacing, borders and other layout properties")
                 dcg.Text(C, marker="bullet", value="Themes can be applied to individual items or entire windows")
                 dcg.Text(C, marker="bullet", value="Child items inherit parent themes unless overridden")
+
