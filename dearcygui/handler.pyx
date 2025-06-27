@@ -2139,24 +2139,27 @@ cdef class DragDropSourceHandler(baseHandler):
             raise ValueError("Drag type string is too long, must be 30 characters or less")
         self._drag_type = string_from_str(name)
 
-    @property
-    def no_disable_hover(self):
-        """
-        If True, the hover state of items below the mouse cursor
-        during the drag operation will not be cleared.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return (self._flags & <int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover) != 0
-
-    @no_disable_hover.setter
-    def no_disable_hover(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if value:
-            self._flags |= <int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover
-        else:
-            self._flags &= ~<int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover
+#    @property -> doesn't seem to work
+#    def no_disable_hover(self):
+#        """
+#        If True, the hover state of items below the mouse cursor
+#        during the drag operation will not be cleared.
+#
+#        This has flag only has an effect for the hovered state,
+#        but not on the visuals managed by ImGui.
+#        """
+#        cdef unique_lock[DCGMutex] m
+#        lock_gil_friendly(m, self.mutex)
+#        return (self._flags & <int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover) != 0
+#
+#    @no_disable_hover.setter
+#    def no_disable_hover(self, bint value):
+#        cdef unique_lock[DCGMutex] m
+#        lock_gil_friendly(m, self.mutex)
+#        if value:
+#            self._flags |= <int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover
+#        else:
+#            self._flags &= ~<int32_t>imgui.ImGuiDragDropFlags_SourceNoDisableHover
 
     @property
     def no_open_on_hold(self):

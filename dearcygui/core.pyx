@@ -4320,6 +4320,7 @@ cdef class Viewport(baseItem):
                     self.drag_drop = None
         elif self.os_drop_pending:
             if imgui.BeginDragDropSource(imgui.ImGuiDragDropFlags_SourceNoPreviewTooltip |
+                                         imgui.ImGuiDragDropFlags_SourceNoHoldToOpenOthers | # because wheel is not working during os drag, this feature is not handy
                                          imgui.ImGuiDragDropFlags_SourceExtern) != 0:
                 if imgui.SetDragDropPayload(<char*>r"file" if self.drop_is_file_type else <char*>r"text",
                                             NULL, 0, imgui.ImGuiCond_Always):
@@ -4328,6 +4329,11 @@ cdef class Viewport(baseItem):
                     self.os_drop_ready = False
                     self.drop_data.clear()
                 imgui.EndDragDropSource()
+            if self.os_drop_ready:
+                # Stop attempting the receive the drop
+                # after one frame (else it blocks all inputs
+                # to submit the drop every frame)
+                self.os_drop_pending = False
 
         self.shifts = [0., 0.]
         self.scales = [1., 1.]
