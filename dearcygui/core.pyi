@@ -14652,7 +14652,7 @@ class DragDropSourceHandler(baseHandler):
             - (mouse_x, mouse_y) the mouse position relative to the viewport.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_disable_hover : bool = False, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14664,7 +14664,6 @@ class DragDropSourceHandler(baseHandler):
         - enabled: Controls whether the handler is active and processing events.
         - immediate_expiration: If True, the drag expires as soon as this handler
         - next_sibling: Child of the parent rendered just after this item.
-        - no_disable_hover: If True, the hover state of items below the mouse cursor
         - no_open_on_hold: Disables the behaviour that holding the mouse during the drag
         - overwrite: If True, overwrites any previous drag operation already occuring
         - parent: Parent of the item in the rendering tree.
@@ -14675,7 +14674,7 @@ class DragDropSourceHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_disable_hover : bool = False, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14687,7 +14686,6 @@ class DragDropSourceHandler(baseHandler):
         - enabled: Controls whether the handler is active and processing events.
         - immediate_expiration: If True, the drag expires as soon as this handler
         - next_sibling: Child of the parent rendered just after this item.
-        - no_disable_hover: If True, the hover state of items below the mouse cursor
         - no_open_on_hold: Disables the behaviour that holding the mouse during the drag
         - overwrite: If True, overwrites any previous drag operation already occuring
         - parent: Parent of the item in the rendering tree.
@@ -14733,21 +14731,6 @@ class DragDropSourceHandler(baseHandler):
 
     @immediate_expiration.setter
     def immediate_expiration(self, value : bool):
-        ...
-
-
-    @property
-    def no_disable_hover(self) -> bool:
-        """
-        If True, the hover state of items below the mouse cursor
-        during the drag operation will not be cleared.
-
-        """
-        ...
-
-
-    @no_disable_hover.setter
-    def no_disable_hover(self, value : bool):
         ...
 
 
@@ -21652,6 +21635,16 @@ class Layout(uiItem):
     If an item is moved out of the layout, the user has to manually
     set the x, y and no_newline fields of the item to their new desired values.
 
+    Contrary to other items, the `height` and `width` values filled in the
+    attributes will apply to the content area visible inside the layout (
+    for instance when referencing the parent size: "fillx", "fullx", etc).
+    The final size fitted to the position and size of the children is then
+    stored in the `rect_size` attribute. In other words, it is possible
+    to have `content_area_avail` larger than `rect_size`, and `item.y2` > `item.y3`.
+
+    This specific behaviour of Layouts enables to to have the expected behaviour when
+    nesting layouts. If you intend to force a specific size, use a `ChildWindow`.
+
     """
     def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
@@ -28479,9 +28472,16 @@ class Window(uiItem):
 class WindowLayout(uiItem):
     """
     Same as Layout, but for windows.
-    Unlike Layout, WindowLayout doesn't
-    have any accessible state, except
-    for the position and rect size.
+
+    Unlike Layout, WindowLayout doesn't have any accessible state, except
+    for the position, the content and rect sizes.
+
+    Similar to Layout, the `height` and `width` values filled in the
+    attributes will apply to the content area visible inside the layout (
+    for instance when referencing the parent size: "fillx", "fullx", etc).
+    The final size fitted to the position and size of the children is then
+    stored in the `rect_size` attribute. In other words, it is possible
+    to have `content_area_avail` larger than `rect_size`, and `item.y2` > `item.y3`.
 
     """
     def __init__(self, context : Context, *, attach : Any = ..., before : 'Window' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['Window' | 'WindowLayout'] = [], clip : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
@@ -28493,7 +28493,7 @@ class WindowLayout(uiItem):
         - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
-        - clip: Whether to clip the children to the size of this layout.
+        - clip: Whether to clip the children to the content area of this layout.
         - enabled: Whether the item is interactive and fully styled.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
@@ -28523,7 +28523,7 @@ class WindowLayout(uiItem):
         - callback: Callback to invoke when the item's value changes
         - callbacks: List of callbacks to invoke when the item's value changes.
         - children: List of all the children of the item, from first rendered, to last rendered.
-        - clip: Whether to clip the children to the size of this layout.
+        - clip: Whether to clip the children to the content area of this layout.
         - enabled: Whether the item is interactive and fully styled.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
@@ -28572,7 +28572,7 @@ class WindowLayout(uiItem):
     @property
     def clip(self) -> bool:
         """
-        Whether to clip the children to the size of this layout.
+        Whether to clip the children to the content area of this layout.
 
         """
         ...
@@ -28841,6 +28841,9 @@ class HorizontalLayout(Layout):
     The layout automatically tracks content width changes and repositions
     children when needed. Wrapping behavior can be customized to control
     how items overflow when they exceed available width.
+
+    The `height` attribute is ignored for HorizontalLayout. If you intend
+    to clip the content, use a `ChildWindow` instead.
 
     """
     def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap_x : float = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
@@ -32405,6 +32408,9 @@ class VerticalLayout(Layout):
     The layout automatically tracks content height changes and repositions
     children when needed. Wrapping behavior can be customized to control
     how items overflow when they exceed available height.
+
+    The `width` attribute is ignored for VerticalLayout. If you intend
+    to clip the content, use a `ChildWindow` instead.
 
     """
     def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
