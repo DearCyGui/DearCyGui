@@ -10257,7 +10257,7 @@ class Viewport(baseItem):
     It is decorated by the operating system and can be minimized/maximized/made fullscreen.
 
     """
-    def __init__(self, context : Context, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 853, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100):
         """
         Parameters
         ----------
@@ -10277,6 +10277,7 @@ class Viewport(baseItem):
         - height: DPI invariant height of the viewport window.
         - hit_test_surface: Define custom window hit regions for borderless windows using a 2D array.
         - icon: Set the window icon from one or more images.
+        - keyboard_navigation: Whether keyboard navigation is enabled for the viewport.
         - max_height: Maximum height the viewport window can be resized to.
         - max_width: Maximum width the viewport window can be resized to.
         - maximized: Whether the viewport is currently maximized.
@@ -10306,7 +10307,7 @@ class Viewport(baseItem):
         ...
 
 
-    def configure(self, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 853, x_pos : int = 100, y_pos : int = 100) -> None:
+    def configure(self, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -10326,6 +10327,7 @@ class Viewport(baseItem):
         - height: DPI invariant height of the viewport window.
         - hit_test_surface: Define custom window hit regions for borderless windows using a 2D array.
         - icon: Set the window icon from one or more images.
+        - keyboard_navigation: Whether keyboard navigation is enabled for the viewport.
         - max_height: Maximum height the viewport window can be resized to.
         - max_width: Maximum width the viewport window can be resized to.
         - maximized: Whether the viewport is currently maximized.
@@ -10359,7 +10361,7 @@ class Viewport(baseItem):
         ...
 
 
-    def initialize(self, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 1200, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 853, x_pos : int = 100, y_pos : int = 100) -> None:
+    def initialize(self, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100) -> None:
         """
         Initialize the viewport for rendering and show it.
 
@@ -10391,6 +10393,7 @@ class Viewport(baseItem):
         - height: DPI invariant height of the viewport window.
         - hit_test_surface: Define custom window hit regions for borderless windows using a 2D array.
         - icon: Set the window icon from one or more images.
+        - keyboard_navigation: Whether keyboard navigation is enabled for the viewport.
         - max_height: Maximum height the viewport window can be resized to.
         - max_width: Maximum width the viewport window can be resized to.
         - maximized: Whether the viewport is currently maximized.
@@ -10840,6 +10843,38 @@ Render one frame of the application.
 
     @icon.setter
     def icon(self, value):
+        ...
+
+
+    @property
+    def keyboard_navigation(self) -> bool:
+        """
+        Whether keyboard navigation is enabled for the viewport.
+
+        When enabled, users can navigate through UI elements using the keyboard.
+        Available controls include:
+            - Tab, SHIFT+Tab:              Cycle through every items.
+            - Arrow keys                   Move through items using directional navigation. Tweak value.
+            - Arrow keys + Alt, Shift      Tweak slower, tweak faster (when using arrow keys).
+            - Enter                        Activate item (prefer text input when possible).
+            - Space                        Activate item (prefer tweaking with arrows when possible).
+            - Escape                       Deactivate item, leave child window, close popup.
+            - Page Up, Page Down           Previous page, next page.
+            - Home, End                    Scroll to top, scroll to bottom.
+            - Alt                          Toggle between scrolling layer and menu layer.
+            - CTRL+Tab then Ctrl+Arrows    Move window. Hold SHIFT to resize instead of moving.
+
+        When disabled (Default), keyboard navigation is not available,
+        and users must rely on mouse interactions to navigate the UI. Note keyboard
+        events will still be processed, and widgets which require keyboard input
+        will still function.
+
+        """
+        ...
+
+
+    @keyboard_navigation.setter
+    def keyboard_navigation(self, value : bool):
         ...
 
 

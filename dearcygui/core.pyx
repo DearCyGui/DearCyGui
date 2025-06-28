@@ -3064,16 +3064,6 @@ cdef class Viewport(baseItem):
             self._font = AutoFont(self.context)
         self._initialized = True
         imgui.GetIO().IniFilename = NULL
-        """
-            # TODO if (GContext->IO.autoSaveIniFile). if (!GContext->IO.iniFile.empty())
-			# io.IniFilename = GContext->IO.iniFile.c_str();
-
-            # TODO if(GContext->IO.kbdNavigation)
-		    # io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-            #if(GContext->IO.docking)
-            # io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-            # io.ConfigDockingWithShift = GContext->IO.dockingShiftOnly;
-        """
 
     cdef void __check_initialized(self):
         ensure_correct_im_context(self.context)
@@ -3748,6 +3738,48 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m, self.mutex)
         (<platformViewport*>self._platform).maxHeight = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
+
+    @property
+    def keyboard_navigation(self) -> bool:
+        """
+        Whether keyboard navigation is enabled for the viewport.
+
+        When enabled, users can navigate through UI elements using the keyboard.
+        Available controls include:
+            - Tab, SHIFT+Tab:              Cycle through every items.
+            - Arrow keys                   Move through items using directional navigation. Tweak value.
+            - Arrow keys + Alt, Shift      Tweak slower, tweak faster (when using arrow keys).
+            - Enter                        Activate item (prefer text input when possible).
+            - Space                        Activate item (prefer tweaking with arrows when possible).
+            - Escape                       Deactivate item, leave child window, close popup.
+            - Page Up, Page Down           Previous page, next page.
+            - Home, End                    Scroll to top, scroll to bottom.
+            - Alt                          Toggle between scrolling layer and menu layer.
+            - CTRL+Tab then Ctrl+Arrows    Move window. Hold SHIFT to resize instead of moving.
+
+        When disabled (Default), keyboard navigation is not available,
+        and users must rely on mouse interactions to navigate the UI. Note keyboard
+        events will still be processed, and widgets which require keyboard input
+        will still function.
+        """
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        lock_gil_friendly(m, self.context.imgui_mutex)
+        lock_gil_friendly(m2, self.mutex)
+        ensure_correct_im_context(self.context)
+        return (imgui.GetIO().ConfigFlags & imgui.ImGuiConfigFlags_NavEnableKeyboard) != 0
+
+    @keyboard_navigation.setter
+    def keyboard_navigation(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m2
+        lock_gil_friendly(m, self.context.imgui_mutex)
+        lock_gil_friendly(m2, self.mutex)
+        ensure_correct_im_context(self.context)
+        if value:
+            imgui.GetIO().ConfigFlags = imgui.GetIO().ConfigFlags | imgui.ImGuiConfigFlags_NavEnableKeyboard  # Enable Keyboard Controls
+        else:
+            imgui.GetIO().ConfigFlags = imgui.GetIO().ConfigFlags & ~imgui.ImGuiConfigFlags_NavEnableKeyboard  # Disable Keyboard Controls
 
     @property
     def always_on_top(self) -> bool:
