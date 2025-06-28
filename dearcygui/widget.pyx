@@ -3918,6 +3918,7 @@ cdef class Tooltip(uiItem):
         cdef float hoverDelay_backup
         cdef bint display_condition = False
         cdef float delay = self._delay
+        cdef bint keyboard_navigation = imgui.GetIO().NavVisible
         if self._secondary_handler is None:
             if self._target is None:
                 if self._delay >= 0:
@@ -3933,6 +3934,16 @@ cdef class Tooltip(uiItem):
         if self._hide_on_activity and \
            (imgui.GetIO().MouseDelta.x != 0. or \
             imgui.GetIO().MouseDelta.y != 0.):
+            display_condition = False
+
+        if keyboard_navigation:
+            """
+            Since the mouse is not moving, custom delays are bypassed,
+            and the tooltip is shown immediately when the target is focused.
+            This is annoying. In addition for keyboard navigation, it
+            is much more likely to remain focused on the same item.
+            Thus we disable the tooltip when keyboard navigation is active.
+            """
             display_condition = False
 
         cdef float current_time, remaining_delay
