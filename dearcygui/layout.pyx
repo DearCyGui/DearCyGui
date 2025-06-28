@@ -55,6 +55,16 @@ cdef class Layout(uiItem):
 
     If an item is moved out of the layout, the user has to manually
     set the x, y and no_newline fields of the item to their new desired values.
+
+    Contrary to other items, the `height` and `width` values filled in the 
+    attributes will apply to the content area visible inside the layout (
+    for instance when referencing the parent size: "fillx", "fullx", etc).
+    The final size fitted to the position and size of the children is then
+    stored in the `rect_size` attribute. In other words, it is possible
+    to have `content_area_avail` larger than `rect_size`, and `item.y2` > `item.y3`.
+
+    This specific behaviour of Layouts enables to to have the expected behaviour when
+    nesting layouts. If you intend to force a specific size, use a `ChildWindow`. 
     """
     def __cinit__(self):
         self.can_have_widget_child = True
@@ -192,6 +202,9 @@ cdef class HorizontalLayout(Layout):
     The layout automatically tracks content width changes and repositions 
     children when needed. Wrapping behavior can be customized to control 
     how items overflow when they exceed available width.
+
+    The `height` attribute is ignored for HorizontalLayout. If you intend
+    to clip the content, use a `ChildWindow` instead.
     """
     def __cinit__(self):
         self._alignment_mode = Alignment.LEFT
@@ -548,6 +561,9 @@ cdef class VerticalLayout(Layout):
     The layout automatically tracks content height changes and repositions 
     children when needed. Wrapping behavior can be customized to control 
     how items overflow when they exceed available height.
+
+    The `width` attribute is ignored for VerticalLayout. If you intend
+    to clip the content, use a `ChildWindow` instead.
     """
     def __cinit__(self):
         self._alignment_mode = Alignment.TOP
@@ -899,9 +915,16 @@ cdef class VerticalLayout(Layout):
 cdef class WindowLayout(uiItem):
     """
     Same as Layout, but for windows.
-    Unlike Layout, WindowLayout doesn't
-    have any accessible state, except
-    for the position and rect size.
+
+    Unlike Layout, WindowLayout doesn't have any accessible state, except
+    for the position, the content and rect sizes.
+
+    Similar to Layout, the `height` and `width` values filled in the 
+    attributes will apply to the content area visible inside the layout (
+    for instance when referencing the parent size: "fillx", "fullx", etc).
+    The final size fitted to the position and size of the children is then
+    stored in the `rect_size` attribute. In other words, it is possible
+    to have `content_area_avail` larger than `rect_size`, and `item.y2` > `item.y3`.
     """
     def __cinit__(self):
         self.can_have_window_child = True
@@ -921,7 +944,7 @@ cdef class WindowLayout(uiItem):
     @property
     def clip(self):
         """
-        Whether to clip the children to the size of this layout.
+        Whether to clip the children to the content area of this layout.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -999,12 +1022,21 @@ cdef class WindowLayout(uiItem):
         if self.last_window_child is None:
             return
 
+        cdef Vec2 bot_right = self.state.cur.pos_to_viewport
+
         cdef PyObject *child = <PyObject*> self.last_window_child
         while (<uiItem>child).prev_sibling is not None:
             child = <PyObject *>(<uiItem>child).prev_sibling
         while (<uiItem>child) is not None:
             self.draw_child(<uiItem>child)
+            if (<uiItem>child).state.cap.has_rect_size and (<uiItem>child).state.cap.has_position:
+                # Update the bottom right corner
+                bot_right.y = fmax(bot_right.y, (<uiItem>child).state.cur.pos_to_viewport.y + (<uiItem>child).state.cur.rect_size.y)
+                bot_right.x = fmax(bot_right.x, (<uiItem>child).state.cur.pos_to_viewport.x + (<uiItem>child).state.cur.rect_size.x)
             child = <PyObject *>(<uiItem>child).next_sibling
+
+        self.state.cur.rect_size = make_Vec2(bot_right.x - self.state.cur.pos_to_viewport.x,
+                                             bot_right.y - self.state.cur.pos_to_viewport.y) 
 
     cdef void draw(self) noexcept nogil:
         if self.last_window_child is None:
@@ -1036,10 +1068,6 @@ cdef class WindowLayout(uiItem):
 
         # After setting position
         self.update_content_area()
-        # At some point we have used the children size to determine the
-        # rect area (which could then be smaller than the content area),
-        # but if user specifies a size, he expects to have it as rect size.
-        self.state.cur.rect_size = self.state.cur.content_region_size
 
         # handle fonts
         if self._font is not None:
@@ -1081,6 +1109,8 @@ cdef class WindowLayout(uiItem):
             self.context.viewport.parent_size = parent_size_backup
             self.context.viewport.parent_pos = parent_pos_backup
             self.context.viewport.window_pos = parent_pos_backup
+        else:
+            self.state.cur.rect_size = make_Vec2(0., 0.)
 
         if changed:
             self.last_window_child.unlock_and_previous_siblings()
