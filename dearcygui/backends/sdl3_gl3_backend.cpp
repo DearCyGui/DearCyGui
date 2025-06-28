@@ -1094,9 +1094,19 @@ bool SDLViewport::processEvents(int timeout_ms) {
         if (isOurWindowEvent || event_window == nullptr) {
             ImGui_ImplSDL3_ProcessEvent(&event);
             switch (event.type) {
+                case SDL_EVENT_WINDOW_MOVED:
+                    positionX = event.window.data1;
+                    positionY = event.window.data2;
+                    // Force refresh to make sure the
+                    // OS updates window messages
+                    needsRefresh.store(true);
+                    break;
                 case SDL_EVENT_WINDOW_FOCUS_GAINED:
                 case SDL_EVENT_WINDOW_FOCUS_LOST:
-                case SDL_EVENT_WINDOW_MOVED:
+                    // Force refresh to make sure the
+                    // OS updates window messages
+                    needsRefresh.store(true);
+                    break;
                 case SDL_EVENT_MOUSE_MOTION:
                     activityDetected.store(true);
                     break;
@@ -1115,6 +1125,8 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 case SDL_EVENT_TEXT_INPUT:
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
+                    // Force refresh because maybe imgui items
+                    // may have changed
                     needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
@@ -1126,7 +1138,21 @@ bool SDLViewport::processEvents(int timeout_ms) {
                     needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+                {
+                    float new_dpi_scale = SDL_GetWindowDisplayScale(windowHandle);
+                    if (new_dpi_scale != dpiScale) {
+                        dpiScale = new_dpi_scale;
+                        hasResized = true;
+                        needsRefresh.store(true);
+                    }
+                    break;
+                }
                 case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                    frameWidth = event.window.data1;
+                    frameHeight = event.window.data2;
+                    hasResized = true;
+                    needsRefresh.store(true);
+                    break;
                 case SDL_EVENT_WINDOW_RESIZED:
                     hasResized = true;
                     needsRefresh.store(true);
@@ -1136,17 +1162,23 @@ bool SDLViewport::processEvents(int timeout_ms) {
                     needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_MINIMIZED:
-                    activityDetected.store(true);
                     isMinimized = true;
+                    // Force refresh to make sure the
+                    // OS updates window messages
+                    needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_MAXIMIZED:
-                    activityDetected.store(true);
                     isMaximized = true;
+                    // Force refresh to make sure the
+                    // OS updates window messages
+                    needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_RESTORED:
-                    activityDetected.store(true);
                     isMinimized = false;
                     isMaximized = false;
+                    // Force refresh to make sure the
+                    // OS updates window messages
+                    needsRefresh.store(true);
                     break;
                 case SDL_EVENT_QUIT:
                 case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
@@ -1170,11 +1202,14 @@ bool SDLViewport::processEvents(int timeout_ms) {
                     dropPending = false;
                     break;
                 case SDL_EVENT_DROP_POSITION:
+                    // The UI reacts to the mouse position
                     needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_SHOWN:
                     isVisible = true;
-                    activityDetected.store(true);
+                    // Force refresh to make sure the
+                    // OS updates window messages
+                    needsRefresh.store(true);
                     break;
                 case SDL_EVENT_WINDOW_HIDDEN:
                     isVisible = false;
@@ -1205,11 +1240,8 @@ bool SDLViewport::processEvents(int timeout_ms) {
         }
     }
 
-    // Update position and size if changed
-    SDL_GetWindowPosition(windowHandle, &positionX, &positionY);
+    // Update size if changed
     if (hasResized) {
-        dpiScale = SDL_GetWindowDisplayScale(windowHandle);
-        SDL_GetWindowSizeInPixels(windowHandle, &frameWidth, &frameHeight);
         windowWidth = (int)((float)frameWidth / dpiScale);
         windowHeight = (int)((float)frameHeight / dpiScale);
         hasResized = false;
