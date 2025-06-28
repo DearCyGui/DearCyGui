@@ -6125,6 +6125,16 @@ cdef class baseHandler(baseItem):
         self.context.queue_callback_arg1obj(self._callback, self, item, item)
 
 
+cdef extern from * nogil:
+    """
+    void focus_scroll()
+    {
+        ImGui::ScrollToItem(ImGuiScrollFlags_KeepVisibleCenterX | 
+                            ImGuiScrollFlags_KeepVisibleCenterY);
+    }
+    """
+    void focus_scroll() noexcept
+
 cdef class uiItem(baseItem):
     """
     Base class for UI items with various properties and states.
@@ -6858,7 +6868,7 @@ cdef class uiItem(baseItem):
 
         if self.focus_requested:
             imgui.SetKeyboardFocusHere(0)
-            self.focus_requested = False
+            #self.focus_requested = False # second part later
 
         cdef Vec2 cursor_pos_backup = ImVec2Vec2(imgui.GetCursorScreenPos())
         cdef Vec2 pos = cursor_pos_backup
@@ -6924,6 +6934,12 @@ cdef class uiItem(baseItem):
 
         # Restore original scale
         self.context.viewport.global_scale = original_scale 
+
+        # Move scroll to item if focus requested
+        if self.focus_requested:
+            if self.state.cap.has_rect_size:
+                focus_scroll()
+            self.focus_requested = False
 
         # Advance the cursor only for default position (or offset to it)
         pos = ImVec2Vec2(imgui.GetCursorScreenPos())
