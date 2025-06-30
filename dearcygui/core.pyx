@@ -8191,8 +8191,8 @@ cdef class Window(uiItem):
         if visible:
             # Set current states
             self.state.cur.rendered = True
-            self.state.cur.hovered = imgui.IsWindowHovered(imgui.ImGuiHoveredFlags_None)
-            self.state.cur.focused = imgui.IsWindowFocused(imgui.ImGuiFocusedFlags_None)
+            self.state.cur.hovered = imgui.IsWindowHovered(imgui.ImGuiHoveredFlags_ChildWindows | imgui.ImGuiHoveredFlags_NoPopupHierarchy)
+            self.state.cur.focused = imgui.IsWindowFocused(imgui.ImGuiFocusedFlags_ChildWindows | imgui.ImGuiFocusedFlags_NoPopupHierarchy)
             self.state.cur.rect_size = ImVec2Vec2(imgui.GetWindowSize())
             self.state.cur.pos_to_viewport = ImVec2Vec2(imgui.GetWindowPos())
             self.state.cur.pos_to_window.x = self.state.cur.pos_to_viewport.x - self.context.viewport.window_pos.x

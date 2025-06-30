@@ -5371,8 +5371,8 @@ cdef class ChildWindow(uiItem): # TODO: remove label
             self.context.viewport.parent_pos = pos_p
             self.context.viewport.parent_size = parent_size_backup
             self.state.cur.rendered = True
-            self.state.cur.hovered = imgui.IsWindowHovered(imgui.ImGuiHoveredFlags_None)
-            self.state.cur.focused = imgui.IsWindowFocused(imgui.ImGuiFocusedFlags_None)
+            self.state.cur.hovered = imgui.IsWindowHovered(imgui.ImGuiHoveredFlags_ChildWindows | imgui.ImGuiHoveredFlags_NoPopupHierarchy)
+            self.state.cur.focused = imgui.IsWindowFocused(imgui.ImGuiFocusedFlags_ChildWindows | imgui.ImGuiFocusedFlags_NoPopupHierarchy)
             self.state.cur.rect_size = ImVec2Vec2(imgui.GetWindowSize())
             update_current_mouse_states(self.state)
             # TODO scrolling
