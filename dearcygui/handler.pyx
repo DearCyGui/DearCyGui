@@ -2282,6 +2282,15 @@ cdef class DragDropActiveHandler(baseHandler):
     The any_target attribute defines if the condition
     should be raised if any item is being dragged,
     or only the item this handler refers to.
+
+    The callback data field will contain:
+        - type: The type of the payload (as a string)
+        - payload:
+            If the type starts with "item", it will be the item that is being dragged.
+            If the type is "text" or "file", it will be None (unknown until drop).
+            If the type starts with "_COL", it will be a tuple of floats
+                representing the color (RGB or RGBA).
+            The content for other types is undefined.
     """
 
     @property
@@ -2353,6 +2362,61 @@ cdef class DragDropActiveHandler(baseHandler):
         cdef void *actual_ptr = dereference(<void_p*>(<const imgui.ImGuiPayload *>payload).Data)
         return expected == actual_ptr
 
+    @cython.final
+    cdef object _extract_payload_data(self, baseItem item, const void* payload_p):
+        cdef const imgui.ImGuiPayload* payload = <const imgui.ImGuiPayload*> payload_p
+        cdef str payload_type = bytes(payload.DataType).decode('utf-8')
+        cdef bytes raw_data
+        cdef char* data_ptr
+        cdef float* color_data
+        cdef int start
+        
+        # For item drag & drop
+        if payload_type.startswith("item"):
+            if payload.DataSize == sizeof(void_p) and \
+               (<PyObject**>payload.Data)[0] == <PyObject*>self.context.viewport.drag_drop:
+                target_item = self.context.viewport.drag_drop
+                return (payload_type, target_item)
+        
+        # For text and files from OS
+        elif strcmp(payload.DataType, "text") == 0:
+            return ("text", None)
+
+        elif strcmp(payload.DataType, "file") == 0:
+            return ("file", None)
+
+        # For color picker (3 floats - RGB)
+        elif strcmp(payload.DataType, "_COL3F") == 0:
+            if payload.DataSize == sizeof(float) * 3:
+                color_data = <float*>payload.Data
+                return (payload_type, (color_data[0], color_data[1], color_data[2]))
+        
+        # For color picker (4 floats - RGBA)
+        elif strcmp(payload.DataType, "_COL4F") == 0:
+            if payload.DataSize == sizeof(float) * 4:
+                color_data = <float*>payload.Data
+                return (payload_type, (color_data[0], color_data[1], color_data[2], color_data[3]))
+        
+        # For any other type, return the raw data size (we don't interpret it)
+        elif payload.DataSize > 0:
+            raw_data = bytes(<char*>payload.Data, payload.DataSize)
+            # Return the raw data as a bytes object
+            return (payload_type, raw_data)
+        return (payload_type, None)
+
+    @cython.final
+    cdef int _trigger_callback(self, baseItem item, const void* payload_p):
+        cdef const imgui.ImGuiPayload *payload = <const imgui.ImGuiPayload*>payload_p
+        payload_type, payload_data = self._extract_payload_data(item, payload_p)
+
+        self.context.queue_callback(
+            self._callback,
+            self,
+            item,
+            (payload_type, payload_data)
+        )
+        return 0
+
     cdef void check_bind(self, baseItem item):
         if item is None:
             raise ValueError("DragDropActiveHandler must be bound to a valid item")
@@ -2369,6 +2433,16 @@ cdef class DragDropActiveHandler(baseHandler):
         if not target_check:
             return False
         return True
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not self.check_state(item):
+            return
+        cdef const imgui.ImGuiPayload *payload = imgui.GetDragDropPayload()
+        # Because of check_state we know the payload is valid
+        with gil:
+            self._trigger_callback(item, <const void*>payload)
+
 
 
 cdef class DragDropTargetHandler(baseHandler):

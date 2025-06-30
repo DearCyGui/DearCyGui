@@ -269,8 +269,11 @@ cdef class DragDropActiveHandler(baseHandler):
     cdef DCGVector[DCGString] _items
     cdef bint _check_payload_type(self, const void *payload) noexcept nogil
     cdef bint _target_check(self, baseItem item, const void *payload) noexcept nogil
+    cdef object _extract_payload_data(self, baseItem item, const void* payload_p)
+    cdef int _trigger_callback(self, baseItem item, const void* payload_p)
     cdef void check_bind(self, baseItem item)
     cdef bint check_state(self, baseItem item) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class DragDropTargetHandler(baseHandler):
     cdef int32_t _flags
