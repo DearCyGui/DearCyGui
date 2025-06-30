@@ -8117,14 +8117,6 @@ cdef class Window(uiItem):
                 self._scroll_y_update_requested = False
             imgui.SetNextWindowScroll(scroll_requested)
 
-        if self._main_window:
-            # No transparency
-            imgui.SetNextWindowBgAlpha(1.0)
-            #to prevent main window corners from showing
-            imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowRounding, 0.0)
-            imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowPadding, imgui.ImVec2(0.0, 0.))
-            imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowBorderSize, 0.)
-
         # handle fonts
         if self._font is not None:
             self._font.push()
@@ -8132,6 +8124,14 @@ cdef class Window(uiItem):
         # themes
         if self._theme is not None:
             self._theme.push()
+
+        if self._main_window:
+            # No transparency
+            imgui.SetNextWindowBgAlpha(1.0)
+            #to prevent main window corners from showing
+            imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowRounding, 0.0)
+            imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowPadding, imgui.ImVec2(0.0, 0.))
+            imgui.PushStyleVar(imgui.ImGuiStyleVar_WindowBorderSize, 0.)
 
         cdef bint visible = True
         # Modal/Popup windows must be manually opened
