@@ -1302,6 +1302,7 @@ cdef class Plot(uiItem):
         self.can_have_plot_element_child = True
         self.state.cap.can_be_clicked = True
         self.state.cap.can_be_dragged = True
+        self.state.cap.can_be_focused = True
         self.state.cap.can_be_hovered = True
         self.state.cap.has_content_region = True
         self._X1 = PlotAxisConfig(context)
@@ -1912,6 +1913,7 @@ cdef class Plot(uiItem):
             update_current_mouse_states(self.state)
             self.state.cur.content_region_size =ImVec2Vec2( implot.GetPlotSize())
             self.state.cur.content_pos = ImVec2Vec2(implot.GetPlotPos())
+            self.state.cur.focused = imgui.IsItemFocused()
 
             self._X1.after_setup(implot.ImAxis_X1)
             self._X2.after_setup(implot.ImAxis_X2)
