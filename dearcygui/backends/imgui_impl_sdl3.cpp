@@ -156,8 +156,7 @@ static void ImGui_ImplSDL3_PlatformSetImeData(ImGuiContext*, ImGuiViewport* view
     ImGui_ImplSDL3_Data* bd = ImGui_ImplSDL3_GetBackendData();
     SDL_WindowID window_id = (SDL_WindowID)(intptr_t)viewport->PlatformHandle;
     SDL_Window* window = SDL_GetWindowFromID(window_id);
-    if ((data->WantVisible == false || bd->ImeWindow != window) && bd->ImeWindow != NULL)
-    //if ((!(data->WantVisible || data->WantTextInput) || bd->ImeWindow != window) && bd->ImeWindow != nullptr) -> for 1.92
+    if ((!(data->WantVisible || data->WantTextInput) || bd->ImeWindow != window) && bd->ImeWindow != nullptr)
     {
         SDL_StopTextInput(bd->ImeWindow);
         bd->ImeWindow = nullptr;
@@ -173,7 +172,7 @@ static void ImGui_ImplSDL3_PlatformSetImeData(ImGuiContext*, ImGuiViewport* view
         SDL_SetTextInputArea(window, &r, 0);
         bd->ImeWindow = window;
     }
-    if (!SDL_TextInputActive(window) && data->WantVisible)// (data->WantVisible || data->WantTextInput))
+    if (!SDL_TextInputActive(window) && (data->WantVisible || data->WantTextInput))
         SDL_StartTextInput(window);
 }
 
