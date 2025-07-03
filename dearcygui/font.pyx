@@ -489,6 +489,18 @@ cdef class AutoFont(FontMultiScales):
         # Update the fonts list
         self.fonts = list(retained_fonts)
 
+cdef extern from * nogil:
+    """
+    const ImWchar minimal_font_range[] = {
+        0          // Array terminator (required)
+    };
+
+        //'a', 'a',  // Range from 'a' to 'a' (just the single character)
+    """
+    imgui.ImWchar * minimal_font_range
+
+
+
 cdef class FontTexture(baseItem):
     """
     Packs one or several fonts into
@@ -610,6 +622,8 @@ cdef class FontTexture(baseItem):
         config.FontDataOwnedByAtlas = False
         config.OversampleH = 1
         config.OversampleV = 1
+        config.GlyphRanges = minimal_font_range
+        
 
         # Imgui currently requires a font
         # to be able to add custom glyphs
@@ -635,6 +649,8 @@ cdef class FontTexture(baseItem):
         font_object._container = self
         font_object._font = font
         self._fonts.append(font_object)
+
+        atlas.Flags |= imgui.ImFontAtlasFlags_NoMouseCursors # SDL supports all cursors
 
         # build
         if not(atlas.Build()):
@@ -735,6 +751,7 @@ cdef class FontTexture(baseItem):
         cdef imgui.ImFontAtlas *atlas = <imgui.ImFontAtlas*>self._atlas
         if atlas.Fonts.Size == 0:
             raise ValueError("You must add fonts first")
+        atlas.Flags |= imgui.ImFontAtlasFlags_NoMouseCursors # SDL supports all cursors
         # build
         if not(atlas.Build()):
             raise RuntimeError("Failed to build target texture data")
