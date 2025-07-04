@@ -17,6 +17,7 @@ cdef class DrawingClip(drawingItem):
     cdef float _scale_min
     cdef float _scale_max
     cdef bint _no_global_scale
+    cdef bint _update_clip_rect
     cdef void draw(self, void*) noexcept nogil
 
 cdef class DrawingScale(drawingItem):

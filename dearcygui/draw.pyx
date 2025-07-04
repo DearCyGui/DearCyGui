@@ -26,7 +26,7 @@ from .c_types cimport DCGMutex, DCGString, unique_lock, make_Vec2,\
 from .types cimport child_type, Coord, read_point, read_coord
 
 from libcpp.algorithm cimport swap
-from libcpp.cmath cimport atan, atan2, sin, cos, sqrt, fabs, fmod
+from libcpp.cmath cimport atan, atan2, sin, cos, sqrt, fabs, fmod, fmin, fmax
 from libc.math cimport M_PI
 from libc.stdint cimport int32_t
 from libcpp cimport bool
@@ -168,6 +168,32 @@ cdef class DrawingClip(drawingItem):
         self._pmax = [1e300, 1e300]
 
     @property
+    def clip_rendering(self):
+        """
+        Whether to clip rendering outside the clip region.
+
+        When False, drawingClip is used as a hint to skip rendering
+        when the region is completly outside the current drawing
+        clipping rectangle on screen. However it is still possible
+        to have children that are rendering in practice outside the
+        drawingClip rectangle.
+
+        When True, gpu clipping is turned on for the target rectangle,
+        meaning that items that are partially or totally outside the
+        clipping region will be clipped, respectively partially or
+        totally.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._update_clip_rect
+
+    @clip_rendering.setter
+    def clip_rendering(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._update_clip_rect = value
+
+    @property
     def pmin(self):
         """
         (xmin, ymin) of the clip region
@@ -280,14 +306,18 @@ cdef class DrawingClip(drawingItem):
 
         cdef imgui.ImVec2 rect_min = (<imgui.ImDrawList*>drawlist).GetClipRectMin()
         cdef imgui.ImVec2 rect_max = (<imgui.ImDrawList*>drawlist).GetClipRectMax()
+        cdef imgui.ImVec2 target_rect_min = \
+            imgui.ImVec2(fmin(pmin[0], pmax[0]), fmin(pmin[1], pmax[1]))
+        cdef imgui.ImVec2 target_rect_max = \
+            imgui.ImVec2(fmax(pmin[0], pmax[0]), fmax(pmin[1], pmax[1]))
         cdef bint visible = True
-        if max(pmin[0], pmax[0]) < rect_min.x:
+        if target_rect_max.x < rect_min.x:
             visible = False
-        elif min(pmin[0], pmax[0]) > rect_max.x:
+        elif target_rect_min.x > rect_max.x:
             visible = False
-        elif max(pmin[1], pmax[1]) < rect_min.y:
+        elif target_rect_max.y < rect_min.y:
             visible = False
-        elif min(pmin[1], pmax[1]) > rect_max.y:
+        elif target_rect_min.y > rect_max.y:
             visible = False
         else:
             unscaled_p1[0] = 0
@@ -301,10 +331,15 @@ cdef class DrawingClip(drawingItem):
                 scale /= self.context.viewport.global_scale
             if scale <= self._scale_min or scale > self._scale_max:
                 visible = False
-
         if visible:
+            # update clipping rect if requested
+            if self._update_clip_rect:
+                (<imgui.ImDrawList*>drawlist).PushClipRect(target_rect_min, target_rect_max, True)
             # draw children
             draw_drawing_children(self, drawlist)
+            if self._update_clip_rect:
+                (<imgui.ImDrawList*>drawlist).PopClipRect()
+
 
 
 cdef class DrawingScale(drawingItem):
@@ -708,7 +743,7 @@ cdef class DrawArc(drawingItem):
         cdef double[2] p2
         cdef float[2] p1_converted
         cdef float[2] p2_converted
-        cdef float min_radius = min(radius_x, radius_y)
+        cdef float min_radius = fmin(radius_x, radius_y)
         # We use min_radius because coordinate_to_screen can cause
         # a fit of the tested coordinates.
         p1[0] = self._center[0] + min_radius
@@ -722,8 +757,8 @@ cdef class DrawArc(drawingItem):
             end_angle = -end_angle
 
         cdef bint full_ellipse = fabs(start_angle-end_angle) >= 1.999 * M_PI
-        inner_radius_x = min(inner_radius_x, radius_x)
-        inner_radius_y = min(inner_radius_y, radius_y)
+        inner_radius_x = fmin(inner_radius_x, radius_x)
+        inner_radius_y = fmin(inner_radius_y, radius_y)
 
         if full_ellipse:
             # Ellipse with full filling
@@ -2093,7 +2128,7 @@ cdef class DrawImage(drawingItem):
         cdef double x, y
         x = 0.5 * (self._p2[0] + self._p3[0])
         y = 0.5 * (self._p2[1] + self._p3[1])
-        if max(width2, height2) < 1e-60:
+        if fmax(width2, height2) < 1e-60:
             self._direction = 0
         else:
             self._direction = atan2( \

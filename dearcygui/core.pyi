@@ -14593,6 +14593,15 @@ class DragDropActiveHandler(baseHandler):
     should be raised if any item is being dragged,
     or only the item this handler refers to.
 
+    The callback data field will contain:
+        - type: The type of the payload (as a string)
+        - payload:
+            If the type starts with "item", it will be the item that is being dragged.
+            If the type is "text" or "file", it will be None (unknown until drop).
+            If the type starts with "_COL", it will be a tuple of floats
+                representing the color (RGB or RGBA).
+            The content for other types is undefined.
+
     """
     def __init__(self, context : Context, *, accepted_types : Sequence[Any] = [], any_target : bool = False, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
@@ -19301,13 +19310,14 @@ class DrawingClip(drawingItem):
     in the visible space, the children are not rendered.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'drawingItem' | None = None, children : Sequence['drawingItem'] = [], next_sibling : 'drawingItem' | None = None, no_global_scaling : bool = False, parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pmax : Sequence[float] | tuple[float, float] | 'Coord' = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | 'Coord' = (-1e+300, -1e+300), previous_sibling : 'drawingItem' | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'drawingItem' | None = None, children : Sequence['drawingItem'] = [], clip_rendering : bool = False, next_sibling : 'drawingItem' | None = None, no_global_scaling : bool = False, parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pmax : Sequence[float] | tuple[float, float] | 'Coord' = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | 'Coord' = (-1e+300, -1e+300), previous_sibling : 'drawingItem' | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
         - children: List of all the children of the item, from first rendered, to last rendered.
+        - clip_rendering: Whether to clip rendering outside the clip region.
         - next_sibling: Child of the parent rendered just after this item.
         - no_global_scaling: Disable apply global scale to the min/max scaling.
         - parent: Parent of the item in the rendering tree.
@@ -19322,13 +19332,14 @@ class DrawingClip(drawingItem):
         ...
 
 
-    def configure(self, *, children : Sequence['drawingItem'] = [], next_sibling : 'drawingItem' | None = None, no_global_scaling : bool = False, parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pmax : Sequence[float] | tuple[float, float] | 'Coord' = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | 'Coord' = (-1e+300, -1e+300), previous_sibling : 'drawingItem' | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, children : Sequence['drawingItem'] = [], clip_rendering : bool = False, next_sibling : 'drawingItem' | None = None, no_global_scaling : bool = False, parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pmax : Sequence[float] | tuple[float, float] | 'Coord' = (1e+300, 1e+300), pmin : Sequence[float] | tuple[float, float] | 'Coord' = (-1e+300, -1e+300), previous_sibling : 'drawingItem' | None = None, scale_max : float = inf, scale_min : float = 0.0, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
         Parameters
         ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
+        - clip_rendering: Whether to clip rendering outside the clip region.
         - next_sibling: Child of the parent rendered just after this item.
         - no_global_scaling: Disable apply global scale to the min/max scaling.
         - parent: Parent of the item in the rendering tree.
@@ -19359,6 +19370,31 @@ class DrawingClip(drawingItem):
 
     @children.setter
     def children(self, value : Sequence['drawingItem']):
+        ...
+
+
+    @property
+    def clip_rendering(self) -> bool:
+        """
+        Whether to clip rendering outside the clip region.
+
+        When False, drawingClip is used as a hint to skip rendering
+        when the region is completly outside the current drawing
+        clipping rectangle on screen. However it is still possible
+        to have children that are rendering in practice outside the
+        drawingClip rectangle.
+
+        When True, gpu clipping is turned on for the target rectangle,
+        meaning that items that are partially or totally outside the
+        clipping region will be clipped, respectively partially or
+        totally.
+
+        """
+        ...
+
+
+    @clip_rendering.setter
+    def clip_rendering(self, value : bool):
         ...
 
 
