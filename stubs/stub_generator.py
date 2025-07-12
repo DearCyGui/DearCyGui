@@ -936,6 +936,35 @@ def generate_docstring_for_class(object_class, instance):
         result.append(level2 + "...")
         result.append("\n")
 
+    if object_class is dcg.Viewport:
+        # Properties that need initialization
+        other_properties = [("display", "Display"), ("displays", "list[Display]")]
+        for (prop, tname) in other_properties:
+            docstring = docs.get(prop, None)
+            if docstring is not None:
+                if docstring[0] == " ":
+                    # Count leading spaces
+                    leading_spaces_count = len(docstring) - len(docstring.lstrip())
+                    leading_spaces = docstring[:leading_spaces_count]
+                    result += [
+                        level1 + f"def {prop}(self) -> {tname}:",
+                        level2 + '"""',
+                        leading_spaces + docstring[leading_spaces_count:],
+                        level2 + '"""'
+                    ]
+                else:
+                    result += [
+                        level1 + f"def {prop}(self) -> {tname}:",
+                        level2 + '"""' + docstring,
+                        level2 + '"""'
+                    ]
+            else:
+                result.append(level1 + f"def {prop}(self) -> {tname}:")
+            result.append(level2 + "...")
+            result.append("\n")
+
+
+
     # Strip trailing spaces
     for i in range(len(result)):
         result[i] = "\n".join([row.rstrip() for row in result[i].split("\n")])

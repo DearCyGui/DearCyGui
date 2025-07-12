@@ -11317,6 +11317,36 @@ Render one frame of the application.
         ...
 
 
+    def display(self) -> Display:
+        """
+        Get information about the current display for the window
+
+        """
+        ...
+
+
+    def displays(self) -> list[Display]:
+        """
+        Get information about available displays.
+
+        Returns:
+            A list of Display objects, each containing:
+            - id: The display ID
+            - name: The display name
+            - bounds: Rect object with display bounds (x1,y1,x2,y2)
+            - usable_bounds: Rect object with usable display bounds
+            (accounting for taskbars, docks, etc.)
+            - content_scale: The content scale factor of the display (DPI scaling)
+            - is_primary: True if this is the primary display
+            - orientation: The current orientation of the display
+
+        Raises:
+            RuntimeError: If there was an error retrieving display information
+
+        """
+        ...
+
+
 class ActivatedHandler(baseHandler):
     """
     Handler for when the target item turns from
