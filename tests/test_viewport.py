@@ -8,10 +8,9 @@ from contextlib import ExitStack
 
 import dearcygui as dcg
 from dearcygui.utils.asyncio_helpers import (
-    AsyncPoolExecutor, 
+    AsyncPoolExecutor,
     AsyncThreadPoolExecutor, 
     run_viewport_loop,
-    BatchingEventLoop
 )
 
 # ---- Fixtures ----
@@ -238,7 +237,7 @@ class TestMultipleViewports:
 # ---- Worker Thread Tests ----
 
 class TestWorkerThreads:
-    def test_main_thread_render_with_workers(self, initialized_viewport, ctx: dcg.Context):
+    def test_main_thread_render_with_workers(self, initialized_viewport: dcg.Viewport, ctx: dcg.Context):
         """Test main thread rendering with worker threads updating data."""
         shared_data = {"counter": 0}
         win = dcg.Window(ctx, label="Thread Test")
@@ -273,7 +272,7 @@ class TestWorkerThreads:
 # ---- Asyncio Integration Tests ----
 
 class TestAsyncioIntegration:
-    def test_viewport_with_asyncio_run(self, initialized_viewport, ctx: dcg.Context):
+    def test_viewport_with_asyncio_run(self, initialized_viewport: dcg.Viewport, ctx: dcg.Context):
         """Test using a viewport with asyncio.run."""
         win = dcg.Window(ctx, label="Asyncio Test")
         text = dcg.Text(ctx, value="Initial", parent=win)
