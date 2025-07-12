@@ -3509,6 +3509,8 @@ cdef class Viewport(baseItem):
     def width(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if value <= 0:
+            raise ValueError("Width must be a positive integer")
         cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
         (<platformViewport*>self._platform).windowWidth = value
         (<platformViewport*>self._platform).frameWidth = <int>(<float>value * dpi_scale)
@@ -3533,6 +3535,8 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
+        if value <= 0:
+            raise ValueError("Height must be a positive integer")
         (<platformViewport*>self._platform).windowHeight = value
         (<platformViewport*>self._platform).frameHeight = <int>(<float>value * dpi_scale)
         (<platformViewport*>self._platform).sizeChangeRequested = True
@@ -3673,6 +3677,8 @@ cdef class Viewport(baseItem):
     def min_width(self, uint32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if value <= 0:
+            raise ValueError("Minimum width must be a positive integer")
         (<platformViewport*>self._platform).minWidth = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
@@ -3694,6 +3700,8 @@ cdef class Viewport(baseItem):
     def max_width(self, uint32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if value <= 0:
+            raise ValueError("Maximum width must be a positive integer")
         (<platformViewport*>self._platform).maxWidth = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
@@ -3715,6 +3723,8 @@ cdef class Viewport(baseItem):
     def min_height(self, uint32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if value <= 0:
+            raise ValueError("Minimum height must be a positive integer")
         (<platformViewport*>self._platform).minHeight = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 
@@ -3736,6 +3746,8 @@ cdef class Viewport(baseItem):
     def max_height(self, uint32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        if value <= 0:
+            raise ValueError("Maximum height must be a positive integer")
         (<platformViewport*>self._platform).maxHeight = value
         (<platformViewport*>self._platform).sizeChangeRequested = True
 

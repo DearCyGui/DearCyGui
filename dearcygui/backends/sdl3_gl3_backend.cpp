@@ -822,7 +822,7 @@ void SDLViewport::cleanup() {
 
 bool SDLViewport::initialize() {
     if (!checkPrimaryThread()) {
-        throw std::runtime_error("SDLViewport::initialize must be called from the main thread");
+        throw std::runtime_error("Context creation, initialize, wait_events and render_frame must all be called from the same thread (including new contexts).");
     }
     
     const char* glsl_version = "#version 150";
