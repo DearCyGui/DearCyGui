@@ -3995,6 +3995,11 @@ cdef class Tooltip(uiItem):
            self.state.cur.content_region_size.x != self.state.prev.content_region_size.x or \
            self.state.cur.content_region_size.y != self.state.prev.content_region_size.y:
             self.context.viewport.redraw_needed = True
+        elif display_condition and \
+            (imgui.GetIO().MouseDelta.x != 0. or \
+            imgui.GetIO().MouseDelta.y != 0.):
+            # Follow mouse movement properly
+            self.context.viewport.force_present()
         return self.state.cur.rendered and not(was_visible)
 
 cdef class TabButton(uiItem):
