@@ -26,11 +26,13 @@ from cython.view cimport array as cython_array
 from cpython cimport PySequence_Check
 from dearcygui.wrapper cimport imgui
 
-from .core cimport baseFont, baseItem, Callback, \
+from .core cimport Context, baseFont, baseItem, Callback, \
     lock_gil_friendly, clear_obj_vector, append_obj_vector
 from .c_types cimport unique_lock, DCGMutex
 from .texture cimport Texture
 from .types cimport parse_texture
+
+from weakref import WeakKeyDictionary, WeakValueDictionary
 
 import ctypes
 from concurrent.futures import ThreadPoolExecutor
@@ -80,6 +82,48 @@ def get_system_fonts() -> list[str]:
         # Deal with the exception
         pass
     return fonts_filename
+
+
+# Global font cache: context -> {font_key -> weak_font}
+_font_cache = WeakKeyDictionary()
+
+# Function to create a hashable key from font parameters
+cdef tuple _create_font_key(str font_type, dict params):
+    # Convert params to sorted tuple of (key, value) pairs for hashability
+    param_items = sorted(params.items())
+    return (font_type,) + tuple(param_items)
+
+# Function to check if a font exists in the cache
+cdef object _get_font_from_cache(Context context, str font_type, dict params):
+    # Initialize cache for this context if needed
+    if context not in _font_cache:
+        _font_cache[context] = WeakValueDictionary()
+        return None
+    
+    # Create a hashable key from the parameters
+    key = _create_font_key(font_type, params)
+
+    # Try to get from cache
+    cache = _font_cache[context]
+    if key in cache:
+        font = cache[key]
+        if font is not None:
+            return font
+
+    return None
+
+# Function to store a font in the cache
+cdef object _store_font_in_cache(Context context, str font_type, dict params, font):
+    # Initialize cache for this context if needed
+    if context not in _font_cache:
+        _font_cache[context] = WeakValueDictionary()
+
+    # Create a hashable key from the parameters
+    key = _create_font_key(font_type, params)
+
+    # Store the font
+    cache = _font_cache[context]
+    cache[key] = font
 
 
 cdef class Font(baseFont):
@@ -401,6 +445,16 @@ cdef class AutoFont(FontMultiScales):
         self._pending_fonts.add(self.context.viewport.global_scale)
         self._create_font_at_scale(self.context.viewport.global_scale, False)
 
+        # If we are not a subclass, we add to the font cache
+        if type(self) is AutoFont:
+            try:
+                kwargs = dict(kwargs)
+                kwargs["base_size"] = base_size
+                kwargs["font_creator"] = font_creator
+                _store_font_in_cache(self.context, "AutoFont", kwargs, self)
+            except Exception as e:
+                pass
+
     def __del__(self):
         if self._font_creation_executor is not None:
             self._font_creation_executor.shutdown(wait=True)
@@ -488,6 +542,219 @@ cdef class AutoFont(FontMultiScales):
             retained_fonts.add(new_font)
         # Update the fonts list
         self.fonts = list(retained_fonts)
+
+    @staticmethod
+    def get_default(Context context, **kwargs):
+        """Get the default AutoFont instance.
+
+        Contrary to calling AutoFont directly, this static method
+        enables font caching, avoiding to create new instances.
+
+        The default font contains character sets for extended latin,
+        bold, italic, bold-italic and monospace characters. The extended
+        characters use the mathematical utf-8 character codepoints to
+        implement bold, italic, bold-italic and monospace. In addition
+        a few basic Private Use Area (PUA) characters are used to have
+        a more complete monospace range (needed for code rendering).
+        Use make_bold, make_italic, make_bold_italic and make_monospace
+        to access these characters.
+
+        Parameters:
+            - context: The Context to use for the font.
+            - **kwargs: Additional arguments to pass to the font creator.
+        """
+        default_args = {
+            "base_size": 17.0,
+            "font_creator": None,
+        }
+        default_args.update(kwargs)
+        font = _get_font_from_cache(context, "AutoFont", default_args)
+        if font is not None:
+            return font
+        return AutoFont(context, **default_args)
+
+    @staticmethod
+    def get_bold(Context context, **kwargs):
+        """Get a bold-only AutoFont instance.
+
+        This font contains only bold characters, using the
+        normal latin character set.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+            - context: The Context to use for the font.
+            - **kwargs: Additional arguments to pass to the font creator.
+        """
+        default_args = {
+            "base_size": 17.0,
+            "font_creator": None,
+        }
+        root_dir = os.path.dirname(__file__)
+        bold_font_path = os.path.join(root_dir, 'lmsans10-bold.otf')
+        default_args["main_font_path"] = bold_font_path
+        default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
+        default_args.update(kwargs)
+        font = _get_font_from_cache(context, "AutoFont", default_args)
+        if font is not None:
+            return font
+        return AutoFont(context, **default_args)
+
+    @staticmethod
+    def get_bold_italics(Context context, **kwargs):
+        """Get a bold-italic only AutoFont instance.
+
+        This font contains only bold-italic characters, using the
+        normal latin character set.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+            - context: The Context to use for the font.
+            - **kwargs: Additional arguments to pass to the font creator.
+        """
+        default_args = {
+            "base_size": 17.0,
+            "font_creator": None,
+        }
+        root_dir = os.path.dirname(__file__)
+        bold_italic_font_path = os.path.join(root_dir, 'lmromandemi10-oblique.otf')
+        default_args["main_font_path"] = bold_italic_font_path
+        default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
+        default_args.update(kwargs)
+        font = _get_font_from_cache(context, "AutoFont", default_args)
+        if font is not None:
+            return font
+        return AutoFont(context, **default_args)
+
+    @staticmethod
+    def get_digits(Context context, bint monospace = False, **kwargs):
+        """Get a digits-only AutoFont instance.
+
+        This font contains only digits (0-9).
+
+        Using this font, rather than the default AutoFont,
+        will enable space reduction of the resulting
+        font texture. Large fonts can thus be generated
+        without taking too much space in memory. Pass
+        base_size to set the size of the font.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+            - context: The Context to use for the font.
+            - monospace: If True, use a monospace font for digits (else use the base font)
+            - **kwargs: Additional arguments to pass to the font creator.
+        """
+        default_args = {
+            "base_size": 17.0,
+            "font_creator": None,
+        }
+        if monospace:
+            root_dir = os.path.dirname(__file__)
+            monospace_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+            default_args["main_font_path"] = monospace_font_path
+        default_args["restrict_to"] = frozenset([ord(c) for c in " 0123456789"])
+        default_args.update(kwargs)
+        font = _get_font_from_cache(context, "AutoFont", default_args)
+        if font is not None:
+            return font
+        return AutoFont(context, **default_args)
+
+    @staticmethod
+    def get_italic(Context context, **kwargs):
+        """Get an italic-only AutoFont instance.
+
+        This font contains only italic characters, using the
+        normal latin character set.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+            - context: The Context to use for the font.
+            - **kwargs: Additional arguments to pass to the font creator.
+        """
+        default_args = {
+            "base_size": 17.0,
+            "font_creator": None,
+        }
+        root_dir = os.path.dirname(__file__)
+        italic_font_path = os.path.join(root_dir, 'lmromanslant10-regular.otf')
+        default_args["main_font_path"] = italic_font_path
+        default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
+        default_args.update(kwargs)
+        font = _get_font_from_cache(context, "AutoFont", default_args)
+        if font is not None:
+            return font
+        return AutoFont(context, **default_args)
+
+    @staticmethod
+    def get_monospace(Context context, **kwargs):
+        """Get a monospace-only AutoFont instance.
+
+        This font contains only monospace characters, using the
+        normal latin character set.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+            - context: The Context to use for the font.
+            - **kwargs: Additional arguments to pass to the font creator.
+        """
+        default_args = {
+            "base_size": 17.0,
+            "font_creator": None,
+        }
+        root_dir = os.path.dirname(__file__)
+        monospace_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+        default_args["main_font_path"] = monospace_font_path
+        default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
+        default_args.update(kwargs)
+        font = _get_font_from_cache(context, "AutoFont", default_args)
+        if font is not None:
+            return font
+        return AutoFont(context, **default_args)
+
+    @staticmethod
+    def get_numerics(Context context, bint monospace = False, **kwargs):
+        """Get a numerics-only AutoFont instance.
+
+        This font contains only digits (0-9) and
+        additional characters needed for numeric rendering.
+
+        Using this font, rather than the default AutoFont,
+        will enable space reduction of the resulting
+        font texture. Large fonts can thus be generated
+        without taking too much space in memory. Pass
+        base_size to set the size of the font.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+            - context: The Context to use for the font.
+            - monospace: If True, use a monospace font (else use the base font)
+            - **kwargs: Additional arguments to pass to the font creator.
+        """
+        default_args = {
+            "base_size": 17.0,
+            "font_creator": None,
+        }
+        if monospace:
+            root_dir = os.path.dirname(__file__)
+            monospace_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+            default_args["main_font_path"] = monospace_font_path
+        default_args["restrict_to"] = frozenset([ord(c) for c in " 0123456789e.,+-*/=()[]{}%$€#@!&^|<>?;:"])
+        default_args.update(kwargs)
+        font = _get_font_from_cache(context, "AutoFont", default_args)
+        if font is not None:
+            return font
+        return AutoFont(context, **default_args)
 
 cdef extern from * nogil:
     """

@@ -26,7 +26,7 @@ cimport cpython
 # Thus it is the only one allowed to make calls to it
 
 from .backends.backend cimport platformViewport
-from .core cimport baseItem, lock_gil_friendly
+from .core cimport Context, baseItem, lock_gil_friendly
 from .c_types cimport unique_lock, DCGMutex
 from .types cimport parse_texture
 
