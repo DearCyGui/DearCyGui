@@ -1607,6 +1607,8 @@ cdef class FontRenderer:
             if rows == 0 or cols == 0:
                 # Handle empty bitmap (space character for instance)
                 image = cython_array(shape=(1, 1, 1), itemsize=1, format='B', mode='c', allocate_buffer=True)
+                image_view = image[:,:,0]
+                image_view[0,0] = 0  # Empty pixel
                 bitmap_top = 0
                 bitmap_left = 0
             elif bitmap.pixel_mode == freetype.FT_PIXEL_MODE_MONO:
