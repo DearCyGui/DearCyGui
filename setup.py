@@ -196,7 +196,8 @@ def setup_package():
                     "thirdparty/Constrainautor/",
                     "thirdparty/freetype/include",
                     "thirdparty/SDL/include",
-                    "thirdparty/xsimd/include"]
+                    "thirdparty/xsimd/include",
+                    "thirdparty/md4c/src"]
 
     cpp_sources = [
         "dearcygui/backends/sdl3_gl3_backend.cpp",
@@ -209,6 +210,7 @@ def setup_package():
         "thirdparty/imgui/imgui_draw.cpp",
         "thirdparty/imgui/imgui_widgets.cpp",
         "thirdparty/imgui/imgui_tables.cpp",
+        "thirdparty/md4c/src/md4c.c",
         "dearcygui/backends/imgui_impl_sdl3.cpp",
         "dearcygui/backends/imgui_impl_opengl3.cpp",
         "thirdparty/imgui/misc/freetype/imgui_freetype.cpp",
@@ -274,6 +276,7 @@ def setup_package():
         "dearcygui/imgui.pyx",
         "dearcygui/imgui_types.pyx",
         "dearcygui/layout.pyx",
+        "dearcygui/markdown.pyx",
         "dearcygui/os.pyx",
         "dearcygui/plot.pyx",
         "dearcygui/table.pyx",
