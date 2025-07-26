@@ -674,7 +674,7 @@ cdef int handle_text(MD_TEXTTYPE type, const char* text, MD_SIZE size, void* use
                                                         <int32_t>MDTextType.MD_TEXT_SOFT_BREAK)
         return 0
 
-    elif type == MD_TEXTTYPE.MD_TEXT_CODE:
+    elif type & MD_TEXTTYPE.MD_TEXT_CODE:
         # for verbatim code text. Split at newlines
         off = 0
         word_start = 0
@@ -705,7 +705,7 @@ cdef int handle_text(MD_TEXTTYPE type, const char* text, MD_SIZE size, void* use
             parser.cur.words.push_back(word)
         return 0
 
-    elif type == MD_TEXTTYPE.MD_TEXT_LATEXMATH:
+    elif type & MD_TEXTTYPE.MD_TEXT_LATEXMATH:
         # Same as MD_TEXT_CODE
         off = 0
         word_start = 0
@@ -895,6 +895,8 @@ cdef const uint32_t codepoint_A = ord('A')
 cdef const uint32_t codepoint_Z = ord('Z')
 cdef const uint32_t codepoint_a = ord('a')
 cdef const uint32_t codepoint_z = ord('z')
+cdef const uint32_t codepoint_0 = ord('0')
+cdef const uint32_t codepoint_9 = ord('9')
 
 cdef const uint32_t codepoint_A_bold = ord("\U0001D5D4")
 cdef const uint32_t codepoint_a_bold = ord("\U0001D5EE")
@@ -907,6 +909,21 @@ cdef const uint32_t codepoint_a_bitalic = ord("\U0001D482")
 
 cdef const uint32_t codepoint_A_mono = ord("\U0001D670")
 cdef const uint32_t codepoint_a_mono = ord("\U0001D68A")
+cdef const uint32_t codepoint_0_mono = ord("\U0001D7F6")
+cdef const uint32_t codepoint_basic_pua = ord("\U0000E000")  # See font.pyx
+
+cdef bint[255] in_pua_table
+_mono_symbols = " ()[]{}<>|\\`~!@#$%^&*_-+=:;\"'?,./"
+cdef int i_pua
+for i_pua in range(255):
+    if chr(i_pua) in _mono_symbols:
+        in_pua_table[i_pua] = True
+
+cdef inline bint in_pua(uint32_t codepoint) nogil:
+    if codepoint >= 255:
+        return False
+    return in_pua_table[codepoint]
+
 
 # Main Markdown Text component
 #--------------------------
@@ -1139,16 +1156,6 @@ cdef class MarkDownText(uiItem):
         self._color_table[<int32_t>TextColorIndex.UNDERLINE] = parse_color(value)
 
     @property
-    def code_font(self):
-        """Get font used for code blocks, inline code and math"""
-        return self._code_font
-
-    @code_font.setter
-    def code_font(self, font):
-        self._code_font = font
-        self._last_width = -1.0
-
-    @property
     def value(self):
         """Get the markdown text content"""
         return self._text.decode('utf8')
@@ -1325,12 +1332,12 @@ cdef class MarkDownText(uiItem):
 
     # Utf-8
     @cython.final
-    cdef string _apply_text_styling(self, MDParsedWord* word, int32_t cur_bi_mask) noexcept nogil:
+    cdef string _apply_text_styling(self, MDParsedWord* word, int32_t style_mask) noexcept nogil:
         """Apply styling to text based on text type and available glyphs."""
         cdef string result = string()
         
         # If no styling needed, return the original text
-        if cur_bi_mask == 0:
+        if style_mask == 0:
             return word.text
             
         # UTF-8 decoding variables
@@ -1383,7 +1390,7 @@ cdef class MarkDownText(uiItem):
             
             # Now utf8_codepoint contains the full Unicode codepoint
             # Apply font style transformations based on the codepoint range
-            self._append_styled_codepoint(&result, utf8_codepoint, cur_bi_mask)
+            self._append_styled_codepoint(&result, utf8_codepoint, style_mask)
         
         return result
 
@@ -1391,7 +1398,6 @@ cdef class MarkDownText(uiItem):
     cdef void _append_styled_codepoint(self, string* result, uint32_t codepoint, int32_t style_mask) noexcept nogil:
         """Apply styling to a single codepoint and append to the result string."""
         cdef uint32_t styled_codepoint = codepoint
-        cdef bint applied = False
         
         # Apply styles based on codepoint range
         if codepoint >= codepoint_A and codepoint <= codepoint_Z:
@@ -1405,6 +1411,11 @@ cdef class MarkDownText(uiItem):
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
+            if style_mask & <int32_t>(MDTextType.MD_TEXT_CODE):
+                styled_codepoint = codepoint - codepoint_A + codepoint_A_mono
+                if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
+                    self._append_utf8_codepoint(result, styled_codepoint)
+                    return
         elif codepoint >= codepoint_a and codepoint <= codepoint_z:
             if style_mask == <int32_t>(MDTextType.MD_TEXT_STRONG):
                 styled_codepoint = codepoint - codepoint_a + codepoint_a_bitalic
@@ -1413,6 +1424,24 @@ cdef class MarkDownText(uiItem):
                     return
             if style_mask == <int32_t>(MDTextType.MD_TEXT_EMPH):
                 styled_codepoint = codepoint - codepoint_a + codepoint_a_italic
+                if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
+                    self._append_utf8_codepoint(result, styled_codepoint)
+                    return
+            if style_mask & <int32_t>(MDTextType.MD_TEXT_CODE):
+                styled_codepoint = codepoint - codepoint_a + codepoint_a_mono
+                if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
+                    self._append_utf8_codepoint(result, styled_codepoint)
+                    return
+        elif style_mask & <int32_t>(MDTextType.MD_TEXT_CODE):
+            # code font has extended character set
+            if codepoint >= codepoint_0 and codepoint <= codepoint_9:
+                styled_codepoint = codepoint - codepoint_0 + codepoint_0_mono
+                if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
+                    self._append_utf8_codepoint(result, styled_codepoint)
+                    return
+            elif in_pua(codepoint):
+                # If it's a PUA character and we are in code style, use the PUA mapping
+                styled_codepoint = codepoint + codepoint_basic_pua
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
@@ -1603,8 +1632,9 @@ cdef class MarkDownText(uiItem):
         cdef float space_advance_x = 0.0
         cdef float prev_font_scale = global_scale, font_scale
         cdef PyObject *font_to_pop = NULL
-        cdef int32_t bi_mask = <int32_t>MDTextType.MD_TEXT_EMPH | <int32_t>MDTextType.MD_TEXT_STRONG
-        cdef int32_t cur_bi_mask, last_bi_mask = 0
+        cdef int32_t style_font_mask = <int32_t>MDTextType.MD_TEXT_EMPH \
+            | <int32_t>MDTextType.MD_TEXT_STRONG | <int32_t>MDTextType.MD_TEXT_CODE
+        cdef int32_t cur_style_mask = 0
         cdef uint32_t codepoint
 
         cdef MDProcessedItem *item
@@ -1629,7 +1659,7 @@ cdef class MarkDownText(uiItem):
             word = &block.words[i]
 
             # Compute font characteristics
-            cur_bi_mask = <int32_t>(word.type) & bi_mask
+            #cur_bi_mask = <int32_t>(word.type) & bi_mask
             font_scale = self._heading_scales[word.level] * global_scale
 
             if font_scale != prev_font_scale: # cur_bi_mask != last_bi_mask
@@ -1650,7 +1680,7 @@ cdef class MarkDownText(uiItem):
             assert word.level >= 0 and word.level <= 6, "Heading level must be between 0 and 6"
 
             # apply font style
-            text = self._apply_text_styling(word, cur_bi_mask)
+            text = self._apply_text_styling(word, <int32_t>(word.type) & style_font_mask)
 
             if not text.empty():
                 word_size = imgui.CalcTextSize(text.c_str(), text.c_str() + text.size(), False, -1)

@@ -1414,7 +1414,8 @@ _zero_int = ord('0')
 _nine_int = ord('9')
 
 _A_bold = ord("\U0001D5D4") # sans-serif variant
-_a_bold = ord("\U0001D5EE") 
+_a_bold = ord("\U0001D5EE")
+_zero_bold = ord("\U0001D7CE")
 
 _A_italic = ord("\U0001D434") # serif variant
 _a_italic = ord("\U0001D44E")
@@ -1424,6 +1425,12 @@ _a_bitalic = ord("\U0001D482")
 
 _A_mono = ord("\U0001D670")
 _a_mono = ord("\U0001D68A")
+_zero_mono = ord("\U0001D7F6")
+
+# E000 to E0FF are private use area
+# we use it to store monospace punctuation and symbols
+_basic_pua = ord("\U0000E000")
+_mono_symbols = " ()[]{}<>|\\`~!@#$%^&*_-+=:;\"'?,./"
 
 def make_chr_italic(c: str) -> str:
     """
@@ -1447,6 +1454,8 @@ def make_chr_bold(c: str) -> str:
         code = code - _A_int + _A_bold
     elif code >= _a_int and code <= _z_int:
         code = code - _a_int + _a_bold
+    elif code >= _zero_int and code <= _nine_int:
+        code = code - _zero_int + _zero_bold
     return chr(code)
 
 def make_chr_bold_italic(c: str) -> str:
@@ -1471,6 +1480,10 @@ def make_chr_monospace(c: str) -> str:
         code = code - _A_int + _A_mono
     elif code >= _a_int and code <= _z_int:
         code = code - _a_int + _a_mono
+    elif code >= _zero_int and code <= _nine_int:
+        code = code - _zero_int + _zero_mono
+    elif c in _mono_symbols:
+        code = _basic_pua + code
     return chr(code)
 
 def make_italic(text: str) -> str:
@@ -1533,13 +1546,12 @@ def make_extended_latin_font(size: int,
         mono_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
 
     # Prepare font configurations
-    restricted_latin = [ord(c) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"]
-    main_restrict = kwargs.pop("restrict_to", set(range(0, 256)))
-    
     def make_bold_map(key):
-        if key < _a_int:
+        if key >= _A_int and key <= _Z_int:
             return key - _A_int + _A_bold
-        return key - _a_int + _a_bold
+        elif key >= _a_int and key <= _z_int:
+            return key - _a_int + _a_bold
+        return key - _zero_int + _zero_bold
 
     def make_italic_map(key):
         if key < _a_int:
@@ -1552,26 +1564,70 @@ def make_extended_latin_font(size: int,
         return key - _a_int + _a_bitalic
 
     def make_mono_map(key):
-        if key < _a_int:
+        if key >= _A_int and key <= _Z_int:
             return key - _A_int + _A_mono
-        return key - _a_int + _a_mono
+        elif key >= _a_int and key <= _z_int:
+            return key - _a_int + _a_mono
+        elif key >= _zero_int and key <= _nine_int:
+            return key - _zero_int + _zero_mono
+        return _basic_pua + key
 
-    main = FontRenderer(main_font_path).render_glyph_set(target_size=size, restrict_to=main_restrict, **kwargs)
-    bold = FontRenderer(bold_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
-    bold_italic = FontRenderer(bold_italic_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
-    italic = FontRenderer(italic_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
-    mono = FontRenderer(mono_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
+    restricted_latin = [ord(c) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"]
+    restricted_latin_ext = restricted_latin + [ord(c) for c in "0123456789"]
+    restricted_latin_ext2 = restricted_latin_ext + [ord(c) for c in _mono_symbols]
 
-    bold.remap(restricted_latin,
-               [make_bold_map(c) for c in restricted_latin])
-    bold_italic.remap(restricted_latin,
-                      [make_bold_italic_map(c) for c in restricted_latin])
-    italic.remap(restricted_latin,
-                 [make_italic_map(c) for c in restricted_latin])
-    mono.remap(restricted_latin,
-               [make_mono_map(c) for c in restricted_latin])
-    merged = GlyphSet.merge_glyph_sets([main, bold, bold_italic, italic, mono])
-    merged.center_on_glyph("B")
+    main_restrict = set(range(0, 256))
+    bold_restrict = restricted_latin_ext
+    bold_italic_restrict = restricted_latin
+    italic_restrict = restricted_latin
+    mono_restrict = restricted_latin_ext2
+
+    if "restrict_to" in kwargs and kwargs["restrict_to"] is None:
+        main_restrict = None
+        if "restrict_to" in kwargs:
+            del kwargs["restrict_to"]
+    elif "restrict_to" in kwargs:
+        restrict_to = set(kwargs["restrict_to"])
+        main_restrict = restrict_to & set(main_restrict)
+        bold_restrict = restrict_to & set(bold_restrict)
+        bold_italic_restrict = restrict_to & set(bold_italic_restrict)
+        italic_restrict = restrict_to & set(italic_restrict)
+        mono_restrict = restrict_to & set(mono_restrict)
+        del kwargs["restrict_to"]
+
+    glyphs = []
+
+    if main_restrict is None or len(main_restrict) > 0:
+        main = FontRenderer(main_font_path).render_glyph_set(target_size=size, restrict_to=main_restrict, **kwargs)
+        glyphs.append(main)
+
+    if len(bold_restrict) > 0:
+        bold = FontRenderer(bold_font_path).render_glyph_set(target_size=size, restrict_to=bold_restrict, **kwargs)
+        bold.remap(bold_restrict, [make_bold_map(c) for c in bold_restrict])
+        glyphs.append(bold)
+
+    if len(bold_italic_restrict) > 0:
+        bold_italic = FontRenderer(bold_italic_path).render_glyph_set(target_size=size, restrict_to=bold_italic_restrict, **kwargs)
+        bold_italic.remap(bold_italic_restrict, [make_bold_italic_map(c) for c in bold_italic_restrict])
+        glyphs.append(bold_italic)
+
+    if len(italic_restrict) > 0:
+        italic = FontRenderer(italic_font_path).render_glyph_set(target_size=size, restrict_to=italic_restrict, **kwargs)
+        italic.remap(italic_restrict, [make_italic_map(c) for c in italic_restrict])
+        glyphs.append(italic)
+
+    if len(mono_restrict) > 0:
+        mono = FontRenderer(mono_font_path).render_glyph_set(target_size=size, restrict_to=mono_restrict, **kwargs)
+        mono.remap(mono_restrict, [make_mono_map(c) for c in mono_restrict])
+        glyphs.append(mono)
+
+    if len(glyphs) == 0:
+        raise ValueError("No glyphs to render. Check the font paths and restrictions.")
+    merged = GlyphSet.merge_glyph_sets(glyphs)
+    if main_restrict is None or ord("B") in main_restrict:
+        merged.center_on_glyph("B")
+    elif ord("8") in main_restrict:
+        merged.center_on_glyph("8")
     return merged
 
 
