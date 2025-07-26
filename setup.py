@@ -328,9 +328,10 @@ def setup_package():
     ]
 
     shutil.copy("thirdparty/latin-modern-roman/lmsans17-regular.otf", "dearcygui/")
-    shutil.copy("thirdparty/latin-modern-roman/lmromanslant17-regular.otf", "dearcygui/")
+    shutil.copy("thirdparty/latin-modern-roman/lmromanslant10-regular.otf", "dearcygui/")
     shutil.copy("thirdparty/latin-modern-roman/lmsans10-bold.otf", "dearcygui/")
     shutil.copy("thirdparty/latin-modern-roman/lmromandemi10-oblique.otf", "dearcygui/")
+    shutil.copy("thirdparty/latin-modern-roman/lmmono10-regular.otf", "dearcygui/")
 
 
     metadata = dict(

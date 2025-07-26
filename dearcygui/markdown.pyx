@@ -896,8 +896,8 @@ cdef const uint32_t codepoint_Z = ord('Z')
 cdef const uint32_t codepoint_a = ord('a')
 cdef const uint32_t codepoint_z = ord('z')
 
-cdef const uint32_t codepoint_A_bold = ord("\U0001D400")
-cdef const uint32_t codepoint_a_bold = ord("\U0001D41A")
+cdef const uint32_t codepoint_A_bold = ord("\U0001D5D4")
+cdef const uint32_t codepoint_a_bold = ord("\U0001D5EE")
 
 cdef const uint32_t codepoint_A_italic = ord("\U0001D434")
 cdef const uint32_t codepoint_a_italic = ord("\U0001D44E")
@@ -905,6 +905,8 @@ cdef const uint32_t codepoint_a_italic = ord("\U0001D44E")
 cdef const uint32_t codepoint_A_bitalic = ord("\U0001D468")
 cdef const uint32_t codepoint_a_bitalic = ord("\U0001D482")
 
+cdef const uint32_t codepoint_A_mono = ord("\U0001D670")
+cdef const uint32_t codepoint_a_mono = ord("\U0001D68A")
 
 # Main Markdown Text component
 #--------------------------

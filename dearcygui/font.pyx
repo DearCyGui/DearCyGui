@@ -1406,21 +1406,24 @@ cdef class FontRenderer:
 
         return glyph_set
 
-A_int = ord('A')
-Z_int = ord('Z')
-a_int = ord('a')
-z_int = ord('z')
-zero_int = ord('0')
-nine_int = ord('9')
+_A_int = ord('A')
+_Z_int = ord('Z')
+_a_int = ord('a')
+_z_int = ord('z')
+_zero_int = ord('0')
+_nine_int = ord('9')
 
-A_bold = ord("\U0001D400")
-a_bold = ord("\U0001D41A")
+_A_bold = ord("\U0001D5D4") # sans-serif variant
+_a_bold = ord("\U0001D5EE") 
 
-A_italic = ord("\U0001D434")
-a_italic = ord("\U0001D44E")
+_A_italic = ord("\U0001D434") # serif variant
+_a_italic = ord("\U0001D44E")
 
-A_bitalic = ord("\U0001D468")
-a_bitalic = ord("\U0001D482")
+_A_bitalic = ord("\U0001D468") # serif variant
+_a_bitalic = ord("\U0001D482")
+
+_A_mono = ord("\U0001D670")
+_a_mono = ord("\U0001D68A")
 
 def make_chr_italic(c: str) -> str:
     """
@@ -1428,10 +1431,10 @@ def make_chr_italic(c: str) -> str:
     using the mathematical italic character encodings.
     """
     code = ord(c)
-    if code >= A_int and code <= Z_int:
-        code = code - A_int + A_italic
-    elif code >= a_int and code <= z_int:
-        code = code - a_int + a_italic
+    if code >= _A_int and code <= _Z_int:
+        code = code - _A_int + _A_italic
+    elif code >= _a_int and code <= _z_int:
+        code = code - _a_int + _a_italic
     return chr(code)
 
 def make_chr_bold(c: str) -> str:
@@ -1440,10 +1443,10 @@ def make_chr_bold(c: str) -> str:
     using the mathematical bold character encodings.
     """
     code = ord(c)
-    if code >= A_int and code <= Z_int:
-        code = code - A_int + A_bold
-    elif code >= a_int and code <= z_int:
-        code = code - a_int + a_bold
+    if code >= _A_int and code <= _Z_int:
+        code = code - _A_int + _A_bold
+    elif code >= _a_int and code <= _z_int:
+        code = code - _a_int + _a_bold
     return chr(code)
 
 def make_chr_bold_italic(c: str) -> str:
@@ -1452,10 +1455,22 @@ def make_chr_bold_italic(c: str) -> str:
     using the mathematical bold-italic character encodings.
     """
     code = ord(c)
-    if code >= A_int and code <= Z_int:
-        code = code - A_int + A_bitalic
-    elif code >= a_int and code <= z_int:
-        code = code - a_int + a_bitalic
+    if code >= _A_int and code <= _Z_int:
+        code = code - _A_int + _A_bitalic
+    elif code >= _a_int and code <= _z_int:
+        code = code - _a_int + _a_bitalic
+    return chr(code)
+
+def make_chr_monospace(c: str) -> str:
+    """
+    Convert a single character to its monospace version
+    using the mathematical monospace character encodings.
+    """
+    code = ord(c)
+    if code >= _A_int and code <= _Z_int:
+        code = code - _A_int + _A_mono
+    elif code >= _a_int and code <= _z_int:
+        code = code - _a_int + _a_mono
     return chr(code)
 
 def make_italic(text: str) -> str:
@@ -1482,6 +1497,13 @@ def make_bold_italic(text: str) -> str:
     """
     return "".join([make_chr_bold_italic(c) for c in text])
 
+def make_monospace(text: str) -> str:
+    """
+    Helper to convert a string into
+    its monospace version using the mathematical
+    monospace character encodings.
+    """
+    return "".join([make_chr_monospace(c) for c in text])
 
 # Replace make_extended_latin_font implementation with:
 def make_extended_latin_font(size: int,
@@ -1489,6 +1511,7 @@ def make_extended_latin_font(size: int,
                              italic_font_path: str | None = None, 
                              bold_font_path: str | None = None,
                              bold_italic_path: str | None = None,
+                             mono_font_path: str | None = None,
                              **kwargs) -> GlyphSet:
     """Create an extended latin font with bold/italic variants for the target size"""
 
@@ -1498,37 +1521,46 @@ def make_extended_latin_font(size: int,
         main_font_path = os.path.join(root_dir, 'lmsans17-regular.otf')
     if italic_font_path is None:
         root_dir = os.path.dirname(__file__)
-        italic_font_path = os.path.join(root_dir, 'lmromanslant17-regular.otf')
+        italic_font_path = os.path.join(root_dir, 'lmromanslant10-regular.otf')
     if bold_font_path is None:
         root_dir = os.path.dirname(__file__)
         bold_font_path = os.path.join(root_dir, 'lmsans10-bold.otf')
     if bold_italic_path is None:
         root_dir = os.path.dirname(__file__)
         bold_italic_path = os.path.join(root_dir, 'lmromandemi10-oblique.otf')
+    if mono_font_path is None:
+        root_dir = os.path.dirname(__file__)
+        mono_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
 
     # Prepare font configurations
     restricted_latin = [ord(c) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"]
     main_restrict = kwargs.pop("restrict_to", set(range(0, 256)))
-
+    
     def make_bold_map(key):
-        if key < a_int:
-            return key - A_int + A_bold
-        return key - a_int + a_bold
+        if key < _a_int:
+            return key - _A_int + _A_bold
+        return key - _a_int + _a_bold
 
     def make_italic_map(key):
-        if key < a_int:
-            return key - A_int + A_italic  
-        return key - a_int + a_italic
+        if key < _a_int:
+            return key - _A_int + _A_italic
+        return key - _a_int + _a_italic
 
     def make_bold_italic_map(key):
-        if key < a_int:
-            return key - A_int + A_bitalic
-        return key - a_int + a_bitalic
+        if key < _a_int:
+            return key - _A_int + _A_bitalic
+        return key - _a_int + _a_bitalic
+
+    def make_mono_map(key):
+        if key < _a_int:
+            return key - _A_int + _A_mono
+        return key - _a_int + _a_mono
 
     main = FontRenderer(main_font_path).render_glyph_set(target_size=size, restrict_to=main_restrict, **kwargs)
     bold = FontRenderer(bold_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
     bold_italic = FontRenderer(bold_italic_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
     italic = FontRenderer(italic_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
+    mono = FontRenderer(mono_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
 
     bold.remap(restricted_latin,
                [make_bold_map(c) for c in restricted_latin])
@@ -1536,7 +1568,9 @@ def make_extended_latin_font(size: int,
                       [make_bold_italic_map(c) for c in restricted_latin])
     italic.remap(restricted_latin,
                  [make_italic_map(c) for c in restricted_latin])
-    merged = GlyphSet.merge_glyph_sets([main, bold, bold_italic, italic])
+    mono.remap(restricted_latin,
+               [make_mono_map(c) for c in restricted_latin])
+    merged = GlyphSet.merge_glyph_sets([main, bold, bold_italic, italic, mono])
     merged.center_on_glyph("B")
     return merged
 
