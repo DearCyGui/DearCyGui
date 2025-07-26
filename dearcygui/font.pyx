@@ -1526,7 +1526,7 @@ def make_extended_latin_font(size: int,
         return key - a_int + a_bitalic
 
     main = FontRenderer(main_font_path).render_glyph_set(target_size=size, restrict_to=main_restrict, **kwargs)
-    bold = FontRenderer(main_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
+    bold = FontRenderer(bold_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
     bold_italic = FontRenderer(bold_italic_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
     italic = FontRenderer(italic_font_path).render_glyph_set(target_size=size, restrict_to=restricted_latin, **kwargs)
 

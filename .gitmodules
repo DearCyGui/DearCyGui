@@ -21,3 +21,6 @@
 [submodule "thirdparty/xsimd"]
 	path = thirdparty/xsimd
 	url = https://github.com/xtensor-stack/xsimd
+[submodule "thirdparty/md4c"]
+	path = thirdparty/md4c
+	url = https://github.com/mity/md4c
