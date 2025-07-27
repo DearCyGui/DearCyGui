@@ -1224,12 +1224,14 @@ cdef class MarkDownText(uiItem):
         # Start parsing
         cdef MD_PARSER parser
         parser.abi_version = 0
+        # not yet supported:
+        # MD_FLAG_TASKLISTS | MD_FLAG_WIKILINKS | MD_FLAG_TABLES | MD_FLAG_LATEXMATHSPANS
         parser.flags = (MD_FLAG_COLLAPSEWHITESPACE | MD_FLAG_PERMISSIVEATXHEADERS |
                         MD_FLAG_PERMISSIVEURLAUTOLINKS | MD_FLAG_PERMISSIVEEMAILAUTOLINKS |
                         MD_FLAG_NOINDENTEDCODEBLOCKS | MD_FLAG_NOHTMLBLOCKS | MD_FLAG_NOHTMLSPANS |
-                        MD_FLAG_TABLES | MD_FLAG_STRIKETHROUGH |
-                        MD_FLAG_PERMISSIVEWWWAUTOLINKS |# MD_FLAG_TASKLISTS |
-                        MD_FLAG_LATEXMATHSPANS | MD_FLAG_WIKILINKS | MD_FLAG_UNDERLINE)
+                        MD_FLAG_STRIKETHROUGH |
+                        MD_FLAG_PERMISSIVEWWWAUTOLINKS |
+                        MD_FLAG_UNDERLINE)
         parser.enter_block = &enter_block
         parser.leave_block = &leave_block
         parser.enter_span = &enter_span
