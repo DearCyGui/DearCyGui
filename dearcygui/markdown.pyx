@@ -684,16 +684,12 @@ cdef int handle_text(MD_TEXTTYPE type, const char* text, MD_SIZE size, void* use
                 if off == word_start:
                     # Add an empty word for the newline
                     word.text.clear()
-                    word.type = <MDTextType>(<int32_t>MDTextType.MD_TEXT_CODE |
-                                             <int32_t>MDTextType.MD_TEXT_HARD_BREAK)
-                    word.level = parser.cur.current_heading_level
-                    parser.cur.words.push_back(word)
                 elif off > word_start:
                     word.text.assign(text + word_start, off - word_start)
-                    word.type = <MDTextType>(<int32_t>MDTextType.MD_TEXT_CODE |
-                                             <int32_t>MDTextType.MD_TEXT_HARD_BREAK)
-                    word.level = parser.cur.current_heading_level
-                    parser.cur.words.push_back(word)
+                word.type = <MDTextType>(<int32_t>MDTextType.MD_TEXT_CODE |
+                                         <int32_t>MDTextType.MD_TEXT_HARD_BREAK)
+                word.level = parser.cur.current_heading_level
+                parser.cur.words.push_back(word)
                 word_start = off + 1
             off += 1
 
@@ -944,6 +940,7 @@ cdef class MarkDownText(uiItem):
     
     # Layout
     cdef float _last_width
+    cdef Vec2 _rect_size
     cdef vector[MDProcessedLine] _lines  # Processed lines for rendering, in order of increasing y position
     cdef vector[MDProcessedBlock] _blocks  # Processed blocks for rendering, in a topological order
     cdef PyObject *_applicable_font # font used for layout, baseFont
@@ -963,7 +960,7 @@ cdef class MarkDownText(uiItem):
         self.state.cap.can_be_clicked = True
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_dragged = True
-        self._heading_scales = [1.0, 2.0, 1.5, 1.0, 1.0, 1.0, 1.0]
+        self._heading_scales = [1.0, 2.0, 1.7, 1.5, 1.4, 1.3, 1.2]
         self._color_table = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         self._last_width = -1.0  # Initial width, will be set on first layout
     
@@ -1721,7 +1718,10 @@ cdef class MarkDownText(uiItem):
              # Check for breaks after this word
             if <int32_t>word.type & <int32_t>MDTextType.MD_TEXT_HARD_BREAK:
                 # Hard break - finish the line
-                self._finish_line(0, True)
+                if not self._lines.back().items.empty():
+                    self._finish_line(0, True)
+                else:
+                    self._finish_line(word_size.y, True)
             elif <int32_t>word.type & <int32_t>MDTextType.MD_TEXT_SOFT_BREAK:
                 # Soft break - add space but don't start a new line
                 # To do so, we cheat by increasing the width of the item
@@ -1874,7 +1874,7 @@ cdef class MarkDownText(uiItem):
         # Skip if width or font hasn't changed TODO: also on global scale change
         if self._last_width == available_width\
            and self._applicable_font == applicable_font:
-            self.state.cur.rect_size = self.state.prev.rect_size
+            self.state.cur.rect_size = self._rect_size
             return
 
         # Reset layout state
@@ -1907,6 +1907,8 @@ cdef class MarkDownText(uiItem):
             self.state.cur.rect_size.y = self._lines.back().y + self._lines.back().height
         for i in range(<int>self._blocks.size()):
             self.state.cur.rect_size.y = fmax(self.state.cur.rect_size.y, self._blocks[i].ymax)
+
+        self._rect_size = self.state.cur.rect_size
 
     # Rendering
     cdef bint draw_item(self) noexcept nogil:
@@ -2168,8 +2170,6 @@ cdef class MarkDownText(uiItem):
                     last_strikethrough = False
 
                 last_x = item_pos.x + item_size.x
-
-                        
 
         if font_to_pop != NULL:
             (<baseFont>font_to_pop).pop()
