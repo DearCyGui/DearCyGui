@@ -1002,7 +1002,7 @@ cdef class MarkDownText(uiItem):
         self.state.cap.can_be_clicked = True
         self.state.cap.can_be_hovered = True
         self.state.cap.can_be_dragged = True
-        self._heading_scales = [1.0, 2.0, 1.7, 1.5, 1.4, 1.3, 1.2]
+        self._heading_scales = [1.0, 2.0, 1.75, 1.5, 1.375, 1.25, 1.125]
         self._color_table = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         self._last_width = -1.0  # Initial width, will be set on first layout
     
