@@ -90,7 +90,19 @@ _font_cache = WeakKeyDictionary()
 # Function to create a hashable key from font parameters
 cdef tuple _create_font_key(str font_type, dict params):
     # Convert params to sorted tuple of (key, value) pairs for hashability
-    param_items = sorted(params.items())
+    param_items = list(sorted(params.items()))
+    for i in range(len(param_items)):
+        # Ensure each value is hashable
+        if isinstance(param_items[i], list):
+            # Convert lists to tuples
+            param_items[i] = tuple(param_items[i])
+        elif isinstance(param_items[i], dict):
+            # Convert dicts to sorted tuples of items
+            param_items[i] = tuple(sorted(param_items[i].items()))
+        elif isinstance(param_items[i], set):
+            # Convert sets to frozen sets
+            param_items[i] = frozenset(param_items[i])
+
     return (font_type,) + tuple(param_items)
 
 # Function to check if a font exists in the cache
@@ -101,14 +113,17 @@ cdef object _get_font_from_cache(Context context, str font_type, dict params):
         return None
     
     # Create a hashable key from the parameters
-    key = _create_font_key(font_type, params)
+    try:
+        key = _create_font_key(font_type, params)
 
-    # Try to get from cache
-    cache = _font_cache[context]
-    if key in cache:
-        font = cache[key]
-        if font is not None:
-            return font
+        # Try to get from cache
+        cache = _font_cache[context]
+        if key in cache:
+            font = cache[key]
+            if font is not None:
+                return font
+    except:
+        pass
 
     return None
 
