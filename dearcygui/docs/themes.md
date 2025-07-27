@@ -70,7 +70,6 @@ If one wants to load a different set of characters, AutoFont takes a `font_creat
 
 The second simplest way is to use a `FontTexture` directly:
 ```python
-
 font_texture = dcg.FontTexture(C)
 font_texture.add_font_file(path, size=size)
 font_texture.build()
@@ -83,7 +82,6 @@ of imperfections. It is not the recommended way.
 ## An improved alternative way
 
 ```python
-
 # Prepare the font texture
 font_texture = dcg.FontTexture(C)
 # Load the font
