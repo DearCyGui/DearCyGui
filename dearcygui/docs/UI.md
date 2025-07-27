@@ -79,25 +79,25 @@ or to center one.
 The fields `x`, `y`, `width` and `height` do accept string formulas to specify how the field should be dynamically updated.
 
 The following keywords are supported:
-    - `fillx`: Fill available width
-    - `filly`: Fill available height
-    - `fullx`: Full parent content width (no position offset)
-    - `fully`: Full parent content height (no position offset)
-    - `parent.width`: Width of the parent item (larger than fullx as contains parent borders)
-    - `parent.height`: Height of the parent item (larger than fully as contains parent borders)
-    - `viewport.width`: Width of the viewport (application window)
-    - `viewport.height`: Height of the viewport (application window)
-    - `min`: Take minimum of two size values
-    - `max`: Take maximum of two size values
-    - `mean`: Calculate the mean (average) of two or more size values
-    - `dpi`: Current global scale factor
-    - `self.width`: Reference to the width of the current item
-    - `self.height`: Reference to the height of the current item
-    - `item.width`/`item.height`: Reference to another item's size (item must be in globals()/locals())
-    - `{self, parent, item}.{x1, x2, xc, y1, y2, yc}`: Reference to left/center/right/top/bottom of the current, parent, or a target item.
-    - `+`, `-`, `*`, `/`, `//`, `%`, `**`: Arithmetic operators. Parentheses can be used for grouping.
-    - `abs()`: Absolute value function
-    - Numbers: Fixed size in pixels (NOT dpi scaled. Use dpi keyword for that)
+- `fillx`: Fill available width
+- `filly`: Fill available height
+- `fullx`: Full parent content width (no position offset)
+- `fully`: Full parent content height (no position offset)
+- `parent.width`: Width of the parent item (larger than fullx as contains parent borders)
+- `parent.height`: Height of the parent item (larger than fully as contains parent borders)
+- `viewport.width`: Width of the viewport (application window)
+- `viewport.height`: Height of the viewport (application window)
+- `min`: Take minimum of two size values
+- `max`: Take maximum of two size values
+- `mean`: Calculate the mean (average) of two or more size values
+- `dpi`: Current global scale factor
+- `self.width`: Reference to the width of the current item
+- `self.height`: Reference to the height of the current item
+- `item.width`/`item.height`: Reference to another item's size (item must be in globals()/locals())
+- `{self, parent, item}.{x1, x2, xc, y1, y2, yc}`: Reference to left/center/right/top/bottom of the current, parent, or a target item.
+- `+`, `-`, `*`, `/`, `//`, `%`, `**`: Arithmetic operators. Parentheses can be used for grouping.
+- `abs()`: Absolute value function
+- Numbers: Fixed size in pixels (NOT dpi scaled. Use dpi keyword for that)
 
 Note that referencing another item's attribute in the string (except for the special parent and viewport keywords) uses a CPython implementation feature that is not available on Pypy. In addition, it might break in future releases. A more reliable way to reference another item's size is by reading the `x`, `y`, `width` and `height` fields of the target item. They return a reference to the item's x1/y1/width/height that can be inserted in the string formula. For instance `x=item.x + "5 * dpi"` is the same as `x="item.x1 + 5 * dpi"`.
 
