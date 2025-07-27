@@ -1729,17 +1729,26 @@ _nine_int = ord('9')
 
 _A_bold = ord("\U0001D5D4") # sans-serif variant
 _a_bold = ord("\U0001D5EE")
+_Z_bold = ord("\U0001D5ED")
+_z_bold = ord("\U0001D607")
 _zero_bold = ord("\U0001D7CE")
+_nine_bold = ord("\U0001D7D7")
 
 _A_italic = ord("\U0001D434") # serif variant
 _a_italic = ord("\U0001D44E")
+_Z_italic = ord("\U0001D44D")
+# Note: we could probably use 1D7E2 for italics and 1D7EC for bold-italics
 
 _A_bitalic = ord("\U0001D468") # serif variant
 _a_bitalic = ord("\U0001D482")
+_Z_bitalic = ord("\U0001D481")
 
 _A_mono = ord("\U0001D670")
 _a_mono = ord("\U0001D68A")
+_Z_mono = ord("\U0001D689")
+_z_mono = ord("\U0001D6A3")
 _zero_mono = ord("\U0001D7F6")
+_nine_mono = ord("\U0001D7FF")
 
 # E000 to E0FF are private use area
 # we use it to store monospaced punctuation and symbols
@@ -1886,6 +1895,32 @@ def make_extended_latin_font(size: int,
             return key - _zero_int + _zero_mono
         return _basic_pua + key
 
+    def make_bold_invert_map(key):
+        if key >= _A_bold and key <= _Z_bold:
+            return key + _A_int - _A_bold
+        elif key >= _a_bold and key <= _z_bold:
+            return key + _a_int - _a_bold
+        return key + _zero_int - _zero_bold
+
+    def make_italic_invert_map(key):
+        if key >= _A_italic and key <= _Z_italic:
+            return key + _A_int - _A_italic
+        return key + _a_int - _a_italic
+
+    def make_bold_italic_invert_map(key):
+        if key >= _A_bitalic and key <= _Z_bitalic:
+            return key + _A_int - _A_bitalic
+        return key + _a_int - _a_bitalic
+
+    def make_mono_invert_map(key):
+        if key >= _A_mono and key <= _Z_mono:
+            return key + _A_int - _A_mono
+        elif key >= _a_mono and key <= _z_mono:
+            return key + _a_int - _a_mono
+        elif key >= _zero_mono and key <= _nine_mono:
+            return key + _zero_int - _zero_mono
+        return key - _basic_pua
+
     restricted_latin = [ord(c) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"]
     restricted_latin_ext = restricted_latin + [ord(c) for c in "0123456789"]
     restricted_latin_ext2 = restricted_latin_ext + [ord(c) for c in _mono_symbols]
@@ -1903,10 +1938,18 @@ def make_extended_latin_font(size: int,
     elif "restrict_to" in kwargs:
         restrict_to = set(kwargs["restrict_to"])
         main_restrict = restrict_to & set(main_restrict)
-        bold_restrict = restrict_to & set(bold_restrict)
-        bold_italic_restrict = restrict_to & set(bold_italic_restrict)
-        italic_restrict = restrict_to & set(italic_restrict)
-        mono_restrict = restrict_to & set(mono_restrict)
+
+        bold_restrict = restrict_to & set(make_bold_map(code) for code in bold_restrict)
+        bold_italic_restrict = restrict_to & set(make_bold_italic_map(code) for code in bold_italic_restrict)
+        italic_restrict = restrict_to & set(make_italic_map(code) for code in italic_restrict)
+        mono_restrict = restrict_to & set(make_mono_map(code) for code in mono_restrict)
+
+        # Invert back the maps
+        bold_restrict = set(make_bold_invert_map(code) for code in bold_restrict)
+        bold_italic_restrict = set(make_bold_italic_invert_map(code) for code in bold_italic_restrict)
+        italic_restrict = set(make_italic_invert_map(code) for code in italic_restrict)
+        mono_restrict = set(make_mono_invert_map(code) for code in mono_restrict)
+
         del kwargs["restrict_to"]
 
     glyphs = []
