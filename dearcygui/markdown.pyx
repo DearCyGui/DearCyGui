@@ -1850,6 +1850,7 @@ cdef class MarkDownText(uiItem):
                 new_item.item_type = 1  # List item marker
                 new_item.uuid = 0
                 new_item.text += block.detail.ul_detail.mark
+                new_item.font_scale = self.context.viewport.global_scale
                 new_item.x = indent
                 new_item.width = imgui.GetTextLineHeight()  # Width of the marker
                 new_item.height = imgui.GetTextLineHeight()  # Height of the marker
@@ -1891,6 +1892,7 @@ cdef class MarkDownText(uiItem):
                 new_item.item_type = 1 # List item marker
                 new_item.text += block.detail.ol_detail.mark_delimiter
                 new_item.x += extra_width + indent
+                new_item.font_scale = self.context.viewport.global_scale
                 new_item.width = imgui.GetTextLineHeight()  # Width of the marker
                 new_item.height = imgui.GetTextLineHeight()  # Height of the marker
                 new_item.uuid = 0
@@ -2148,40 +2150,41 @@ cdef class MarkDownText(uiItem):
                 item_size.x = item.width
                 item_size.y = item.height
 
+                font_scale = item.font_scale
+
+                # Update the font if the scale is different
+                if font_scale != prev_font_scale:
+                    self.context.viewport.global_scale = font_scale
+                    prev_font_scale = font_scale
+                    if font_to_pop != NULL:
+                        (<baseFont>font_to_pop).pop()
+                        font_to_pop = NULL
+                    # Currently we need to reapply a font for the global scale change
+                    if <object>self._applicable_font is not None:
+                        font_to_pop = self._applicable_font
+                        (<baseFont>font_to_pop).push()
+                    space_glyph = imgui.GetFont().FindGlyph(32)
+                    if space_glyph is not NULL:
+                        space_advance_x = space_glyph.AdvanceX  # Add space width if available
+                    else:
+                        space_advance_x = imgui.GetStyle().ItemSpacing.x  # Use default spacing if no glyph found
+                    A_glyph = imgui.GetFont().FindGlyph(65)  # 'A' glyph for height
+                    if A_glyph is not NULL:
+                        A_center = (A_glyph.Y0 + A_glyph.Y1) * 0.5
+                        A_height = A_glyph.Y1 - A_glyph.Y0
+                    else:
+                        A_center = imgui.GetTextLineHeight() * 0.5
+                        A_height = imgui.GetTextLineHeight()
+                    o_glyph = imgui.GetFont().FindGlyph(111)  # 'o' glyph for height
+                    if o_glyph is not NULL:
+                        o_center = (o_glyph.Y0 + o_glyph.Y1) * 0.5
+                        o_height = o_glyph.Y1 - o_glyph.Y0
+                    else:
+                        o_center = imgui.GetTextLineHeight() * 0.5
+                        o_height = imgui.GetTextLineHeight()
+
                 # Draw the item based on its type
                 if item.item_type == 0 or item.item_type == 2:  # Regular text
-                    font_scale = item.font_scale
-
-                    # Update the font if the scale is different
-                    if font_scale != prev_font_scale:
-                        self.context.viewport.global_scale = font_scale
-                        prev_font_scale = font_scale
-                        if font_to_pop != NULL:
-                            (<baseFont>font_to_pop).pop()
-                            font_to_pop = NULL
-                        # Currently we need to reapply a font for the global scale change
-                        if <object>self._applicable_font is not None:
-                            font_to_pop = self._applicable_font
-                            (<baseFont>font_to_pop).push()
-                        space_glyph = imgui.GetFont().FindGlyph(32)
-                        if space_glyph is not NULL:
-                            space_advance_x = space_glyph.AdvanceX  # Add space width if available
-                        else:
-                            space_advance_x = imgui.GetStyle().ItemSpacing.x  # Use default spacing if no glyph found
-                        A_glyph = imgui.GetFont().FindGlyph(65)  # 'A' glyph for height
-                        if A_glyph is not NULL:
-                            A_center = (A_glyph.Y0 + A_glyph.Y1) * 0.5
-                            A_height = A_glyph.Y1 - A_glyph.Y0
-                        else:
-                            A_center = imgui.GetTextLineHeight() * 0.5
-                            A_height = imgui.GetTextLineHeight()
-                        o_glyph = imgui.GetFont().FindGlyph(111)  # 'o' glyph for height
-                        if o_glyph is not NULL:
-                            o_center = (o_glyph.Y0 + o_glyph.Y1) * 0.5
-                            o_height = o_glyph.Y1 - o_glyph.Y0
-                        else:
-                            o_center = imgui.GetTextLineHeight() * 0.5
-                            o_height = imgui.GetTextLineHeight()
                     if <int32_t>item.text_type & <int32_t>MDTextType.MD_TEXT_LINK:
                         # Use imgui link feature. Assumes the size is the same as AddText.
                         imgui.SetCursorScreenPos(item_pos)
