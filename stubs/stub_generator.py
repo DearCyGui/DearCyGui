@@ -539,6 +539,11 @@ def typename(object_class, instance, name, value):
     if issubclass(object_class, dcg.Font):
         if name == "texture":
             return "'FontTexture'"
+    if issubclass(object_class, dcg.MarkDownText):
+        if name.startswith("color"):
+            if name == "color_headings":
+                return "Sequence[Color] | None"
+            return "Color | None"
     return default
 
 

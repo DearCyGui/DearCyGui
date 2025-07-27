@@ -22164,6 +22164,233 @@ class LostRenderHandler(baseHandler):
         ...
 
 
+class MarkDownText(uiItem):
+    """
+    Markdown text component that renders formatted markdown content
+
+    This component parses Markdown text using md4c, computes the layout,
+    and renders it efficiently with caching to avoid unnecessary recomputation.
+
+    * Experimental. API and rendering results may change in future minor versions. *
+
+    """
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], color_code : Color | None = None, color_code_bg : Color | None = None, color_emph : Color | None = None, color_headings : Sequence[Color] | None = [None, None, None, None, None, None], color_strikethrough : Color | None = None, color_strong : Color | None = None, color_underline : Color | None = None, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], heading_scales : Sequence[float] = [2.0, 1.75, 1.5, 1.375, 1.25, 1.125], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+        """
+        Parameters
+        ----------
+        - attach: Whether to attach the item to a parent. Default is None (auto)
+        - before: Attach the item just before the target item. Default is None (disabled)
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color_code: Override color for code text (inline code and code blocks). None = auto
+        - color_code_bg: Override background color for code blocks. None = auto
+        - color_emph: Override color for emphasized text (italics). None = auto
+        - color_headings: Override colors for headings (h1-h6). None or missing items = auto
+        - color_strikethrough: Override color for strikethrough. None = auto
+        - color_strong: Override color for strong text (bold italics). None = auto
+        - color_underline: Override color for underline. None = auto
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - heading_scales: Get scaling factors for headings (h1-h6)
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Get the markdown text content
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], color_code : Color | None = None, color_code_bg : Color | None = None, color_emph : Color | None = None, color_headings : Sequence[Color] | None = [None, None, None, None, None, None], color_strikethrough : Color | None = None, color_strong : Color | None = None, color_underline : Color | None = None, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], heading_scales : Sequence[float] = [2.0, 1.75, 1.5, 1.375, 1.25, 1.125], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+        """
+        Parameters
+        ----------
+        - callback: Callback to invoke when the item's value changes
+        - callbacks: List of callbacks to invoke when the item's value changes.
+        - children: List of all the children of the item, from first rendered, to last rendered.
+        - color_code: Override color for code text (inline code and code blocks). None = auto
+        - color_code_bg: Override background color for code blocks. None = auto
+        - color_emph: Override color for emphasized text (italics). None = auto
+        - color_headings: Override colors for headings (h1-h6). None or missing items = auto
+        - color_strikethrough: Override color for strikethrough. None = auto
+        - color_strong: Override color for strong text (bold italics). None = auto
+        - color_underline: Override color for underline. None = auto
+        - enabled: Whether the item is interactive and fully styled.
+        - font: Font used for rendering text in this item and its children.
+        - handlers: List of event handlers attached to this item.
+        - heading_scales: Get scaling factors for headings (h1-h6)
+        - height: Requested height for the item.
+        - label: Text label displayed with or within the item.
+        - next_sibling: Child of the parent rendered just after this item.
+        - no_newline: Controls whether to advance to the next line after rendering.
+        - parent: Parent of the item in the rendering tree.
+        - previous_sibling: Child of the parent rendered just before this item.
+        - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - shareable_value: Reference to the underlying value that can be shared between items.
+        - show: Whether the item should be rendered and process events.
+        - theme: Visual styling applied to this item and its children.
+        - user_data: User data of any type.
+        - value: Get the markdown text content
+        - width: Requested width for the item.
+        - x: Requested horizontal position of the item.
+        - y: Requested vertical position of the item.
+        """
+        ...
+
+
+    @property
+    def children(self) -> list['uiItem']:
+        """
+        List of all the children of the item, from first rendered, to last rendered.
+
+        When written to, an error is raised if the children already
+        have other parents. This error is meant to prevent programming
+        mistakes, as users might not realize the children were
+        unattached from their former parents.
+
+        """
+        ...
+
+
+    @children.setter
+    def children(self, value : Sequence['uiItem']):
+        ...
+
+
+    @property
+    def color_code(self) -> Color | None:
+        """
+        Override color for code text (inline code and code blocks). None = auto
+
+        """
+        ...
+
+
+    @color_code.setter
+    def color_code(self, value : Color | None):
+        ...
+
+
+    @property
+    def color_code_bg(self) -> Color | None:
+        """
+        Override background color for code blocks. None = auto
+
+        """
+        ...
+
+
+    @color_code_bg.setter
+    def color_code_bg(self, value : Color | None):
+        ...
+
+
+    @property
+    def color_emph(self) -> Color | None:
+        """
+        Override color for emphasized text (italics). None = auto
+
+        """
+        ...
+
+
+    @color_emph.setter
+    def color_emph(self, value : Color | None):
+        ...
+
+
+    @property
+    def color_headings(self) -> Sequence[Color] | None:
+        """
+        Override colors for headings (h1-h6). None or missing items = auto
+
+        """
+        ...
+
+
+    @color_headings.setter
+    def color_headings(self, value : Sequence[Color] | None):
+        ...
+
+
+    @property
+    def color_strikethrough(self) -> Color | None:
+        """
+        Override color for strikethrough. None = auto
+
+        """
+        ...
+
+
+    @color_strikethrough.setter
+    def color_strikethrough(self, value : Color | None):
+        ...
+
+
+    @property
+    def color_strong(self) -> Color | None:
+        """
+        Override color for strong text (bold italics). None = auto
+
+        """
+        ...
+
+
+    @color_strong.setter
+    def color_strong(self, value : Color | None):
+        ...
+
+
+    @property
+    def color_underline(self) -> Color | None:
+        """
+        Override color for underline. None = auto
+
+        """
+        ...
+
+
+    @color_underline.setter
+    def color_underline(self, value : Color | None):
+        ...
+
+
+    @property
+    def heading_scales(self) -> Sequence[float]:
+        """Get scaling factors for headings (h1-h6)
+        """
+        ...
+
+
+    @heading_scales.setter
+    def heading_scales(self, value : Sequence[float]):
+        ...
+
+
+    @property
+    def value(self) -> str:
+        """Get the markdown text content
+        """
+        ...
+
+
+    @value.setter
+    def value(self, value : str):
+        ...
+
+
 class Menu(uiItem):
     """
 A Menu creates a menu container within a menu bar.
@@ -23424,7 +23651,7 @@ class Plot(uiItem):
     and can appear in the legend.
 
     """
-    def __init__(self, context : Context, *, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['plotElement'] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = MouseButton.LEFT, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = MouseButton.RIGHT, mouse_location : LegendLocation = LegendLocation.SOUTHEAST, next_sibling : 'uiItem' | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = MouseButton.LEFT, pan_mod : KeyMod = KeyMod.NOMOD, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0, zoom_mod : KeyMod = KeyMod.NOMOD, zoom_rate : float = 0.10000000149011612):
+    def __init__(self, context : Context, *, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['plotElement'] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = MouseButton.LEFT, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_box_select : bool = False, height : float | str | 'baseSizing' = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = MouseButton.RIGHT, mouse_location : LegendLocation = LegendLocation.SOUTHEAST, next_sibling : 'uiItem' | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = MouseButton.LEFT, pan_mod : KeyMod = KeyMod.NOMOD, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, select_button : MouseButton = MouseButton.RIGHT, select_cancel_button : MouseButton = MouseButton.LEFT, select_hmod : KeyMod = KeyMod.ALT, select_mod : KeyMod = KeyMod.NOMOD, select_vmod : KeyMod = KeyMod.SHIFT, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0, zoom_mod : KeyMod = KeyMod.NOMOD, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -23445,6 +23672,7 @@ class Plot(uiItem):
         - fit_button: Mouse button used to fit axes to data when double-clicked.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
+        - has_box_select: Whether box selection (interactive zoom) is enabled in the plot.
         - height: Requested height for the item.
         - label: Text label displayed with or within the item.
         - legend_config: Configuration for the plot legend.
@@ -23463,6 +23691,11 @@ class Plot(uiItem):
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - select_button: Mouse button used for box selection.
+        - select_cancel_button: Mouse button used to cancel active box selection.
+        - select_hmod: Keyboard modifier to expand box selection horizontally.
+        - select_mod: Keyboard modifier required for box selection.
+        - select_vmod: Keyboard modifier to expand box selection vertically.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
         - theme: Visual styling applied to this item and its children.
@@ -23480,7 +23713,7 @@ class Plot(uiItem):
         ...
 
 
-    def configure(self, *, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['plotElement'] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = MouseButton.LEFT, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = MouseButton.RIGHT, mouse_location : LegendLocation = LegendLocation.SOUTHEAST, next_sibling : 'uiItem' | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = MouseButton.LEFT, pan_mod : KeyMod = KeyMod.NOMOD, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0, zoom_mod : KeyMod = KeyMod.NOMOD, zoom_rate : float = 0.10000000149011612):
+    def configure(self, *, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['plotElement'] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = MouseButton.LEFT, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_box_select : bool = False, height : float | str | 'baseSizing' = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = MouseButton.RIGHT, mouse_location : LegendLocation = LegendLocation.SOUTHEAST, next_sibling : 'uiItem' | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = MouseButton.LEFT, pan_mod : KeyMod = KeyMod.NOMOD, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, select_button : MouseButton = MouseButton.RIGHT, select_cancel_button : MouseButton = MouseButton.LEFT, select_hmod : KeyMod = KeyMod.ALT, select_mod : KeyMod = KeyMod.NOMOD, select_vmod : KeyMod = KeyMod.SHIFT, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0, zoom_mod : KeyMod = KeyMod.NOMOD, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -23499,6 +23732,7 @@ class Plot(uiItem):
         - fit_button: Mouse button used to fit axes to data when double-clicked.
         - font: Font used for rendering text in this item and its children.
         - handlers: List of event handlers attached to this item.
+        - has_box_select: Whether box selection (interactive zoom) is enabled in the plot.
         - height: Requested height for the item.
         - label: Text label displayed with or within the item.
         - legend_config: Configuration for the plot legend.
@@ -23517,6 +23751,11 @@ class Plot(uiItem):
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
+        - select_button: Mouse button used for box selection.
+        - select_cancel_button: Mouse button used to cancel active box selection.
+        - select_hmod: Keyboard modifier to expand box selection horizontally.
+        - select_mod: Keyboard modifier required for box selection.
+        - select_vmod: Keyboard modifier to expand box selection vertically.
         - shareable_value: Reference to the underlying value that can be shared between items.
         - show: Whether the item should be rendered and process events.
         - theme: Visual styling applied to this item and its children.
@@ -23729,6 +23968,29 @@ class Plot(uiItem):
 
 
     @property
+    def has_box_select(self) -> bool:
+        """
+        Whether box selection (interactive zoom) is enabled in the plot.
+
+        Box selection allows users to draw a rectangular region to zoom into.
+        The default button is the right mouse button.
+        Note this feature does not enable you to retrieve the values of the
+        selected region. It only allows the users a different way of zooming.
+        It is disabled by default.
+
+        If you want a similar feature but with feedback on the selected
+        values, use DragRect instead.
+
+        """
+        ...
+
+
+    @has_box_select.setter
+    def has_box_select(self, value : bool):
+        ...
+
+
+    @property
     def legend_config(self) -> PlotLegendConfig:
         """
         Configuration for the plot legend.
@@ -23923,6 +24185,93 @@ class Plot(uiItem):
 
     @pan_mod.setter
     def pan_mod(self, value : KeyMod):
+        ...
+
+
+    @property
+    def select_button(self) -> MouseButton:
+        """
+        Mouse button used for box selection.
+
+        Specifies which mouse button initiates box selection when pressed and
+        confirms the selection when released. Default is the right mouse button.
+
+        """
+        ...
+
+
+    @select_button.setter
+    def select_button(self, value : MouseButton):
+        ...
+
+
+    @property
+    def select_cancel_button(self) -> MouseButton:
+        """
+        Mouse button used to cancel active box selection.
+
+        Specifies which mouse button cancels an in-progress box selection when pressed.
+        Default is the left mouse button. If it is the same as select_button, canceling
+        is not available.
+
+        """
+        ...
+
+
+    @select_cancel_button.setter
+    def select_cancel_button(self, value : MouseButton):
+        ...
+
+
+    @property
+    def select_hmod(self) -> KeyMod:
+        """
+        Keyboard modifier to expand box selection horizontally.
+
+        When this modifier is held during an active box selection, the selection
+        expands horizontally to the edges of the plot. Default is Alt key.
+
+        """
+        ...
+
+
+    @select_hmod.setter
+    def select_hmod(self, value : KeyMod):
+        ...
+
+
+    @property
+    def select_mod(self) -> KeyMod:
+        """
+        Keyboard modifier required for box selection.
+
+        Specifies which keyboard keys (Shift, Ctrl, Alt, etc.) must be held
+        down to initiate box selection with select_button. Default is none,
+        meaning selection works without any keys pressed.
+
+        """
+        ...
+
+
+    @select_mod.setter
+    def select_mod(self, value : KeyMod):
+        ...
+
+
+    @property
+    def select_vmod(self) -> KeyMod:
+        """
+        Keyboard modifier to expand box selection vertically.
+
+        When this modifier is held during an active box selection, the selection
+        expands vertically to the edges of the plot. Default is Shift key.
+
+        """
+        ...
+
+
+    @select_vmod.setter
+    def select_vmod(self, value : KeyMod):
         ...
 
 
@@ -28824,6 +29173,181 @@ class AutoFont(FontMultiScales):
         - parent: Parent of the item in the rendering tree.
         - previous_sibling: Child of the parent rendered just before this item.
         - user_data: User data of any type.
+        """
+        ...
+
+
+    @staticmethod
+    def get_bold(context : Context, **kwargs) -> AutoFont:
+        """
+        Get a bold-only AutoFont instance.
+
+        This font contains only bold characters, using the
+        normal latin character set.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to AutoFont.
+
+        """
+        ...
+
+
+    @staticmethod
+    def get_bold_italics(context : Context, **kwargs) -> AutoFont:
+        """
+        Get a bold-italic only AutoFont instance.
+
+        This font contains only bold-italic characters, using the
+        normal latin character set.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to AutoFont.
+
+        """
+        ...
+
+
+    @staticmethod
+    def get_default(context : Context, **kwargs) -> AutoFont:
+        """
+        Get the default AutoFont instance.
+
+        Contrary to calling AutoFont directly, this static method
+        enables font caching, avoiding to create new instances.
+
+        The default font contains character sets for extended latin,
+        bold, italic, bold-italic and monospace characters. The extended
+        characters use the mathematical utf-8 character codepoints to
+        implement bold, italic, bold-italic and monospace. In addition
+        a few basic Private Use Area (PUA) characters are used to have
+        a more complete monospace range (needed for code rendering).
+        Use make_bold, make_italic, make_bold_italic and make_monospace
+        to access these characters.
+
+        Parameters:
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to Autofont.
+
+        """
+        ...
+
+
+    @staticmethod
+    def get_digits(context : Context, monospace : bool = False, **kwargs) -> AutoFont:
+        """
+        Get a digits-only AutoFont instance.
+
+        This font contains only digits (0-9).
+
+        Using this font, rather than the default AutoFont,
+        will enable space reduction of the resulting
+        font texture. Large fonts can thus be generated
+        without taking too much space in memory. Pass
+        base_size to set the size of the font.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+        ----------
+        context : Context
+            The Context to use for the font.
+        monospace : bool
+            If True, use a monospace font for digits (else use the base font)
+        **kwargs :
+            Additional arguments to pass to AutoFont.
+
+        """
+        ...
+
+
+    @staticmethod
+    def get_italic(context : Context, **kwargs) -> AutoFont:
+        """
+        Get an italic-only AutoFont instance.
+
+        This font contains only italic characters, using the
+        normal latin character set.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to AutoFont.
+
+        """
+        ...
+
+
+    @staticmethod
+    def get_monospace(context : Context, **kwargs) -> AutoFont:
+        """
+        Get a monospace-only AutoFont instance.
+
+        This font contains only monospace characters, using the
+        normal latin character set.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to AutoFont.
+
+        """
+        ...
+
+
+    @staticmethod
+    def get_numerics(context : Context, monospace : bool = False, **kwargs) -> AutoFont:
+        """
+        Get a numerics-only AutoFont instance.
+
+        This font contains only digits (0-9) and
+        additional characters needed for numeric rendering.
+
+        Using this font, rather than the default AutoFont,
+        will enable space reduction of the resulting
+        font texture. Large fonts can thus be generated
+        without taking too much space in memory. Pass
+        base_size to set the size of the font.
+
+        Caching is enabled, so calling this method will not
+        rebuild a new character set if it already exists.
+
+        Parameters:
+        ----------
+        context : Context
+            The Context to use for the font.
+        monospace : bool
+            If True, use a monospace font for digits (else use the base font)
+        **kwargs :
+            Additional arguments to pass to AutoFont.
+
         """
         ...
 
@@ -34029,7 +34553,16 @@ def make_chr_italic(c: str) -> str:
     ...
 
 
-def make_extended_latin_font(size: int, main_font_path: str | None = None, italic_font_path: str | None = None, bold_font_path: str | None = None, bold_italic_path: str | None = None, **kwargs) -> GlyphSet:
+def make_chr_monospace(c: str) -> str:
+    """
+    Convert a single character to its monospace version
+    using the mathematical monospace character encodings.
+    
+    """
+    ...
+
+
+def make_extended_latin_font(size: int, main_font_path: str | None = None, italic_font_path: str | None = None, bold_font_path: str | None = None, bold_italic_path: str | None = None, mono_font_path: str | None = None, **kwargs) -> GlyphSet:
     """
 Create an extended latin font with bold/italic variants for the target size
     """
@@ -34041,6 +34574,16 @@ def make_italic(text: str) -> str:
     Helper to convert a string into
     its italic version using the mathematical
     italic character encodings.
+    
+    """
+    ...
+
+
+def make_monospace(text: str) -> str:
+    """
+    Helper to convert a string into
+    its monospace version using the mathematical
+    monospace character encodings.
     
     """
     ...

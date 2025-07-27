@@ -544,8 +544,9 @@ cdef class AutoFont(FontMultiScales):
         self.fonts = list(retained_fonts)
 
     @staticmethod
-    def get_default(Context context, **kwargs):
-        """Get the default AutoFont instance.
+    def get_default(context: Context, **kwargs) -> AutoFont:
+        """
+        Get the default AutoFont instance.
 
         Contrary to calling AutoFont directly, this static method
         enables font caching, avoiding to create new instances.
@@ -560,8 +561,11 @@ cdef class AutoFont(FontMultiScales):
         to access these characters.
 
         Parameters:
-            - context: The Context to use for the font.
-            - **kwargs: Additional arguments to pass to the font creator.
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to Autofont.
         """
         default_args = {
             "base_size": 17.0,
@@ -574,8 +578,9 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_bold(Context context, **kwargs):
-        """Get a bold-only AutoFont instance.
+    def get_bold(context: Context, **kwargs) -> AutoFont:
+        """
+        Get a bold-only AutoFont instance.
 
         This font contains only bold characters, using the
         normal latin character set.
@@ -584,8 +589,11 @@ cdef class AutoFont(FontMultiScales):
         rebuild a new character set if it already exists.
 
         Parameters:
-            - context: The Context to use for the font.
-            - **kwargs: Additional arguments to pass to the font creator.
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to AutoFont.
         """
         default_args = {
             "base_size": 17.0,
@@ -602,8 +610,9 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_bold_italics(Context context, **kwargs):
-        """Get a bold-italic only AutoFont instance.
+    def get_bold_italics(context: Context, **kwargs) -> AutoFont:
+        """
+        Get a bold-italic only AutoFont instance.
 
         This font contains only bold-italic characters, using the
         normal latin character set.
@@ -612,8 +621,11 @@ cdef class AutoFont(FontMultiScales):
         rebuild a new character set if it already exists.
 
         Parameters:
-            - context: The Context to use for the font.
-            - **kwargs: Additional arguments to pass to the font creator.
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to AutoFont.
         """
         default_args = {
             "base_size": 17.0,
@@ -630,8 +642,9 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_digits(Context context, bint monospace = False, **kwargs):
-        """Get a digits-only AutoFont instance.
+    def get_digits(context: Context, monospace: bool = False, **kwargs) -> AutoFont:
+        """
+        Get a digits-only AutoFont instance.
 
         This font contains only digits (0-9).
 
@@ -645,9 +658,13 @@ cdef class AutoFont(FontMultiScales):
         rebuild a new character set if it already exists.
 
         Parameters:
-            - context: The Context to use for the font.
-            - monospace: If True, use a monospace font for digits (else use the base font)
-            - **kwargs: Additional arguments to pass to the font creator.
+        ----------
+        context : Context
+            The Context to use for the font.
+        monospace : bool
+            If True, use a monospace font for digits (else use the base font)
+        **kwargs :
+            Additional arguments to pass to AutoFont.
         """
         default_args = {
             "base_size": 17.0,
@@ -665,8 +682,9 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_italic(Context context, **kwargs):
-        """Get an italic-only AutoFont instance.
+    def get_italic(context: Context, **kwargs) -> AutoFont:
+        """
+        Get an italic-only AutoFont instance.
 
         This font contains only italic characters, using the
         normal latin character set.
@@ -675,8 +693,11 @@ cdef class AutoFont(FontMultiScales):
         rebuild a new character set if it already exists.
 
         Parameters:
-            - context: The Context to use for the font.
-            - **kwargs: Additional arguments to pass to the font creator.
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to AutoFont.
         """
         default_args = {
             "base_size": 17.0,
@@ -693,8 +714,9 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_monospace(Context context, **kwargs):
-        """Get a monospace-only AutoFont instance.
+    def get_monospace(context: Context, **kwargs) -> AutoFont:
+        """
+        Get a monospace-only AutoFont instance.
 
         This font contains only monospace characters, using the
         normal latin character set.
@@ -703,8 +725,11 @@ cdef class AutoFont(FontMultiScales):
         rebuild a new character set if it already exists.
 
         Parameters:
-            - context: The Context to use for the font.
-            - **kwargs: Additional arguments to pass to the font creator.
+        ----------
+        context : Context
+            The Context to use for the font.
+        **kwargs :
+            Additional arguments to pass to AutoFont.
         """
         default_args = {
             "base_size": 17.0,
@@ -721,8 +746,9 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_numerics(Context context, bint monospace = False, **kwargs):
-        """Get a numerics-only AutoFont instance.
+    def get_numerics(context: Context, monospace: bool = False, **kwargs) -> AutoFont:
+        """
+        Get a numerics-only AutoFont instance.
 
         This font contains only digits (0-9) and
         additional characters needed for numeric rendering.
@@ -737,9 +763,13 @@ cdef class AutoFont(FontMultiScales):
         rebuild a new character set if it already exists.
 
         Parameters:
-            - context: The Context to use for the font.
-            - monospace: If True, use a monospace font (else use the base font)
-            - **kwargs: Additional arguments to pass to the font creator.
+        ----------
+        context : Context
+            The Context to use for the font.
+        monospace : bool
+            If True, use a monospace font for digits (else use the base font)
+        **kwargs :
+            Additional arguments to pass to AutoFont.
         """
         default_args = {
             "base_size": 17.0,
