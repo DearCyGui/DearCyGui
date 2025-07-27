@@ -308,7 +308,7 @@ cdef class FontMultiScales(baseFont):
     @property 
     def recent_scales(self):
         """
-        List of up to 10 most recent global scales encountered during rendering.
+        List of up to 20 most recent global scales encountered during rendering.
         
         These scales represent the display density values recently seen while 
         rendering UI. This information can be used to create additional font 
@@ -395,7 +395,7 @@ cdef class FontMultiScales(baseFont):
             return
 
         # add to list - emulating a deque
-        if self._stored_scales.size() < 10:
+        if self._stored_scales.size() < 20:
             self._stored_scales.resize(self._stored_scales.size() + 1)
 
         # Shift elements to the right to make room at front
