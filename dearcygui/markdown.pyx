@@ -391,6 +391,7 @@ cdef struct MDParserInfo:
     int current_heading_level              # Current heading level (1-6)
     vector[int] heading_stack              # Stack of heading levels
     vector[MDParsedWord] words        # Accumulated text that will be moved into a MD_TEXT
+    bint last_had_break
 
 cdef struct MDParser:
     MDParserInfo cur
@@ -455,10 +456,14 @@ cdef int push_tmp_block(MDParser* parser) noexcept nogil:
 # Helper function to remove the current block from the stack
 cdef int end_block(MDParser* parser) noexcept nogil:
     """Handle end of a block element"""
+    assert not parser.cur.block_stack.empty() # md4c guarantees this
+
+    if parser.cur.block_stack.back().type not in [MD_BLOCKTYPE_EXT.MD_TEXT, MD_BLOCKTYPE_EXT.MD_TEXT_URL, MD_BLOCKTYPE_EXT.MD_IMAGE, MD_BLOCKTYPE_EXT.MD_WIKILINK, MD_BLOCKTYPE_EXT.MD_LATEX]:
+        parser.cur.last_had_break = True
+
     # Flush any accumulated text before leaving the block
     flush_text_buffer(parser)
 
-    assert not parser.cur.block_stack.empty() # md4c guarantees this
     parser.cur.block_stack.pop_back()
     return 0
 
@@ -601,6 +606,10 @@ cdef int enter_span(MD_SPANTYPE type, void* detail, void* userdata) noexcept nog
 cdef int leave_span(MD_SPANTYPE type, void* detail, void* userdata) noexcept nogil:
     """Handle end of a span element"""
     cdef MDParser* parser = <MDParser*>userdata
+
+    if not parser.cur.words.empty():
+        parser.cur.last_had_break = (<int32_t>parser.cur.words.back().type & (<int32_t>MDTextType.MD_TEXT_HARD_BREAK | <int32_t>MDTextType.MD_TEXT_SOFT_BREAK)) != 0
+
     # Update text style based on span type being left
     if type == MD_SPAN_EM:
         parser.cur.text_type = <MDTextType>(<int32_t>parser.cur.text_type & ~<int32_t>MDTextType.MD_TEXT_EMPH)
@@ -742,8 +751,33 @@ cdef int handle_text(MD_TEXTTYPE type, const char* text, MD_SIZE size, void* use
         if not parser.cur.words.empty():
             parser.cur.words.back().type = <MDTextType>(<int32_t>parser.cur.words.back().type | 
                                                         <int32_t>MDTextType.MD_TEXT_SOFT_BREAK)
+        elif not parser.cur.last_had_break:
+            # In most of the cases, the previous block had a line break, but not always.
+            word.text.clear()
+            word.type = <MDTextType>(<int32_t>parser.cur.text_type |
+                                     <int32_t>MDTextType.MD_TEXT_SOFT_BREAK)
+            word.level = parser.cur.current_heading_level
+            parser.cur.words.push_back(word)
+
         word_start = 1
         off = 1
+
+    if <int32_t>parser.cur.text_type & <int32_t>MDTextType.MD_TEXT_LINK:
+        # Do not split links (current limitation)
+        # We assume the text is a single link, so we create a single word
+        if word_start >= size:
+            # No text to process
+            return 0
+        if word_start < size - 1 and text[size - 1] == ' ':
+            # Remove trailing space if it exists
+            size -= 1
+            word.type = <MDTextType>(<int32_t>parser.cur.text_type | <int32_t>MDTextType.MD_TEXT_LINK | <int32_t>MDTextType.MD_TEXT_SOFT_BREAK)
+        else:
+            word.type = <MDTextType>(<int32_t>parser.cur.text_type | <int32_t>MDTextType.MD_TEXT_LINK)
+        word.text.assign(text+word_start, size-word_start)
+        word.level = parser.cur.current_heading_level
+        parser.cur.words.push_back(word)
+        return 0
 
     while off < size:
         if text[off] == ' ': # NOTE: we cannot get '\n', '\r', '\t' or extra spaces are they are handled by md4c
@@ -866,10 +900,10 @@ cdef struct MDProcessedItem:
     float font_scale    # Font scale factor
     TextColorIndex color_index # Color index
     # Other items
-    uint64_t uuid       # Item unique identifier
+    uint64_t uuid       # Item unique identifier. Can be index of attribute
     # Common properties
-    int item_type       # 0: words, 1: bullet (list item), 2: words (not justified), 3: horizontal rule, 4: uuid
-    float x               # x offset relative to the left of the MarkDown item
+    int32_t item_type   # 0: words, 1: bullet (list item), 2: words (not justified), 3: horizontal rule, 4: uuid
+    float x             # x offset relative to the left of the MarkDown item
     float width         # Cached width measurement
     float height        # Cached height measurement
 
@@ -886,6 +920,12 @@ cdef struct MDProcessedBlock:
     float x
     float ymin
     float ymax
+
+cdef struct MDProcessedBlockDetail:
+    MD_BLOCKTYPE_EXT type       # Type of block (paragraph, heading, etc.)
+    MDParsedBlockDetail detail  # Details for this block type
+    string attr1
+    string attr2
 
 cdef const uint32_t codepoint_A = ord('A')
 cdef const uint32_t codepoint_Z = ord('Z')
@@ -930,7 +970,7 @@ cdef class MarkDownText(uiItem):
     This component parses Markdown text using md4c, computes the layout,
     and renders it efficiently with caching to avoid unnecessary recomputation.
 
-    * Experimental. API may change in future minor versions. *
+    * Experimental. API and rendering results may change in future minor versions. *
     """
 
     # Content
@@ -943,6 +983,7 @@ cdef class MarkDownText(uiItem):
     cdef Vec2 _rect_size
     cdef vector[MDProcessedLine] _lines  # Processed lines for rendering, in order of increasing y position
     cdef vector[MDProcessedBlock] _blocks  # Processed blocks for rendering, in a topological order
+    cdef vector[MDProcessedBlockDetail] _block_details # Details for selected blocks needed for rendering
     cdef PyObject *_applicable_font # font used for layout, baseFont
     cdef bint _last_is_soft_break # temporary data
 
@@ -1172,6 +1213,7 @@ cdef class MarkDownText(uiItem):
         self._parser.cur.current_heading_level = 0
         self._parser.cur.heading_stack.clear()
         self._parser.cur.words.clear()
+        self._parser.cur.last_had_break = True
         self._parser.content.type = MD_BLOCKTYPE_EXT.MD_BLOCK_DOC
         self._parser.content.attr1.clear()
         self._parser.content.attr2.clear()
@@ -1709,7 +1751,13 @@ cdef class MarkDownText(uiItem):
                 item.text_type = word.type
                 item.font_scale = font_scale
                 item.color_index = color_for_text_type(item.text_type, word.level)
-                item.uuid = 0  # No UUID for regular text
+                if <int32_t>word.type & <int32_t>MDTextType.MD_TEXT_LINK\
+                   and self._block_details.size() > 0\
+                   and self._block_details.back().type == MD_BLOCKTYPE_EXT.MD_TEXT_URL:
+                    # Link to the detail
+                    item.uuid = 1 + (self._block_details.size() - 1) # 0 means no detail / error
+                else:
+                    item.uuid = 0  # No UUID for regular text
                 item.item_type = 0  # Regular text item
                 item.x = x
                 item.width = word_size.x
@@ -1757,9 +1805,18 @@ cdef class MarkDownText(uiItem):
             init_y = self._lines.back().y
             self._finish_line(self._get_pre_vertical_spacing(block), True)
 
+        # Save detail if important block type
+        if block.type == MD_BLOCKTYPE_EXT.MD_TEXT_URL:
+            self._block_details.resize(self._block_details.size() + 1)
+            self._block_details.back().type = block.type
+            self._block_details.back().detail.link_detail = block.detail.link_detail
+            self._block_details.back().attr1 = block.attr1
+            self._block_details.back().attr2 = block.attr2
+
         # Render content
         if block.type == MD_BLOCKTYPE_EXT.MD_BLOCK_HR:
             self._lines.back().items.resize(1)
+            self._lines.back().items[0].uuid = 0
             self._lines.back().items[0].item_type = 3  # Horizontal rule
             self._lines.back().items[0].x = indent
             self._lines.back().items[0].width = self._last_width - indent
@@ -1772,6 +1829,7 @@ cdef class MarkDownText(uiItem):
                 self._lines.back().items.resize(self._lines.back().items.size() + 1)
                 new_item = &self._lines.back().items.back()
                 new_item.item_type = 1  # List item marker
+                new_item.uuid = 0
                 new_item.text += block.detail.ul_detail.mark
                 new_item.x = indent
                 new_item.width = imgui.GetTextLineHeight()  # Width of the marker
@@ -1816,6 +1874,7 @@ cdef class MarkDownText(uiItem):
                 new_item.x += extra_width + indent
                 new_item.width = imgui.GetTextLineHeight()  # Width of the marker
                 new_item.height = imgui.GetTextLineHeight()  # Height of the marker
+                new_item.uuid = 0
                 # Add extra spacing after marker
                 new_item.width += imgui.GetStyle().ItemSpacing.x
                 # Process the content of the list
@@ -1880,6 +1939,7 @@ cdef class MarkDownText(uiItem):
         # Reset layout state
         self._lines.clear()
         self._blocks.clear()
+        self._block_details.clear()
         self._applicable_font = applicable_font
         self._last_width = available_width
 
@@ -2014,7 +2074,8 @@ cdef class MarkDownText(uiItem):
         if color_table[<int32_t>TextColorIndex.CODE_BACKGROUND] == 1:
             color_table[<int32_t>TextColorIndex.CODE_BACKGROUND] = imgui.GetColorU32(imgui.GetStyleColorVec4(imgui.ImGuiCol_ChildBg))
         if color_table[<int32_t>TextColorIndex.LINK] == 1:
-            color_table[<int32_t>TextColorIndex.LINK] = imgui.GetColorU32(imgui.GetStyleColorVec4(imgui.ImGuiCol_TextLink))
+            color_table[<int32_t>TextColorIndex.LINK] = imgui.ColorConvertFloat4ToU32(imgui.GetStyleColorVec4(imgui.ImGuiCol_TextLink))
+        imgui.PushStyleColor(imgui.ImGuiCol_TextLink, imgui.ColorConvertU32ToFloat4(color_table[<int32_t>TextColorIndex.LINK]))
         cdef uint32_t border_color = imgui.GetColorU32(imgui.GetStyleColorVec4(imgui.ImGuiCol_Border))
         cdef float border_size = imgui.GetStyle().ChildBorderSize
 
@@ -2102,6 +2163,12 @@ cdef class MarkDownText(uiItem):
                         else:
                             o_center = imgui.GetTextLineHeight() * 0.5
                             o_height = imgui.GetTextLineHeight()
+                    if <int32_t>item.text_type & <int32_t>MDTextType.MD_TEXT_LINK:
+                        # Use imgui link feature. Assumes the size is the same as AddText.
+                        imgui.SetCursorScreenPos(item_pos)
+                        imgui.TextLinkOpenURL(item.text.c_str(), <const char*> NULL if item.uuid == 0 or self._block_details[item.uuid - 1].attr1.size() == 0 else self._block_details[item.uuid - 1].attr1.c_str())
+                        last_x = item_pos.x + item_size.x
+                        continue
                     # Draw the text with the appropriate font and color
                     draw_list.AddText(item_pos, color_table[<int32_t>item.color_index], item.text.c_str(), item.text.c_str() + item.text.size())
                 elif item.item_type == 1:  # marker (list item). Can be ')', '.', '*', '+' or '-'
@@ -2177,5 +2244,7 @@ cdef class MarkDownText(uiItem):
 
         # Restore cursor for the next item
         imgui.SetCursorScreenPos(final_pos_backup)
+
+        imgui.PopStyleColor(1)  # Pop the text link color
 
         return False
