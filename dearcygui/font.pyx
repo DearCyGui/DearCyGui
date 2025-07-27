@@ -552,12 +552,12 @@ cdef class AutoFont(FontMultiScales):
         enables font caching, avoiding to create new instances.
 
         The default font contains character sets for extended latin,
-        bold, italic, bold-italic and monospace characters. The extended
+        bold, italic, bold-italic and monospaced characters. The extended
         characters use the mathematical utf-8 character codepoints to
-        implement bold, italic, bold-italic and monospace. In addition
+        implement bold, italic, bold-italic and monospaced. In addition
         a few basic Private Use Area (PUA) characters are used to have
-        a more complete monospace range (needed for code rendering).
-        Use make_bold, make_italic, make_bold_italic and make_monospace
+        a more complete monospaced range (needed for code rendering).
+        Use make_bold, make_italic, make_bold_italic and make_monospaced
         to access these characters.
 
         Parameters:
@@ -642,7 +642,7 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_digits(context: Context, monospace: bool = False, **kwargs) -> AutoFont:
+    def get_digits(context: Context, monospaced: bool = False, **kwargs) -> AutoFont:
         """
         Get a digits-only AutoFont instance.
 
@@ -661,8 +661,8 @@ cdef class AutoFont(FontMultiScales):
         ----------
         context : Context
             The Context to use for the font.
-        monospace : bool
-            If True, use a monospace font for digits (else use the base font)
+        monospaced : bool
+            If True, use a monospaced font for digits (else use the base font)
         **kwargs :
             Additional arguments to pass to AutoFont.
         """
@@ -670,10 +670,10 @@ cdef class AutoFont(FontMultiScales):
             "base_size": 17.0,
             "font_creator": None,
         }
-        if monospace:
+        if monospaced:
             root_dir = os.path.dirname(__file__)
-            monospace_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
-            default_args["main_font_path"] = monospace_font_path
+            monospaced_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+            default_args["main_font_path"] = monospaced_font_path
         default_args["restrict_to"] = frozenset([ord(c) for c in " 0123456789"])
         default_args.update(kwargs)
         font = _get_font_from_cache(context, "AutoFont", default_args)
@@ -714,11 +714,11 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_monospace(context: Context, **kwargs) -> AutoFont:
+    def get_monospaced(context: Context, **kwargs) -> AutoFont:
         """
-        Get a monospace-only AutoFont instance.
+        Get a monospaced-only AutoFont instance.
 
-        This font contains only monospace characters, using the
+        This font contains only monospaced characters, using the
         normal latin character set.
 
         Caching is enabled, so calling this method will not
@@ -736,8 +736,8 @@ cdef class AutoFont(FontMultiScales):
             "font_creator": None,
         }
         root_dir = os.path.dirname(__file__)
-        monospace_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
-        default_args["main_font_path"] = monospace_font_path
+        monospaced_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+        default_args["main_font_path"] = monospaced_font_path
         default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
         default_args.update(kwargs)
         font = _get_font_from_cache(context, "AutoFont", default_args)
@@ -746,7 +746,7 @@ cdef class AutoFont(FontMultiScales):
         return AutoFont(context, **default_args)
 
     @staticmethod
-    def get_numerics(context: Context, monospace: bool = False, **kwargs) -> AutoFont:
+    def get_numerics(context: Context, monospaced: bool = False, **kwargs) -> AutoFont:
         """
         Get a numerics-only AutoFont instance.
 
@@ -766,8 +766,8 @@ cdef class AutoFont(FontMultiScales):
         ----------
         context : Context
             The Context to use for the font.
-        monospace : bool
-            If True, use a monospace font for digits (else use the base font)
+        monospaced : bool
+            If True, use a monospaced font for digits (else use the base font)
         **kwargs :
             Additional arguments to pass to AutoFont.
         """
@@ -775,10 +775,10 @@ cdef class AutoFont(FontMultiScales):
             "base_size": 17.0,
             "font_creator": None,
         }
-        if monospace:
+        if monospaced:
             root_dir = os.path.dirname(__file__)
-            monospace_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
-            default_args["main_font_path"] = monospace_font_path
+            monospaced_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+            default_args["main_font_path"] = monospaced_font_path
         default_args["restrict_to"] = frozenset([ord(c) for c in " 0123456789e.,+-*/=()[]{}%$€#@!&^|<>?;:"])
         default_args.update(kwargs)
         font = _get_font_from_cache(context, "AutoFont", default_args)
@@ -1727,7 +1727,7 @@ _a_mono = ord("\U0001D68A")
 _zero_mono = ord("\U0001D7F6")
 
 # E000 to E0FF are private use area
-# we use it to store monospace punctuation and symbols
+# we use it to store monospaced punctuation and symbols
 _basic_pua = ord("\U0000E000")
 _mono_symbols = " ()[]{}<>|\\`~!@#$%^&*_-+=:;\"'?,./"
 
@@ -1769,10 +1769,10 @@ def make_chr_bold_italic(c: str) -> str:
         code = code - _a_int + _a_bitalic
     return chr(code)
 
-def make_chr_monospace(c: str) -> str:
+def make_chr_monospaced(c: str) -> str:
     """
-    Convert a single character to its monospace version
-    using the mathematical monospace character encodings.
+    Convert a single character to its monospaced version
+    using the mathematical monospaced character encodings.
     """
     code = ord(c)
     if code >= _A_int and code <= _Z_int:
@@ -1809,13 +1809,13 @@ def make_bold_italic(text: str) -> str:
     """
     return "".join([make_chr_bold_italic(c) for c in text])
 
-def make_monospace(text: str) -> str:
+def make_monospaced(text: str) -> str:
     """
     Helper to convert a string into
-    its monospace version using the mathematical
-    monospace character encodings.
+    its monospaced version using the mathematical
+    monospaced character encodings.
     """
-    return "".join([make_chr_monospace(c) for c in text])
+    return "".join([make_chr_monospaced(c) for c in text])
 
 # Replace make_extended_latin_font implementation with:
 def make_extended_latin_font(size: int,
