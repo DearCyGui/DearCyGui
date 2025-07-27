@@ -1317,6 +1317,11 @@ cdef class Plot(uiItem):
         self._fit_button = imgui.ImGuiMouseButton_Left
         self._menu_button = imgui.ImGuiMouseButton_Right
         self._override_mod = imgui.ImGuiMod_Ctrl
+        self._select_button = imgui.ImGuiMouseButton_Right
+        self._select_cancel_button = imgui.ImGuiMouseButton_Left
+        self._select_mod = 0
+        self._select_hmod = imgui.ImGuiMod_Alt
+        self._select_vmod = imgui.ImGuiMod_Shift
         self._zoom_mod = 0
         self._zoom_rate = 0.1
         self._use_local_time = False
@@ -1564,6 +1569,139 @@ cdef class Plot(uiItem):
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
         self._menu_button = <int>make_MouseButton(button)
+
+    @property
+    def has_box_select(self):
+        """
+        Whether box selection (interactive zoom) is enabled in the plot.
+
+        Box selection allows users to draw a rectangular region to zoom into.
+        The default button is the right mouse button.
+        Note this feature does not enable you to retrieve the values of the
+        selected region. It only allows the users a different way of zooming.
+        It is disabled by default.
+
+        If you want a similar feature but with feedback on the selected
+        values, use DragRect instead.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._flags & implot.ImPlotFlags_NoBoxSelect) == 0
+
+    @has_box_select.setter
+    def has_box_select(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value:
+            self._flags &= ~implot.ImPlotFlags_NoBoxSelect
+        else:
+            self._flags |= implot.ImPlotFlags_NoBoxSelect
+
+    @property
+    def select_button(self):
+        """
+        Mouse button used for box selection.
+        
+        Specifies which mouse button initiates box selection when pressed and 
+        confirms the selection when released. Default is the right mouse button.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return make_MouseButton(self._select_button)
+
+    @select_button.setter
+    def select_button(self, button):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if not(is_MouseButton(button)):
+            raise ValueError(f"select_button must be a MouseButton, not {button}")
+        if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
+            raise ValueError("Invalid button")
+        self._select_button = <int>make_MouseButton(button)
+
+    @property
+    def select_cancel_button(self):
+        """
+        Mouse button used to cancel active box selection.
+        
+        Specifies which mouse button cancels an in-progress box selection when pressed.
+        Default is the left mouse button. If it is the same as select_button, canceling
+        is not available.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return make_MouseButton(self._select_cancel_button)
+
+    @select_cancel_button.setter
+    def select_cancel_button(self, button):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if not(is_MouseButton(button)):
+            raise ValueError(f"select_cancel_button must be a MouseButton, not {button}")
+        if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
+            raise ValueError("Invalid button")
+        self._select_cancel_button = <int>make_MouseButton(button)
+
+    @property
+    def select_mod(self):
+        """
+        Keyboard modifier required for box selection.
+        
+        Specifies which keyboard keys (Shift, Ctrl, Alt, etc.) must be held
+        down to initiate box selection with select_button. Default is none,
+        meaning selection works without any keys pressed.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return make_KeyMod(self._select_mod)
+
+    @select_mod.setter
+    def select_mod(self, modifier):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if not(is_KeyMod(modifier)):
+            raise ValueError(f"select_mod must be a combination of modifiers (KeyMod), not {modifier}")
+        self._select_mod = <int>make_KeyMod(modifier)
+
+    @property
+    def select_hmod(self):
+        """
+        Keyboard modifier to expand box selection horizontally.
+        
+        When this modifier is held during an active box selection, the selection
+        expands horizontally to the edges of the plot. Default is Alt key.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return make_KeyMod(self._select_hmod)
+
+    @select_hmod.setter
+    def select_hmod(self, modifier):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if not(is_KeyMod(modifier)):
+            raise ValueError(f"select_hmod must be a combination of modifiers (KeyMod), not {modifier}")
+        self._select_hmod = <int>make_KeyMod(modifier)
+
+    @property
+    def select_vmod(self):
+        """
+        Keyboard modifier to expand box selection vertically.
+        
+        When this modifier is held during an active box selection, the selection
+        expands vertically to the edges of the plot. Default is Shift key.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return make_KeyMod(self._select_vmod)
+
+    @select_vmod.setter
+    def select_vmod(self, modifier):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if not(is_KeyMod(modifier)):
+            raise ValueError(f"select_vmod must be a combination of modifiers (KeyMod), not {modifier}")
+        self._select_vmod = <int>make_KeyMod(modifier)
 
     @property
     def zoom_mod(self):
@@ -1866,6 +2004,11 @@ cdef class Plot(uiItem):
         implot.GetInputMap().PanMod = self._pan_modifier
         implot.GetInputMap().ZoomMod = self._zoom_mod
         implot.GetInputMap().OverrideMod = self._override_mod
+        implot.GetInputMap().Select = self._select_button
+        implot.GetInputMap().SelectCancel = self._select_cancel_button
+        implot.GetInputMap().SelectMod = self._select_mod
+        implot.GetInputMap().SelectHorzMod = self._select_hmod
+        implot.GetInputMap().SelectVertMod = self._select_vmod
 
         self._X1.mutex.lock()
         self._X2.mutex.lock()

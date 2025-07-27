@@ -61,6 +61,11 @@ cdef class Plot(uiItem):
     cdef int32_t _fit_button
     cdef int32_t _menu_button
     cdef int32_t _override_mod # imgui.ImGuiKeyChord
+    cdef int32_t _select_button
+    cdef int32_t _select_cancel_button
+    cdef int32_t _select_mod
+    cdef int32_t _select_hmod
+    cdef int32_t _select_vmod
     cdef int32_t _zoom_mod # imgui.ImGuiKeyChord
     cdef float _zoom_rate
     cdef bint _use_local_time
