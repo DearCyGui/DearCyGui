@@ -936,6 +936,7 @@ cdef const uint32_t codepoint_9 = ord('9')
 
 cdef const uint32_t codepoint_A_bold = ord("\U0001D5D4")
 cdef const uint32_t codepoint_a_bold = ord("\U0001D5EE")
+cdef const uint32_t codepoint_0_bold = ord("\U0001D7CE")
 
 cdef const uint32_t codepoint_A_italic = ord("\U0001D434")
 cdef const uint32_t codepoint_a_italic = ord("\U0001D44E")
@@ -1443,12 +1444,17 @@ cdef class MarkDownText(uiItem):
         # Apply styles based on codepoint range
         if codepoint >= codepoint_A and codepoint <= codepoint_Z:
             if style_mask == <int32_t>(MDTextType.MD_TEXT_STRONG):
-                styled_codepoint = codepoint - codepoint_A + codepoint_A_bitalic
+                styled_codepoint = codepoint - codepoint_A + codepoint_A_bold
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
             if style_mask == <int32_t>(MDTextType.MD_TEXT_EMPH):
                 styled_codepoint = codepoint - codepoint_A + codepoint_A_italic
+                if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
+                    self._append_utf8_codepoint(result, styled_codepoint)
+                    return
+            if style_mask == <int32_t>MDTextType.MD_TEXT_STRONG | <int32_t>MDTextType.MD_TEXT_EMPH:
+                styled_codepoint = codepoint - codepoint_A + codepoint_A_bitalic
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
@@ -1459,7 +1465,7 @@ cdef class MarkDownText(uiItem):
                     return
         elif codepoint >= codepoint_a and codepoint <= codepoint_z:
             if style_mask == <int32_t>(MDTextType.MD_TEXT_STRONG):
-                styled_codepoint = codepoint - codepoint_a + codepoint_a_bitalic
+                styled_codepoint = codepoint - codepoint_a + codepoint_a_bold
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
@@ -1468,11 +1474,22 @@ cdef class MarkDownText(uiItem):
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
+            if style_mask == <int32_t>MDTextType.MD_TEXT_STRONG | <int32_t>MDTextType.MD_TEXT_EMPH:
+                styled_codepoint = codepoint - codepoint_a + codepoint_a_bitalic
+                if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
+                    self._append_utf8_codepoint(result, styled_codepoint)
+                    return
             if style_mask & <int32_t>(MDTextType.MD_TEXT_CODE):
                 styled_codepoint = codepoint - codepoint_a + codepoint_a_mono
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
+        elif style_mask == <int32_t>MDTextType.MD_TEXT_STRONG and codepoint >= codepoint_0 and codepoint <= codepoint_9:
+            # Bold digits
+            styled_codepoint = codepoint - codepoint_0 + codepoint_0_bold
+            if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
+                self._append_utf8_codepoint(result, styled_codepoint)
+                return
         elif style_mask & <int32_t>(MDTextType.MD_TEXT_CODE):
             # code font has extended character set
             if codepoint >= codepoint_0 and codepoint <= codepoint_9:
@@ -1486,7 +1503,7 @@ cdef class MarkDownText(uiItem):
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
-        
+
         # If no special glyph found or not in range for styling, use the original codepoint
         self._append_utf8_codepoint(result, codepoint)
 
