@@ -475,6 +475,8 @@ cdef class PlotAxisConfig(baseItem):
     def no_initial_fit(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        # NOTE: NoInitialFit is ignored since we use linked axes
+        # _to_fit does all the job.
         self._flags &= ~implot.ImPlotAxisFlags_NoInitialFit
         if value:
             self._flags |= implot.ImPlotAxisFlags_NoInitialFit
@@ -928,15 +930,17 @@ cdef class PlotAxisConfig(baseItem):
             implot.SetupAxis(axis, self._label.c_str(), flags)
         else:
             implot.SetupAxis(axis, NULL, flags)
-        """
+
+        # Even though we use SetupAxisLinks, calling
+        # SetupAxisLimits is necessary to ensure
+        # proper axis priority for equal_aspects enforcement
+        # Note: equal_aspects is enforced during SetupFinish()
+        # and thus is done before any fit.
         if self._dirty_minmax:
-            # enforce min < max
-            self._max = max(self._max, self._min + 1e-12)
             implot.SetupAxisLimits(axis,
                                    self._min,
                                    self._max,
                                    implot.ImPlotCond_Always)
-        """
         self._prev_min = self._min
         self._prev_max = self._max
         # We use SetupAxisLinks to get the min/max update
