@@ -329,19 +329,6 @@ cdef class HorizontalLayout(Layout):
         lock_gil_friendly(m, self.mutex)
         self._force_update = True
 
-    cdef float __compute_items_size(self, int32_t &n_items) noexcept nogil:
-        cdef float size = 0.
-        n_items = 0
-        cdef PyObject *child = <PyObject*>self.last_widgets_child
-        while (<uiItem>child) is not None:
-            size += (<uiItem>child).state.cur.rect_size.x
-            n_items += 1
-            child = <PyObject*>((<uiItem>child).prev_sibling)
-            if not((<uiItem>child).state.prev.rendered):
-                # Will need to recompute layout after the size is computed
-                self._force_update = True
-        return size
-
     cdef void __update_layout_manual(self):
         """Position items at manually specified x positions"""
         # assumes children are locked and > 0
@@ -689,19 +676,6 @@ cdef class VerticalLayout(Layout):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._force_update = True
-
-    cdef float __compute_items_size(self, int32_t &n_items) noexcept nogil:
-        cdef float size = 0.
-        n_items = 0
-        cdef PyObject *child = <PyObject*>self.last_widgets_child
-        while (<uiItem>child) is not None:
-            size += (<uiItem>child).state.cur.rect_size.y
-            n_items += 1
-            child = <PyObject*>((<uiItem>child).prev_sibling)
-            if not((<uiItem>child).state.prev.rendered):
-                # Will need to recompute layout after the size is computed
-                self._force_update = True
-        return size
 
     cdef void __update_layout_manual(self):
         """Position items at manually specified y positions"""

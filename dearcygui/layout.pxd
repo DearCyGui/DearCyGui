@@ -20,7 +20,6 @@ cdef class HorizontalLayout(Layout):
     cdef DCGVector[float] _positions
     cdef bint _no_wrap
     cdef float _wrap_x
-    cdef float __compute_items_size(self, int32_t&) noexcept nogil
     cdef void __update_layout_manual(self)
     cdef void __update_layout(self)
     cdef bint draw_item(self) noexcept nogil
@@ -30,7 +29,6 @@ cdef class VerticalLayout(Layout):
     cdef DCGVector[float] _positions
     cdef bint _no_wrap
     cdef float _wrap_y
-    cdef float __compute_items_size(self, int32_t&) noexcept nogil
     cdef void __update_layout_manual(self)
     cdef void __update_layout(self)
     cdef bint draw_item(self) noexcept nogil
