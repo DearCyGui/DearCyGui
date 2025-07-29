@@ -280,6 +280,7 @@ cdef class HorizontalLayout(Layout):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._wrap_x = value
+        self._force_update = True
 
     @property
     def positions(self):
