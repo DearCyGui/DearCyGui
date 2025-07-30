@@ -2475,6 +2475,11 @@ cdef class Table(baseTable):
                         if imgui.BeginTooltip():
                             imgui.TextUnformatted(element.str_tooltip.c_str())
                             imgui.EndTooltip()
+                            if imgui.GetIO().MouseDelta.x != 0. or \
+                               imgui.GetIO().MouseDelta.y != 0.:
+                                # If the mouse moved, we need to
+                                # update the tooltip position
+                                self.context.viewport.force_present()
 
             # Clean up iteration
             self._items_iter_finish()
