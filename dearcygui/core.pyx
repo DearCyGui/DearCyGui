@@ -48,7 +48,7 @@ import os
 import time as python_time
 import traceback
 
-
+import warnings
 
 
 """
@@ -7322,11 +7322,7 @@ cdef class Window(uiItem):
     @property
     def no_saved_settings(self):
         """
-        Prevents the window from saving its position and size between sessions.
-        
-        When enabled, the window's position, size, and collapsed state will not be
-        saved to or loaded from the ImGui .ini file, keeping the window's appearance
-        consistent across application restarts.
+        Unused. Has no effect as settings are never saved.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -7339,6 +7335,8 @@ cdef class Window(uiItem):
         self._window_flags &= ~imgui.ImGuiWindowFlags_NoSavedSettings
         if value:
             self._window_flags |= imgui.ImGuiWindowFlags_NoSavedSettings
+        if value:
+            warnings.warn("no_saved_settings is deprecated and will be removed in a future version", DeprecationWarning)
 
     @property
     def no_mouse_inputs(self):
