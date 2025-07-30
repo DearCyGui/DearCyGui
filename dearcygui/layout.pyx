@@ -19,7 +19,7 @@ cimport cython
 from cpython.ref cimport PyObject
 
 from libc.stdint cimport int32_t
-from libcpp.cmath cimport floor, fmax
+from libcpp.cmath cimport floor, ceil, fmax, round as cround
 
 from .core cimport uiItem, Callback, lock_gil_friendly
 from .c_types cimport Vec2, make_Vec2, swap_Vec2, DCGMutex, unique_lock
@@ -333,210 +333,359 @@ cdef class HorizontalLayout(Layout):
         lock_gil_friendly(m, self.mutex)
         self._force_update = True
 
-    cdef void __update_layout_manual(self):
-        """Position items at manually specified x positions"""
-        # assumes children are locked and > 0
-        cdef float available_width = self.state.cur.content_region_size.x
-        cdef float pos_start = 0.
-        cdef int32_t i = 0
-        cdef PyObject *child = <PyObject*>self.last_widgets_child
-        cdef bint pos_change = False
 
-        # Get back to first child
-        while (<uiItem>child).prev_sibling is not None:
-            child = <PyObject*>((<uiItem>child).prev_sibling)
-
-        # Position each item at specified x coordinate
+    cdef bint __check_children_neutral(self) noexcept nogil:
+        """
+        Check that all children use no_newline=False, x=0 and y=0
+        """
+        cdef PyObject* child = <PyObject*>self.last_widgets_child
         while (<uiItem>child) is not None:
-            # Get position from positions list or default to 0
-            if not(self._positions.empty()):
-                pos_start = self._positions[min(i, <int>self._positions.size()-1)]
+            if not ((<uiItem>child).no_newline == False and
+                    not (<uiItem>child).requested_x.is_item() and
+                    not (<uiItem>child).requested_y.is_item() and
+                    (<uiItem>child).requested_x.get_value() == 0 and
+                    (<uiItem>child).requested_y.get_value() == 0):
+                return False
+            child = <PyObject*>(<uiItem>child).prev_sibling
+        return True
 
-            # Convert relative (0-1) or negative positions
-            if pos_start > 0.:
-                if pos_start < 1.:
-                    pos_start *= available_width
-                    pos_start = floor(pos_start)
-            elif pos_start < 0:
-                if pos_start > -1.:
-                    pos_start *= available_width 
-                    pos_start += available_width
-                    pos_start = floor(pos_start)
-                else:
-                    pos_start += available_width
+    cdef void __apply_children_neutral(self):
+        """
+        Apply the neutral state to all children
+        """
+        cdef PyObject* child = <PyObject*>self.last_widgets_child
+        while (<uiItem>child) is not None:
+            (<uiItem>child).no_newline = False
+            (<uiItem>child).requested_x.set_value(0.)
+            (<uiItem>child).requested_y.set_value(0.)
+            child = <PyObject*>(<uiItem>child).prev_sibling
 
-            # Set item position and ensure it stays within bounds
-            pos_start = max(0, pos_start)
-            pos_change |= pos_start != (<uiItem>child).state.cur.pos_to_parent.x ## cur or prev ? -> to double check
-            (<uiItem>child).requested_x.set_item_o(_Size.ADD(_Size.PARENT_X1(), _Size.FIXED(pos_start)))
-            (<uiItem>child).requested_y.set_value(0)
-            (<uiItem>child).no_newline = True
+    cdef bint __draw_item_left_no_wrap(self) noexcept nogil:
+        """
+        Fast version for the case with no wrapping needed
+        """
 
-            child = <PyObject*>(<uiItem>child).next_sibling
-            i += 1
-
-        # Ensure last item allows newline
-        if self.last_widgets_child is not None:
-            self.last_widgets_child.no_newline = False
-
-        # Force update if positions changed
-        if pos_change:
-            self._force_update = True
-            self.context.viewport.redraw_needed = True
-
-    cdef void __update_layout(self):
-        if self._alignment_mode == Alignment.MANUAL:
-            self.__update_layout_manual()
-            return
-        # Assumes all children are locked
-        cdef PyObject *child = <PyObject*>self.last_widgets_child
-        cdef float end_x = self.state.cur.content_region_size.x
-        cdef float available_width = end_x
-        #cdef float available_height = self.prev_content_area.y
-        cdef float spacing_x = self._spacing.x
-        #cdef float spacing_y = self._spacing.y
+        cdef float spacing_x = imgui.GetStyle().ItemSpacing.x
         # Get back to the first child
+        cdef PyObject *child = <PyObject*>self.last_widgets_child
         while ((<uiItem>child).prev_sibling) is not None:
             child = <PyObject*>((<uiItem>child).prev_sibling)
-        cdef PyObject *sibling
-        cdef int32_t i, n_items_this_row, row
-        cdef float target_x, expected_x, expected_size, expected_size_next
-        #cdef float y, next_y = 0
-        cdef float wrap_x = max(-self.state.cur.pos_to_window.x, self._wrap_x)
-        cdef bint pos_change = False
-        cdef float global_scale_inv = 1./fmax(self.context.viewport.global_scale, 0.00001)
-        row = 0
+
+        # We simply render all children and insert a SameLine between each
         while (<uiItem>child) is not None:
-            # Compute the number of items on this row
+            (<uiItem>child).draw() # We do not need draw_child as we don't need to adapt the layout after size change
+            child = <PyObject *>(<uiItem>child).next_sibling
+            if (<uiItem>child) is not None:
+                imgui.SameLine(0., spacing_x)
+
+        return False
+
+    cdef bint __draw_item_left_wrap(self) noexcept nogil:
+        """
+        Fast version for the case with left alignment and wrapping active
+        """
+        cdef float end_x = self.context.viewport.parent_pos.x + self.context.viewport.parent_size.x
+
+        cdef float spacing_x = imgui.GetStyle().ItemSpacing.x
+        cdef float wrap_x = fmax(-self.state.cur.pos_to_window.x, self._wrap_x)
+
+        # Get back to the first child
+        cdef PyObject *child = <PyObject*>self.last_widgets_child
+        while ((<uiItem>child).prev_sibling) is not None:
+            child = <PyObject*>((<uiItem>child).prev_sibling)
+
+        cdef bint size_changed = False
+        cdef Vec2 size_backup
+        cdef float cur_x
+        cdef bint has_size
+
+        # We simply render all children and insert a SameLine, but
+        # only if the next item is supposed to fit on the same line
+        while (<uiItem>child) is not None:
+            # Save the size
+            size_backup = (<uiItem>child).state.cur.rect_size
+            cur_x = imgui.GetCursorScreenPos().x
+    
+            (<uiItem>child).draw() # We do not need draw_child as we implement the checks manually
+
+            if (<uiItem>child).state.cur.rect_size.x != size_backup.x:
+                size_changed = True
+
+            has_size = (<uiItem>child).state.cur.rect_size.x != 0 or \
+               ((<uiItem>child)._show and (<uiItem>child).state.cap.has_rect_size) or \
+               imgui.GetCursorScreenPos().x != cur_x
+            if has_size:
+                cur_x += (<uiItem>child).state.cur.rect_size.x + spacing_x # position if we use SameLine
+
+            # Stay on the same line if the sibling fits
+            child = <PyObject *>(<uiItem>child).next_sibling
+            if (<uiItem>child) is not None:
+                if cur_x + (<uiItem>child).state.cur.rect_size.x <= end_x:
+                    if has_size:
+                        imgui.SameLine(0., spacing_x)
+                elif wrap_x != 0.:
+                    # Take into account the wrap_x
+                    imgui.SetCursorScreenPos(imgui.ImVec2(
+                        self.context.viewport.parent_pos.x + wrap_x,
+                        imgui.GetCursorScreenPos().y))
+
+        return size_changed
+
+    cdef bint __draw_item_manual(self) noexcept nogil:
+        """
+        Render in manual alignment mode
+        """
+        cdef float available_width = self.state.cur.content_region_size.x
+        cdef float spacing_x = imgui.GetStyle().ItemSpacing.x
+        cdef float start_y = imgui.GetCursorScreenPos().y
+
+        # Get back to the first child
+        cdef PyObject *child = <PyObject*>self.last_widgets_child
+        while ((<uiItem>child).prev_sibling) is not None:
+            child = <PyObject*>((<uiItem>child).prev_sibling)
+
+        cdef bint size_changed = False
+        cdef float pos_start = 0.
+        cdef int32_t i = 0
+        cdef Vec2 size_backup
+
+        # We simply render all children and insert a SameLine, but
+        # only if the next item is supposed to fit on the same line
+        while (<uiItem>child) is not None:
+            # go fast for items which do not care about position
+            # and which shouldn't be taken into account
+            if (<uiItem>child).state.cap.has_rect_size and\
+               (<uiItem>child)._show:
+                # Get position from positions list or default to 0
+                if not(self._positions.empty()):
+                    pos_start = self._positions[min(i, <int>self._positions.size()-1)]
+                i = i + 1
+
+                # Convert relative (0-1) or negative positions
+                if pos_start > 0.:
+                    if pos_start < 1.:
+                        pos_start *= available_width
+                        pos_start = floor(pos_start)
+                elif pos_start < 0.:
+                    if pos_start > -1.:
+                        pos_start *= available_width 
+                        pos_start += available_width
+                        pos_start = floor(pos_start)
+                    else:
+                        pos_start += available_width
+
+                # Set item position and ensure it stays within bounds
+                pos_start = max(0, pos_start)
+
+                imgui.SetCursorScreenPos(imgui.ImVec2(
+                    self.context.viewport.parent_pos.x + pos_start,
+                    start_y))
+
+            # Save the size
+            size_backup = (<uiItem>child).state.cur.rect_size
+    
+            (<uiItem>child).draw() # We do not need draw_child as we implement the checks manually
+
+            if (<uiItem>child).state.cur.rect_size.x != size_backup.x:
+                size_changed = True
+
+        return size_changed
+    
+    cdef bint __draw_item_aligned(self) noexcept nogil:
+        """Render center, right and justified alignments"""
+        cdef float available_width = self.context.viewport.parent_size.x
+        cdef float start_x = self.context.viewport.parent_pos.x
+        cdef float end_x = self.context.viewport.parent_pos.x + self.context.viewport.parent_size.x
+
+        cdef float spacing_x, ref_spacing_x = imgui.GetStyle().ItemSpacing.x
+        cdef float wrap_x = fmax(-self.state.cur.pos_to_window.x, self._wrap_x)
+        cdef float start_x_after_wrap = start_x + wrap_x
+
+        # Important for auto fit windows
+        start_x_after_wrap = fmax(self.context.viewport.window_pos.x, start_x_after_wrap)
+
+        # Get back to the first child
+        cdef PyObject *child = <PyObject*>self.last_widgets_child
+        cdef PyObject *sibling
+        while ((<uiItem>child).prev_sibling) is not None:
+            child = <PyObject*>((<uiItem>child).prev_sibling)
+
+        cdef bint size_changed = False
+        cdef Vec2 size_backup
+        cdef float cur_x, target_x, expected_x
+        cdef bint has_size
+        cdef float expected_size, expected_size_next
+
+        cdef int32_t i, j, n_items_this_row, n_items_this_row_seen
+        cdef int32_t n_items_with_size_this_row, n_items_with_size_this_row_seen, row = 0
+
+        while (<uiItem>child) is not None:
             if row == 1:
                 # starting from the second row, begin to wrap at the target
                 available_width -= wrap_x
-            #y = next_y
+
+            # Compute the number of items that fit this row, starting with child
+
+            has_size = (<uiItem>child).state.cur.rect_size.x != 0 or \
+               ((<uiItem>child)._show and (<uiItem>child).state.cap.has_rect_size)
+
             n_items_this_row = 1
-            expected_size = (<uiItem>child).state.cur.rect_size.x
-            #next_y = (<uiItem>child).state.cur.rect_size.y
+            n_items_with_size_this_row = 1 if has_size else 0
+            expected_size = (<uiItem>child).state.cur.rect_size.x # Q: what about show = False ? R: update_current_state_as_hidden does set to zero all states
             sibling = child
             while (<uiItem>sibling).next_sibling is not None:
                 # Does the next item fit ?
-                expected_size_next = expected_size + self._spacing.x + \
+                has_size = (<uiItem>sibling).state.cur.rect_size.x != 0 or \
+                   ((<uiItem>sibling)._show and (<uiItem>sibling).state.cap.has_rect_size)
+                
+                expected_size_next = expected_size + \
                     (<uiItem>(<uiItem>sibling).next_sibling).state.cur.rect_size.x
+                expected_size_next += ref_spacing_x if has_size else 0 # no rect size items have no spacing
+
                 # No: stop there
-                if expected_size_next > available_width and not(self._no_wrap):
+                if expected_size_next > available_width and not(self._no_wrap) and n_items_with_size_this_row > 0:
                     break
+                # Add to the line
                 expected_size = expected_size_next
-                if not((<uiItem>sibling).state.cap.has_rect_size):
-                    # Items without rect size (tooltips for instance) do not count in the layout
-                    sibling = <PyObject*>(<uiItem>sibling).next_sibling
-                    continue
-                #next_y = max(next_y, y + (<uiItem>sibling).state.cur.rect_size.y)
-                sibling = <PyObject*>(<uiItem>sibling).next_sibling
                 n_items_this_row += 1
-            #next_y = next_y + spacing_y
+                n_items_with_size_this_row += 1 if has_size else 0
+                sibling = <PyObject*>(<uiItem>sibling).next_sibling
 
             # Determine the element positions
-            sibling = child
-            if self._alignment_mode == Alignment.LEFT:
-                target_x = 0 if row == 0 else wrap_x
+            spacing_x = ref_spacing_x
+
+            if self._alignment_mode == Alignment.LEFT: # TODO: comment ?
+                target_x = start_x if row == 0 else start_x_after_wrap
             elif self._alignment_mode == Alignment.RIGHT:
                 target_x = end_x - expected_size
             elif self._alignment_mode == Alignment.CENTER:
                 # Center right away (not waiting the second row) with wrap_x
-                target_x = (end_x + wrap_x) // 2 - \
-                    expected_size // 2 # integer rounding to avoid blurring
-            else: #self._alignment_mode == Alignment.JUSTIFIED:
-                target_x = 0 if row == 0 else wrap_x
+                # integer rounding to avoid blurring
+                target_x = floor((end_x - start_x_after_wrap - expected_size) / 2.) # TODO: double check this
+            elif n_items_with_size_this_row >= 2: #self._alignment_mode == Alignment.JUSTIFIED:
+                target_x = start_x if row == 0 else start_x_after_wrap
                 # Increase spacing to fit target space
-                spacing_x = self._spacing.x + \
-                    max(0, \
-                        floor((available_width - expected_size) /
-                               (n_items_this_row-1)))
+                spacing_x = ref_spacing_x + \
+                    fmax(0., \
+                         floor((available_width - expected_size) /
+                                (n_items_with_size_this_row-1)))
 
-            # Important for auto fit windows
-            target_x = max(0 if row == 0 else wrap_x, target_x)
+            # Set the starting position
+            imgui.SetCursorScreenPos(imgui.ImVec2(
+                target_x,
+                imgui.GetCursorScreenPos().y))
 
-            expected_x = 0
+            sibling = child
+            n_items_with_size_this_row_seen = 0
+            n_items_this_row_seen = 0
             i = 0
-            while i < n_items_this_row-1:
-                if not((<uiItem>sibling).state.cap.has_rect_size):
-                    # Items without rect size do not count in the layout
-                    sibling = <PyObject*>(<uiItem>sibling).next_sibling
+            for i in range(n_items_this_row-1):
+                if n_items_with_size_this_row_seen >= (n_items_with_size_this_row-1):
+                    # Retain one item with size
+                    break
+                # Save the size
+                size_backup = (<uiItem>sibling).state.cur.rect_size
+    
+                # We use the same test as above to have the counters synchronized
+                has_size = (<uiItem>sibling).state.cur.rect_size.x != 0 or \
+                   ((<uiItem>sibling)._show and (<uiItem>sibling).state.cap.has_rect_size)
+                n_items_with_size_this_row_seen += 1 if has_size else 0
+                n_items_this_row_seen += 1
+
+                # expected x cursor position after draw if on same line
+                expected_x = imgui.GetCursorScreenPos().x + (<uiItem>sibling).state.cur.rect_size.x
+
+                (<uiItem>sibling).draw() # We do not need draw_child as we implement the checks manually
+
+                if (<uiItem>sibling).state.cur.rect_size.x == size_backup.x:
+                    imgui.SameLine(0., spacing_x) # Note: multiple calls have no effect, so it is ok for not(has_size)
+                    sibling = <PyObject*>(<uiItem>sibling).next_sibling 
                     continue
-                pos_change |= (<uiItem>sibling).requested_x.is_item() or\
-                    (target_x - expected_x) * global_scale_inv != (<uiItem>sibling).requested_x.get_value()
-                (<uiItem>sibling).requested_x.set_value((target_x - expected_x) * global_scale_inv) # delta to default position
-                (<uiItem>sibling).requested_y.set_value(0.) # default position
-                (<uiItem>sibling).no_newline = True
-                expected_x = target_x + self._spacing.x + (<uiItem>sibling).state.cur.rect_size.x
-                target_x = target_x + spacing_x + (<uiItem>sibling).state.cur.rect_size.x
-                sibling = <PyObject*>(<uiItem>sibling).next_sibling
-                i = i + 1
-            if i != 0:
-                while (<uiItem>sibling).next_sibling is not None and \
-                      not((<uiItem>sibling).state.cap.has_rect_size):
-                    sibling = <PyObject*>(<uiItem>sibling).next_sibling
-                    continue
-            # Last item of the row
-            if (self._alignment_mode == Alignment.RIGHT or \
-               (self._alignment_mode == Alignment.JUSTIFIED and n_items_this_row != 1)) and \
-               (<uiItem>child).state.cur.rect_size.x == (<uiItem>child).state.prev.rect_size.x:
+
+                size_changed = True
+                # The size has changed, see if we can reduce the spacing to fit
+                # This is to avoid cascading changes to the other items if possible
+                # This is probably a minor optimization, and it is ok it does not
+                # always work (for instance not(has_size) items)
+                imgui.SameLine(0., 0.)
+                cur_x = imgui.GetCursorScreenPos().x
+                imgui.SameLine(0., fmax(0., spacing_x - (cur_x - expected_x)))
+                sibling = <PyObject*>(<uiItem>sibling).next_sibling 
+
+            # Last item(s) of the row
+            if (self._alignment_mode == Alignment.RIGHT or self._alignment_mode == Alignment.JUSTIFIED)\
+               and n_items_with_size_this_row >= 2 and \
+               <uiItem>sibling is not None and (<uiItem>sibling).state.cur.rect_size.x == (<uiItem>sibling).state.prev.rect_size.x:
                 # Align right item properly even if rounding
                 # occured on spacing.
                 # We check the item size is fixed because if the item tries to autosize
                 # to the available content, it can lead to convergence issues
-                # undo previous spacing
-                target_x -= spacing_x
-                # ideal spacing
-                spacing_x = \
-                    end_x - (target_x + (<uiItem>sibling).state.cur.rect_size.x)
-                # real spacing
-                target_x += max(spacing_x, self._spacing.x)
+                cur_x = imgui.GetCursorScreenPos().x
+                target_x = end_x - (<uiItem>sibling).state.cur.rect_size.x
+                imgui.SameLine(0., fmax(spacing_x, target_x - cur_x))
+            elif n_items_with_size_this_row >= 2:
+                imgui.SameLine(0., spacing_x)
 
-            pos_change |= (<uiItem>sibling).requested_x.is_item() or\
-                (target_x - expected_x) * global_scale_inv != (<uiItem>sibling).requested_x.get_value()
-            (<uiItem>sibling).requested_x.set_value((target_x - expected_x) * global_scale_inv) # delta to default position
-            (<uiItem>sibling).requested_y.set_value(0.) # default position
-            (<uiItem>sibling).no_newline = False
-            child = <PyObject*>(<uiItem>sibling).next_sibling
+            # Last item with size of the row + other items
+            for j in range(n_items_this_row-n_items_this_row_seen):
+                # Save the size
+                size_backup = (<uiItem>sibling).state.cur.rect_size
+
+                (<uiItem>sibling).draw() # We do not need draw_child as we implement the checks manually
+
+                if (<uiItem>sibling).state.cur.rect_size.x != size_backup.x:
+                    size_changed = True
+
+                sibling = <PyObject*>(<uiItem>sibling).next_sibling
+            child = sibling
             row += 1
-        # A change in position change alter the size for some items
-        if pos_change:
-            self._force_update = True
-            self.context.viewport.redraw_needed = True
 
+        return size_changed
 
+    
     cdef bint draw_item(self) noexcept nogil:
-        if self.last_widgets_child is None:# or \
-            #cur_content_area.x <= 0 or \
-            #cur_content_area.y <= 0: # <= 0 occurs when not visible
-            # self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+        if self.last_widgets_child is None:
             return False
+
         self.update_content_area()
-        cdef bint changed = self.check_change()
-        if changed:
-            self.last_widgets_child.lock_and_previous_siblings()
-            with gil:
-                self.__update_layout()
+
         imgui.PushID(self.uuid)
         imgui.BeginGroup()
-        cdef Vec2 pos_p
-        if self.last_widgets_child is not None:
-            pos_p = ImVec2Vec2(imgui.GetCursorScreenPos())
-            swap_Vec2(pos_p, self.context.viewport.parent_pos)
-            self.draw_children()
-            self.context.viewport.parent_pos = pos_p
-        if changed:
-            # We maintain the lock during the rendering
-            # just to be sure the user doesn't change the
-            # Positioning we took care to manage :-)
-            self.last_widgets_child.unlock_and_previous_siblings()
-        #imgui.PushStyleVar(imgui.ImGuiStyleVar_ItemSpacing,
-        #                   imgui.ImVec2(0., 0.))
+
+        cdef Vec2 parent_size_backup = self.context.viewport.parent_size
+        cdef Vec2 parent_pos_backup = self.context.viewport.parent_pos
+        self.context.viewport.parent_size = self.state.cur.content_region_size
+        self.context.viewport.parent_pos = ImVec2Vec2(imgui.GetCursorScreenPos())
+
+        self.last_widgets_child.lock_and_previous_siblings()
+
+        # We will manage placement manually
+        if not self.__check_children_neutral():
+            with gil:
+                self.__apply_children_neutral()
+
+        cdef bint changed
+        if self._alignment_mode == Alignment.LEFT:
+            if self._no_wrap:
+                changed = self.__draw_item_left_no_wrap()
+            else:
+                changed = self.__draw_item_left_wrap()
+        elif self._alignment_mode == Alignment.MANUAL:
+            changed = self.__draw_item_manual()
+        else:
+            changed = self.__draw_item_aligned()
+
+        self.last_widgets_child.unlock_and_previous_siblings()
+
+        self.context.viewport.parent_pos = parent_pos_backup
+        self.context.viewport.parent_size = parent_size_backup
+
         imgui.EndGroup()
-        #imgui.PopStyleVar(1)
         imgui.PopID()
+
         self.update_current_state()
         if self.state.cur.rect_size.x != self.state.prev.rect_size.x or \
-           self.state.cur.rect_size.y != self.state.prev.rect_size.y:
+           self.state.cur.rect_size.y != self.state.prev.rect_size.y or changed:
             self._force_update = True
             self.context.viewport.redraw_needed = True
         return changed

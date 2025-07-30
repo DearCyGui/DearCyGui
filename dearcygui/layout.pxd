@@ -20,8 +20,12 @@ cdef class HorizontalLayout(Layout):
     cdef DCGVector[float] _positions
     cdef bint _no_wrap
     cdef float _wrap_x
-    cdef void __update_layout_manual(self)
-    cdef void __update_layout(self)
+    cdef bint __check_children_neutral(self) noexcept nogil
+    cdef void __apply_children_neutral(self)
+    cdef bint __draw_item_left_no_wrap(self) noexcept nogil
+    cdef bint __draw_item_left_wrap(self) noexcept nogil
+    cdef bint __draw_item_manual(self) noexcept nogil
+    cdef bint __draw_item_aligned(self) noexcept nogil
     cdef bint draw_item(self) noexcept nogil
 
 cdef class VerticalLayout(Layout):
