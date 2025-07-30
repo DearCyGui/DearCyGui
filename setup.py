@@ -210,7 +210,6 @@ def setup_package():
         "thirdparty/imgui/imgui_draw.cpp",
         "thirdparty/imgui/imgui_widgets.cpp",
         "thirdparty/imgui/imgui_tables.cpp",
-        "thirdparty/md4c/src/md4c.c",
         "dearcygui/backends/imgui_impl_sdl3.cpp",
         "dearcygui/backends/imgui_impl_opengl3.cpp",
         "thirdparty/imgui/misc/freetype/imgui_freetype.cpp",

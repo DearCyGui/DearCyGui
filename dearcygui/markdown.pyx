@@ -252,6 +252,21 @@ cdef extern from "md4c.h" nogil:
     # Main parsing function
     int md_parse(const char* text, MD_SIZE size, const MD_PARSER* parser, void* userdata) noexcept
 
+cdef extern from * nogil:
+    """
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "../thirdparty/md4c/src/md4c.c"
+
+#ifdef __cplusplus
+}
+#endif
+    """
+    pass
+
+
 # Text styling and layout structures
 #---------------------------------
 
