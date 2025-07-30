@@ -8083,7 +8083,7 @@ class PlotAxisConfig(baseItem):
     along the axis.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], linked_axis : Any = ..., lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
         Parameters
         ----------
@@ -8101,6 +8101,7 @@ class PlotAxisConfig(baseItem):
         - label: Text label for the axis.
         - labels: Custom text labels for specific tick positions.
         - labels_coord: Coordinate positions for custom tick labels.
+        - linked_axis: **Experimental** Link the values of this axis to another PlotAxisConfig.
         - lock_max: Whether the axis maximum value is locked when panning/zooming.
         - lock_min: Whether the axis minimum value is locked when panning/zooming.
         - max: Current maximum value of the axis range.
@@ -8128,7 +8129,7 @@ class PlotAxisConfig(baseItem):
         ...
 
 
-    def configure(self, *, auto_fit : bool = False, children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0) -> None:
+    def configure(self, *, auto_fit : bool = False, children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], linked_axis : Any = ..., lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -8146,6 +8147,7 @@ class PlotAxisConfig(baseItem):
         - label: Text label for the axis.
         - labels: Custom text labels for specific tick positions.
         - labels_coord: Coordinate positions for custom tick labels.
+        - linked_axis: **Experimental** Link the values of this axis to another PlotAxisConfig.
         - lock_max: Whether the axis maximum value is locked when panning/zooming.
         - lock_min: Whether the axis minimum value is locked when panning/zooming.
         - max: Current maximum value of the axis range.
@@ -8397,6 +8399,31 @@ class PlotAxisConfig(baseItem):
 
     @labels_coord.setter
     def labels_coord(self, value : Array | None):
+        ...
+
+
+    @property
+    def linked_axis(self):
+        """
+        **Experimental** Link the values of this axis to another PlotAxisConfig.
+
+        When this attribute is set, the limits from this axis will
+        be synchronized with the target axis. This synchronization
+        only occurs during rendering.
+
+        Setting min/max on either axis: propagates to the other
+        axis during rendering.
+
+        When the min/max changes, both axes will trigger
+        the AxisResizeHandle (as long as their respective previous
+        values were synchronized as well of course).
+
+        """
+        ...
+
+
+    @linked_axis.setter
+    def linked_axis(self, value):
         ...
 
 
@@ -20009,7 +20036,7 @@ class FontMultiScales(baseFont):
     @property
     def recent_scales(self) -> Sequence[float]:
         """
-        (Read-only) List of up to 10 most recent global scales encountered during rendering.
+        (Read-only) List of up to 20 most recent global scales encountered during rendering.
 
         These scales represent the display density values recently seen while
         rendering UI. This information can be used to create additional font
@@ -28244,7 +28271,7 @@ class Window(uiItem):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_open_over_existing_popup: Prevents opening if another popup is already visible.
         - no_resize: Disables resizing of the window by the user.
-        - no_saved_settings: Prevents the window from saving its position and size between sessions.
+        - no_saved_settings: Unused. Has no effect as settings are never saved.
         - no_scroll_with_mouse: Disables scrolling the window content with the mouse wheel.
         - no_scrollbar: Hides the scrollbars when content overflows.
         - no_title_bar: Hides the title bar of the window.
@@ -28300,7 +28327,7 @@ class Window(uiItem):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_open_over_existing_popup: Prevents opening if another popup is already visible.
         - no_resize: Disables resizing of the window by the user.
-        - no_saved_settings: Prevents the window from saving its position and size between sessions.
+        - no_saved_settings: Unused. Has no effect as settings are never saved.
         - no_scroll_with_mouse: Disables scrolling the window content with the mouse wheel.
         - no_scrollbar: Hides the scrollbars when content overflows.
         - no_title_bar: Hides the title bar of the window.
@@ -28708,11 +28735,7 @@ class Window(uiItem):
     @property
     def no_saved_settings(self) -> bool:
         """
-        Prevents the window from saving its position and size between sessions.
-
-        When enabled, the window's position, size, and collapsed state will not be
-        saved to or loaded from the ImGui .ini file, keeping the window's appearance
-        consistent across application restarts.
+        Unused. Has no effect as settings are never saved.
 
         """
         ...
@@ -29499,7 +29522,7 @@ class HorizontalLayout(Layout):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        - wrap_x: X position from which items start on wrapped rows.
+        - wrap_x: *DEPRECIATION WARNING* X position from which items start on wrapped rows.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
@@ -29532,7 +29555,7 @@ class HorizontalLayout(Layout):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        - wrap_x: X position from which items start on wrapped rows.
+        - wrap_x: *DEPRECIATION WARNING* X position from which items start on wrapped rows.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
@@ -29608,7 +29631,7 @@ class HorizontalLayout(Layout):
     @property
     def wrap_x(self) -> float:
         """
-        X position from which items start on wrapped rows.
+        *DEPRECIATION WARNING* X position from which items start on wrapped rows.
 
         When items wrap to a second or later row, this value determines the
         horizontal offset from the starting position. The value is in pixels
