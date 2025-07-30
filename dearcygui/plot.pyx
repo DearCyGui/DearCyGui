@@ -908,6 +908,43 @@ cdef class PlotAxisConfig(baseItem):
         lock_gil_friendly(m, self.mutex)
         self._keep_default_ticks = value
 
+    @property
+    def linked_axis(self):
+        """
+        **Experimental** Link the values of this axis to another PlotAxisConfig.
+
+        When this attribute is set, the limits from this axis will
+        be synchronized with the target axis. This synchronization
+        only occurs during rendering.
+
+        Setting min/max on either axis: propagates to the other
+        axis during rendering.
+
+        When the min/max changes, both axes will trigger
+        the AxisResizeHandle (as long as their respective previous
+        values were synchronized as well of course).
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._linked_axis
+
+    @linked_axis.setter
+    def linked_axis(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value is not None and \
+           not(isinstance(value, PlotAxisConfig)):
+            raise TypeError(f"Invalid type {type(value)} passed as linked_axis. Expected PlotAxisConfig")
+        if value is None:
+            self._linked_axis = None
+            return
+        cdef PlotAxisConfig new_value = <PlotAxisConfig>value
+        if new_value is self:
+            raise ValueError("Cannot link an axis to itself")
+        if new_value.context is not self.context:
+            raise ValueError("Cannot link axes from different contexts")
+        self._linked_axis = new_value
+
     cdef void setup(self, int32_t axis) noexcept nogil:
         """
         Apply the config to the target axis during plot
@@ -943,6 +980,17 @@ cdef class PlotAxisConfig(baseItem):
                                    implot.ImPlotCond_Always)
         self._prev_min = self._min
         self._prev_max = self._max
+
+        if self._linked_axis is not None:
+            # Pull the min/max from the linked axis
+            # We do it after SetupAxisLimits since setting
+            # the min/max of this axis should have effect
+            # even when linked
+            self._linked_axis.mutex.lock()
+            self._min = self._linked_axis._min
+            self._max = self._linked_axis._max
+            self._linked_axis.mutex.unlock()
+
         # We use SetupAxisLinks to get the min/max update
         # right away during EndPlot(), rather than the
         # next frame
@@ -1048,8 +1096,16 @@ cdef class PlotAxisConfig(baseItem):
             self.state.cur.double_clicked[i] = self.state.cur.hovered and imgui.IsMouseDoubleClicked(i)
 
     cdef void after_plot(self, int32_t axis) noexcept nogil:
+        if not(self.context.viewport.enabled_axes[axis]):
+            return
+        if self._linked_axis is not None:
+            # Push the min/max to the linked axis
+            self._linked_axis.mutex.lock()
+            self._linked_axis._min = self._min
+            self._linked_axis._max = self._max
+            self._linked_axis.mutex.unlock()
         # The fit only impacts the next frame
-        if self._enabled and (self._min != self._prev_min or self._max != self._prev_max):
+        if (self._min != self._prev_min or self._max != self._prev_max):
             self.context.viewport.redraw_needed = True
 
     cdef void set_hidden(self) noexcept nogil:
