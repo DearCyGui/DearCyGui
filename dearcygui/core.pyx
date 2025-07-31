@@ -318,7 +318,11 @@ cdef class Context:
         self.viewport = Viewport(self)
         imgui.IMGUI_CHECKVERSION()
         self.imgui_context = imgui.CreateContext()
+        if self.imgui_context == NULL:
+            raise RuntimeError("Failed to create ImGui context")
         self.implot_context = implot.CreateContext()
+        if self.implot_context == NULL:
+            raise RuntimeError("Failed to create ImPlot context")
         ensure_correct_im_context(self)
 
     def __dealloc__(self):

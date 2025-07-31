@@ -65,5 +65,19 @@ cdef class FontRenderer:
                                     str hinter=?,
                                     restrict_to=?,
                                     allow_color=?)
-    cdef void _render_glyph_to_image(self, glyph, unsigned char[:,:,::1] image, double x_offset, double y_offset, bint align_to_pixels)
-    cdef void _copy_bitmap_to_image(self, bitmap, unsigned char[:,:,::1] image, double x_offset, double y_offset)
+    cdef void _render_glyph_to_image(self,
+                                     void* glyph_p,
+                                     unsigned char[:,:,::1] image,
+                                     double x_offset,
+                                     double y_offset,
+                                     bint align_to_pixels)
+    cdef void _copy_bitmap_to_image(self, 
+                                    unsigned char* buffer_ptr, 
+                                    int num_rows, 
+                                    int num_cols, 
+                                    int pitch, 
+                                    int pixel_mode, 
+                                    int bitmap_top, 
+                                    unsigned char[:,:,::1] image, 
+                                    double x_offset, 
+                                    double y_offset)

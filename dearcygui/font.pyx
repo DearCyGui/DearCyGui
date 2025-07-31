@@ -16,7 +16,7 @@
 #distutils: language=c++
 
 from libc.math cimport logf, ceil, INFINITY
-from libc.stdint cimport uintptr_t, int32_t
+from libc.stdint cimport int32_t, uint32_t
 from libcpp cimport bool
 from libcpp.deque cimport deque
 from libcpp.vector cimport vector
@@ -34,6 +34,7 @@ from .types cimport parse_texture
 
 from weakref import WeakKeyDictionary, WeakValueDictionary
 
+import atexit
 import ctypes
 from concurrent.futures import ThreadPoolExecutor
 
@@ -66,9 +67,9 @@ What is up to you to provide:
 - Passing correct spacing value to have characters properly aligned, etc
 """
 
-import freetype
-import freetype.raw
 import os
+
+from .wrapper cimport freetype
 
 def get_system_fonts() -> list[str]:
     """
@@ -1338,6 +1339,21 @@ cdef class GlyphSet:
         return new_glyphset
 
 
+cdef freetype.FT_Library FT
+if freetype.FT_Init_FreeType(&FT):
+    raise RuntimeError("Failed to initialize FreeType library")
+
+def _cleanup_freetype():
+    """Cleanup FreeType library"""
+    global FT
+    if FT is not NULL:
+        freetype.FT_Done_FreeType(FT)
+        FT = NULL
+
+atexit.register(_cleanup_freetype)
+
+cdef DCGMutex freetype_mutex
+
 cdef inline int32_t get_freetype_load_flags(str hinter, bint allow_color):
     """Prepare FreeType loading flags"""
 
@@ -1372,28 +1388,137 @@ cdef inline int32_t get_freetype_load_flags(str hinter, bint allow_color):
     """
     
     cdef int32_t load_flags = 0
+    
     if hinter == "none":
-        load_flags |= freetype.FT_LOAD_TARGETS["FT_LOAD_TARGET_NORMAL"]
-        load_flags |= freetype.FT_LOAD_FLAGS["FT_LOAD_NO_HINTING"]
-        load_flags |= freetype.FT_LOAD_FLAGS["FT_LOAD_NO_AUTOHINT"]
+        load_flags |= freetype.FT_LOAD_TARGET_NORMAL
+        load_flags |= freetype.FT_LOAD_NO_HINTING
+        load_flags |= freetype.FT_LOAD_NO_AUTOHINT
     elif hinter == "font":
-        load_flags |= freetype.FT_LOAD_TARGETS["FT_LOAD_TARGET_NORMAL"]
+        load_flags |= freetype.FT_LOAD_TARGET_NORMAL
     elif hinter == "light":
-        load_flags |= freetype.FT_LOAD_TARGETS["FT_LOAD_TARGET_LIGHT"]
-        load_flags |= freetype.FT_LOAD_FLAGS["FT_LOAD_FORCE_AUTOHINT"]
+        load_flags |= freetype.FT_LOAD_TARGET_LIGHT
+        load_flags |= freetype.FT_LOAD_FORCE_AUTOHINT
     elif hinter == "strong":
-        load_flags |= freetype.FT_LOAD_TARGETS["FT_LOAD_TARGET_NORMAL"]
-        load_flags |= freetype.FT_LOAD_FLAGS["FT_LOAD_FORCE_AUTOHINT"]
+        load_flags |= freetype.FT_LOAD_TARGET_NORMAL
+        load_flags |= freetype.FT_LOAD_FORCE_AUTOHINT
     elif hinter == "monochrome":
-        load_flags |= freetype.FT_LOAD_TARGETS["FT_LOAD_TARGET_MONO"]
-        load_flags |= freetype.FT_LOAD_FLAGS["FT_LOAD_MONOCHROME"]
+        load_flags |= freetype.FT_LOAD_TARGET_MONO
+        load_flags |= freetype.FT_LOAD_MONOCHROME
     else:
         raise ValueError("Invalid hinter. Must be none, font, light, strong or monochrome")
 
     if allow_color:
-        load_flags |= freetype.FT_LOAD_FLAGS["FT_LOAD_COLOR"]
+        load_flags |= freetype.FT_LOAD_COLOR
         
     return load_flags
+
+
+cdef class _Face:
+    """Internal wrapper for FT_Face"""
+    cdef freetype.FT_Face _face
+    cdef object _file_data  # Keep reference to prevent GC
+    
+    def __cinit__(self):
+        self._face = NULL
+        self._file_data = None
+        
+    def __init__(self, path):
+        if not os.path.exists(path):
+            raise ValueError(f"Font file {path} not found")
+            
+        # Load the font file into memory to avoid file handle issues
+        with open(path, 'rb') as f:
+            self._file_data = f.read()
+            
+        # Create the face
+        cdef const unsigned char[::1] data_view = self._file_data
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
+        if freetype.FT_New_Memory_Face(FT, 
+                                     <const freetype.FT_Byte*>&data_view[0],
+                                     <freetype.FT_Long>len(self._file_data),
+                                     0, &self._face):
+            raise ValueError(f"Failed to load font from {path}")
+            
+    def __dealloc__(self):
+        cdef unique_lock[DCGMutex] m
+        if self._face != NULL:
+            lock_gil_friendly(m, freetype_mutex)
+            freetype.FT_Done_Face(self._face)
+            self._face = NULL
+            
+    cdef list get_chars(self):
+        """Get all available character codes in a face as a Python list"""
+        if self._face == NULL:
+            return []
+            
+        cdef list chars = []
+        cdef uint32_t charcode
+        cdef uint32_t glyph_index
+        cdef unique_lock[DCGMutex] m
+        
+        lock_gil_friendly(m, freetype_mutex)
+        
+        # Get first character
+        charcode = freetype.FT_Get_First_Char(self._face, &glyph_index)
+        
+        # Iterate through all characters
+        while glyph_index != 0:
+            chars.append((charcode, glyph_index))
+            charcode = freetype.FT_Get_Next_Char(self._face, charcode, &glyph_index)
+            
+        return chars
+    
+    cdef int set_pixel_sizes(self, int width, int height):
+        if self._face == NULL:
+            raise ValueError("Font face not loaded")
+            
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
+        if freetype.FT_Set_Pixel_Sizes(self._face, width, height):
+            raise ValueError(f"Failed to set font size to {height}")
+        return 0
+    
+    cdef int load_glyph(self, uint32_t glyph_index, int32_t load_flags):
+        if self._face == NULL:
+            raise ValueError("Font face not loaded")
+            
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
+        if freetype.FT_Load_Glyph(self._face, glyph_index, load_flags):
+            return -1
+        return 0
+    
+    cdef int load_char(self, uint32_t char_code, int32_t load_flags):
+        if self._face == NULL:
+            raise ValueError("Font face not loaded")
+            
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
+        if freetype.FT_Load_Char(self._face, char_code, load_flags):
+            return -1
+        return 0
+    
+    cdef int render_glyph(self, freetype.FT_Render_Mode render_mode):
+        if self._face == NULL:
+            raise ValueError("Font face not loaded")
+            
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
+        if freetype.FT_Render_Glyph(self._face.glyph, render_mode):
+            return -1
+        return 0
+    
+    cdef tuple get_kerning(self, uint32_t left_glyph, uint32_t right_glyph, 
+                          uint32_t kern_mode):
+        cdef freetype.FT_Vector kerning
+        cdef unique_lock[DCGMutex] m
+        
+        lock_gil_friendly(m, freetype_mutex)
+        if freetype.FT_Get_Kerning(self._face, left_glyph, right_glyph, kern_mode, &kerning):
+            return (0, 0)
+        return (kerning.x, kerning.y)
+
 
 cdef class FontRenderer:
     """
@@ -1402,7 +1527,7 @@ cdef class FontRenderer:
     def __init__(self, path):
         if not os.path.exists(path):
             raise ValueError(f"Font file {path} not found")
-        self._face = freetype.Face(path)
+        self._face = _Face(path)
         if self._face is None:
             raise ValueError("Failed to open the font")
 
@@ -1413,9 +1538,13 @@ cdef class FontRenderer:
                              str hinter="light",
                              allow_color=True) -> tuple[memoryview, int]:
         """Render text string to an array and return the array and bitmap_top"""
-        self._face.set_pixel_sizes(0, <int>round(target_size))
+        cdef _Face face = <_Face>self._face
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
 
-        load_flags = get_freetype_load_flags(hinter, allow_color)
+        face.set_pixel_sizes(0, <int>round(target_size))
+
+        cdef int32_t load_flags = get_freetype_load_flags(hinter, allow_color)
 
         # Calculate rough dimensions for initial buffer
         rough_width, rough_height, _, _ = self.estimate_text_dimensions(
@@ -1429,6 +1558,7 @@ cdef class FontRenderer:
         
         # Create output image array with margins
         image = cython_array(shape=(height, width, 4), itemsize=1, format='B', mode='c', allocate_buffer=True)
+        cdef unsigned char[:,:,::1] image_view = image
         
         # Track actual bounds with local variables
         cdef double min_x = INFINITY
@@ -1440,32 +1570,51 @@ cdef class FontRenderer:
         # Render each character
         cdef double x_offset = margin
         cdef double y_offset = margin
-        previous_char = None
-        kerning_mode = freetype.FT_KERNING_DEFAULT if align_to_pixels else freetype.FT_KERNING_UNFITTED
+
+        cdef uint32_t previous_char = 0
+        cdef uint32_t previous_index = 0
+        cdef uint32_t glyph_index = 0
+        cdef int kerning_mode = freetype.FT_KERNING_DEFAULT if align_to_pixels else freetype.FT_KERNING_UNFITTED
+        cdef tuple kerning_values
+        cdef freetype.FT_GlyphSlot glyph
+        cdef freetype.FT_Bitmap bitmap
+        
         
         for char in text:
-            self._face.load_char(char, flags=load_flags)
-            glyph = self._face.glyph
-            bitmap = glyph.bitmap
+            char_code = ord(char)
             
-            if enable_kerning and previous_char is not None:
-                kerning = self._face.get_kerning(previous_char, char, mode=kerning_mode)
-                x_offset += kerning.x / 64.0
+            # Load glyph
+            if face.load_char(char_code, load_flags) < 0:
+                continue
+                
+            glyph_index = freetype.FT_Get_Char_Index(face._face, char_code)
+
+            # Apply kerning if enabled
+            if enable_kerning and previous_index != 0 and (face._face.face_flags & freetype.FT_FACE_FLAG_KERNING):
+                kerning_values = face.get_kerning(previous_index, glyph_index, kerning_mode)
+                x_offset += kerning_values[0] / 64.0
+
+            # Get glyph metrics
+            glyph = face._face.glyph
 
             # Update bounds
             min_x = min(min_x, x_offset)
-            max_x = max(max_x, x_offset + bitmap.width)
-            min_y = min(min_y, y_offset + bitmap.rows - glyph.bitmap_top)
-            max_y = max(max_y, y_offset + bitmap.rows)
+            max_x = max(max_x, x_offset + glyph.bitmap.width)
+            min_y = min(min_y, y_offset + glyph.bitmap.rows - glyph.bitmap_top)
+            max_y = max(max_y, y_offset + glyph.bitmap.rows)
             max_top = max(max_top, glyph.bitmap_top)
 
-            self._render_glyph_to_image(glyph, image, x_offset, y_offset, align_to_pixels)
+            # Render the glyph
+            self._render_glyph_to_image(<void*>glyph, image_view, x_offset + glyph.bitmap_left, y_offset, align_to_pixels)
 
+            # Advance position
             if align_to_pixels:
-                x_offset += round(glyph.advance.x/64)
+                x_offset += round(glyph.advance.x / 64.0)
             else:
-                x_offset += glyph.linearHoriAdvance/65536
-            previous_char = char
+                x_offset += glyph.linearHoriAdvance / 65536.0
+                
+            previous_index = glyph_index
+            previous_char = char_code
 
         # Handle empty text
         if min_x == INFINITY:
@@ -1482,65 +1631,160 @@ cdef class FontRenderer:
 
     def estimate_text_dimensions(self, text: str, load_flags : int, align_to_pixels: bool, enable_kerning: bool):
         """Calculate the dimensions needed for the text"""
-        width, max_top, max_bottom = 0, 0, 0
-        previous_char = None
-        kerning_mode = freetype.FT_KERNING_DEFAULT if align_to_pixels else freetype.FT_KERNING_UNFITTED
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
+        cdef _Face face = self._face
+        cdef double width = 0
+        cdef int max_top = 0
+        cdef int max_bottom = 0
+        cdef uint32_t previous_char = 0
+        cdef uint32_t previous_index = 0
+        cdef uint32_t glyph_index = 0
+        cdef int kerning_mode = freetype.FT_KERNING_DEFAULT if align_to_pixels else freetype.FT_KERNING_UNFITTED
+        cdef tuple kerning_values
+
+        cdef freetype.FT_GlyphSlot glyph
         
         for char in text:
-            self._face.load_char(char, flags=load_flags)
-            glyph = self._face.glyph
-            bitmap = glyph.bitmap
-            top = glyph.bitmap_top
-            bottom = bitmap.rows - top
-            max_top = max(max_top, top)
-            max_bottom = max(max_bottom, bottom)
+            char_code = ord(char)
             
-            if align_to_pixels:
-                width += glyph.advance.x/64
-            else:
-                width += glyph.linearHoriAdvance/65536
+            # Load character
+            if face.load_char(char_code, load_flags) < 0:
+                continue
                 
-            if enable_kerning and previous_char is not None:
-                kerning = self._face.get_kerning(previous_char, char, mode=kerning_mode)
-                width += kerning.x / 64.0
-            previous_char = char
+            glyph_index = freetype.FT_Get_Char_Index(face._face, char_code)
+            
+            # Apply kerning if enabled
+            if enable_kerning and previous_index != 0 and (face._face.face_flags & freetype.FT_FACE_FLAG_KERNING):
+                kerning_values = face.get_kerning(previous_index, glyph_index, kerning_mode)
+                width += kerning_values[0] / 64.0
+            
+            # Get glyph metrics
+            glyph = face._face.glyph
+
+            max_top = max(max_top, <int>glyph.bitmap_top)
+            max_bottom = max(max_bottom, <int>glyph.bitmap.rows - <int>glyph.bitmap_top)
+
+            # Update width
+            if align_to_pixels:
+                width += glyph.advance.x / 64.0
+            else:
+                width += glyph.linearHoriAdvance / 65536.0
+                
+            previous_index = glyph_index
+            previous_char = char_code
             
         return width, max_top + max_bottom, max_top, max_bottom
 
-    cdef void _render_glyph_to_image(self, glyph, unsigned char[:,:,::1] image, double x_offset, double y_offset, bint align_to_pixels):
+    cdef void _render_glyph_to_image(self,
+                                     void* glyph_p,
+                                     unsigned char[:,:,::1] image,
+                                     double x_offset,
+                                     double y_offset,
+                                     bint align_to_pixels):
         """Render a single glyph to the image array"""
+        cdef freetype.FT_GlyphSlot glyph = <freetype.FT_GlyphSlot>glyph_p
+        cdef freetype.FT_Vector subpixel_offset
+        cdef freetype.FT_Glyph ft_glyph
+        cdef freetype.FT_BitmapGlyph bitmap_glyph
+        cdef _Face face = <_Face>self._face
+
+
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
+
         if glyph.format == freetype.FT_GLYPH_FORMAT_BITMAP:
-            bitmap = glyph.bitmap
-            self._copy_bitmap_to_image(bitmap, image, x_offset, y_offset)
+            self._copy_bitmap_to_image(
+                <unsigned char*>glyph.bitmap.buffer,
+                glyph.bitmap.rows,
+                glyph.bitmap.width,
+                glyph.bitmap.pitch,
+                glyph.bitmap.pixel_mode,
+                glyph.bitmap_top,
+                image,
+                x_offset,
+                y_offset
+            )
         else:
             # Handle non-bitmap glyphs
             if not align_to_pixels:
-                subpixel_offset = freetype.FT_Vector(
-                    int((x_offset - float(int(x_offset))) * 64), 0
-                )
-                gglyph = glyph.get_glyph()
-                bglyph = gglyph.to_bitmap(freetype.FT_RENDER_MODE_NORMAL, subpixel_offset, True)
-                self._copy_bitmap_to_image(bglyph.bitmap, image, x_offset, y_offset)
+                subpixel_offset.x = <freetype.FT_Pos>(<int>((x_offset - <int>x_offset) * 64.0))
+                subpixel_offset.y = 0
 
-    cdef void _copy_bitmap_to_image(self, bitmap, unsigned char[:,:,::1] image, double x_offset, double y_offset):
+                if freetype.FT_Get_Glyph(glyph, &ft_glyph):
+                    return  # Failed to get glyph
+                    
+                # Convert to bitmap with the subpixel offset
+                if freetype.FT_Glyph_To_Bitmap(&ft_glyph, 
+                                            freetype.FT_RENDER_MODE_NORMAL,
+                                            &subpixel_offset, 1):
+                    freetype.FT_Done_Glyph(ft_glyph)
+                    return  # Failed to convert to bitmap
+
+                # Cast to bitmap glyph
+                bitmap_glyph = <freetype.FT_BitmapGlyph>ft_glyph
+
+                # Copy bitmap data from bitmap glyph
+                self._copy_bitmap_to_image(
+                    <unsigned char*>bitmap_glyph.bitmap.buffer,
+                    bitmap_glyph.bitmap.rows,
+                    bitmap_glyph.bitmap.width,
+                    bitmap_glyph.bitmap.pitch,
+                    bitmap_glyph.bitmap.pixel_mode,
+                    bitmap_glyph.top,
+                    image,
+                    <int>x_offset,
+                    y_offset
+                )
+
+                # Free the glyph
+                freetype.FT_Done_Glyph(ft_glyph)
+            else:
+                # Render the glyph
+                if face.render_glyph(freetype.FT_RENDER_MODE_NORMAL) < 0:
+                    return
+                    
+                # Copy bitmap data from rendered glyph
+                self._copy_bitmap_to_image(
+                    <unsigned char*>glyph.bitmap.buffer,
+                    glyph.bitmap.rows,
+                    glyph.bitmap.width,
+                    glyph.bitmap.pitch,
+                    glyph.bitmap.pixel_mode,
+                    glyph.bitmap_top,
+                    image,
+                    x_offset,
+                    y_offset
+                )
+
+    cdef void _copy_bitmap_to_image(self, 
+                               unsigned char* buffer_ptr, 
+                               int num_rows, 
+                               int num_cols, 
+                               int pitch, 
+                               int pixel_mode, 
+                               int bitmap_top, 
+                               unsigned char[:,:,::1] image, 
+                               double x_offset, 
+                               double y_offset):
         """Copy bitmap data to the image array"""
         cdef int x, y
         cdef int i_x_offset = <int>x_offset
         cdef int i_y_offset = <int>y_offset
-        cdef unsigned char* buffer_ptr = <unsigned char*>bitmap.buffer
-        cdef int num_rows = bitmap.rows
-        cdef int num_cols = bitmap.width
-        cdef int pitch = bitmap.pitch
+        cdef unsigned char value
 
         for y in range(num_rows):
             for x in range(num_cols):
-                if bitmap.pixel_mode == freetype.FT_PIXEL_MODE_GRAY:
-                    image[y + i_y_offset, i_x_offset + x, 3] = buffer_ptr[y * pitch + x]
-                elif bitmap.pixel_mode == freetype.FT_PIXEL_MODE_BGRA:
-                    image[y + i_y_offset, i_x_offset + x, 0] = buffer_ptr[y * pitch + x * 4 + 2]  # R
-                    image[y + i_y_offset, i_x_offset + x, 1] = buffer_ptr[y * pitch + x * 4 + 1]  # G 
-                    image[y + i_y_offset, i_x_offset + x, 2] = buffer_ptr[y * pitch + x * 4]      # B
-                    image[y + i_y_offset, i_x_offset + x, 3] = buffer_ptr[y * pitch + x * 4 + 3]  # A
+                if pixel_mode == freetype.FT_PIXEL_MODE_GRAY:
+                    image[y + i_y_offset - bitmap_top, i_x_offset + x, 3] = buffer_ptr[y * pitch + x]
+                elif pixel_mode == freetype.FT_PIXEL_MODE_BGRA:
+                    image[y + i_y_offset - bitmap_top, i_x_offset + x, 0] = buffer_ptr[y * pitch + x * 4 + 2]  # R
+                    image[y + i_y_offset - bitmap_top, i_x_offset + x, 1] = buffer_ptr[y * pitch + x * 4 + 1]  # G
+                    image[y + i_y_offset - bitmap_top, i_x_offset + x, 2] = buffer_ptr[y * pitch + x * 4]      # B
+                    image[y + i_y_offset - bitmap_top, i_x_offset + x, 3] = buffer_ptr[y * pitch + x * 4 + 3]  # A
+                elif pixel_mode == freetype.FT_PIXEL_MODE_MONO:
+                    value = 255 if (buffer_ptr[y * pitch + (x >> 3)] & (1 << (7 - (x & 7)))) else 0
+                    image[y + i_y_offset - bitmap_top, i_x_offset + x, 3] = value
 
     cpdef GlyphSet render_glyph_set(self,
                                     target_pixel_height=None,
@@ -1587,6 +1831,9 @@ cdef class FontRenderer:
         GlyphSet object containing the rendered characters.
 
         """
+        cdef _Face face = <_Face>self._face
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, freetype_mutex)
 
         # Indicate the target scale
         if target_pixel_height is not None:
@@ -1594,43 +1841,49 @@ cdef class FontRenderer:
             #req = freetype.raw.FT_Size_Re
             #freetype.raw.FT_Request_Size(face, req)
         else:
-            self._face.set_pixel_sizes(0, int(round(target_size)))
+            face.set_pixel_sizes(0, int(round(target_size)))
 
-        load_flags = get_freetype_load_flags(hinter, allow_color)
+        cdef int32_t load_flags = get_freetype_load_flags(hinter, allow_color)
 
         # Track max dimensions while loading glyphs
-        max_bitmap_top = 0
-        max_bitmap_bot = 0
+        cdef int max_bitmap_top = 0
+        cdef int max_bitmap_bot = 0
 
         cdef const unsigned char* buffer_view
         cdef unsigned char[:,::1] image_view
         cdef unsigned char[:,:,::1] color_image_view
         cdef int32_t rows, cols, pitch, i, j, idx
-        cdef uintptr_t buffer_ptr
+        cdef unsigned char* buffer_ptr
+        cdef freetype.FT_GlyphSlot glyph
+        cdef freetype.FT_Render_Mode render_mode
+
+        cdef list chars_data = face.get_chars()
         
         # First pass - collect all glyphs and find dimensions
         glyphs_data = []  # Store temporary glyph data
-        for unicode_key, glyph_index in self._face.get_chars():
+        for unicode_key, glyph_index in chars_data:
             if (restrict_to is not None) and (unicode_key not in restrict_to):
                 continue
                 
             # Render at target scale
-            self._face.load_glyph(glyph_index, flags=load_flags)
-            glyph : freetype.GlyphSlot = self._face.glyph
+            if face.load_glyph(glyph_index, load_flags) < 0:
+                continue
             
             # Apply appropriate rendering mode
             if hinter == "monochrome":
-                glyph.render(freetype.FT_RENDER_MODES["FT_RENDER_MODE_MONO"])
+                render_mode = freetype.FT_RENDER_MODE_MONO
             elif hinter == "light":
-                glyph.render(freetype.FT_RENDER_MODES["FT_RENDER_MODE_LIGHT"])
+                render_mode = freetype.FT_RENDER_MODE_LIGHT
             else:
-                glyph.render(freetype.FT_RENDER_MODES["FT_RENDER_MODE_NORMAL"])
-
-            bitmap : freetype.Bitmap = glyph.bitmap
-            metric : freetype.FT_Glyph_Metrics = glyph.metrics
-            rows = bitmap.rows
-            cols = bitmap.width
-            pitch = bitmap.pitch
+                render_mode = freetype.FT_RENDER_MODE_NORMAL
+                
+            if face.render_glyph(render_mode) < 0:
+                continue
+            
+            glyph = face._face.glyph
+            rows = glyph.bitmap.rows
+            cols = glyph.bitmap.width
+            pitch = glyph.bitmap.pitch
 
             # Calculate advance (positioning relative to the next glyph)
 
@@ -1640,13 +1893,14 @@ cdef class FontRenderer:
             # our origin and the next one
             # Currently the backend does not support rounding the advance when rendering
             # the font (which would enable best support for lsb and rsb), thus we pre-round.
-            advance = (glyph._FT_GlyphSlot.contents.lsb_delta - 
-                      glyph._FT_GlyphSlot.contents.rsb_delta + 
-                      metric.horiAdvance) / 64.
+            advance = (glyph.lsb_delta - 
+                      glyph.rsb_delta + 
+                      glyph.metrics.horiAdvance) / 64.
             advance = round(advance)
             
             bitmap_top = glyph.bitmap_top
             bitmap_left = glyph.bitmap_left
+            buffer_ptr = <unsigned char*>glyph.bitmap.buffer
 
             # Create image array based on bitmap mode
             if rows == 0 or cols == 0:
@@ -1656,46 +1910,40 @@ cdef class FontRenderer:
                 image_view[0,0] = 0  # Empty pixel
                 bitmap_top = 0
                 bitmap_left = 0
-            elif bitmap.pixel_mode == freetype.FT_PIXEL_MODE_MONO:
+            elif glyph.bitmap.pixel_mode == freetype.FT_PIXEL_MODE_MONO:
                 #image = 255*np.unpackbits(np.array(bitmap.buffer, dtype=np.uint8), 
                 #                        count=bitmap.rows * 8*bitmap.pitch).reshape([bitmap.rows, 8*bitmap.pitch])
                 #image = image[:, :bitmap.width, np.newaxis]
-                buffer_ptr = <uintptr_t>ctypes.addressof(bitmap._FT_Bitmap.buffer.contents)
-                buffer_view = <unsigned char*>buffer_ptr
                 image = cython_array(shape=(rows, cols, 1), itemsize=1, format='B', mode='c', allocate_buffer=True)
                 image_view = image[:,:,0]
         
                 # Unpack bits
                 for i in range(rows):
                     for j in range(cols):
-                        image_view[i,j] = 255 if (buffer_view[i * pitch + (j >> 3)] & (1 << (7 - (j & 7)))) else 0
-            elif bitmap.pixel_mode == freetype.FT_PIXEL_MODE_GRAY:
+                        image_view[i,j] = 255 if (buffer_ptr[i * pitch + (j >> 3)] & (1 << (7 - (j & 7)))) else 0
+            elif glyph.bitmap.pixel_mode == freetype.FT_PIXEL_MODE_GRAY:
                 #image = np.array(bitmap.buffer, dtype=np.uint8).reshape([bitmap.rows, bitmap.pitch])
                 #image = image[:, :bitmap.width, np.newaxis]
-                buffer_ptr = <uintptr_t>ctypes.addressof(bitmap._FT_Bitmap.buffer.contents)
-                buffer_view = <unsigned char*>buffer_ptr
                 image = cython_array(shape=(rows, cols, 1), itemsize=1, format='B', mode='c', allocate_buffer=True)
                 image_view = image[:,:,0]
         
                 for i in range(rows):
                     for j in range(cols):
-                        image_view[i,j] = buffer_view[i * pitch + j]
-            elif bitmap.pixel_mode == freetype.FT_PIXEL_MODE_BGRA:
+                        image_view[i,j] = buffer_ptr[i * pitch + j]
+            elif glyph.bitmap.pixel_mode == freetype.FT_PIXEL_MODE_BGRA:
                 #image = np.array(bitmap.buffer, dtype=np.uint8).reshape([bitmap.rows, bitmap.pitch//4, 4])
                 #image = image[:, :bitmap.width, :]
                 #image[:, :, [0, 2]] = image[:, :, [2, 0]]  # swap B and R
-                buffer_ptr = <uintptr_t>ctypes.addressof(bitmap._FT_Bitmap.buffer.contents)
-                buffer_view = <unsigned char*>buffer_ptr
                 image = cython_array(shape=(rows, cols, 4), itemsize=1, format='B', mode='c', allocate_buffer=True)
                 color_image_view = image
                 # Copy and swap R/B channels directly
                 for i in range(rows):
                     for j in range(cols):
                         idx = i * pitch + j * 4
-                        color_image_view[i,j,0] = buffer_view[idx + 2]  # R
-                        color_image_view[i,j,1] = buffer_view[idx + 1]  # G
-                        color_image_view[i,j,2] = buffer_view[idx]      # B
-                        color_image_view[i,j,3] = buffer_view[idx + 3]  # A
+                        color_image_view[i,j,0] = buffer_ptr[idx + 2]  # R
+                        color_image_view[i,j,1] = buffer_ptr[idx + 1]  # G
+                        color_image_view[i,j,2] = buffer_ptr[idx]      # B
+                        color_image_view[i,j,3] = buffer_ptr[idx + 3]  # A
             else:
                 continue  # Skip unsupported bitmap modes
 

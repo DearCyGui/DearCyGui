@@ -369,9 +369,6 @@ def setup_package():
                 'Topic :: Multimedia :: Graphics',
             ],
         packages=['dearcygui', 'dearcygui.docs', 'dearcygui.utils', 'dearcygui.backends', 'dearcygui.wrapper'],
-        install_requires=[
-          'freetype-py'
-        ],
         ext_modules = cythonize(extensions, compiler_directives={'language_level' : "3", 'freethreading_compatible': True}, nthreads=4),
         extras_require={
             'svg': ['skia-python'],  # For SVG rendering support in utils.image
