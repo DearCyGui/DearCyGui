@@ -338,7 +338,8 @@ cdef class Viewport(baseItem):
     ### public methods ###
     cdef void coordinate_to_screen(self, float *dst_p, const double[2] src_p) noexcept nogil
     cdef void screen_to_coordinate(self, double *dst_p, const float[2] src_p) noexcept nogil
-    cdef void ask_refresh_after(self, double monotonic) noexcept nogil # might refresh before, in which case you should call again
+    cdef void ask_refresh_after_target(self, double monotonic) noexcept nogil # might refresh before, in which case you should call again
+    cdef void ask_refresh_after_delta(self, double delta_monotonic) noexcept nogil # might refresh before, in which case you should call again
     cdef void force_present(self) noexcept nogil
     cdef Vec2 get_size(self) noexcept nogil
     cdef void *get_platform_window(self) noexcept nogil

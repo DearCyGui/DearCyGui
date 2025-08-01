@@ -1053,7 +1053,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
     // Activity: input activity. Needs to render to check impact
     // Needs refresh: if the content has likely changed and we must render and present
     SDL_Event event;
-    auto start_time = std::chrono::high_resolution_clock::now();
+    auto start_time = std::chrono::steady_clock::now();
     auto remaining_timeout = timeout_ms;
     bool user_requested_refresh = false;
     bool user_requested_rendering = false;
@@ -1073,7 +1073,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 break;
             if (SDL_WaitEventTimeout(&event, remaining_timeout)) {
                 // update the timeout for next iteration
-                auto current_time = std::chrono::high_resolution_clock::now();
+                auto current_time = std::chrono::steady_clock::now();
                 auto elapsed = current_time - start_time;
                 auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
                 remaining_timeout = timeout_ms - elapsed_ms;
@@ -1217,7 +1217,10 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 default:
                     if (event.type == UserEventType) {
                         // wake-up handling
-                        int64_t target_delay_ns = (int64_t)event.user.timestamp - (int64_t)SDL_GetTicksNS();
+                        auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                            std::chrono::steady_clock::now().time_since_epoch()
+                        ).count();
+                        int64_t target_delay_ns = (int64_t)event.user.timestamp - (int64_t)timestamp_ns;
                         int64_t target_delay_ms = target_delay_ns / 1000000;
                         if (target_delay_ms <= 0)
                             remaining_timeout = 0;
@@ -1354,7 +1357,10 @@ void SDLViewport::wakeRendering(uint64_t delay_ns, bool full_refresh) {
     SDL_Event user_event;
     user_event.type = UserEventType;
     user_event.user.windowID = SDL_GetWindowID(windowHandle);
-    user_event.user.timestamp = SDL_GetTicksNS() + delay_ns;
+    auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()
+    ).count();
+    user_event.user.timestamp = timestamp_ns + delay_ns;
     user_event.user.code = full_refresh ? 0 : 1; // 0 for full refresh, 1 for just rendering (may not submit)
     user_event.user.data1 = NULL;
     user_event.user.data2 = NULL;

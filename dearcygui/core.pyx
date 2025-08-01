@@ -4720,7 +4720,7 @@ cdef class Viewport(baseItem):
         cdef uint64_t delay_ns = <uint64_t>fmax(0, delay * 1e9)
         (<platformViewport*>self._platform).wakeRendering(delay_ns, full_refresh) # doesn't need any mutex
 
-    cdef void ask_refresh_after(self, double monotonic) noexcept nogil:
+    cdef void ask_refresh_after_target(self, double monotonic) noexcept nogil:
         """
         Called during draw to request that a new draw should
         occur when monotonic time is reached. The next draw might
@@ -4729,6 +4729,17 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         self._target_refresh_time = min(self._target_refresh_time, monotonic)
+
+    cdef void ask_refresh_after_delta(self, double delta_monotonic) noexcept nogil:
+        """
+        Called during draw to request that a new draw should
+        occur after delta_monotonic time is reached. The next draw might
+        still occur before the target, in which case, the function
+        should be called again.
+        """
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        cdef double monotonic = ctime.monotonic_ns() * 1e-9
+        self._target_refresh_time = min(self._target_refresh_time, monotonic + delta_monotonic)
 
     cdef void force_present(self) noexcept nogil:
         """

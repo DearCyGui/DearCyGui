@@ -286,15 +286,15 @@ cdef class DrawStream(dcg.DrawingList):
         if not(self._no_wake):
             if self._get_index_to_show() != self._last_index:
                 # We are running late
-                self.context.viewport.ask_refresh_after(0)
+                self.context.viewport.ask_refresh_after_target(0)
             elif self._time_modulus == 0.:
-                self.context.viewport.ask_refresh_after(self._expiry_times[index_to_show].first)
+                self.context.viewport.ask_refresh_after_target(self._expiry_times[index_to_show].first)
             else:
                 current_time = (<double>ctime.monotonic_ns())*1e-9
                 time_to_expiration = self._expiry_times[index_to_show].first - self._get_time_with_modulus()
                 if time_to_expiration < 0.:
                     time_to_expiration += self._time_modulus
-                self.context.viewport.ask_refresh_after(current_time + time_to_expiration)
+                self.context.viewport.ask_refresh_after_target(current_time + time_to_expiration)
 
         # Draw the child
         (<dcg.drawingItem>child).draw(draw_list)

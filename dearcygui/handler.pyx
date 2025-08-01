@@ -20,6 +20,7 @@ from cpython.sequence cimport PySequence_Check
 cimport cython
 from cython.operator cimport dereference
 from libc.string cimport strcmp
+from libcpp.cmath cimport fmax, fmin, fmod
 
 from .core cimport baseHandler, baseItem, lock_gil_friendly,\
     itemState, ensure_correct_im_context
@@ -1199,11 +1200,16 @@ cdef class KeyDownHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef imgui.ImGuiKeyData *key_info
-        if not(self._enabled):
+        cdef float duration
+        if not(self._enabled) or self._callback is None:
             return
         key_info = imgui.GetKeyData(<imgui.ImGuiKey>self._key)
-        if key_info.Down:
-            self.context.queue_callback_arg1key1float(self._callback, self, item, self._key, key_info.DownDuration)
+        if key_info.Down and self._callback is not None:
+            duration = fmax(<float>0., key_info.DownDuration) # In theory cannot be < 0, but lets be safe
+            with gil:
+                self.context.queue_callback(self._callback, self, item, (make_Key(self._key), duration))
+            # Repeat at least a KeyRepeatRate. User can get more using wake.
+            self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
 
 
 cdef class KeyPressHandler(baseHandler):
@@ -1258,10 +1264,22 @@ cdef class KeyPressHandler(baseHandler):
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        if not(self._enabled):
+        cdef imgui.ImGuiKeyData *key_info
+        cdef float duration
+        if not(self._enabled) or self._callback is None:
             return
-        if imgui.IsKeyPressed(<imgui.ImGuiKey>self._key, self._repeat):
-            self.context.queue_callback_arg1key(self._callback, self, item, self._key)
+        key_info = imgui.GetKeyData(<imgui.ImGuiKey>self._key)
+        if key_info.Down and self._callback is not None:
+            duration = fmax(<float>0., key_info.DownDuration) # In theory cannot be < 0, but lets be safe
+            if imgui.IsKeyPressed(<imgui.ImGuiKey>self._key, self._repeat):
+                self.context.queue_callback_arg1key(self._callback, self, item, self._key)
+            if self._repeat:
+                if duration < imgui.GetIO().KeyRepeatDelay:
+                    self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatDelay - duration)
+                elif imgui.GetIO().KeyRepeatRate > 0:
+                    self.context.viewport.ask_refresh_after_delta(
+                        fmod(duration-imgui.GetIO().KeyRepeatDelay, imgui.GetIO().KeyRepeatRate)
+                    )
 
 
 cdef class KeyReleaseHandler(baseHandler):
@@ -1354,7 +1372,7 @@ cdef class AnyKeyPressHandler(baseHandler):
     cdef bint check_state(self, baseItem item) noexcept nogil:
         # Check if any key is pressed
         cdef int32_t key
-        for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
+        for key in range(<int32_t>imgui.ImGuiKey_NamedKey_BEGIN, <int32_t>imgui.ImGuiKey_NamedKey_END):
             if imgui.IsKeyPressed(<imgui.ImGuiKey>key, self._repeat):
                 return True
         return False
@@ -1365,10 +1383,12 @@ cdef class AnyKeyPressHandler(baseHandler):
             return
             
         cdef int32_t key, i
+        cdef imgui.ImGuiKeyData *key_info
+        cdef float duration, delay
         
         # Clear previous keys and collect all pressed keys
         self._keys_vector.clear()
-        for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
+        for key in range(<int32_t>imgui.ImGuiKey_NamedKey_BEGIN, <int32_t>imgui.ImGuiKey_NamedKey_END):
             if imgui.IsKeyPressed(<imgui.ImGuiKey>key, self._repeat):
                 self._keys_vector.push_back(key)
 
@@ -1381,6 +1401,17 @@ cdef class AnyKeyPressHandler(baseHandler):
                     self,
                     item,
                     build_keys_tuple(self._keys_vector))
+            delay = imgui.GetIO().KeyRepeatDelay
+            for i in range(<int32_t>self._keys_vector.size()):
+                key_info = imgui.GetKeyData(<imgui.ImGuiKey>self._keys_vector[i])
+                duration = fmax(<float>0., key_info.DownDuration) # In theory cannot be < 0, but lets be safe
+                if duration < imgui.GetIO().KeyRepeatDelay:
+                    delay = fmin(delay, imgui.GetIO().KeyRepeatDelay - duration)
+                elif imgui.GetIO().KeyRepeatRate > 0:
+                    delay = fmin(delay, fmod(duration-imgui.GetIO().KeyRepeatDelay, imgui.GetIO().KeyRepeatRate))
+            # Request a refresh to continue sending frequent callbacks while keys are down, even if the user
+            # doesn't call wake.
+            self.context.viewport.ask_refresh_after_delta(delay)
 
 
 cdef class AnyKeyReleaseHandler(baseHandler):
@@ -1482,6 +1513,9 @@ cdef class AnyKeyDownHandler(baseHandler):
                     self,
                     item,
                     build_keys_durations_tuple(self._keys_vector, self._durations_vector))
+            # Request a refresh to continue sending frequent callbacks while keys are down, even if the user
+            # doesn't call wake.
+            self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
 
 
 cdef class MouseClickHandler(baseHandler):
@@ -1537,10 +1571,19 @@ cdef class MouseClickHandler(baseHandler):
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        if not(self._enabled):
+        if not(self._enabled) or self._callback is None:
             return
         if imgui.IsMouseClicked(<int>self._button, self._repeat):
             self.context.queue_callback_arg1button(self._callback, self, item, <int>self._button)
+        cdef float duration = imgui.GetIO().MouseDownDuration[<int>self._button]
+        if self._repeat and imgui.IsMouseDown(<int>self._button):
+            duration = fmax(0., duration)
+            if duration < imgui.GetIO().KeyRepeatDelay:
+                self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatDelay - duration)
+            elif imgui.GetIO().KeyRepeatRate > 0:
+                self.context.viewport.ask_refresh_after_delta(
+                    fmod(duration-imgui.GetIO().KeyRepeatDelay, imgui.GetIO().KeyRepeatRate)
+                )
 
 
 cdef class MouseDoubleClickHandler(baseHandler):
@@ -1625,6 +1668,8 @@ cdef class MouseDownHandler(baseHandler):
             return
         if imgui.IsMouseDown(<int>self._button):
             self.context.queue_callback_arg1button1float(self._callback, self, item, <int>self._button, imgui.GetIO().MouseDownDuration[<int>self._button])
+            # Refresh frequently even if the user doesn't call wake(). The user can get higher frequency using wake.
+            self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
 
 
 cdef class MouseDragHandler(baseHandler):
@@ -1683,7 +1728,7 @@ cdef class MouseDragHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef imgui.ImVec2 delta
-        if not(self._enabled):
+        if not(self._enabled) or self._callback is None:
             return
         if imgui.IsMouseDragging(<int>self._button, self._threshold):
             delta = imgui.GetMouseDragDelta(<int>self._button, self._threshold)
@@ -1957,6 +2002,21 @@ cdef class AnyMouseClickHandler(baseHandler):
                     item,
                     build_buttons_tuple(self._buttons_vector))
 
+        cdef float duration, delay
+        if self._repeat:
+            delay = imgui.GetIO().KeyRepeatDelay
+            for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
+                if not imgui.IsMouseDown(button):
+                    continue
+                duration = fmax(<float>0., imgui.GetIO().MouseDownDuration[<int>button]) # In theory cannot be < 0, but lets be safe
+                if duration < imgui.GetIO().KeyRepeatDelay:
+                    delay = fmin(delay, imgui.GetIO().KeyRepeatDelay - duration)
+                elif imgui.GetIO().KeyRepeatRate > 0:
+                    delay = fmin(delay, fmod(duration-imgui.GetIO().KeyRepeatDelay, imgui.GetIO().KeyRepeatRate))
+            # Request a refresh to continue sending frequent callbacks while keys are down, even if the user
+            # doesn't call wake.
+            self.context.viewport.ask_refresh_after_delta(delay)
+
 
 cdef class AnyMouseDoubleClickHandler(baseHandler):
     """
@@ -2087,6 +2147,9 @@ cdef class AnyMouseDownHandler(baseHandler):
                     self,
                     item,
                     build_buttons_durations_tuple(self._buttons_vector, self._durations_vector))
+            # Request a refresh to continue sending frequent callbacks while buttons are down, even if the user
+            # doesn't call wake.
+            self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
 
 
 cdef class DragDropSourceHandler(baseHandler):

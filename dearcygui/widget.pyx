@@ -1026,11 +1026,11 @@ cdef class Button(uiItem):
         if self._repeat:
             if self.state.cur.active != self.state.prev.active:
                 # Just clicked: prepare a check for press after the repeat delay
-                self.context.viewport.ask_refresh_after(imgui.GetIO().KeyRepeatDelay)
+                self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatDelay)
             elif self.state.cur.active:
                 # Still active: check if we are still pressed after the repeat delay
                 # Refresh frequently to spawn the activated events at the expected rate
-                self.context.viewport.ask_refresh_after(imgui.GetIO().KeyRepeatRate)
+                self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
         return activated
 
 
@@ -3946,18 +3946,15 @@ cdef class Tooltip(uiItem):
             """
             display_condition = False
 
-        cdef float current_time, remaining_delay
+        cdef float remaining_delay
         if display_condition and delay != 0:
             if delay < 0:
                 delay = imgui.GetStyle().HoverStationaryDelay
             if not(self.state.prev.rendered) and \
                imgui.GetCurrentContext().MouseStationaryTimer < delay:
                 display_condition = False # not yet time to show
-                current_time = (<double>monotonic_ns())*1e-9
                 remaining_delay = delay - imgui.GetCurrentContext().MouseStationaryTimer
-                self.context.viewport.ask_refresh_after(
-                    current_time + remaining_delay
-                )
+                self.context.viewport.ask_refresh_after_delta(remaining_delay)
 
         cdef bint was_visible = self.state.cur.rendered
         cdef Vec2 pos_w, pos_p, parent_size_backup
