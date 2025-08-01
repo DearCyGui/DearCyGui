@@ -73,7 +73,7 @@ cdef class Texture(baseItem):
         # plus we delay texture deletion for a few frames,
         # so it should be fine.
         if self.allocated_texture != NULL and self.context is not None \
-           and self.context.viewport is not None:
+           and self.context.viewport is not None and self.context.viewport._platform != NULL:
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
             try:
                 (<platformViewport*>self.context.viewport._platform).freeTexture(self.allocated_texture)

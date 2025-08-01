@@ -335,6 +335,9 @@ cdef class Viewport(baseItem):
     cdef int32_t _cursor # imgui.ImGuiMouseCursor
     cdef float _scale
     cdef double _target_refresh_time
+    cdef bint _kill_signal
+    cdef void* _imgui_context # imgui.ImGuiContext
+    cdef void* _implot_context # implot.ImPlotContext
     ### public methods ###
     cdef void coordinate_to_screen(self, float *dst_p, const double[2] src_p) noexcept nogil
     cdef void screen_to_coordinate(self, double *dst_p, const float[2] src_p) noexcept nogil

@@ -26,6 +26,7 @@ cimport cython
 from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer,\
     PyBuffer_Release, PyBUF_RECORDS_RO, PyBUF_CONTIG_RO
 from cpython.sequence cimport PySequence_Check
+from cpython.exc cimport PyErr_SetInterrupt
 
 from .backends.backend cimport SDLViewport, platformViewport, GLContext
 cimport dearcygui.backends.time as ctime
@@ -43,13 +44,14 @@ from .types cimport Vec2, child_type,\
     is_MouseCursor, make_MouseCursor, is_MouseButton, make_MouseButton
 from .wrapper cimport imgui, implot
 
+import atexit
 from concurrent.futures import Executor, ThreadPoolExecutor
 import os
 import time as python_time
 import traceback
 
 import warnings
-
+from weakref import ref as weak_ref
 
 """
 Each .so has its own current context. To be able to work
@@ -208,6 +210,9 @@ cdef void internal_close_callback(void *object) noexcept nogil:
         except Exception as e:
             print("An error occured in the viewport close callback", traceback.format_exc())
 
+cdef void internal_kill_callback(void *object) noexcept nogil:
+    (<Viewport>object)._kill_signal = True
+
 cdef void internal_drop_callback(void *object, int type, const char *data) noexcept nogil:
     with gil:
         try:
@@ -220,6 +225,12 @@ cdef void internal_render_callback(void *object) noexcept nogil:
 
 # Placeholder global where the last created Context is stored.
 C : Context = None
+
+def _clear_C():
+    global C
+    C = None
+
+atexit.register(_clear_C)
 
 # parent stack for the 'with' syntax
 cdef extern from * nogil:
@@ -316,25 +327,12 @@ cdef class Context:
         self.imgui_context = NULL
         self.implot_context = NULL
         self.viewport = Viewport(self)
-        imgui.IMGUI_CHECKVERSION()
-        self.imgui_context = imgui.CreateContext()
-        if self.imgui_context == NULL:
-            raise RuntimeError("Failed to create ImGui context")
-        self.implot_context = implot.CreateContext()
-        if self.implot_context == NULL:
-            raise RuntimeError("Failed to create ImPlot context")
+        # imgui and implot deallocation is handled by the viewport
+        # but for backward compatibility we have pointers to them
+        # in the context
+        self.imgui_context = self.viewport._imgui_context
+        self.implot_context = self.viewport._implot_context
         ensure_correct_im_context(self)
-
-    def __dealloc__(self):
-        """
-        Deallocate resources for Context.
-        """
-        self._started = True
-        ensure_correct_im_context(self)
-        if self.implot_context != NULL:
-            implot.DestroyContext(<implot.ImPlotContext*>self.implot_context)
-        if self.imgui_context != NULL:
-            imgui.DestroyContext(<imgui.ImGuiContext*>self.imgui_context)
 
     def __del__(self):
         """
@@ -347,10 +345,8 @@ cdef class Context:
             self.queue_callback_noarg(self._on_close_callback, self, self)
             self._started = False
 
-        #mvToolManager::Reset()
-        #ClearItemRegistry(*GContext->itemRegistry)
-        #if self._queue is not None and hasattr(self._queue, 'shutdown') and callable(self._queue.shutdown):
-        #    self._queue.shutdown(wait=False) # Commented because the queue can do it itself in its __del__
+        # Note: we don't call shutdown on the queue as multiple contexts can share
+        # the same queue
 
     def __reduce__(self):
         """
@@ -1692,6 +1688,10 @@ cdef class baseItem:
         while item is not None:
             result.append(item)
             item = item.prev_sibling
+        item = self.last_viewport_drawlist_child
+        while item is not None:
+            result.append(item)
+            item = item.prev_sibling
         item = self.last_widgets_child
         while item is not None:
             result.append(item)
@@ -1795,6 +1795,12 @@ cdef class baseItem:
                 break
             (<baseItem>child).detach_item()
             child = self.last_drawings_child
+        child = self.last_viewport_drawlist_child
+        while child is not None:
+            if already_attached.find((<baseItem>child).uuid) != already_attached.end():
+                break
+            (<baseItem>child).detach_item()
+            child = self.last_viewport_drawlist_child
         child = self.last_widgets_child
         while child is not None:
             if already_attached.find((<baseItem>child).uuid) != already_attached.end():
@@ -2290,6 +2296,8 @@ cdef class baseItem:
                     self.parent.last_tag_child = self.prev_sibling
                 elif self.parent.last_theme_child is self:
                     self.parent.last_theme_child = self.prev_sibling
+                elif self.parent.last_viewport_drawlist_child is self:
+                    self.parent.last_viewport_drawlist_child = self.prev_sibling
                 elif self.parent.last_widgets_child is self:
                     self.parent.last_widgets_child = self.prev_sibling
                 elif self.parent.last_window_child is self:
@@ -2350,6 +2358,8 @@ cdef class baseItem:
             (<baseItem>self.last_tag_child)._delete_and_siblings()
         if self.last_theme_child is not None:
             (<baseItem>self.last_theme_child)._delete_and_siblings()
+        if self.last_viewport_drawlist_child is not None:
+            (<baseItem>self.last_viewport_drawlist_child)._delete_and_siblings()
         if self.last_widgets_child is not None:
             (<baseItem>self.last_widgets_child)._delete_and_siblings()
         if self.last_window_child is not None:
@@ -2362,6 +2372,7 @@ cdef class baseItem:
         self.last_tab_child = None
         self.last_tag_child = None
         self.last_theme_child = None
+        self.last_viewport_drawlist_child = None
         self.last_widgets_child = None
         self.last_window_child = None
         # Note we don't free self.context, nor
@@ -2387,6 +2398,8 @@ cdef class baseItem:
             (<baseItem>self.last_tag_child)._delete_and_siblings()
         if self.last_theme_child is not None:
             (<baseItem>self.last_theme_child)._delete_and_siblings()
+        if self.last_viewport_drawlist_child is not None:
+            (<baseItem>self.last_viewport_drawlist_child)._delete_and_siblings()
         if self.last_widgets_child is not None:
             (<baseItem>self.last_widgets_child)._delete_and_siblings()
         if self.last_window_child is not None:
@@ -2405,6 +2418,7 @@ cdef class baseItem:
         self.last_tab_child = None
         self.last_tag_child = None
         self.last_theme_child = None
+        self.last_viewport_drawlist_child = None
         self.last_widgets_child = None
         self.last_window_child = None
 
@@ -2980,8 +2994,35 @@ cdef class ViewportMetrics:
         """
         return self.frame_count
 
+def _wake_viewport_on_exit(viewport_ref: weak_ref):
+    """
+    Wake and help clean the viewport if it is still alive (atexit)
+    """
+    viewport = viewport_ref()
+    #print("atexit:", viewport)
+    if viewport is None:
+        # The viewport has been deleted, nothing to do
+        return
+    try:
+        viewport.context.running = False
+    except:
+        pass
+    viewport.wake()
+    # This should help gc finish faster
+    viewport.delete_item()
+    viewport.font = None
+    viewport.theme = None
+    viewport.handlers = []
+
+
+
+    #print(gc.get_referrers(viewport), flush=True)
+    #print(gc.get_referrers(viewport.context), flush=True)
+    #viewport = None
+    #gc.collect()
+    #print(viewport_ref())
+
 @cython.final
-@cython.no_gc_clear
 cdef class Viewport(baseItem):
     """
     The viewport corresponds to the main item containing all the visuals.
@@ -3007,29 +3048,62 @@ cdef class Viewport(baseItem):
         self.p_state = &self.state
         self._cursor = imgui.ImGuiMouseCursor_Arrow
         self._scale = 1.
+        self._kill_signal = False
         self.global_scale = 1. # non-zero needed for AutoFont.
         self._platform = \
             SDLViewport.create(internal_render_callback,
                                internal_resize_callback,
                                internal_close_callback,
+                               internal_kill_callback,
                                internal_drop_callback,
                                <void*>self)
         if self._platform == NULL:
             raise RuntimeError("Failed to create the viewport")
+        imgui.IMGUI_CHECKVERSION()
+        self._imgui_context = imgui.CreateContext()
+        if self._imgui_context == NULL:
+            raise RuntimeError("Failed to create ImGui context")
+        self._implot_context = implot.CreateContext()
+        if self._implot_context == NULL:
+            raise RuntimeError("Failed to create ImPlot context")
+
+    #def __del__(self):
+    #    print("Viewport del", flush=True)
 
     def __dealloc__(self):
-        # NOTE: Called BEFORE the context is released.
+        #print("Viewport deallocating", flush=True)
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self._mutex_backend) # To not release while we render a frame
+        if self._implot_context == NULL and self._imgui_context == NULL and self._platform == NULL:
+            return
+        if self._imgui_context != NULL:
+            imgui.SetCurrentContext(<imgui.ImGuiContext*>self._imgui_context)
+        if self._implot_context != NULL:
+            implot.SetCurrentContext(<implot.ImPlotContext*>self._implot_context)
+
+        if self.context is not None:
+            m = unique_lock[DCGMutex](self.context.imgui_mutex, defer_lock_t())
+            if not m.try_lock():
+                warnings.warn("Internal lock error while releasing Viewport: imgui lock", RuntimeWarning, stacklevel=2)
+                return
+        m2 = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
+        if not m2.try_lock():
+            warnings.warn("Internal lock error while releasing Viewport: backend lock", RuntimeWarning, stacklevel=2)
+            return
+
         if self._platform != NULL:
-            ensure_correct_im_context(self.context)
             # Maybe just a warning ? Not sure how to solve this issue.
-            #if not (<platformViewport*>self._platform).checkPrimaryThread():
-            #    raise RuntimeError("Viewport deallocated from a different thread than the one it was created in")
-            (<platformViewport*>self._platform).cleanup()
+            if not (<platformViewport*>self._platform).checkPrimaryThread():
+                warnings.warn("Viewport deallocated from a different thread than the one it was created in. All resources won't be freed.", 
+                              RuntimeWarning, stacklevel=2)
+            else:
+                (<platformViewport*>self._platform).cleanup()
             self._platform = NULL
+        # imgui must be destroyed after the platform (initialize catches current imgui context)
+        if self._implot_context != NULL and self._imgui_context != NULL:
+            implot.DestroyContext(<implot.ImPlotContext*>self._implot_context)
+        if self._imgui_context != NULL:
+            imgui.DestroyContext(<imgui.ImGuiContext*>self._imgui_context)
 
     def initialize(self, **kwargs) -> None:
         """
@@ -3068,6 +3142,11 @@ cdef class Viewport(baseItem):
             self._font = AutoFont(self.context)
         self._initialized = True
         imgui.GetIO().IniFilename = NULL
+        # Atexit tends to run in the main thread but there is no
+        # real guarantee. If it runs in a different thread to the
+        # viewport, this will enable to avoid being hanged during
+        # exit
+        atexit.register(_wake_viewport_on_exit, weak_ref(self))
 
     cdef void __check_initialized(self):
         ensure_correct_im_context(self.context)
@@ -4496,6 +4575,8 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] backend_m = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
         lock_gil_friendly(self_m, self.mutex)
         self.__check_initialized()
+        if not self.context._started:
+            return False
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("wait_events must be called from the thread where the context was created")
         cdef bint has_events
@@ -4516,6 +4597,10 @@ cdef class Viewport(baseItem):
             has_events = (<platformViewport*>self._platform).processEvents(timeout_ms)
             if is_internal_timeout:
                 has_events = True # Either has_events was already True, or we meet internal timeout event
+        if self._kill_signal:
+            self._kill_signal = False
+            PyErr_SetInterrupt()
+            raise KeyboardInterrupt("Viewport killed by user")
         return has_events
 
     def render_frame(self) -> bool:
@@ -4541,6 +4626,8 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] backend_m = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
         lock_gil_friendly(self_m, self.mutex)
         self.__check_initialized()
+        if not self.context._started:
+            return False
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("render_frame must be called from the thread where the context was created")
         cdef double current_time_s, target_timeout_ms
@@ -4686,6 +4773,10 @@ cdef class Viewport(baseItem):
         self.delta_rendering = self.last_t_after_rendering - self.last_t_before_rendering
         self.delta_event_handling = self.last_t_before_rendering - self.last_t_before_event_handling
         self.frame_count += 1
+        if self._kill_signal:
+            self._kill_signal = False
+            PyErr_SetInterrupt()
+            raise KeyboardInterrupt("Viewport killed by user")
         return should_present
 
     def wake(self, double delay=0., bint full_refresh=True):
@@ -4823,7 +4914,14 @@ cdef class Callback:
             print(traceback.format_exc())
         except (KeyboardInterrupt, SystemExit) as e:
             if C is not None:
-                C._started = False
+                C.running = False
+            try:
+                source_item.context.running = False
+                source_item.context.viewport.wake()
+                if C is not source_item.context:
+                    C.viewport.wake()
+            except:
+                pass
             raise e
 
 

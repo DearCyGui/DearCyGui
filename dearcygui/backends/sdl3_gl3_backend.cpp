@@ -657,6 +657,7 @@ bool SDLViewport::updateStaticTexture(void* texture, unsigned width, unsigned he
 SDLViewport* SDLViewport::create(render_fun render,
                              on_resize_fun on_resize,
                              on_close_fun on_close,
+                             on_kill_fun on_kill,
                              on_drop_fun on_drop,
                              void* callback_data) {
     std::lock_guard<std::mutex> lock(sdlInitMutex);
@@ -673,6 +674,9 @@ SDLViewport* SDLViewport::create(render_fun render,
             SDL_ClearError();
             throw std::runtime_error(error_msg);
         }
+        // Prevent SDL from sending SDL_EVENT_QUIT when the last window closes
+        SDL_SetHint(SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0");
+
         sdlMainThreadId = SDL_GetCurrentThreadID();
         sdlInitialized = true;
         UserEventType = SDL_RegisterEvents(1);
@@ -685,6 +689,7 @@ SDLViewport* SDLViewport::create(render_fun render,
     viewport->renderCallback = render;
     viewport->resizeCallback = on_resize;
     viewport->closeCallback = on_close;
+    viewport->killCallback = on_kill;
     viewport->dropCallback = on_drop;
     viewport->callbackData = callback_data;
     
@@ -1181,6 +1186,9 @@ bool SDLViewport::processEvents(int timeout_ms) {
                     needsRefresh.store(true);
                     break;
                 case SDL_EVENT_QUIT:
+                    killCallback(callbackData);
+                    activityDetected.store(true);
+                    break;
                 case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     closeCallback(callbackData);
                     activityDetected.store(true);

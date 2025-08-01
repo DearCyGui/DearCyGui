@@ -10,6 +10,7 @@ cdef extern from "backend.h" nogil:
     ctypedef void (*on_resize_fun)(void*)
     ctypedef void (*on_close_fun)(void*)  
     ctypedef void (*render_fun)(void*)
+    ctypedef void (*on_kill_fun)(void*)
     ctypedef void (*on_drop_fun)(void*, int, const char*)
 
     cdef cppclass platformViewport:        
@@ -96,11 +97,12 @@ cdef extern from "backend.h" nogil:
         render_fun renderCallback
         on_resize_fun resizeCallback
         on_close_fun closeCallback
+        on_kill_fun killCallback
         on_drop_fun dropCallback
         void* callbackData
 
     cdef cppclass SDLViewport(platformViewport):
         @staticmethod
-        platformViewport* create(render_fun, on_resize_fun, on_close_fun, on_drop_fun, void*) except +
+        platformViewport* create(render_fun, on_resize_fun, on_close_fun, on_kill_fun, on_drop_fun, void*) except +
         void *getSDLWindowHandle()
 

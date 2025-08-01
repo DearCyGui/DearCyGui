@@ -12,6 +12,7 @@
 
 typedef void (*on_resize_fun)(void*);
 typedef void (*on_close_fun)(void*);
+typedef void (*on_kill_fun)(void*);
 typedef void (*render_fun)(void*);
 typedef void (*on_drop_fun)(void*, int, const char*);
 
@@ -239,6 +240,7 @@ protected:
     render_fun renderCallback;
     on_resize_fun resizeCallback;
     on_close_fun closeCallback;
+    on_kill_fun killCallback;
     on_drop_fun dropCallback;
     void* callbackData;
 
@@ -362,6 +364,7 @@ public:
     static SDLViewport* create(render_fun render,
                                on_resize_fun on_resize,
                                on_close_fun on_close,
+                               on_kill_fun on_kill,
                                on_drop_fun on_drop,
                                void* callback_data);
 
