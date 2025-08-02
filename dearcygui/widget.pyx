@@ -23,13 +23,14 @@ from libc.string cimport memcpy, memset
 from libcpp.cmath cimport trunc
 from libc.math cimport INFINITY
 
+from cpython.object cimport PyObject
 from cpython.sequence cimport PySequence_Check
 from cython.view cimport array as cython_array
 
 from .backends.time cimport monotonic_ns
 
 from .core cimport baseHandler, drawingItem, uiItem, \
-    lock_gil_friendly, clear_obj_vector, append_obj_vector, \
+    lock_gil_friendly, \
     draw_drawing_children, draw_menubar_children, \
     draw_ui_children, button_area, \
     draw_tab_children, Callback, ItemStateView, \
@@ -214,13 +215,7 @@ cdef class DrawInvisibleButton(drawingItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        result = []
-        cdef int32_t i
-        cdef baseHandler handler
-        for i in range(<int>self._handlers.size()):
-            handler = <baseHandler>self._handlers[i]
-            result.append(handler)
-        return result
+        return self._handlers_backing.copy() if self._handlers_backing is not None else[]
 
     @handlers.setter
     def handlers(self, value):
@@ -229,7 +224,8 @@ cdef class DrawInvisibleButton(drawingItem):
         cdef list items = []
         cdef int32_t i
         if value is None:
-            clear_obj_vector(self._handlers)
+            self._handlers.clear()
+            self._handlers_backing = None
             return
         if PySequence_Check(value) == 0:
             value = (value,)
@@ -240,8 +236,10 @@ cdef class DrawInvisibleButton(drawingItem):
             (<baseHandler>value[i]).check_bind(self)
             items.append(value[i])
         # Success: bind
-        clear_obj_vector(self._handlers)
-        append_obj_vector(self._handlers, items)
+        self._handlers.resize(len(items))
+        for i in range(len(items)):
+            self._handlers[i] = <PyObject*> items[i]
+        self._handlers_backing = items
 
     @property
     def no_input(self):

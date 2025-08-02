@@ -180,6 +180,7 @@ cdef class baseItem:
     cdef itemState* p_state # pointer to the itemState. set to NULL if the item doesn't have any.
     ### protected variables ###
     cdef DCGVector[PyObject*] _handlers # type baseHandler. Always empty if p_state is NULL.
+    cdef list _handlers_backing # until cython can support gc on vector, the references of _handlers
     ### private variables ###
     cdef int32_t _external_lock
     cdef object __weakref__

@@ -23,6 +23,7 @@ from libcpp.set cimport set as cpp_set
 from libcpp.string cimport string
 
 cimport cython
+from cpython.object cimport PyObject
 from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer,\
     PyBuffer_Release, PyBUF_RECORDS_RO, PyBUF_CONTIG_RO
 from cpython.sequence cimport PySequence_Check
@@ -1430,9 +1431,6 @@ cdef class baseItem:
         """
         for (key, value) in (<dict>kwargs).items():
             setattr(self, key, value)
-
-    def __dealloc__(self):
-        clear_obj_vector(self._handlers)
 
     def __reduce__(self) -> tuple:
         """
@@ -3930,13 +3928,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        result = []
-        cdef int32_t i
-        cdef baseHandler handler
-        for i in range(<int>self._handlers.size()):
-            handler = <baseHandler>self._handlers[i]
-            result.append(handler)
-        return result
+        return self._handlers_backing.copy() if self._handlers_backing is not None else []
 
     @handlers.setter
     def handlers(self, value):
@@ -3945,7 +3937,8 @@ cdef class Viewport(baseItem):
         cdef list items = []
         cdef int32_t i
         if value is None:
-            clear_obj_vector(self._handlers)
+            self._handlers.clear()
+            self._handlers_backing = None
             return
         if PySequence_Check(value) == 0:
             value = (value,)
@@ -3956,8 +3949,10 @@ cdef class Viewport(baseItem):
             (<baseHandler>value[i]).check_bind(self)
             items.append(value[i])
         # Success: bind
-        clear_obj_vector(self._handlers)
-        append_obj_vector(self._handlers, items)
+        self._handlers.resize(len(items))
+        for i in range(len(items)):
+            self._handlers[i] = <PyObject*>items[i]
+        self._handlers_backing = items
 
     @property
     def cursor(self):
@@ -6701,13 +6696,7 @@ cdef class uiItem(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        result = []
-        cdef int32_t i
-        cdef baseHandler handler
-        for i in range(<int>self._handlers.size()):
-            handler = <baseHandler>self._handlers[i]
-            result.append(handler)
-        return result
+        return self._handlers_backing.copy() if self._handlers_backing is not None else []
 
     @handlers.setter
     def handlers(self, value):
@@ -6716,7 +6705,8 @@ cdef class uiItem(baseItem):
         cdef list items = []
         cdef int32_t i
         if value is None:
-            clear_obj_vector(self._handlers)
+            self._handlers.clear()
+            self._handlers_backing = None
             return
         if PySequence_Check(value) == 0:
             value = (value,)
@@ -6727,8 +6717,10 @@ cdef class uiItem(baseItem):
             (<baseHandler>value[i]).check_bind(self)
             items.append(value[i])
         # Success: bind
-        clear_obj_vector(self._handlers)
-        append_obj_vector(self._handlers, items)
+        self._handlers.resize(len(items))
+        for i in range(len(items)):
+            self._handlers[i] = <PyObject*>items[i]
+        self._handlers_backing = items
 
     @property
     def theme(self):
