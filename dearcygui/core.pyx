@@ -23,6 +23,7 @@ from libcpp.set cimport set as cpp_set
 from libcpp.string cimport string
 
 cimport cython
+#from cpython.ref cimport Py_REFCNT
 from cpython.object cimport PyObject
 from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer,\
     PyBuffer_Release, PyBUF_RECORDS_RO, PyBUF_CONTIG_RO
@@ -53,7 +54,8 @@ import traceback
 
 import warnings
 from weakref import ref as weak_ref
-
+#import gc
+#import sys
 """
 Each .so has its own current context. To be able to work
 with various .so and contexts, we must ensure the correct
@@ -206,6 +208,7 @@ cdef void internal_resize_callback(void *object) noexcept nogil:
 
 cdef void internal_close_callback(void *object) noexcept nogil:
     with gil:
+        #print("Close callback called", flush=True)
         try:
             (<Viewport>object).__on_close()
         except Exception as e:
@@ -339,6 +342,7 @@ cdef class Context:
         """
         Destructor for Context.
         """
+        #print("Context destructor called", flush=True)
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if self._on_close_callback is not None:
@@ -3013,10 +3017,16 @@ def _wake_viewport_on_exit(viewport_ref: weak_ref):
     viewport.handlers = []
 
 
-
+    #gc.collect()
     #print(gc.get_referrers(viewport), flush=True)
     #print(gc.get_referrers(viewport.context), flush=True)
+    #print(gc.get_referents(viewport), flush=True)
+    #print(gc.get_referents(viewport.context), flush=True)
+    #print(Py_REFCNT(viewport.context), flush=True)
+    #print(Py_REFCNT(viewport), flush=True)
     #viewport = None
+    #gc.collect()
+    #gc.collect()
     #gc.collect()
     #print(viewport_ref())
 
@@ -3072,12 +3082,9 @@ cdef class Viewport(baseItem):
         #print("Viewport deallocating", flush=True)
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
+
         if self._implot_context == NULL and self._imgui_context == NULL and self._platform == NULL:
             return
-        if self._imgui_context != NULL:
-            imgui.SetCurrentContext(<imgui.ImGuiContext*>self._imgui_context)
-        if self._implot_context != NULL:
-            implot.SetCurrentContext(<implot.ImPlotContext*>self._implot_context)
 
         if self.context is not None:
             m = unique_lock[DCGMutex](self.context.imgui_mutex, defer_lock_t())
@@ -3088,6 +3095,11 @@ cdef class Viewport(baseItem):
         if not m2.try_lock():
             warnings.warn("Internal lock error while releasing Viewport: backend lock", RuntimeWarning, stacklevel=2)
             return
+
+        if self._imgui_context != NULL:
+            imgui.SetCurrentContext(<imgui.ImGuiContext*>self._imgui_context)
+        if self._implot_context != NULL:
+            implot.SetCurrentContext(<implot.ImPlotContext*>self._implot_context)
 
         if self._platform != NULL:
             # Maybe just a warning ? Not sure how to solve this issue.
@@ -3138,6 +3150,7 @@ cdef class Viewport(baseItem):
         self.global_scale = (<platformViewport*>self._platform).dpiScale * self._scale
         if self._font is None:
             self._font = AutoFont(self.context)
+        ensure_correct_im_context(self.context)
         self._initialized = True
         imgui.GetIO().IniFilename = NULL
         # Atexit tends to run in the main thread but there is no
