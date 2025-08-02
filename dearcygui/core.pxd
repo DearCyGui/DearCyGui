@@ -601,6 +601,7 @@ cdef class uiItem(baseItem):
     cdef baseFont _font
     cdef baseTheme _theme
     cdef DCGVector[PyObject*] _callbacks # type Callback
+    cdef list _callbacks_backing # same as for handlers
     cdef float _scaling_factor
 
     cdef void update_current_state(self) noexcept nogil

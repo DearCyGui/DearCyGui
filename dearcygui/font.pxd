@@ -17,6 +17,7 @@ cdef class FontMultiScales(baseFont):
     cdef DCGVector[PyObject*] _fonts # type Font
     cdef DCGVector[float] _stored_scales # Store last 10 scales
     cdef DCGVector[PyObject*] _callbacks # type Callback
+    cdef list _callbacks_backing # see handlers
     cdef DCGVector[PyObject*] _applied_fonts # type Font
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil

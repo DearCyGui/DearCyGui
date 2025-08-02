@@ -6380,9 +6380,6 @@ cdef class uiItem(baseItem):
         self.focus_requested = kwargs.pop('focused', False)
         baseItem.__init__(self, context, *args, **kwargs)
 
-    def __dealloc__(self):
-        clear_obj_vector(self._callbacks)
-
     def configure(self, **kwargs):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -6493,30 +6490,27 @@ cdef class uiItem(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        result = []
-        cdef int32_t i
-        cdef Callback callback
-        for i in range(<int>self._callbacks.size()):
-            callback = <Callback>self._callbacks[i]
-            result.append(callback)
-        return result
+        return self._callbacks_backing.copy() if self._callbacks_backing is not None else []
 
     @callbacks.setter
     def callbacks(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        cdef list items = []
         cdef int32_t i
         if value is None:
-            clear_obj_vector(self._callbacks)
+            self._callbacks.clear()
+            self._callbacks_backing = None
             return
+        cdef list items = []
         if PySequence_Check(value) == 0:
             value = (value,)
         # Convert to callbacks
         for i in range(len(value)):
             items.append(value[i] if isinstance(value[i], Callback) else Callback(value[i]))
-        clear_obj_vector(self._callbacks)
-        append_obj_vector(self._callbacks, items)
+        self._callbacks.resize(len(items))
+        for i in range(len(items)):
+            self._callbacks[i] = <PyObject*> items[i]
+        self._callbacks_backing = items
 
     @property
     def callback(self):

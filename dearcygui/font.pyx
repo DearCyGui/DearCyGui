@@ -265,7 +265,6 @@ cdef class FontMultiScales(baseFont):
 
     def __dealloc__(self):
         clear_obj_vector(self._fonts)
-        clear_obj_vector(self._callbacks) 
 
     @property
     def fonts(self):
@@ -335,26 +334,27 @@ cdef class FontMultiScales(baseFont):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        result = []
-        cdef int32_t i
-        for i in range(<int>self._callbacks.size()):
-            result.append(<Callback>self._callbacks[i])
-        return result
+        return self._callbacks_backing.copy() if self._callbacks_backing is not None else []
 
     @callbacks.setter 
     def callbacks(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
-            clear_obj_vector(self._callbacks)
+            self._callbacks.clear()
+            self._callbacks_backing = None
             return
+        cdef int32_t i
         cdef list items = []
         if PySequence_Check(value) == 0:
             value = (value,)
-        for v in value:
-            items.append(v if isinstance(v, Callback) else Callback(v))
-        clear_obj_vector(self._callbacks)
-        append_obj_vector(self._callbacks, items)
+        # Convert to callbacks
+        for i in range(len(value)):
+            items.append(value[i] if isinstance(value[i], Callback) else Callback(value[i]))
+        self._callbacks.resize(len(items))
+        for i in range(len(items)):
+            self._callbacks[i] = <PyObject*> items[i]
+        self._callbacks_backing = items
 
     cdef void push(self) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
