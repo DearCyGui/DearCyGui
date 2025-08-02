@@ -27,7 +27,7 @@ from cpython cimport PySequence_Check
 from dearcygui.wrapper cimport imgui
 
 from .core cimport Context, baseFont, baseItem, Callback, \
-    lock_gil_friendly, clear_obj_vector, append_obj_vector
+    lock_gil_friendly
 from .c_types cimport unique_lock, DCGMutex
 from .texture cimport Texture
 from .types cimport parse_texture
@@ -263,9 +263,6 @@ cdef class FontMultiScales(baseFont):
     def __cinit__(self, context, *args, **kwargs):
         self.can_have_sibling = False
 
-    def __dealloc__(self):
-        clear_obj_vector(self._fonts)
-
     @property
     def fonts(self):
         """
@@ -278,18 +275,15 @@ cdef class FontMultiScales(baseFont):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        result = []
-        cdef int32_t i
-        for i in range(<int>self._fonts.size()):
-            result.append(<Font>self._fonts[i])
-        return result
+        return self._fonts_backing.copy() if self._fonts_backing is not None else []
 
     @fonts.setter 
     def fonts(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if value is None:
-            clear_obj_vector(self._fonts)
+            self._fonts.clear()
+            self._fonts_backing = None
             return
 
         # Convert to list if single font
@@ -297,13 +291,18 @@ cdef class FontMultiScales(baseFont):
             value = (value,)
 
         # Validate all inputs are Font objects
+        cdef list items = []
         for font in value:
             if not isinstance(font, Font):
                 raise TypeError(f"{font} is not a Font instance")
+            items.append(font)
 
         # Success - store fonts
-        clear_obj_vector(self._fonts)
-        append_obj_vector(self._fonts, value)
+        cdef int32_t i
+        self._fonts.resize(len(items))
+        for i in range(len(items)):
+            self._fonts[i] = <PyObject*> items[i]
+        self._fonts_backing = items
 
     @property 
     def recent_scales(self):
