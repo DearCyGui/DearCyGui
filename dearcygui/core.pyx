@@ -227,15 +227,6 @@ cdef void internal_drop_callback(void *object, int type, const char *data) noexc
 cdef void internal_render_callback(void *object) noexcept nogil:
     (<Viewport>object).__render()
 
-# Placeholder global where the last created Context is stored.
-C : Context = None
-
-def _clear_C():
-    global C
-    C = None
-
-atexit.register(_clear_C)
-
 # parent stack for the 'with' syntax
 cdef extern from * nogil:
     """
@@ -311,7 +302,6 @@ cdef class Context:
         TypeError
             If queue is provided but is not a subclass of concurrent.futures.Executor
         """
-        global C
         self._on_close_callback = None
         if queue is None:
             self._queue = ThreadPoolExecutor(max_workers=1)
@@ -320,7 +310,6 @@ cdef class Context:
                 (not hasattr(queue, 'submit') and callable(queue.submit)):
                 raise TypeError("queue must be a subclass of concurrent.futures.Executor or implement a 'submit' method")
             self._queue = queue
-        C = self
 
     def __cinit__(self):
         """
@@ -4921,13 +4910,9 @@ cdef class Callback:
                 print("Callback called without arguments")
             print(traceback.format_exc())
         except (KeyboardInterrupt, SystemExit) as e:
-            if C is not None:
-                C.running = False
             try:
                 source_item.context.running = False
                 source_item.context.viewport.wake()
-                if C is not source_item.context:
-                    C.viewport.wake()
             except:
                 pass
             raise e
