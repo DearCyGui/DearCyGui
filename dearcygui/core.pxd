@@ -86,7 +86,6 @@ cdef class Context:
     cdef uint32_t[5] prev_last_id_button_catch # for custom buttons
     cdef uint32_t[5] cur_last_id_button_catch
     ### protected variables ###
-    cdef Callback _on_close_callback
     cdef object _queue
     ### private variables ###
     cdef bint _started

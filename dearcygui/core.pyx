@@ -302,7 +302,9 @@ cdef class Context:
         TypeError
             If queue is provided but is not a subclass of concurrent.futures.Executor
         """
-        self._on_close_callback = None
+        # Note: we don't call shutdown on the queue on __del__ as multiple
+        # contexts can share the same queue
+
         if queue is None:
             self._queue = ThreadPoolExecutor(max_workers=1)
         else:
@@ -327,20 +329,6 @@ cdef class Context:
         self.implot_context = self.viewport._implot_context
         ensure_correct_im_context(self)
 
-    def __del__(self):
-        """
-        Destructor for Context.
-        """
-        #print("Context destructor called", flush=True)
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if self._on_close_callback is not None:
-            self._started = True
-            self.queue_callback_noarg(self._on_close_callback, self, self)
-            self._started = False
-
-        # Note: we don't call shutdown on the queue as multiple contexts can share
-        # the same queue
 
     def __reduce__(self):
         """
