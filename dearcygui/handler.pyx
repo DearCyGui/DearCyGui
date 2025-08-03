@@ -588,11 +588,12 @@ cdef class DraggedHandler(baseHandler):
             return
         cdef int32_t i = <int32_t>self._button
         if state.prev.dragging[i] and not(state.cur.dragging[i]):
-                self.context.queue_callback_arg2float(self._callback,
-                                                      self,
-                                                      item,
-                                                      state.prev.drag_deltas[i].x,
-                                                      state.prev.drag_deltas[i].y)
+            with gil:
+                self.context.queue_callback_arg1obj(self._callback,
+                                                    self,
+                                                    item,
+                                                    (state.prev.drag_deltas[i].x,
+                                                     state.prev.drag_deltas[i].y))
 
 cdef class DraggingHandler(baseHandler):
     """
@@ -636,11 +637,12 @@ cdef class DraggingHandler(baseHandler):
         if not(self._enabled):
             return
         if state.cur.dragging[i]:
-            self.context.queue_callback_arg2float(self._callback,
-                                                  self,
-                                                  item,
-                                                  state.cur.drag_deltas[i].x,
-                                                  state.cur.drag_deltas[i].y)
+            with gil:
+                self.context.queue_callback_arg1obj(self._callback,
+                                                    self,
+                                                    item,
+                                                    (<float>state.cur.drag_deltas[i].x,
+                                                     <float>state.cur.drag_deltas[i].y))
 
 cdef class EditedHandler(baseHandler):
     """
@@ -1272,7 +1274,8 @@ cdef class KeyPressHandler(baseHandler):
         if key_info.Down and self._callback is not None:
             duration = fmax(<float>0., key_info.DownDuration) # In theory cannot be < 0, but lets be safe
             if imgui.IsKeyPressed(<imgui.ImGuiKey>self._key, self._repeat):
-                self.context.queue_callback_arg1key(self._callback, self, item, self._key)
+                with gil:
+                    self.context.queue_callback_arg1obj(self._callback, self, item, make_Key(self._key))
             if self._repeat:
                 if duration < imgui.GetIO().KeyRepeatDelay:
                     self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatDelay - duration)
@@ -1322,7 +1325,8 @@ cdef class KeyReleaseHandler(baseHandler):
         if not(self._enabled):
             return
         if imgui.IsKeyReleased(<imgui.ImGuiKey>self._key):
-            self.context.queue_callback_arg1key(self._callback, self, item, self._key)
+            with gil:
+                self.context.queue_callback_arg1obj(self._callback, self, item, make_Key(self._key))
 
 cdef inline tuple build_keys_tuple(DCGVector[int32_t] &keys_array):
     """Builds a tuple out of a key array"""
@@ -1667,7 +1671,8 @@ cdef class MouseDownHandler(baseHandler):
         if not(self._enabled):
             return
         if imgui.IsMouseDown(<int>self._button):
-            self.context.queue_callback_arg1button1float(self._callback, self, item, <int>self._button, imgui.GetIO().MouseDownDuration[<int>self._button])
+            with gil:
+                self.context.queue_callback_arg1obj(self._callback, self, item, (<int>self._button, imgui.GetIO().MouseDownDuration[<int>self._button]))
             # Refresh frequently even if the user doesn't call wake(). The user can get higher frequency using wake.
             self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
 
@@ -1732,7 +1737,8 @@ cdef class MouseDragHandler(baseHandler):
             return
         if imgui.IsMouseDragging(<int>self._button, self._threshold):
             delta = imgui.GetMouseDragDelta(<int>self._button, self._threshold)
-            self.context.queue_callback_arg1button2float(self._callback, self, item, <int>self._button, delta.x, delta.y)
+            with gil:
+                self.context.queue_callback_arg1obj(self._callback, self, item, (<int>self._button, delta.x, delta.y))
 
 
 cdef class MouseMoveHandler(baseHandler):
@@ -1764,7 +1770,8 @@ cdef class MouseMoveHandler(baseHandler):
         cdef imgui.ImGuiIO io = imgui.GetIO()
         if io.MousePos.x != io.MousePosPrev.x or \
            io.MousePos.y != io.MousePosPrev.y:
-            self.context.queue_callback_arg2float(self._callback, self, item, io.MousePos.x, io.MousePos.y)
+            with gil:
+                self.context.queue_callback_arg1obj(self._callback, self, item, (io.MousePos.x, io.MousePos.y))
 
 
 cdef class MouseReleaseHandler(baseHandler):
@@ -1857,12 +1864,10 @@ cdef class MouseWheelHandler(baseHandler):
         if not(self._enabled):
             return
         cdef imgui.ImGuiIO io = imgui.GetIO()
-        if self._horizontal:
-            if abs(io.MouseWheelH) > 0.:
-                self.context.queue_callback_arg1float(self._callback, self, item, io.MouseWheelH)
-        else:
-            if abs(io.MouseWheel) > 0.:
-                self.context.queue_callback_arg1float(self._callback, self, item, io.MouseWheel)
+        cdef float wheel_value = io.MouseWheelH if self._horizontal else io.MouseWheel
+        if abs(wheel_value) > 0.:
+            with gil:
+                self.context.queue_callback_arg1obj(self._callback, self, item, wheel_value)
 
 
 cdef class MouseInRect(baseHandler):
@@ -1923,7 +1928,8 @@ cdef class MouseInRect(baseHandler):
            self._y1 <= io.MousePos.y and \
            self._x2 > io.MousePos.x and \
            self._y2 > io.MousePos.y:
-            self.context.queue_callback_arg2float(self._callback, self, item, io.MousePos.x, io.MousePos.y)
+           with gil:
+              self.context.queue_callback_arg1obj(self._callback, self, item, (io.MousePos.x, io.MousePos.y))
 
 
 cdef inline tuple build_buttons_tuple(DCGVector[int32_t] &buttons_array):

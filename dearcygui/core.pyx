@@ -435,28 +435,6 @@ cdef class Context:
             except Exception as e:
                 print(traceback.format_exc())
 
-    cdef void queue_callback_arg1key(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1) noexcept nogil:
-        """
-        Queue a callback with one key argument.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : int
-            The first argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, make_Key(arg1))
-            except Exception as e:
-                print(traceback.format_exc())
-
     cdef void queue_callback_arg1button(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1) noexcept nogil:
         """
         Queue a callback with one button argument.
@@ -480,28 +458,6 @@ cdef class Context:
                 print(traceback.format_exc())
 
 
-    cdef void queue_callback_arg1float(self, Callback callback, baseItem parent_item, baseItem target_item, float arg1) noexcept nogil:
-        """
-        Queue a callback with one float argument.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : float
-            The first argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, arg1)
-            except Exception as e:
-                print(traceback.format_exc())
-
     cdef void queue_callback_arg1value(self, Callback callback, baseItem parent_item, baseItem target_item, SharedValue arg1) noexcept nogil:
         """
         Queue a callback with one shared value argument.
@@ -524,248 +480,6 @@ cdef class Context:
             except Exception as e:
                 print(traceback.format_exc())
 
-
-    cdef void queue_callback_arg1key1float(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1, float arg2) noexcept nogil:
-        """
-        Queue a callback with one key and one float argument.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : int
-            The first argument.
-        arg2 : float
-            The second argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, (make_Key(arg1), arg2))
-            except Exception as e:
-                print(traceback.format_exc())
-
-    cdef void queue_callback_arg1button1float(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1, float arg2) noexcept nogil:
-        """
-        Queue a callback with one button and one float argument.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : int
-            The first argument.
-        arg2 : float
-            The second argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, (make_MouseButton(arg1), arg2))
-            except Exception as e:
-                print(traceback.format_exc())
-
-    cdef void queue_callback_arg2float(self, Callback callback, baseItem parent_item, baseItem target_item, float arg1, float arg2) noexcept nogil:
-        """
-        Queue a callback with two float arguments.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : float
-            The first argument.
-        arg2 : float
-            The second argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, (arg1, arg2))
-            except Exception as e:
-                print(traceback.format_exc())
-
-    cdef void queue_callback_arg2double(self, Callback callback, baseItem parent_item, baseItem target_item, double arg1, double arg2) noexcept nogil:
-        """
-        Queue a callback with two double arguments.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : double
-            The first argument.
-        arg2 : double
-            The second argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, (arg1, arg2))
-            except Exception as e:
-                print(traceback.format_exc())
-
-    cdef void queue_callback_arg1button2float(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1, float arg2, float arg3) noexcept nogil:
-        """
-        Queue a callback with one button and two float arguments.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : int
-            The first argument.
-        arg2 : float
-            The second argument.
-        arg3 : float
-            The third argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, (make_MouseButton(arg1), arg2, arg3))
-            except Exception as e:
-                print(traceback.format_exc())
-
-    cdef void queue_callback_arg4int(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1, int32_t arg2, int32_t arg3, int32_t arg4) noexcept nogil:
-        """
-        Queue a callback with four integer arguments.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : int
-            The first argument.
-        arg2 : int
-            The second argument.
-        arg3 : int
-            The third argument.
-        arg4 : int
-            The fourth argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, (arg1, arg2, arg3, arg4))
-            except Exception as e:
-                print(traceback.format_exc())
-
-    cdef void queue_callback_arg3long1int(self, Callback callback, baseItem parent_item, baseItem target_item, int64_t arg1, int64_t arg2, int64_t arg3, int32_t arg4) noexcept nogil:
-        """
-        Queue a callback with three long and one integer arguments.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : long long
-            The first argument.
-        arg2 : long long
-            The second argument.
-        arg3 : long long
-            The third argument.
-        arg4 : int
-            The fourth argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, (arg1, arg2, arg3, arg4))
-            except Exception as e:
-                print(traceback.format_exc())
-
-    cdef void queue_callback_argdoubletriplet(self, Callback callback, baseItem parent_item, baseItem target_item,
-                                              double arg1_1, double arg1_2, double arg1_3,
-                                              double arg2_1, double arg2_2, double arg2_3) noexcept nogil:
-        """
-        Queue a callback with two triplets of double arguments.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1_1 : double
-            The first argument of the first triplet.
-        arg1_2 : double
-            The second argument of the first triplet.
-        arg1_3 : double
-            The third argument of the first triplet.
-        arg2_1 : double
-            The first argument of the second triplet.
-        arg2_2 : double
-            The second argument of the second triplet.
-        arg2_3 : double
-            The third argument of the second triplet.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item,
-                                  ((arg1_1, arg1_2, arg1_3), (arg2_1, arg2_2, arg2_3)))
-            except Exception as e:
-                print(traceback.format_exc())
-
-    cdef void queue_callback_arg1int1stringvector(self, Callback callback, baseItem parent_item, baseItem target_item,
-                                                  int32_t arg1, DCGVector[DCGString] arg2) noexcept nogil:
-        """
-        Queue a callback with one integer and one vector of strings arguments.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : int
-            The first argument.
-        arg2 : vector[string]
-            The second argument.
-        """
-        if callback is None:
-            return
-        cdef int i
-        with gil:
-            try:
-                element_list = []
-                for i in range(<int>arg2.size()):
-                    element_list.append(string_to_str(arg2[i]))
-                self._queue.submit(callback, parent_item, target_item, (arg1, element_list))
-            except Exception as e:
-                print(traceback.format_exc())
 
     cdef void queue_callback(self, Callback callback, baseItem sender, baseItem item, object data) noexcept:
         """
@@ -4341,13 +4055,13 @@ cdef class Viewport(baseItem):
     cdef void __on_resize(self):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self.context.queue_callback_arg4int(self._resize_callback,
+        self.context.queue_callback_arg1obj(self._resize_callback,
                                             self,
                                             self,
-                                            (<platformViewport*>self._platform).frameWidth,
-                                            (<platformViewport*>self._platform).frameHeight,
-                                            (<platformViewport*>self._platform).windowWidth,
-                                            (<platformViewport*>self._platform).windowHeight)
+                                            ((<platformViewport*>self._platform).frameWidth,
+                                             (<platformViewport*>self._platform).frameHeight,
+                                             (<platformViewport*>self._platform).windowWidth,
+                                             (<platformViewport*>self._platform).windowHeight))
 
     cdef void __on_close(self):
         cdef unique_lock[DCGMutex] m
@@ -7153,14 +6867,15 @@ cdef class TimeWatcher(uiItem):
         cdef long long time_end = ctime.monotonic_ns()
         cdef int32_t i
         if not(self._callbacks.empty()):
-            for i in range(<int>self._callbacks.size()):
-                self.context.queue_callback_arg3long1int(<Callback>self._callbacks[i],
-                                                         self,
-                                                         self,
-                                                         time_start,
+            with gil:
+                for i in range(<int>self._callbacks.size()):
+                    self.context.queue_callback_arg1obj(<Callback>self._callbacks[i],
+                                                        self,
+                                                        self,
+                                                        (time_start,
                                                          time_end,
                                                          self.context.viewport.last_t_before_rendering,
-                                                         self.context.viewport.frame_count)
+                                                         self.context.viewport.frame_count))
 
 
 cdef extern from * nogil:

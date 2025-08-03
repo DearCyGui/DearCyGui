@@ -407,11 +407,12 @@ cdef class FontMultiScales(baseFont):
 
         # Notify callbacks of new scale
         if not(self._callbacks.empty()):
-            for i in range(<int>self._callbacks.size()):
-                self.context.queue_callback_arg1float(<Callback>self._callbacks[i],
-                                                    self, 
-                                                    self,
-                                                    global_scale)
+            with gil:
+                for i in range(<int>self._callbacks.size()):
+                    self.context.queue_callback_arg1obj(<Callback>self._callbacks[i],
+                                                        self, 
+                                                        self,
+                                                        <float>global_scale)
 
     cdef void pop(self) noexcept nogil:
         if not self._fonts.empty():
