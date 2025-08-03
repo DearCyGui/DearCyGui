@@ -2039,7 +2039,7 @@ cdef class baseItem:
             (<baseItem>self.last_widgets_child)._delete_and_siblings()
         if self.last_window_child is not None:
             (<baseItem>self.last_window_child)._delete_and_siblings()
-        # TODO: free item specific references (themes, font, etc)
+
         self.last_drawings_child = None
         self.last_handler_child = None
         self.last_menubar_child = None
@@ -2096,6 +2096,7 @@ cdef class baseItem:
         self.last_viewport_drawlist_child = None
         self.last_widgets_child = None
         self.last_window_child = None
+
 
     @cython.final # The final is for performance, to avoid a virtual function and thus allow inlining
     cdef void set_previous_states(self) noexcept nogil:
@@ -2685,9 +2686,6 @@ def _wake_viewport_on_exit(viewport_ref: weak_ref):
     viewport.wake()
     # This should help gc finish faster
     viewport.delete_item()
-    viewport.font = None
-    viewport.theme = None
-    viewport.handlers = []
 
 
     #gc.collect()
@@ -2787,6 +2785,12 @@ cdef class Viewport(baseItem):
             implot.DestroyContext(<implot.ImPlotContext*>self._implot_context)
         if self._imgui_context != NULL:
             imgui.DestroyContext(<imgui.ImGuiContext*>self._imgui_context)
+
+    cpdef void delete_item(self):
+        baseItem.delete_item(self)
+        self.font = None
+        self.theme = None
+        self.handlers = []
 
     def initialize(self, **kwargs) -> None:
         """
@@ -6070,6 +6074,25 @@ cdef class uiItem(baseItem):
         self.focus_requested = kwargs.pop('focused', self.focus_requested)
         m.unlock()
         return baseItem.configure(self, **kwargs)
+
+    cpdef void delete_item(self):
+        baseItem.delete_item(self)
+        # Lock AFTER parent delete_item, as
+        # parent delete_item requires to be able
+        # to fully unlock the mutex
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._font = None
+        self._theme = None
+        self.handlers = []
+
+    cdef void _delete_and_siblings(self):
+        baseItem._delete_and_siblings(self)
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._font = None
+        self._theme = None
+        self.handlers = []
 
     cdef void update_current_state(self) noexcept nogil:
         """

@@ -327,6 +327,7 @@ cdef class Viewport(baseItem):
     cdef void* _imgui_context # imgui.ImGuiContext
     cdef void* _implot_context # implot.ImPlotContext
     ### public methods ###
+    cpdef void delete_item(self)
     cdef void coordinate_to_screen(self, float *dst_p, const double[2] src_p) noexcept nogil
     cdef void screen_to_coordinate(self, double *dst_p, const float[2] src_p) noexcept nogil
     cdef void ask_refresh_after_target(self, double monotonic) noexcept nogil # might refresh before, in which case you should call again
@@ -591,6 +592,8 @@ cdef class uiItem(baseItem):
     cdef list _callbacks_backing # same as for handlers
     cdef float _scaling_factor
 
+    cpdef void delete_item(self)
+    cdef void _delete_and_siblings(self)
     cdef void update_current_state(self) noexcept nogil
     cdef void update_current_state_subset(self) noexcept nogil
     cdef Vec2 get_requested_size(self) noexcept nogil

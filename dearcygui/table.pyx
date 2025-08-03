@@ -682,13 +682,18 @@ cdef class baseTable(uiItem):
         self.children = []
 
     cpdef void delete_item(self):
+        uiItem.delete_item(self)
+        # Lock AFTER parent delete_item, as
+        # parent delete_item requires to be able
+        # to fully unlock the mutex
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        uiItem.delete_item(self)
         self.clear()
 
     cdef void _delete_and_siblings(self):
         uiItem._delete_and_siblings(self)
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         self.clear()
 
     cdef bint _delete_item(self, pair[int32_t, int32_t] key):
