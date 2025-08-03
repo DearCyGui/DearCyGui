@@ -409,10 +409,10 @@ cdef class FontMultiScales(baseFont):
         if not(self._callbacks.empty()):
             with gil:
                 for i in range(<int>self._callbacks.size()):
-                    self.context.queue_callback_arg1obj(<Callback>self._callbacks[i],
-                                                        self, 
-                                                        self,
-                                                        <float>global_scale)
+                    self.context.queue_callback(<Callback>self._callbacks[i],
+                                                self, 
+                                                self,
+                                                <float>global_scale)
 
     cdef void pop(self) noexcept nogil:
         if not self._fonts.empty():

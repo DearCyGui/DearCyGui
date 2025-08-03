@@ -176,15 +176,15 @@ cdef class AxesResizeHandler(baseHandler):
         x_scale = (x_max - x_min) / <double>state.cur.content_region_size.x
         y_scale = (y_max - y_min) / <double>state.cur.content_region_size.y
         with gil:
-            self.context.queue_callback_arg1obj(self._callback,
-                                                self,
-                                                item,
-                                                ((x_min,
-                                                  x_max,
-                                                  x_scale),
-                                                 (y_min,
-                                                  y_max,
-                                                  y_scale)))
+            self.context.queue_callback(self._callback,
+                                        self,
+                                        item,
+                                        ((x_min,
+                                          x_max,
+                                          x_scale),
+                                         (y_min,
+                                          y_max,
+                                          y_scale)))
 
 # BaseItem that has has no parent/child nor sibling
 cdef class PlotAxisConfig(baseItem):

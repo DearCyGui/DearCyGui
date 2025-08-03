@@ -92,7 +92,6 @@ cdef class Context:
     cdef object __weakref__
     ### public methods ###
     cdef void queue_callback_noarg(self, Callback, baseItem, baseItem) noexcept nogil
-    cdef void queue_callback_arg1obj(self, Callback, baseItem, baseItem, baseItem) noexcept nogil
     cdef void queue_callback_arg1button(self, Callback, baseItem, baseItem, int32_t) noexcept nogil
     cdef void queue_callback_arg1value(self, Callback, baseItem, baseItem, SharedValue) noexcept nogil
     cdef void queue_callback(self, Callback, baseItem, baseItem, object) noexcept

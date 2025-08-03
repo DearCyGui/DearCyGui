@@ -412,28 +412,7 @@ cdef class Context:
                 self._queue.submit(callback, parent_item, target_item, None)
             except Exception as e:
                 print(traceback.format_exc())
-
-    cdef void queue_callback_arg1obj(self, Callback callback, baseItem parent_item, baseItem target_item, baseItem arg1) noexcept nogil:
-        """
-        Queue a callback with one object argument.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : baseItem
-            The first argument.
-        """
-        if callback is None:
-            return
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, arg1)
-            except Exception as e:
-                print(traceback.format_exc())
+        ensure_correct_im_context(self)
 
     cdef void queue_callback_arg1button(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1) noexcept nogil:
         """
@@ -456,6 +435,7 @@ cdef class Context:
                 self._queue.submit(callback, parent_item, target_item, make_MouseButton(arg1))
             except Exception as e:
                 print(traceback.format_exc())
+        ensure_correct_im_context(self)
 
 
     cdef void queue_callback_arg1value(self, Callback callback, baseItem parent_item, baseItem target_item, SharedValue arg1) noexcept nogil:
@@ -479,9 +459,10 @@ cdef class Context:
                 self._queue.submit(callback, parent_item, target_item, arg1.value)
             except Exception as e:
                 print(traceback.format_exc())
+        ensure_correct_im_context(self)
 
 
-    cdef void queue_callback(self, Callback callback, baseItem sender, baseItem item, object data) noexcept:
+    cdef void queue_callback(self, Callback callback, baseItem sender, baseItem target, object data) noexcept:
         """
         Queue a callback with an item and data of any type.
 
@@ -496,9 +477,10 @@ cdef class Context:
         if callback is None:
             return
         try:
-            self._queue.submit(callback, sender, item, data)
+            self._queue.submit(callback, sender, target, data)
         except Exception as e:
             print(traceback.format_exc())
+        ensure_correct_im_context(self)
 
     cpdef void push_next_parent(self, baseItem next_parent):
         """
@@ -4055,13 +4037,14 @@ cdef class Viewport(baseItem):
     cdef void __on_resize(self):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self.context.queue_callback_arg1obj(self._resize_callback,
-                                            self,
-                                            self,
-                                            ((<platformViewport*>self._platform).frameWidth,
-                                             (<platformViewport*>self._platform).frameHeight,
-                                             (<platformViewport*>self._platform).windowWidth,
-                                             (<platformViewport*>self._platform).windowHeight))
+        self.context.queue_callback(
+            self._resize_callback,
+            self,
+            self,
+            ((<platformViewport*>self._platform).frameWidth,
+             (<platformViewport*>self._platform).frameHeight,
+             (<platformViewport*>self._platform).windowWidth,
+             (<platformViewport*>self._platform).windowHeight))
 
     cdef void __on_close(self):
         cdef unique_lock[DCGMutex] m
@@ -5974,7 +5957,8 @@ cdef class baseHandler(baseItem):
 
     cdef void run_callback(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        self.context.queue_callback_arg1obj(self._callback, self, item, item)
+        with gil:
+            self.context.queue_callback(self._callback, self, item, item)
 
 
 cdef extern from * nogil:
@@ -6869,13 +6853,14 @@ cdef class TimeWatcher(uiItem):
         if not(self._callbacks.empty()):
             with gil:
                 for i in range(<int>self._callbacks.size()):
-                    self.context.queue_callback_arg1obj(<Callback>self._callbacks[i],
-                                                        self,
-                                                        self,
-                                                        (time_start,
-                                                         time_end,
-                                                         self.context.viewport.last_t_before_rendering,
-                                                         self.context.viewport.frame_count))
+                    self.context.queue_callback(
+                        <Callback>self._callbacks[i],
+                        self,
+                        self,
+                        (time_start,
+                         time_end,
+                         self.context.viewport.last_t_before_rendering,
+                         self.context.viewport.frame_count))
 
 
 cdef extern from * nogil:
