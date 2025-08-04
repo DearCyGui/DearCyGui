@@ -27,7 +27,7 @@ cimport cpython
 
 from .backends.backend cimport platformViewport
 from .core cimport Context, baseItem, lock_gil_friendly
-from .c_types cimport unique_lock, DCGMutex
+from .c_types cimport unique_lock, DCGMutex, defer_lock_t
 from .types cimport parse_texture
 
 from weakref import WeakKeyDictionary, WeakValueDictionary
@@ -64,7 +64,6 @@ cdef class Texture(baseItem):
         self._repeat_mode = 0
 
     def __dealloc__(self):
-        cdef unique_lock[DCGMutex] imgui_m
         # Note: textures might be referenced during imgui rendering.
         # Thus we should wait there is no rendering to free a texture.
         # However, doing so would stall python's garbage collection,
@@ -74,6 +73,8 @@ cdef class Texture(baseItem):
         # so it should be fine.
         if self.allocated_texture != NULL and self.context is not None \
            and self.context.viewport is not None and self.context.viewport._platform != NULL:
+            # Note: assumes the viewport is not deallocated at the same time in a different thread.
+            # This should be fine as we have a reference to it.
             (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
             try:
                 (<platformViewport*>self.context.viewport._platform).freeTexture(self.allocated_texture)
@@ -336,9 +337,10 @@ cdef class Texture(baseItem):
 
     cdef void set_content(self, content): # TODO: deadlock when held by external lock
         # The write mutex is to ensure order of processing of set_content
-        # as we might release the item mutex to wait for imgui to render
+        # as we might release the item mutex to wait for the viewport to render
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
+        cdef unique_lock[DCGMutex] viewport_m = unique_lock[DCGMutex](self.context.viewport.mutex, defer_lock_t())
         lock_gil_friendly(m, self._write_mutex)
         lock_gil_friendly(m2, self.mutex)
         if self._readonly: # set for fonts
@@ -411,13 +413,14 @@ cdef class Texture(baseItem):
         try:
             with nogil:
                 if self.allocated_texture != NULL and not(reuse):
-                    # We must wait there is no rendering since the current rendering might reference the texture
+                    # We must wait there is no rendering since the current rendering
+                    # might reference the texture. To do that we use the viewport mutex
                     # Release current lock to not block rendering
                     # Wait we can prevent rendering
-                    if not(self.context.imgui_mutex.try_lock()):
+                    if not(viewport_m.try_lock()):
                         m2.unlock()
                         # rendering can take some time, fortunately we avoid holding the gil
-                        self.context.imgui_mutex.lock()
+                        viewport_m.lock()
                         m2.lock()
                         # Note: we maintained a lock on _write_mutex, thus the texture hasn't changed.
                     (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
@@ -425,14 +428,14 @@ cdef class Texture(baseItem):
                     previous_texture = self.allocated_texture
                     self.allocated_texture = NULL
                     (<platformViewport*>self.context.viewport._platform).freeTexture(previous_texture)
-                    self.context.imgui_mutex.unlock()
+                    viewport_m.unlock()
                 else:
                     m2.unlock()
                     (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
                     holds_upload_mutex = True
                     m2.lock()
 
-                # Note we don't need the imgui mutex to create or upload textures.
+                # Note we don't need the viewport mutex to create or upload textures.
                 # In the case of GL, as only one thread can access GL data at a single
                 # time, MakeUploadContextCurrent and ReleaseUploadContext enable
                 # to upload/create textures from various threads. They hold a mutex.

@@ -23,7 +23,7 @@ from libc.string cimport strcmp
 from libcpp.cmath cimport fmax, fmin, fmod
 
 from .core cimport baseHandler, baseItem, lock_gil_friendly,\
-    itemState, ensure_correct_im_context
+    itemState, lock_im_context, unlock_im_context
 from .c_types cimport DCGMutex, unique_lock, string_to_str, string_from_str
 from .types cimport make_Positioning, read_rect, Rect,\
     is_Key, make_Key, Positioning
@@ -31,6 +31,7 @@ from .widget cimport SharedBool
 from .wrapper cimport imgui
 
 import traceback
+import warnings
 
 ctypedef void* void_p
 
@@ -79,12 +80,13 @@ cdef class CustomHandler(baseHandler):
 
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef bint condition = False
+        unlock_im_context()
         with gil:
             try:
                 condition = self.check_status(item)
             except Exception as e:
-                print(f"An error occured running check_status of {self} on {item}", traceback.format_exc())
-        ensure_correct_im_context(self.context)
+                warnings.warns(f"An error occured running check_status of {self} on {item}. {traceback.format_exc()}")
+        lock_im_context(self.context.viewport)
         return condition
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
@@ -97,18 +99,19 @@ cdef class CustomHandler(baseHandler):
             return
 
         cdef bint condition = False
+        unlock_im_context()
         with gil:
             if self._has_run:
                 try:
                     self.run(item)
                 except Exception as e:
-                    print(f"An error occured running run of {self} on {item}", traceback.format_exc())
+                    warnings.warns(f"An error occured running run of {self} on {item}. {traceback.format_exc()}")
             elif self._callback is not None:
                 try:
                     condition = self.check_status(item)
                 except Exception as e:
-                    print(f"An error occured running check_status of {self} on {item}", traceback.format_exc())
-        ensure_correct_im_context(self.context)
+                    warnings.warns(f"An error occured running check_status of {self} on {item}. {traceback.format_exc()}")
+        lock_im_context(self.context.viewport)
         if condition:
             self.run_callback(item)
 

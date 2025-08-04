@@ -58,7 +58,16 @@ cdef inline void lock_gil_friendly(unique_lock[DCGMutex] &m,
     # Slow path
     lock_gil_friendly_block(m)
 
-cdef void ensure_correct_im_context(Context context) noexcept nogil
+cdef bint ulock_im_context(unique_lock[DCGMutex] &m, Viewport viewport) noexcept nogil # gil must not be held
+# prevent any imgui context change
+# returns True on success, False else (means uninitialized or dead viewport)
+cdef int ulock_im_context_gil(unique_lock[DCGMutex] &m, Viewport viewport)
+# version with gil. raise exception where the above would raise False.
+
+# manual version without unique_lock. Performs no checks at all.
+# assumes viewport mutex or rendering_mutex is held
+cdef void lock_im_context(Viewport viewport) noexcept nogil
+cdef void unlock_im_context() noexcept nogil
 
 cdef inline void clear_obj_vector(DCGVector[PyObject *] &items) noexcept:
     cdef int32_t i
@@ -73,28 +82,34 @@ cdef inline void append_obj_vector(DCGVector[PyObject *] &items, item_list) noex
         Py_INCREF(item)
         items.push_back(<PyObject*>item)
 
+"""
+Context Thread safety
+=====================
+
+ The Context uses either:
+- Lock-free operations
+- The Viewport mutex
+- The global imgui context mutex
+"""
+
 cdef class Context:
-    ### Read-only public variables ###
-    cdef DCGMutex mutex
-    # Mutex that must be held for any
-    # call to imgui, glfw, etc
-    cdef DCGMutex imgui_mutex
     cdef atomic[int64_t] next_uuid
     cdef Viewport viewport
-    cdef void* imgui_context # imgui.ImGuiContext
-    cdef void* implot_context # implot.ImPlotContext
-    cdef uint32_t[5] prev_last_id_button_catch # for custom buttons
+    # states for custom buttons during draw()
+    cdef uint32_t[5] prev_last_id_button_catch
     cdef uint32_t[5] cur_last_id_button_catch
     ### protected variables ###
     cdef object _queue
     ### private variables ###
-    cdef bint _started
+    cdef bint _running
     cdef object __weakref__
     ### public methods ###
+    # Queue operations assume the viewport mutex is held
     cdef void queue_callback_noarg(self, Callback, baseItem, baseItem) noexcept nogil
     cdef void queue_callback_arg1button(self, Callback, baseItem, baseItem, int32_t) noexcept nogil
     cdef void queue_callback_arg1value(self, Callback, baseItem, baseItem, SharedValue) noexcept nogil
     cdef void queue_callback(self, Callback, baseItem, baseItem, object) noexcept
+    # lock free operations
     cpdef void push_next_parent(self, baseItem next_parent)
     cpdef void pop_next_parent(self)
     cpdef object fetch_parent_queue_back(self)
@@ -104,7 +119,8 @@ cdef class Context:
     # button, key and key_chord are imgui values that should
     # be obtained by getting the int representation of the corresponding
     # Button, Key or KeyChord enum.
-    # Must be called from inside draw()
+    # Must be called from inside draw(), and as such, they assume
+    # both the viewport mutex and the global imgui context mutex are held.
     cdef Vec2 c_get_mouse_pos(self) noexcept nogil # negative pos means invalid
     cdef Vec2 c_get_mouse_prev_pos(self) noexcept nogil  
     cdef Vec2 c_get_mouse_drag_delta(self, int32_t button, float threshold) noexcept nogil
@@ -261,6 +277,45 @@ cdef class ItemStateCopy:
 
 cdef void update_current_mouse_states(itemState&) noexcept nogil
 
+"""
+Viewport mutexes
+================
+
+In DearCyGui usually the item mutex (inherited from baseItem)
+is held during any call. However in the case of the Viewport,
+we do not want to block during rendering or event waiting
+other operations, such as requesting a redraw, requesting
+which key was pressed last frame, etc.
+
+platform fields do not need protection, and most platform
+operations (except textures) must be done from the main
+thread only, thus providing a natural protection.
+
+As rendering is quite fast, it is ok to lock the viewport
+during draw(), however we release the mutex during GL
+submission (vsync, etc can be slow) and event processing.
+
+Thus the strategy is:
+- mutex (from baseItem): protects everything by default.
+  Is released during rendering and event processing.
+- The global imgui context mutex: protects the imgui context pointer
+  and imgui calls. It is held whenever accessing imgui internals,
+  and during rendering and event processing (though released at key moments)
+
+If several mutexes must be held, they must be acquired in the order:
+- mutex
+- global imgui context
+- gil
+
+During the draw() part of rendering, the mutexes:
+- mutex
+- global imgui context
+
+The global imgui context can be released temporarily during draw(),
+if your extension needs it to. To do so, use unlock_im_context to
+release the global imgui context mutex, and lock_im_context to lock it back.
+One instance is if making call to unknown user call which might change the imgui context.
+"""
 
 cdef class Viewport(baseItem):
     ### Public read-only variables
@@ -309,10 +364,9 @@ cdef class Viewport(baseItem):
     cdef bint os_drop_ready
     cdef object pending_drop
     ### private variables ###
-    cdef DCGMutex _mutex_backend
     cdef void *_platform # platformViewport
     cdef void *_platform_window # SDL_Window
-    cdef bint _initialized
+    cdef bint _initialized # False initially, then True. Doesn't need mutex
     cdef bint _retrieve_framebuffer
     cdef object _frame_buffer
     cdef Callback _resize_callback

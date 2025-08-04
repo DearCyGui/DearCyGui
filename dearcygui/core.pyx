@@ -63,20 +63,41 @@ context is current. The call is almost free as it's just
 a pointer that is set.
 If you create your own custom rendering objects, you must ensure
 that you link to the same version of ImGui (ImPlot if
-applicable) and you must call ensure_correct_* at the start
+applicable) and you must call ulock_im_context at the start
 of your draw() overrides
 """
 
-cdef inline void ensure_correct_imgui_context(Context context) noexcept nogil:
-    imgui.SetCurrentContext(<imgui.ImGuiContext*>context.imgui_context)
+cdef DCGMutex imgui_context_pointer_mutex
 
-cdef inline void ensure_correct_implot_context(Context context) noexcept nogil:
-    implot.SetCurrentContext(<implot.ImPlotContext*>context.implot_context)
+cdef bint ulock_im_context(unique_lock[DCGMutex] &m, Viewport viewport) noexcept nogil:
+    # valid implot implies valid imgui context
+    #cdef unique_lock m2 = unique_lock[DCGMutex](viewport.mutex) -> not needed until we release out of dealloc
+    if viewport._implot_context == NULL:
+        return False
+    m = unique_lock[DCGMutex](imgui_context_pointer_mutex, defer_lock_t())
+    imgui.SetCurrentContext(<imgui.ImGuiContext*>viewport._imgui_context)
+    implot.SetCurrentContext(<implot.ImPlotContext*>viewport._implot_context)
+    return True
 
-cdef void ensure_correct_im_context(Context context) noexcept nogil:
-    ensure_correct_imgui_context(context)
-    ensure_correct_implot_context(context)
+cdef int ulock_im_context_gil(unique_lock[DCGMutex] &m, Viewport viewport):
+    # valid implot implies valid imgui context
+    if viewport is None:
+        raise ValueError("Invalid viewport")
+    #cdef unique_lock m2 = unique_lock(viewport.mutex)
+    if viewport._implot_context == NULL:
+        raise ValueError("Viewport is not initialized properly")
+    lock_gil_friendly(m, imgui_context_pointer_mutex)
+    imgui.SetCurrentContext(<imgui.ImGuiContext*>viewport._imgui_context)
+    implot.SetCurrentContext(<implot.ImPlotContext*>viewport._implot_context)
+    return True
 
+cdef void lock_im_context(Viewport viewport) noexcept nogil:
+    imgui_context_pointer_mutex.lock()
+    imgui.SetCurrentContext(<imgui.ImGuiContext*>viewport._imgui_context)
+    implot.SetCurrentContext(<implot.ImPlotContext*>viewport._implot_context)
+
+cdef void unlock_im_context() noexcept nogil:
+    imgui_context_pointer_mutex.unlock()
 
 cdef class BackendRenderingContext:
     """
@@ -91,7 +112,7 @@ cdef class BackendRenderingContext:
         return "GL" # For now only GL is supported
 
     def __enter__(self) -> BackendRenderingContext:
-        # TODO: check thread safety
+        # Is thread safe (lock in make***) + we have context (and thus viewport) reference
         (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
         return self
 
@@ -227,6 +248,14 @@ cdef void internal_drop_callback(void *object, int type, const char *data) noexc
 cdef void internal_render_callback(void *object) noexcept nogil:
     (<Viewport>object).__render()
 
+cdef void internal_wait_callback(void *object) noexcept nogil:
+    unlock_im_context() # Unlock the imgui context before waiting
+    (<Viewport>object).mutex.unlock() # Unlock the viewport mutex before waiting
+
+cdef void internal_wake_callback(void *object) noexcept nogil:
+    (<Viewport>object).mutex.lock() # Lock the viewport mutex before waking up
+    lock_im_context(<Viewport>object) # Lock the imgui context before waking up
+
 # parent stack for the 'with' syntax
 cdef extern from * nogil:
     """
@@ -275,8 +304,7 @@ cdef class Context:
         - Global viewport management
         - ImGui/ImPlot context management
 
-    There is exactly one viewport per context. The last created context can be accessed 
-    as dearcygui.C.
+    There is exactly one viewport per context.
 
     Implementation Notes
     -------------------
@@ -318,17 +346,8 @@ cdef class Context:
         Cython-specific initializer for Context.
         """
         self.next_uuid.store(21)
-        self._started = True
-        self.imgui_context = NULL
-        self.implot_context = NULL
+        self._running = True
         self.viewport = Viewport(self)
-        # imgui and implot deallocation is handled by the viewport
-        # but for backward compatibility we have pointers to them
-        # in the context
-        self.imgui_context = self.viewport._imgui_context
-        self.implot_context = self.viewport._implot_context
-        ensure_correct_im_context(self)
-
 
     def __reduce__(self):
         """
@@ -348,13 +367,17 @@ cdef class Context:
         """
         Executor for managing thread-pooled callbacks.
         """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.viewport.mutex)
         return self._queue
 
     @queue.setter
-    def queue(self, queue): # TODO: thread safety
+    def queue(self, queue):
         """
         Set the Executor for managing thread-pooled callbacks.
         """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.viewport.mutex)
         if queue is self._queue:
             return
         # Check type
@@ -390,7 +413,7 @@ cdef class Context:
             SharedGLContext instance
         """
         cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.viewport._mutex_backend)
+        lock_gil_friendly(m, self.viewport.mutex)
         return SharedGLContext.from_context(self, (<platformViewport*>self.viewport._platform).createSharedContext(major, minor))
 
     cdef void queue_callback_noarg(self, Callback callback, baseItem parent_item, baseItem target_item) noexcept nogil:
@@ -407,12 +430,15 @@ cdef class Context:
         """
         if callback is None:
             return
+        # we release the context because we cannot guarantee
+        # this external code doesn't change the context.
+        unlock_im_context() 
         with gil:
             try:
                 self._queue.submit(callback, parent_item, target_item, None)
             except Exception as e:
                 print(traceback.format_exc())
-        ensure_correct_im_context(self)
+        lock_im_context(self.viewport)
 
     cdef void queue_callback_arg1button(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1) noexcept nogil:
         """
@@ -430,13 +456,13 @@ cdef class Context:
         """
         if callback is None:
             return
+        unlock_im_context()
         with gil:
             try:
                 self._queue.submit(callback, parent_item, target_item, make_MouseButton(arg1))
             except Exception as e:
                 print(traceback.format_exc())
-        ensure_correct_im_context(self)
-
+        lock_im_context(self.viewport)
 
     cdef void queue_callback_arg1value(self, Callback callback, baseItem parent_item, baseItem target_item, SharedValue arg1) noexcept nogil:
         """
@@ -454,13 +480,13 @@ cdef class Context:
         """
         if callback is None:
             return
+        unlock_im_context()
         with gil:
             try:
                 self._queue.submit(callback, parent_item, target_item, arg1.value)
             except Exception as e:
                 print(traceback.format_exc())
-        ensure_correct_im_context(self)
-
+        lock_im_context(self.viewport)
 
     cdef void queue_callback(self, Callback callback, baseItem sender, baseItem target, object data) noexcept:
         """
@@ -474,13 +500,18 @@ cdef class Context:
         data : object
             Additional data to be passed to the callback.
         """
+        cdef unique_lock[DCGMutex] m
         if callback is None:
             return
+        unlock_im_context()
         try:
             self._queue.submit(callback, sender, target, data)
         except Exception as e:
             print(traceback.format_exc())
-        ensure_correct_im_context(self)
+        finally:
+            lock_gil_friendly(m, imgui_context_pointer_mutex) # To avoid deadlock with gil (there are other ways to do it)
+            # No deadlock because we ensured we own the mutex
+            lock_im_context(self.viewport)
 
     cpdef void push_next_parent(self, baseItem next_parent):
         """
@@ -556,8 +587,7 @@ cdef class Context:
         if keymod is not None and not(is_KeyMod(keymod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
         cdef imgui.ImGuiKey keycode = make_Key(key)
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         if keymod is not None and (<int>make_KeyMod(keymod) & imgui.ImGuiMod_Mask_) != imgui.GetIO().KeyMods:
             return False
         return imgui.IsKeyDown(keycode)
@@ -587,8 +617,7 @@ cdef class Context:
         if keymod is not None and not(is_KeyMod(keymod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
         cdef imgui.ImGuiKey keycode = make_Key(key)
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         if keymod is not None and (<int>make_KeyMod(keymod) & imgui.ImGuiMod_Mask_) != imgui.GetIO().KeyMods:
             return False
         return imgui.IsKeyPressed(keycode, repeat)
@@ -616,8 +645,7 @@ cdef class Context:
         if keymod is not None and not(is_KeyMod(keymod)):
             raise TypeError(f"keymod must be a valid KeyMod, not {keymod}")
         cdef imgui.ImGuiKey keycode = make_Key(key)
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         if keymod is not None and (<int>make_KeyMod(keymod) & imgui.GetIO().KeyMods) != keymod:
             return True
         return imgui.IsKeyReleased(keycode)
@@ -643,12 +671,11 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         return imgui.IsMouseDown(<int>button)
 
-    cdef bint c_is_mouse_clicked(self, int32_t button, bint repease) noexcept nogil:
-        return imgui.IsMouseClicked(button, repease)
+    cdef bint c_is_mouse_clicked(self, int32_t button, bint repeat) noexcept nogil:
+        return imgui.IsMouseClicked(button, repeat)
 
     def is_mouse_clicked(self, button, repeat: bool = False) -> bool:
         """
@@ -670,8 +697,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         return imgui.IsMouseClicked(<int>button, repeat)
 
     def is_mouse_double_clicked(self, button) -> bool:
@@ -692,8 +718,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         return imgui.IsMouseDoubleClicked(<int>button)
 
     cdef int32_t c_get_mouse_clicked_count(self, int32_t button) noexcept nogil:
@@ -717,8 +742,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         return imgui.GetMouseClickedCount(<int>button)
 
     cdef bint c_is_mouse_released(self, int32_t button) noexcept nogil:
@@ -742,8 +766,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         return imgui.IsMouseReleased(<int>button)
 
     cdef Vec2 c_get_mouse_pos(self) noexcept nogil:
@@ -766,8 +789,7 @@ cdef class Context:
             If there is no mouse.
         """
         cdef unique_lock[DCGMutex] m
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         cdef imgui.ImVec2 pos = imgui.GetMousePos()
         if not(imgui.IsMousePosValid(&pos)):
             raise KeyError("Cannot get mouse position: no mouse found")
@@ -797,8 +819,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         return imgui.IsMouseDragging(<int>button, lock_threshold)
 
     cdef Vec2 c_get_mouse_drag_delta(self, int32_t button, float threshold) noexcept nogil:
@@ -824,8 +845,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         cdef imgui.ImVec2 delta =  imgui.GetMouseDragDelta(<int>button, lock_threshold)
         cdef double[2] coord = [delta.x, delta.y]
         return Coord.build(coord)
@@ -844,8 +864,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         return imgui.ResetMouseDragDelta(<int>button)
 
     def inject_key_down(self, key) -> None:
@@ -860,8 +879,7 @@ cdef class Context:
         if key is None or not(is_Key(key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         cdef imgui.ImGuiKey keycode = make_Key(key)
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         imgui.GetIO().AddKeyEvent(keycode, True)
 
     def inject_key_up(self, key) -> None:
@@ -876,8 +894,7 @@ cdef class Context:
         if key is None or not(is_Key(key)):
             raise TypeError(f"key must be a valid Key, not {key}")
         cdef imgui.ImGuiKey keycode = make_Key(key)
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         imgui.GetIO().AddKeyEvent(keycode, False)
 
     def inject_mouse_down(self, button) -> None:
@@ -894,8 +911,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         imgui.GetIO().AddMouseButtonEvent(<int>button, True)
 
     def inject_mouse_up(self, button) -> None:
@@ -912,8 +928,7 @@ cdef class Context:
         button = make_MouseButton(button)
         if <int>button < 0 or <int>button >= imgui.ImGuiMouseButton_COUNT:
             raise ValueError("Invalid button")
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         imgui.GetIO().AddMouseButtonEvent(<int>button, False)
 
     def inject_mouse_wheel(self, wheel_x : float, wheel_y : float) -> None:
@@ -927,8 +942,7 @@ cdef class Context:
             Vertical wheel movement in pixels.
         """
         cdef unique_lock[DCGMutex] m
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         imgui.GetIO().AddMouseWheelEvent(wheel_x, wheel_y)
 
     def inject_mouse_pos(self, x : float, y : float) -> None:
@@ -942,8 +956,7 @@ cdef class Context:
             Y position of the mouse in pixels.
         """
         cdef unique_lock[DCGMutex] m
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         imgui.GetIO().AddMousePosEvent(x, y)
 
     @property 
@@ -952,14 +965,14 @@ cdef class Context:
         Whether the context is currently running and processing frames.
         """
         cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._started
+        lock_gil_friendly(m, self.viewport.mutex)
+        return self._running
 
     @running.setter
     def running(self, bint value):
         cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._started = value
+        lock_gil_friendly(m, self.viewport.mutex)
+        self._running = value
 
     @property
     def clipboard(self):
@@ -973,8 +986,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if not(self.viewport._initialized):
             return ""
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         return str(imgui.GetClipboardText())
 
     @clipboard.setter
@@ -983,8 +995,7 @@ cdef class Context:
         cdef unique_lock[DCGMutex] m
         if not(self.viewport._initialized):
             return
-        ensure_correct_im_context(self)
-        lock_gil_friendly(m, self.imgui_mutex)
+        ulock_im_context_gil(m, self.viewport)
         imgui.SetClipboardText(value_str.c_str())
 
 
@@ -2729,12 +2740,16 @@ cdef class Viewport(baseItem):
         self._scale = 1.
         self._kill_signal = False
         self.global_scale = 1. # non-zero needed for AutoFont.
+        self._imgui_context = NULL
+        self._implot_context = NULL
         self._platform = \
             SDLViewport.create(internal_render_callback,
                                internal_resize_callback,
                                internal_close_callback,
                                internal_kill_callback,
                                internal_drop_callback,
+                               internal_wait_callback,
+                               internal_wake_callback,
                                <void*>self)
         if self._platform == NULL:
             raise RuntimeError("Failed to create the viewport")
@@ -2751,20 +2766,19 @@ cdef class Viewport(baseItem):
 
     def __dealloc__(self):
         #print("Viewport deallocating", flush=True)
-        cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] m2
-
-        if self._implot_context == NULL and self._imgui_context == NULL and self._platform == NULL:
+        # Attempt to get all locks
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex, defer_lock_t())
+        cdef unique_lock[DCGMutex] m2 = unique_lock[DCGMutex](imgui_context_pointer_mutex, defer_lock_t())
+        if not m.try_lock():
+            warnings.warn("Internal lock error while releasing Viewport")
             return
 
-        if self.context is not None:
-            m = unique_lock[DCGMutex](self.context.imgui_mutex, defer_lock_t())
-            if not m.try_lock():
-                warnings.warn("Internal lock error while releasing Viewport: imgui lock", RuntimeWarning, stacklevel=2)
-                return
-        m2 = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
         if not m2.try_lock():
-            warnings.warn("Internal lock error while releasing Viewport: backend lock", RuntimeWarning, stacklevel=2)
+            # we probably are not allowed to release the GIL to lock on it,
+            # and not doing so may deadlock
+            return
+
+        if self._implot_context == NULL and self._imgui_context == NULL and self._platform == NULL:
             return
 
         if self._imgui_context != NULL:
@@ -2779,12 +2793,15 @@ cdef class Viewport(baseItem):
                               RuntimeWarning, stacklevel=2)
             else:
                 (<platformViewport*>self._platform).cleanup()
-            self._platform = NULL
+            self._platform = NULL # Should be free or delete ?
+
         # imgui must be destroyed after the platform (initialize catches current imgui context)
         if self._implot_context != NULL and self._imgui_context != NULL:
             implot.DestroyContext(<implot.ImPlotContext*>self._implot_context)
+            self._implot_context = NULL
         if self._imgui_context != NULL:
             imgui.DestroyContext(<imgui.ImGuiContext*>self._imgui_context)
+            self._imgui_context = NULL
 
     cpdef void delete_item(self):
         baseItem.delete_item(self)
@@ -2808,28 +2825,24 @@ cdef class Viewport(baseItem):
         at the documentation of the FontTexture class, as well
         as AutoFont.
         """
-        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m1
         cdef unique_lock[DCGMutex] m2
-        cdef unique_lock[DCGMutex] m3
         self.configure(**kwargs)
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
-        lock_gil_friendly(m3, self._mutex_backend)
-        ensure_correct_im_context(self.context)
+        lock_gil_friendly(m1, self.mutex)
         if self._initialized:
             raise RuntimeError("Viewport already initialized")
-        ensure_correct_im_context(self.context)
+        ulock_im_context_gil(m2, self)
         if not (<platformViewport*>self._platform).initialize():
             raise RuntimeError("Failed to initialize the viewport")
         imgui.StyleColorsDark()
         imgui.GetIO().ConfigWindowsMoveFromTitleBarOnly = True
+        imgui.GetIO().IniFilename = NULL  # Disable ini file saving
         imgui.GetStyle().ScaleAllSizes((<platformViewport*>self._platform).dpiScale)
         self.global_scale = (<platformViewport*>self._platform).dpiScale * self._scale
+        m2.unlock()
         if self._font is None:
             self._font = AutoFont(self.context)
-        ensure_correct_im_context(self.context)
         self._initialized = True
-        imgui.GetIO().IniFilename = NULL
         # Atexit tends to run in the main thread but there is no
         # real guarantee. If it runs in a different thread to the
         # viewport, this will enable to avoid being hanged during
@@ -2837,12 +2850,10 @@ cdef class Viewport(baseItem):
         atexit.register(_wake_viewport_on_exit, weak_ref(self))
 
     cdef void __check_initialized(self):
-        ensure_correct_im_context(self.context)
         if not(self._initialized):
             raise RuntimeError("The viewport must be initialized before being used")
 
     cdef void __check_not_initialized(self):
-        ensure_correct_im_context(self.context)
         if self._initialized:
             raise RuntimeError("The viewport must be not be initialized to set this field")
 
@@ -3145,8 +3156,8 @@ cdef class Viewport(baseItem):
         """
         Get information about the current display for the window
         """
-        cdef unique_lock[DCGMutex] self_m
-        lock_gil_friendly(self_m, self.mutex)
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         self.__check_initialized()
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("displays must be retrieved from the thread where the context was created")
@@ -3177,8 +3188,8 @@ cdef class Viewport(baseItem):
         Raises:
             RuntimeError: If there was an error retrieving display information
         """
-        cdef unique_lock[DCGMutex] self_m
-        lock_gil_friendly(self_m, self.mutex)
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         self.__check_initialized()
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("displays must be retrieved from the thread where the context was created")
@@ -3547,18 +3558,16 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
-        ensure_correct_im_context(self.context)
+        lock_gil_friendly(m, self.mutex)
+        ulock_im_context_gil(m2, self)
         return (imgui.GetIO().ConfigFlags & imgui.ImGuiConfigFlags_NavEnableKeyboard) != 0
 
     @keyboard_navigation.setter
     def keyboard_navigation(self, bint value):
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
-        ensure_correct_im_context(self.context)
+        lock_gil_friendly(m, self.mutex)
+        ulock_im_context_gil(m2, self)
         if value:
             imgui.GetIO().ConfigFlags = imgui.GetIO().ConfigFlags | imgui.ImGuiConfigFlags_NavEnableKeyboard  # Enable Keyboard Controls
         else:
@@ -3773,12 +3782,7 @@ cdef class Viewport(baseItem):
     @fullscreen.setter
     def fullscreen(self, bint value):
         cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] m2
-        cdef unique_lock[DCGMutex] m3
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
-        lock_gil_friendly(m3, self._mutex_backend)
-        ensure_correct_im_context(self.context)
+        lock_gil_friendly(m, self.mutex)
         if value and not((<platformViewport*>self._platform).isFullScreen):
             (<platformViewport*>self._platform).shouldFullscreen = True
         elif not(value) and ((<platformViewport*>self._platform).isFullScreen):
@@ -3801,12 +3805,7 @@ cdef class Viewport(baseItem):
     @minimized.setter
     def minimized(self, bint value):
         cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] m2
-        cdef unique_lock[DCGMutex] m3
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
-        lock_gil_friendly(m3, self._mutex_backend)
-        ensure_correct_im_context(self.context)
+        lock_gil_friendly(m, self.mutex)
         if value and not((<platformViewport*>self._platform).isMinimized):
             (<platformViewport*>self._platform).shouldMinimize = True
         elif (<platformViewport*>self._platform).isMinimized:
@@ -3829,12 +3828,7 @@ cdef class Viewport(baseItem):
     @maximized.setter
     def maximized(self, bint value):
         cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] m2
-        cdef unique_lock[DCGMutex] m3
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
-        lock_gil_friendly(m3, self._mutex_backend)
-        ensure_correct_im_context(self.context)
+        lock_gil_friendly(m, self.mutex)
         if value and not((<platformViewport*>self._platform).isMaximized):
             (<platformViewport*>self._platform).shouldMaximize = True
         elif (<platformViewport*>self._platform).isMaximized:
@@ -3855,12 +3849,7 @@ cdef class Viewport(baseItem):
     @visible.setter
     def visible(self, bint value):
         cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] m2
-        cdef unique_lock[DCGMutex] m3
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
-        lock_gil_friendly(m3, self._mutex_backend)
-        ensure_correct_im_context(self.context)
+        lock_gil_friendly(m, self.mutex)
         if value and not((<platformViewport*>self._platform).isVisible):
             (<platformViewport*>self._platform).shouldShow = True
         elif not value and (<platformViewport*>self._platform).isVisible:
@@ -3989,8 +3978,8 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
-        lock_gil_friendly(m, self.context.imgui_mutex)
-        lock_gil_friendly(m2, self.mutex)
+        lock_gil_friendly(m, self.mutex)
+        ulock_im_context_gil(m2, self)
 
         return ViewportMetrics(
             self.last_t_before_event_handling,
@@ -4050,11 +4039,11 @@ cdef class Viewport(baseItem):
              (<platformViewport*>self._platform).windowWidth,
              (<platformViewport*>self._platform).windowHeight))
 
+    # The callbacks assums mutex and global imgui/imgplot contexts lock
+
     cdef void __on_close(self):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
         if not(self._disable_close):
-            self.context._started = False
+            self.context._running = False
         self.context.queue_callback_noarg(self._close_callback, self, self)
 
     cdef void __on_drop(self, int32_t type, const char* data):
@@ -4062,8 +4051,6 @@ cdef class Viewport(baseItem):
         Drop operations are received in several pieces,
         we concatenate them before calling the user callback.
         """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
         cdef DCGString data_str
         if type == 0:
             # Start of a new drop operation
@@ -4105,11 +4092,9 @@ cdef class Viewport(baseItem):
 
 
     cdef void __render(self) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef bint any_change = False
         self.last_t_before_rendering = ctime.monotonic_ns()
         # Initialize drawing state
-        ensure_correct_im_context(self.context)
         imgui.SetMouseCursor(self._cursor)
         self._cursor = imgui.ImGuiMouseCursor_Arrow
         self.set_previous_states()
@@ -4257,12 +4242,9 @@ cdef class Viewport(baseItem):
             bool: True if an event requires render_frame to be processed,
                   False if no such event was met in the allocated time.
         """
-        cdef unique_lock[DCGMutex] self_m
-        cdef unique_lock[DCGMutex] backend_m = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
-        lock_gil_friendly(self_m, self.mutex)
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         self.__check_initialized()
-        if not self.context._started:
-            return False
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("wait_events must be called from the thread where the context was created")
         cdef bint has_events
@@ -4270,9 +4252,6 @@ cdef class Viewport(baseItem):
         cdef int32_t internal_timeout_ms
         cdef bint is_internal_timeout = False
         with nogil:
-            ensure_correct_im_context(self.context) # Doesn't really need the imgui mutex
-            backend_m.lock()
-            self_m.unlock()
             current_time_s = (<double>ctime.monotonic_ns()) * 1e-9
             internal_timeout_ms = <int32_t>(ceil((self._target_refresh_time - current_time_s) * 1000.))
             internal_timeout_ms = max(0, internal_timeout_ms)
@@ -4280,7 +4259,18 @@ cdef class Viewport(baseItem):
             if internal_timeout_ms <= timeout_ms:
                 is_internal_timeout = True # internal timeout event will occur before requested timeout.
                 timeout_ms = internal_timeout_ms
-            has_events = (<platformViewport*>self._platform).processEvents(timeout_ms)
+            # Use manual locks for processEvents (it may release them)
+            self.mutex.lock()
+            m.unlock()
+            lock_im_context(self)
+            try:
+                has_events = (<platformViewport*>self._platform).processEvents(timeout_ms)
+            finally:
+                # convert back to unique lock
+                m.lock()
+                self.mutex.unlock()
+                unlock_im_context()
+
             if is_internal_timeout:
                 has_events = True # Either has_events was already True, or we meet internal timeout event
         if self._kill_signal:
@@ -4306,13 +4296,10 @@ cdef class Viewport(baseItem):
         bool
             True if the frame was presented to the screen, False otherwise
         """
-        # to lock in this order
-        cdef unique_lock[DCGMutex] imgui_m = unique_lock[DCGMutex](self.context.imgui_mutex, defer_lock_t())
-        cdef unique_lock[DCGMutex] self_m
-        cdef unique_lock[DCGMutex] backend_m = unique_lock[DCGMutex](self._mutex_backend, defer_lock_t())
-        lock_gil_friendly(self_m, self.mutex)
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         self.__check_initialized()
-        if not self.context._started:
+        if not self.context._running:
             return False
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("render_frame must be called from the thread where the context was created")
@@ -4323,11 +4310,8 @@ cdef class Viewport(baseItem):
         cdef implot.ImPlotStyle *style_p
         cdef Texture framebuffer
         with nogil:
+            lock_im_context(self)
             # Configuring imgui's style. Uses imgui variables and viewport variables
-            self_m.unlock() # lock order
-            imgui_m.lock()
-            self_m.lock()
-            ensure_correct_im_context(self.context)
             self.last_t_before_event_handling = ctime.monotonic_ns()
             gs = self.global_scale
             self.global_scale = (<platformViewport*>self._platform).dpiScale * self._scale
@@ -4384,24 +4368,29 @@ cdef class Viewport(baseItem):
                 style_p.PlotDefaultSize = imgui.ImVec2(cround(gs*400), cround(gs*300))
                 style_p.PlotMinSize = imgui.ImVec2(cround(gs*200), cround(gs*150))
 
-            backend_m.lock()
-            self_m.unlock()
             # Process input events (needs imgui mutex and backend mutex)
             # Doesn't need viewport mutex.
             # if wait_for_input is set, can take a long time
             current_time_s = self.last_t_before_event_handling * 1e-9
             target_timeout_ms = (self._target_refresh_time - current_time_s) * 1000.
             target_timeout_ms = max(0., ceil(target_timeout_ms))
-            # TODO: we really want to not have imgui_m locked here, but
-            # this is not really correct...
-            imgui_m.unlock()
-            (<platformViewport*>self._platform).processEvents(
-                <int>target_timeout_ms if self.wait_for_input else 0)
-            backend_m.unlock() # important to respect lock order
-            # Core rendering - uses imgui and viewport
-            imgui_m.lock()
-            self_m.lock()
-            backend_m.lock()
+            if not self.wait_for_input:
+                target_timeout_ms = 0.
+            # Use manual locks for processEvents (it may release them)
+            self.mutex.lock()
+            m.unlock()
+            # Note: processEvents releases the mutex if target_timeout_ms > 0,
+            # and no events require immediate redraw.
+            try:
+                (<platformViewport*>self._platform).processEvents(
+                    <int>target_timeout_ms)
+            finally:
+                # convert back to unique lock
+                m.lock()
+                self.mutex.unlock()
+                unlock_im_context()
+
+            # Core rendering
             #self.last_t_before_rendering = ctime.monotonic_ns()
             
             #imgui.GetMainViewport().DpiScale = self.viewport.dpi
@@ -4414,16 +4403,15 @@ cdef class Viewport(baseItem):
                 self._target_refresh_time = current_time_s + 5. # maximum time before next frame
             else:
                 should_present = False
-            ensure_correct_im_context(self.context)
-            should_present = \
-                (<platformViewport*>self._platform).renderFrame(not(self.always_submit_to_gpu))
-            ensure_correct_im_context(self.context)
+            # we do not use a unique lock to enable children to unlock
+            lock_im_context(self)
+            try:
+                should_present = \
+                    (<platformViewport*>self._platform).renderFrame(not(self.always_submit_to_gpu))
+            finally:
+                unlock_im_context()
             #self.last_t_after_rendering = ctime.monotonic_ns()
-            backend_m.unlock()
-            self_m.unlock()
-            imgui_m.unlock()
             # Present doesn't use imgui but can take time (vsync)
-            backend_m.lock()
             if should_present:
                 if self._retrieve_framebuffer:
                     with gil:
@@ -4434,6 +4422,7 @@ cdef class Viewport(baseItem):
                                                      height=(<platformViewport*>self._platform).frameHeight,
                                                      num_chans=4,
                                                      uint8=True)
+                                # Note: doesn't need the imgui context
                                 if not (<platformViewport*>self._platform).backBufferToTexture(framebuffer.allocated_texture,
                                                                                                framebuffer.width,
                                                                                                framebuffer.height,
@@ -4444,15 +4433,18 @@ cdef class Viewport(baseItem):
                                 break
                         except Exception as e:
                             print(f"Failed to retrieve framebuffer: {e}")
+                m.unlock()
+                # Note: doesn't need the imgui context
                 (<platformViewport*>self._platform).present()
-            backend_m.unlock()
+                m.lock()
         cdef long long current_time = ctime.monotonic_ns()
         if not(should_present) and (<platformViewport*>self._platform).hasVSync\
            and (current_time - self.last_t_after_swapping) < 5000000: # 5 ms
             # cap 'cpu' framerate when not presenting
+            m.unlock()
             python_time.sleep(0.005 - <double>(current_time - self.last_t_after_swapping) * 1e-9)
             current_time = ctime.monotonic_ns()
-        lock_gil_friendly(self_m, self.mutex)
+            lock_gil_friendly(m, self.mutex)
         self.delta_frame = current_time - self.last_t_after_swapping
         self.last_t_after_swapping = current_time
         self.delta_swapping = current_time - self.last_t_after_rendering
@@ -4490,8 +4482,6 @@ cdef class Viewport(baseItem):
                 redraw with gpu submission is performed. if False, render_frame
                 may decide to not submit to the gpu if it thinks no change occured.
         """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
         if not self._initialized:
             return
         cdef uint64_t delay_ns = <uint64_t>fmax(0, delay * 1e9)

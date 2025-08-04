@@ -15,6 +15,8 @@ typedef void (*on_close_fun)(void*);
 typedef void (*on_kill_fun)(void*);
 typedef void (*render_fun)(void*);
 typedef void (*on_drop_fun)(void*, int, const char*);
+typedef void (*on_wait_fun)(void*);
+typedef void (*on_wake_fun)(void*);
 
 
 // A class to wrap a GL context, make it current, release it.
@@ -242,6 +244,8 @@ protected:
     on_close_fun closeCallback;
     on_kill_fun killCallback;
     on_drop_fun dropCallback;
+    on_wait_fun waitCallback;
+    on_wake_fun wakeCallback;
     void* callbackData;
 
     // Utility the does a cheap test for 
@@ -287,6 +291,8 @@ public:
                                on_close_fun on_close,
                                on_kill_fun on_kill,
                                on_drop_fun on_drop,
+                               on_wait_fun on_wait,
+                               on_wake_fun on_wake,
                                void* callback_data);
 
     void prepareTexturesForRender(const std::unordered_set<GLuint>& tex_ids);

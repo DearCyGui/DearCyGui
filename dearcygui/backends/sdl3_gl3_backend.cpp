@@ -655,11 +655,13 @@ bool SDLViewport::updateStaticTexture(void* texture, unsigned width, unsigned he
 }
 
 SDLViewport* SDLViewport::create(render_fun render,
-                             on_resize_fun on_resize,
-                             on_close_fun on_close,
-                             on_kill_fun on_kill,
-                             on_drop_fun on_drop,
-                             void* callback_data) {
+                                 on_resize_fun on_resize,
+                                 on_close_fun on_close,
+                                 on_kill_fun on_kill,
+                                 on_drop_fun on_drop,
+                                 on_wait_fun on_wait,
+                                 on_wake_fun on_wake,
+                                 void* callback_data) {
     std::lock_guard<std::mutex> lock(sdlInitMutex);
     
     // Initialize SDL in the first thread that creates a viewport
@@ -691,6 +693,8 @@ SDLViewport* SDLViewport::create(render_fun render,
     viewport->closeCallback = on_close;
     viewport->killCallback = on_kill;
     viewport->dropCallback = on_drop;
+    viewport->waitCallback = on_wait;
+    viewport->wakeCallback = on_wake;
     viewport->callbackData = callback_data;
     
     // Create secondary window/context
@@ -1076,15 +1080,20 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 break;
             if (activityDetected.load() || needsRefresh.load())
                 break;
+            waitCallback(callbackData);
             if (SDL_WaitEventTimeout(&event, remaining_timeout)) {
                 // update the timeout for next iteration
+                wakeCallback(callbackData);
                 auto current_time = std::chrono::steady_clock::now();
                 auto elapsed = current_time - start_time;
                 auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
                 remaining_timeout = timeout_ms - elapsed_ms;
                 SDL_PumpEvents(); // Probably not needed, but just in case
-            } else
-                break; // Timeout occurred
+            } else {
+                // Timeout occurred
+                wakeCallback(callbackData);
+                break;
+            }
         }
 
         // Check if event belongs to this window
