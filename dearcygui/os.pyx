@@ -129,6 +129,7 @@ cdef extern from "SDL3/SDL_video.h" nogil:
 cdef class _FileDialogQuery:
     cdef Context context
     cdef object callback
+    cdef void *_platform
     cdef vector[string] filters_backing
     cdef vector[SDL_DialogFileFilter] filters
     cdef SDL_FileDialogType dialog_type
@@ -156,6 +157,9 @@ cdef class _FileDialogQuery:
                   str cancel):
         self.submitted = False
         self.context = context
+        self._platform = <void*>context.viewport.get_platform()
+        if self._platform == NULL:
+            raise RuntimeError("Cannot use destroyed viewport to get open file dialog")
         self.callback = callback
         self.dialog_type = type
         self.many_allowed = many_allowed
@@ -200,6 +204,11 @@ cdef class _FileDialogQuery:
             self.filters.push_back(filter)
         # because we store the data in strings, proper
         # cleanup is done by the vector destructor
+
+    def __dealloc__(self):
+        if self._platform != NULL and self.context is not None and self.context.viewport is not None:
+            # Release the platform lock
+            self.context.viewport.release_platform()
 
     cdef void treat_result(self,
                            const const_char_p* filelist,
@@ -457,30 +466,37 @@ def get_system_theme(Context context not None) -> str:
     result.theme = SDL_SYSTEM_THEME_UNKNOWN
     result.completed = False
 
-    if not SDL_RunOnMainThread(_get_system_theme, <void*>(&result), False):
-        _raise_error()
-    #context.viewport.wake() # -> not needed, as the main thread processes all events
+    cdef void *platform = <void*>context.viewport.get_platform()
+    if platform == NULL:
+        raise RuntimeError("Cannot use destroyed viewport to get system theme")
+
     cdef unique_lock[mutex] lock
-    with nogil:
-        lock = unique_lock[mutex](result.lock)
-        while not result.completed:
-            # Wait for the result to be set
-            result.cv.wait(lock)
-    if result.theme == SDL_SYSTEM_THEME_UNKNOWN:
-        return "unknown"
-    elif result.theme == SDL_SYSTEM_THEME_LIGHT:
-        return "light"
-    elif result.theme == SDL_SYSTEM_THEME_DARK:
-        return "dark"
-    else:
-        return "unknown"
+    try:
+        if not SDL_RunOnMainThread(_get_system_theme, <void*>(&result), False):
+            _raise_error()
+        #context.viewport.wake() # -> not needed, as the main thread processes all events
+        with nogil:
+            lock = unique_lock[mutex](result.lock)
+            while not result.completed:
+                # Wait for the result to be set
+                result.cv.wait(lock)
+        if result.theme == SDL_SYSTEM_THEME_UNKNOWN:
+            return "unknown"
+        elif result.theme == SDL_SYSTEM_THEME_LIGHT:
+            return "light"
+        elif result.theme == SDL_SYSTEM_THEME_DARK:
+            return "dark"
+        else:
+            return "unknown"
+    finally:
+        context.viewport.release_platform()  # Release the platform lock
 
 def open_url(str url) -> None:
     """
     Open an URL in the default web browser.
     """
     cdef bytes url_bytes = bytes(url, encoding='utf-8')
-    if not SDL_OpenURL(url_bytes):
+    if not SDL_OpenURL(url_bytes):  # Does not seem to require SDL init
         _raise_error()
 
 def get_battery_info() -> tuple[int, int, str]:
@@ -516,7 +532,7 @@ def get_battery_info() -> tuple[int, int, str]:
     """
     cdef int percentage = 0
     cdef int seconds_left = 0
-    cdef SDL_PowerState state = SDL_GetPowerInfo(&seconds_left, &percentage)
+    cdef SDL_PowerState state = SDL_GetPowerInfo(&seconds_left, &percentage) # Does not seem to require SDL init
     if state == SDL_POWERSTATE_ERROR:
         _raise_error()
     if state == SDL_POWERSTATE_UNKNOWN:
@@ -567,7 +583,7 @@ def show_message_box(Context context not None,
 
     cdef SDL_Window* window = <SDL_Window*>context.viewport.get_platform_window()
 
-    if not SDL_ShowSimpleMessageBox(flags, title_bytes, message_bytes, window):
+    if not SDL_ShowSimpleMessageBox(flags, title_bytes, message_bytes, window): # does not require SDL to be initialized
         _raise_error()
     #context.viewport.wake()  # -> not needed, as the main thread processes all events
 
@@ -632,6 +648,7 @@ def set_application_metadata(str name=None,
     if type_b is not None:
         type_c = type_b
 
+    # does not require SDL to be initialized
     if not SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_NAME_STRING, 
                                       name_c):
         _raise_error()

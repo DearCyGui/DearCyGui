@@ -5368,6 +5368,10 @@ class uiItem(baseItem):
         ...
 
 
+    def delete_item(self):
+        ...
+
+
     def focus(self) -> None:
         """
         Request focus for this item.
@@ -5973,10 +5977,6 @@ Get a view of the specified column.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
-        ...
-
-
-    def delete_item(self):
         ...
 
 
@@ -6914,8 +6914,7 @@ class Context(object):
         - Global viewport management
         - ImGui/ImPlot context management
 
-    There is exactly one viewport per context. The last created context can be accessed
-    as dearcygui.C.
+    There is exactly one viewport per context.
 
     Implementation Notes
     -------------------
@@ -10385,6 +10384,32 @@ class Viewport(baseItem):
 
 
     def copy(self, target_context = None) -> None:
+        ...
+
+
+    def delete_item(self):
+        ...
+
+
+    def destroy(self) -> None:
+        """
+        Destroy the viewport.
+
+        This will delete the OS backing of the viewport,
+        leaving the Viewport in an unusable, unrecoverable
+        state.
+
+        Calling destroy is useful to immediately release resources,
+        rather than wait for the object garbage collection. In addition
+        resources cannot be properly released when the garbage collection runs
+        in a thread different to the one having created the context.
+
+        destroy must be called in the thread that initialized the context.
+
+        Can raise RuntimeError if the OS resources are busy (from Texture
+        or GL operations in another thread)
+
+        """
         ...
 
 

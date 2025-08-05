@@ -366,6 +366,7 @@ cdef class Viewport(baseItem):
     ### private variables ###
     cdef void *_platform # platformViewport
     cdef void *_platform_window # SDL_Window
+    cdef atomic[int64_t] _platform_external_count
     cdef bint _initialized # False initially, then True. Doesn't need mutex
     cdef bint _retrieve_framebuffer
     cdef object _frame_buffer
@@ -389,9 +390,12 @@ cdef class Viewport(baseItem):
     cdef void force_present(self) noexcept nogil
     cdef Vec2 get_size(self) noexcept nogil
     cdef void *get_platform_window(self) noexcept nogil
+    cdef void *get_platform(self) noexcept nogil # must be followed by release_platform
+    cdef void release_platform(self) noexcept nogil
     ### private methods ###
     cdef void __check_initialized(self)
     cdef void __check_not_initialized(self)
+    cdef void __check_alive(self)
     cdef void __on_resize(self)
     cdef void __on_close(self)
     cdef void __on_drop(self, int32_t, const char*)

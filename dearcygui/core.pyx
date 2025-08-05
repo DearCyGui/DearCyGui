@@ -49,6 +49,7 @@ from .wrapper cimport imgui, implot
 import atexit
 from concurrent.futures import Executor, ThreadPoolExecutor
 import os
+from threading import get_ident as _get_ident
 import time as python_time
 import traceback
 
@@ -104,6 +105,7 @@ cdef class BackendRenderingContext:
     Object used to create contexts with object sharing with the internal context.
     """
     cdef Context context
+    cdef platformViewport* platform
     def __init__(self):
         raise ValueError("Cannot create a BackendRenderingContext directly. Use the context object.")
 
@@ -113,11 +115,16 @@ cdef class BackendRenderingContext:
 
     def __enter__(self) -> BackendRenderingContext:
         # Is thread safe (lock in make***) + we have context (and thus viewport) reference
-        (<platformViewport*>self.context.viewport._platform).makeUploadContextCurrent()
+        self.platform = <platformViewport*>self.context.viewport.get_platform()
+        if self.platform == NULL:
+            raise RuntimeError("Cannot access the rendering context after viewport destruction")
+        self.platform.makeUploadContextCurrent()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
-        (<platformViewport*>self.context.viewport._platform).releaseUploadContext()
+        self.platform.releaseUploadContext()
+        self.context.viewport.release_platform()
+        # We do not set self.platform to NULL in case of imbricated enter/exit
         return False
 
     @staticmethod
@@ -132,16 +139,49 @@ cdef class SharedGLContext:
     with the internal context.
     """
     cdef GLContext* gl_context
+    cdef platformViewport* _platform # non null when current
     cdef Context context
     cdef mutex mutex
+    cdef uint64_t _current_thread_id  # Thread ID that currently owns the context
+
     def __init__(self):
         raise ValueError("Cannot create a SharedGLContext directly.")
     def __cinit__(self):
         self.gl_context = NULL
+        self._platform = NULL
+        self._current_thread_id = 0
 
     def __dealloc__(self):
-        if self.gl_context != NULL:
-            del self.gl_context
+        if self.context is None or self.context.viewport is None:
+            return
+        if self._platform == NULL:
+            self._platform = <platformViewport*>self.context.viewport.get_platform()
+        if self._platform == NULL:
+            return
+        try:
+            if not self._platform.checkPrimaryThread():
+                return
+            if self.gl_context != NULL:
+                del self.gl_context
+        finally:
+            self.context.viewport.release_platform()
+
+    cdef int _lock_platform(self): # assumes lock held
+        """
+        GL context validity requires SDL to remain alive
+        """
+        if self._platform != NULL:
+            raise ValueError("GL context is already current")
+        self._platform = <platformViewport*>self.context.viewport.get_platform()
+        if self._platform == NULL:
+            raise RuntimeError("Cannot use a context from a destroyed Viewport")
+        return 0
+
+    cdef int _unlock_platform(self):
+        if self._platform == NULL:
+            raise ValueError("GL context is not current")
+        self.context.viewport.release_platform()
+        self._platform = NULL
 
     def make_current(self):
         """
@@ -152,30 +192,62 @@ cdef class SharedGLContext:
         """
         assert(self.gl_context != NULL)
         self.mutex.lock()
-        self.gl_context.makeCurrent()
+        try:
+            if self._platform != NULL:
+                if self._current_thread_id == <uint64_t>_get_ident():
+                    raise RuntimeError("Context is already current")
+                else:
+                    raise RuntimeError("Context already current on another thread")
+            self._lock_platform()
+            self.gl_context.makeCurrent()
+        except BaseException as e:
+            if self._platform != NULL:
+                self.context.viewport.release_platform()
+                self._platform = NULL
+            self.mutex.unlock()
+            raise e
+        self._current_thread_id = <uint64_t>_get_ident()
 
     def release(self):
-        assert(self.gl_context != NULL)
         """ Release the attached context """
+        assert(self.gl_context != NULL)
+        if self._current_thread_id != <uint64_t>_get_ident():
+            raise RuntimeError("Cannot release a context that is not current on this thread")
+        if self._platform == NULL:
+            raise ValueError("GL context is not current")
         self.gl_context.release()
+        self._unlock_platform()
+        self._current_thread_id = 0
         self.mutex.unlock()
 
     def destroy(self):
         """ Destroy the attached context """
-        if self.gl_context != NULL:
-            del self.gl_context
-            self.gl_context = NULL
+        if self._platform != NULL:
+            # Return the error without deadlock
+            raise ValueError("Release the GL context before destroying")
+        self.mutex.lock()
+        if self._platform != NULL:
+            # Probably not needed, but let's be safe for proper release_platform
+            raise ValueError("Release the GL context before destroying")
+        cdef platformViewport* platform = <platformViewport*>self.context.viewport.get_platform()
+        if platform == NULL:
+            raise RuntimeError("Cannot destroy a context after viewport destruction")
+        try:
+            if not platform.checkPrimaryThread(): # SDL requirement.
+                raise RuntimeError("Shared GL contexts must be destroyed from the thread they were created")
+            if self.gl_context != NULL:
+                del self.gl_context
+                self.gl_context = NULL
+            self.mutex.unlock()
+        finally:
+            self.context.viewport.release_platform()
 
     def __enter__(self):
-        assert(self.gl_context != NULL)
-        self.mutex.lock()
-        self.gl_context.makeCurrent()
+        self.make_current()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        assert(self.gl_context != NULL)
-        self.gl_context.release()
-        self.mutex.unlock()
+        self.release()
         return False
 
     @staticmethod
@@ -414,7 +486,15 @@ cdef class Context:
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.viewport.mutex)
-        return SharedGLContext.from_context(self, (<platformViewport*>self.viewport._platform).createSharedContext(major, minor))
+        cdef platformViewport* platform = <platformViewport*>self.viewport.get_platform()
+        if platform == NULL:
+            raise RuntimeError("Cannot create a shared context after viewport destruction")
+        try:
+            if not platform.checkPrimaryThread():
+                raise RuntimeError("Shared GL contexts must be created and released from the same thread as DearCyGui's context")
+            return SharedGLContext.from_context(self, platform.createSharedContext(major, minor))
+        finally:
+            self.viewport.release_platform()  # Ensure we release the platform after creating the context
 
     cdef void queue_callback_noarg(self, Callback callback, baseItem parent_item, baseItem target_item) noexcept nogil:
         """
@@ -2720,7 +2800,6 @@ cdef class Viewport(baseItem):
     It is decorated by the operating system and can be minimized/maximized/made fullscreen.
     """
     def __cinit__(self, context):
-        self.resize_callback = None
         self.can_have_window_child = True
         self.can_have_viewport_drawlist_child = True
         self.can_have_menubar_child = True
@@ -2742,6 +2821,7 @@ cdef class Viewport(baseItem):
         self.global_scale = 1. # non-zero needed for AutoFont.
         self._imgui_context = NULL
         self._implot_context = NULL
+        self._platform_external_count.store(0)
         self._platform = \
             SDLViewport.create(internal_render_callback,
                                internal_resize_callback,
@@ -2786,14 +2866,17 @@ cdef class Viewport(baseItem):
         if self._implot_context != NULL:
             implot.SetCurrentContext(<implot.ImPlotContext*>self._implot_context)
 
-        if self._platform != NULL:
+        cdef platformViewport *platform = <platformViewport*>self._platform
+        self._platform = NULL # Prevent any access to the platform after this point
+
+        if platform != NULL:
             # Maybe just a warning ? Not sure how to solve this issue.
-            if not (<platformViewport*>self._platform).checkPrimaryThread():
+            if not platform.checkPrimaryThread():
                 warnings.warn("Viewport deallocated from a different thread than the one it was created in. All resources won't be freed.", 
                               RuntimeWarning, stacklevel=2)
-            else:
-                (<platformViewport*>self._platform).cleanup()
-            self._platform = NULL # Should be free or delete ?
+            elif self._platform_external_count.load() == 0:
+                platform.cleanup()
+                del platform
 
         # imgui must be destroyed after the platform (initialize catches current imgui context)
         if self._implot_context != NULL and self._imgui_context != NULL:
@@ -2805,9 +2888,54 @@ cdef class Viewport(baseItem):
 
     cpdef void delete_item(self):
         baseItem.delete_item(self)
-        self.font = None
-        self.theme = None
-        self.handlers = []
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._font = None
+        self._theme = None
+        self._handlers_backing = None
+        self._handlers.clear()
+
+    def destroy(self) -> None:
+        """
+        Destroy the viewport.
+
+        This will delete the OS backing of the viewport,
+        leaving the Viewport in an unusable, unrecoverable
+        state.
+
+        Calling destroy is useful to immediately release resources,
+        rather than wait for the object garbage collection. In addition
+        resources cannot be properly released when the garbage collection runs
+        in a thread different to the one having created the context.
+
+        destroy must be called in the thread that initialized the context.
+
+        Can raise RuntimeError if the OS resources are busy (from Texture
+        or GL operations in another thread)
+        """
+        cdef unique_lock[DCGMutex] m1
+        cdef unique_lock[DCGMutex] m2
+        lock_gil_friendly(m1, self.mutex)
+        ulock_im_context_gil(m2, self)
+
+        cdef platformViewport *platform = <platformViewport*>self._platform
+
+        if platform == NULL:
+            # Already destroyed
+            return
+
+        if not platform.checkPrimaryThread():
+            raise RuntimeError("Cannot destroy the viewport from a different thread than the one it was created in.")
+
+        self._platform = NULL
+
+        if self._platform_external_count.load() != 0:
+            self._platform = platform # Restore the platform to allow cleanup later
+            raise RuntimeError("Cannot destroy the viewport as resources are in use by other items (Texture or GL operation). Retry later")
+
+        platform.cleanup()
+        del platform
+
 
     def initialize(self, **kwargs) -> None:
         """
@@ -2829,6 +2957,7 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m2
         self.configure(**kwargs)
         lock_gil_friendly(m1, self.mutex)
+        self.__check_alive()
         if self._initialized:
             raise RuntimeError("Viewport already initialized")
         ulock_im_context_gil(m2, self)
@@ -2857,6 +2986,10 @@ cdef class Viewport(baseItem):
         if self._initialized:
             raise RuntimeError("The viewport must be not be initialized to set this field")
 
+    cdef void __check_alive(self):
+        if self._platform == NULL:
+            raise RuntimeError("Cannot perform this operation on a destroyed Viewport")
+
     @property
     def clear_color(self):
         """
@@ -2868,6 +3001,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return ((<platformViewport*>self._platform).clearColor[0],
                 (<platformViewport*>self._platform).clearColor[1],
                 (<platformViewport*>self._platform).clearColor[2],
@@ -2877,6 +3011,7 @@ cdef class Viewport(baseItem):
     def clear_color(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         cdef uint32_t color = parse_color(value)
         if color & 0xFF000000 != 0xFF000000:
             if self._initialized and not((<platformViewport*>self._platform).isTransparent):
@@ -2912,7 +3047,7 @@ cdef class Viewport(baseItem):
         
         if value is None:
             return
-        
+        self.__check_alive()
         # Check if window is already initialized
         self.__check_not_initialized()
         
@@ -3037,6 +3172,7 @@ cdef class Viewport(baseItem):
     def hit_test_surface(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
 
         if value is None:
             # Clear the hit test surface
@@ -3090,12 +3226,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).isTransparent
 
     @transparent.setter
     def transparent(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if (<platformViewport*>self._platform).isTransparent == value:
             return
         self.__check_not_initialized()
@@ -3115,12 +3253,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).positionX
 
     @x_pos.setter
     def x_pos(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value == (<platformViewport*>self._platform).positionX:
             return
         (<platformViewport*>self._platform).positionX = value
@@ -3140,12 +3280,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).positionY
 
     @y_pos.setter
     def y_pos(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value == (<platformViewport*>self._platform).positionY:
             return
         (<platformViewport*>self._platform).positionY = value
@@ -3158,6 +3300,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self.__check_initialized()
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("displays must be retrieved from the thread where the context was created")
@@ -3190,6 +3333,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self.__check_initialized()
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("displays must be retrieved from the thread where the context was created")
@@ -3285,12 +3429,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).windowWidth
 
     @width.setter
     def width(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value <= 0:
             raise ValueError("Width must be a positive integer")
         cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
@@ -3310,12 +3456,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).windowHeight
 
     @height.setter
     def height(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
         if value <= 0:
             raise ValueError("Height must be a positive integer")
@@ -3334,12 +3482,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).frameWidth
 
     @pixel_width.setter
     def pixel_width(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
         (<platformViewport*>self._platform).windowWidth = <int>(<float>value / dpi_scale)
         (<platformViewport*>self._platform).frameWidth = value
@@ -3356,12 +3506,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).frameHeight
 
     @pixel_height.setter
     def pixel_height(self, int32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         cdef float dpi_scale = (<platformViewport*>self._platform).dpiScale
         (<platformViewport*>self._platform).windowHeight = <int>(<float>value / dpi_scale)
         (<platformViewport*>self._platform).frameHeight = value
@@ -3378,12 +3530,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).windowResizable
 
     @resizable.setter
     def resizable(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         (<platformViewport*>self._platform).windowResizable = value
         (<platformViewport*>self._platform).windowPropertyChangeRequested = True
 
@@ -3399,12 +3553,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).hasVSync
 
     @vsync.setter
     def vsync(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         (<platformViewport*>self._platform).hasVSync = value
 
     @property
@@ -3419,6 +3575,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).dpiScale
 
     @property
@@ -3433,12 +3590,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._scale
 
     @scale.setter
     def scale(self, float value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self._scale = value
 
     @property
@@ -3453,12 +3612,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).minWidth
 
     @min_width.setter
     def min_width(self, uint32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value <= 0:
             raise ValueError("Minimum width must be a positive integer")
         (<platformViewport*>self._platform).minWidth = value
@@ -3476,12 +3637,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).maxWidth
 
     @max_width.setter
     def max_width(self, uint32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value <= 0:
             raise ValueError("Maximum width must be a positive integer")
         (<platformViewport*>self._platform).maxWidth = value
@@ -3499,12 +3662,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).minHeight
 
     @min_height.setter
     def min_height(self, uint32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value <= 0:
             raise ValueError("Minimum height must be a positive integer")
         (<platformViewport*>self._platform).minHeight = value
@@ -3522,12 +3687,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).maxHeight
 
     @max_height.setter
     def max_height(self, uint32_t value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value <= 0:
             raise ValueError("Maximum height must be a positive integer")
         (<platformViewport*>self._platform).maxHeight = value
@@ -3559,6 +3726,7 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         ulock_im_context_gil(m2, self)
         return (imgui.GetIO().ConfigFlags & imgui.ImGuiConfigFlags_NavEnableKeyboard) != 0
 
@@ -3567,6 +3735,7 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         ulock_im_context_gil(m2, self)
         if value:
             imgui.GetIO().ConfigFlags = imgui.GetIO().ConfigFlags | imgui.ImGuiConfigFlags_NavEnableKeyboard  # Enable Keyboard Controls
@@ -3585,12 +3754,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).windowAlwaysOnTop
 
     @always_on_top.setter
     def always_on_top(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         (<platformViewport*>self._platform).windowAlwaysOnTop = value
         (<platformViewport*>self._platform).windowPropertyChangeRequested = True
 
@@ -3606,12 +3777,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).windowDecorated
 
     @decorated.setter
     def decorated(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         (<platformViewport*>self._platform).windowDecorated = value
         (<platformViewport*>self._platform).windowPropertyChangeRequested = True
 
@@ -3627,12 +3800,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._handlers_backing.copy() if self._handlers_backing is not None else []
 
     @handlers.setter
     def handlers(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         cdef list items = []
         cdef int32_t i
         if value is None:
@@ -3665,12 +3840,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return make_MouseCursor(self._cursor)
 
     @cursor.setter
     def cursor(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value is None or not(is_MouseCursor(value)):
             raise TypeError("Cursor must be a MouseCursor type")
         value = make_MouseCursor(value)
@@ -3691,12 +3868,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._font
 
     @font.setter
     def font(self, baseFont value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self._font = value
 
     @property
@@ -3711,12 +3890,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._theme
 
     @theme.setter
     def theme(self, baseTheme value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self._theme = value
 
     @property
@@ -3730,6 +3911,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         cdef string title = (<platformViewport*>self._platform).windowTitle
         return str(title, "utf-8")
 
@@ -3737,6 +3919,7 @@ cdef class Viewport(baseItem):
     def title(self, str value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         cdef string title = value.encode("utf-8")
         (<platformViewport*>self._platform).windowTitle = title
         (<platformViewport*>self._platform).titleChangeRequested = True
@@ -3757,12 +3940,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._disable_close
 
     @disable_close.setter
     def disable_close(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self._disable_close = value
 
     @property
@@ -3777,12 +3962,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).isFullScreen
 
     @fullscreen.setter
     def fullscreen(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value and not((<platformViewport*>self._platform).isFullScreen):
             (<platformViewport*>self._platform).shouldFullscreen = True
         elif not(value) and ((<platformViewport*>self._platform).isFullScreen):
@@ -3800,12 +3987,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).isMinimized
 
     @minimized.setter
     def minimized(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value and not((<platformViewport*>self._platform).isMinimized):
             (<platformViewport*>self._platform).shouldMinimize = True
         elif (<platformViewport*>self._platform).isMinimized:
@@ -3823,12 +4012,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).isMaximized
 
     @maximized.setter
     def maximized(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value and not((<platformViewport*>self._platform).isMaximized):
             (<platformViewport*>self._platform).shouldMaximize = True
         elif (<platformViewport*>self._platform).isMaximized:
@@ -3844,12 +4035,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return (<platformViewport*>self._platform).isVisible
 
     @visible.setter
     def visible(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         if value and not((<platformViewport*>self._platform).isVisible):
             (<platformViewport*>self._platform).shouldShow = True
         elif not value and (<platformViewport*>self._platform).isVisible:
@@ -3882,12 +4075,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self.wait_for_input
 
     @wait_for_input.setter
     def wait_for_input(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self.wait_for_input = value
 
     @property
@@ -3902,12 +4097,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self.always_submit_to_gpu
 
     @always_submit_to_gpu.setter
     def always_submit_to_gpu(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self.always_submit_to_gpu = value
 
     @property
@@ -3917,6 +4114,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._initialized
 
     @property
@@ -3933,12 +4131,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._resize_callback
 
     @resize_callback.setter
     def resize_callback(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self._resize_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
     @property
@@ -3948,12 +4148,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._close_callback
 
     @close_callback.setter
     def close_callback(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self._close_callback = value if isinstance(value, Callback) or value is None else Callback(value)
 
     def copy(self, target_context=None) -> None:
@@ -3979,6 +4181,7 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m
         cdef unique_lock[DCGMutex] m2
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         ulock_im_context_gil(m2, self)
 
         return ViewportMetrics(
@@ -4007,12 +4210,14 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._retrieve_framebuffer
 
     @retrieve_framebuffer.setter
     def retrieve_framebuffer(self, bint value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self._retrieve_framebuffer = value
 
     @property
@@ -4025,6 +4230,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         return self._frame_buffer
 
     cdef void __on_resize(self):
@@ -4244,6 +4450,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self.__check_initialized()
         if not (<platformViewport*>self._platform).checkPrimaryThread():
             raise RuntimeError("wait_events must be called from the thread where the context was created")
@@ -4298,6 +4505,7 @@ cdef class Viewport(baseItem):
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self.__check_alive()
         self.__check_initialized()
         if not self.context._running:
             return False
@@ -4484,8 +4692,13 @@ cdef class Viewport(baseItem):
         """
         if not self._initialized:
             return
+        # avoid locks
+        cdef platformViewport *platform = <platformViewport*>self.get_platform()
+        if platform == NULL:
+            return
         cdef uint64_t delay_ns = <uint64_t>fmax(0, delay * 1e9)
-        (<platformViewport*>self._platform).wakeRendering(delay_ns, full_refresh) # doesn't need any mutex
+        platform.wakeRendering(delay_ns, full_refresh) # doesn't need any mutex
+        self.release_platform()
 
     cdef void ask_refresh_after_target(self, double monotonic) noexcept nogil:
         """
@@ -4528,9 +4741,34 @@ cdef class Viewport(baseItem):
         return size
 
     cdef void *get_platform_window(self) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not self._initialized:
             return NULL
-        return (<SDLViewport*>self._platform).getSDLWindowHandle()
+        cdef SDLViewport *platform = <SDLViewport*>self._platform
+        if platform == NULL:
+            return NULL
+        try:
+            return (<SDLViewport*>self._platform).getSDLWindowHandle()
+        finally:
+            self.release_platform()
+
+    cdef void *get_platform(self) noexcept nogil:
+        """
+        Get a reference to the platform. Does not lock the viewport.
+        """
+        self._platform_external_count.fetch_add(1)
+        cdef void *platform = self._platform
+        if platform == NULL:
+            self._platform_external_count.fetch_sub(1)
+            return NULL
+        return platform
+
+    cdef void release_platform(self) noexcept nogil:
+        """
+        Release a non-NULL platform reference obtained by get_platform.
+        Does not lock the viewport.
+        """
+        self._platform_external_count.fetch_sub(1)
 
 # Callbacks
 
