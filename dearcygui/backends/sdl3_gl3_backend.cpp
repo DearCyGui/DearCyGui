@@ -1081,19 +1081,28 @@ bool SDLViewport::processEvents(int timeout_ms) {
             if (activityDetected.load() || needsRefresh.load())
                 break;
             waitCallback(callbackData);
-            if (SDL_WaitEventTimeout(&event, remaining_timeout)) {
-                // update the timeout for next iteration
-                wakeCallback(callbackData);
-                auto current_time = std::chrono::steady_clock::now();
-                auto elapsed = current_time - start_time;
-                auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
-                remaining_timeout = timeout_ms - elapsed_ms;
-                SDL_PumpEvents(); // Probably not needed, but just in case
+            bool has_event = false;
+            // Wait for an event or timeout
+            // We cap timeout to 200ms to check frequently for Python interrupts
+            if (remaining_timeout > 200) {
+                has_event = SDL_WaitEventTimeout(&event, 200);
             } else {
-                // Timeout occurred
-                wakeCallback(callbackData);
-                break;
+                has_event = SDL_WaitEventTimeout(&event, remaining_timeout);
+                if (!has_event) {
+                    // Timeout occurred
+                    wakeCallback(callbackData);
+                    break;
+                }
             }
+            // update the timeout for next iteration
+            wakeCallback(callbackData);
+            auto current_time = std::chrono::steady_clock::now();
+            auto elapsed = current_time - start_time;
+            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+            remaining_timeout = timeout_ms - elapsed_ms;
+            if (!has_event)
+                continue; // No event, continue waiting
+            SDL_PumpEvents(); // Probably not needed, but just in case
         }
 
         // Check if event belongs to this window

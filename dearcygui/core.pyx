@@ -23,12 +23,11 @@ from libcpp.set cimport set as cpp_set
 from libcpp.string cimport string
 
 cimport cython
-#from cpython.ref cimport Py_REFCNT
 from cpython.object cimport PyObject
 from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer,\
     PyBuffer_Release, PyBUF_RECORDS_RO, PyBUF_CONTIG_RO
 from cpython.sequence cimport PySequence_Check
-from cpython.exc cimport PyErr_SetInterrupt
+from cpython.exc cimport PyErr_CheckSignals
 
 from .backends.backend cimport SDLViewport, platformViewport, GLContext
 cimport dearcygui.backends.time as ctime
@@ -325,6 +324,17 @@ cdef void internal_wait_callback(void *object) noexcept nogil:
     (<Viewport>object).mutex.unlock() # Unlock the viewport mutex before waiting
 
 cdef void internal_wake_callback(void *object) noexcept nogil:
+    # Check exceptions
+    cdef unique_lock[DCGMutex] m
+    with gil:
+        try:
+            PyErr_CheckSignals()
+        except BaseException as exc:
+            lock_gil_friendly(m, (<Viewport>object).mutex)
+            (<Viewport>object)._kill_signal = True
+            (<platformViewport*>(<Viewport>object)._platform).shouldSkipPresenting = True
+            (<platformViewport*>(<Viewport>object)._platform).activityDetected.store(True)
+            (<Viewport>object)._kill_exc = exc
     (<Viewport>object).mutex.lock() # Lock the viewport mutex before waking up
     lock_im_context(<Viewport>object) # Lock the imgui context before waking up
 
@@ -4482,7 +4492,10 @@ cdef class Viewport(baseItem):
                 has_events = True # Either has_events was already True, or we meet internal timeout event
         if self._kill_signal:
             self._kill_signal = False
-            PyErr_SetInterrupt()
+            if self._kill_exc is not None:
+                kill_exc = self._kill_exc
+                self._kill_exc = None
+                raise kill_exc
             raise KeyboardInterrupt("Viewport killed by user")
         return has_events
 
@@ -4661,7 +4674,10 @@ cdef class Viewport(baseItem):
         self.frame_count += 1
         if self._kill_signal:
             self._kill_signal = False
-            PyErr_SetInterrupt()
+            if self._kill_exc is not None:
+                kill_exc = self._kill_exc
+                self._kill_exc = None
+                raise kill_exc
             raise KeyboardInterrupt("Viewport killed by user")
         return should_present
 
