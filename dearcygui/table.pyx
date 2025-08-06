@@ -2116,15 +2116,21 @@ cdef class Table(baseTable):
         #self.state.cap.has_content_region = True # TODO, unsure if possible
         self._col_configs = new map[int32_t, PyObject*]()
         self._row_configs = new map[int32_t, PyObject*]()
+        # These mirrors will hold the reference count for us.
+        # We use a map for faster rendering and avoiding the gil
+        # We use mirrors because managing manually the reference count
+        # is not yet compatible with the GC with Cython.
+        self._col_configs_backing = dict()
+        self._row_configs_backing = dict()
         self._inner_width = 0.
         self._flags = imgui.ImGuiTableFlags_None
 
     def __dealloc(self):
-        cdef pair[int32_t, PyObject*] key_value
-        for key_value in dereference(self._col_configs):
-            Py_DECREF(<object>key_value.second)
-        for key_value in dereference(self._row_configs):
-            Py_DECREF(<object>key_value.second)
+        #cdef pair[int32_t, PyObject*] key_value
+        #for key_value in dereference(self._col_configs): -> handled by the backing dict
+        #    Py_DECREF(<object>key_value.second)
+        #for key_value in dereference(self._row_configs):
+        #    Py_DECREF(<object>key_value.second)
         self._col_configs.clear()
         self._row_configs.clear()
         if self._col_configs != NULL:
@@ -2144,16 +2150,22 @@ cdef class Table(baseTable):
         lock_gil_friendly(m, self.mutex)
         if col_idx < 0:
             raise ValueError(f"Invalid column index {col_idx}")
-        cdef map[int32_t, PyObject*].iterator it
-        it = self._col_configs.find(col_idx)
-        if it == self._col_configs.end():
+        #cdef map[int32_t, PyObject*].iterator it
+        #it = self._col_configs.find(col_idx)
+        #if it == self._col_configs.end():
+        #    config = TableColConfig(self.context)
+        #    Py_INCREF(config)
+        #    dereference(self._col_configs)[col_idx] = <PyObject*>config
+        #    return config
+        #cdef PyObject* item = dereference(it).second
+        #cdef TableColConfig found_config = <TableColConfig>item
+        #return found_config
+        cdef TableColConfig config = <TableColConfig>self._col_configs_backing.get(col_idx, None)
+        if config is None:
             config = TableColConfig(self.context)
-            Py_INCREF(config)
+            self._col_configs_backing[col_idx] = config
             dereference(self._col_configs)[col_idx] = <PyObject*>config
-            return config
-        cdef PyObject* item = dereference(it).second
-        cdef TableColConfig found_config = <TableColConfig>item
-        return found_config
+        return config
 
     cdef void set_col_config(self, int32_t col_idx, TableColConfig config):
         """Set the configuration for the specified column.
@@ -2166,11 +2178,13 @@ cdef class Table(baseTable):
         lock_gil_friendly(m, self.mutex)
         if col_idx < 0:
             raise ValueError(f"Invalid column index {col_idx}")
-        cdef map[int32_t, PyObject*].iterator it
-        it = self._col_configs.find(col_idx)
-        if it != self._col_configs.end():
-            Py_DECREF(<object>dereference(it).second)
-        Py_INCREF(config)
+        #cdef map[int32_t, PyObject*].iterator it
+        #it = self._col_configs.find(col_idx)
+        #if it != self._col_configs.end():
+        #    Py_DECREF(<object>dereference(it).second)
+        #Py_INCREF(config)
+        #dereference(self._col_configs)[col_idx] = <PyObject*>config
+        self._col_configs_backing[col_idx] = config
         dereference(self._col_configs)[col_idx] = <PyObject*>config
 
     cdef TableRowConfig get_row_config(self, int32_t row_idx):
@@ -2184,16 +2198,22 @@ cdef class Table(baseTable):
         lock_gil_friendly(m, self.mutex)
         if row_idx < 0:
             raise ValueError(f"Invalid row index {row_idx}")
-        cdef map[int32_t, PyObject*].iterator it
-        it = self._row_configs.find(row_idx)
-        if it == self._row_configs.end():
+        #cdef map[int32_t, PyObject*].iterator it
+        #it = self._row_configs.find(row_idx)
+        #if it == self._row_configs.end():
+        #    config = TableRowConfig(self.context)
+        #    Py_INCREF(config)
+        #    dereference(self._row_configs)[row_idx] = <PyObject*>config
+        #    return config
+        #cdef PyObject* item = dereference(it).second
+        #cdef TableRowConfig found_config = <TableRowConfig>item
+        #return found_config
+        cdef TableRowConfig config = <TableRowConfig>self._row_configs_backing.get(row_idx, None)
+        if config is None:
             config = TableRowConfig(self.context)
-            Py_INCREF(config)
+            self._row_configs_backing[row_idx] = config
             dereference(self._row_configs)[row_idx] = <PyObject*>config
-            return config
-        cdef PyObject* item = dereference(it).second
-        cdef TableRowConfig found_config = <TableRowConfig>item
-        return found_config
+        return config
 
     cdef void set_row_config(self, int32_t row_idx, TableRowConfig config):
         """Set the configuration for the specified row.
@@ -2206,11 +2226,13 @@ cdef class Table(baseTable):
         lock_gil_friendly(m, self.mutex)
         if row_idx < 0:
             raise ValueError(f"Invalid row index {row_idx}")
-        cdef map[int32_t, PyObject*].iterator it
-        it = self._row_configs.find(row_idx)
-        if it != self._row_configs.end():
-            Py_DECREF(<object>dereference(it).second)
-        Py_INCREF(config)
+        #cdef map[int32_t, PyObject*].iterator it
+        #it = self._row_configs.find(row_idx)
+        #if it != self._row_configs.end():
+        #    Py_DECREF(<object>dereference(it).second)
+        #Py_INCREF(config)
+        #dereference(self._row_configs)[row_idx] = <PyObject*>config
+        self._row_configs_backing[row_idx] = config
         dereference(self._row_configs)[row_idx] = <PyObject*>config
 
     @property

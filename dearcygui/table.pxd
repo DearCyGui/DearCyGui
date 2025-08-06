@@ -192,6 +192,8 @@ cdef class Table(baseTable):
     """
     cdef map[int32_t, PyObject*] *_col_configs # TableColConfig
     cdef map[int32_t, PyObject*] *_row_configs # TableRowConfig
+    cdef dict _col_configs_backing
+    cdef dict _row_configs_backing
     cdef float _inner_width
     cdef bint _header
     cdef uint32_t _flags # imgui.ImGuiTableFlags
