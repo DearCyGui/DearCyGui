@@ -410,6 +410,7 @@ cdef extern from "implot.h" namespace "ImPlot" nogil:
     void SetupAxisTicks(ImAxis, double, double, int)
     void SetupAxisTicks(ImAxis, double, double, int, const char*[])
     void SetupAxisTicks(ImAxis, double, double, int, const char*[], bint)
+    void SetupAxisAddTick(ImAxis, const double, const char*, bint)
     void SetupAxisScale(ImAxis, ImPlotScale)
     void SetupAxisScale(ImAxis, ImPlotTransform, ImPlotTransform)
     void SetupAxisScale(ImAxis, ImPlotTransform, ImPlotTransform, void*)

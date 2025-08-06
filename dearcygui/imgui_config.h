@@ -4,6 +4,7 @@
 #define IMGUI_USE_WCHAR32
 // Disable asserts
 #define IM_ASSERT(_EXPR) do {} while(0)
+#define IM_ASSERT_USER_ERROR(_EXPR, _MSG) do {} while(0)
 #define IMGUI_DISABLE_DEBUG_TOOLS
 // needed for imnodes
 #define IMGUI_DEFINE_MATH_OPERATORS

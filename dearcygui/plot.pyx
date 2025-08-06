@@ -864,7 +864,8 @@ cdef class PlotAxisConfig(baseItem):
         Coordinate positions for custom tick labels.
         
         Specifies where to place each label from the labels property along
-        the axis. Must contain the same number of elements as labels.
+        the axis. If it contains more elements than the labels property,
+        additional elements use the default tick formatter.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -886,6 +887,43 @@ cdef class PlotAxisConfig(baseItem):
                 self._labels_coord.push_back(v)
         else:
             raise ValueError(f"Invalid type {type(value)} passed as labels_coord. Expected array of strings")
+
+    @property
+    def labels_major(self):
+        """
+        Boolean array to defined whether the custom labels use major or minor ticks
+
+        By default, if unspecified, labels added with the `labels` property
+        will use minor ticks. In order to mix major and minor ticks, or
+        use major ticks only, this property can be set to a boolean array
+        of the same length as the `labels` property.
+
+        If the corresponding value is True, the label will be
+        displayed on a major tick, otherwise it will be displayed on a minor tick.
+
+        If the size of the array is shorter than the amount of labels (or unset),
+        the remaining labels will use minor ticks by default.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        result = []
+        cdef int i
+        for i in range(<int>self._labels_major.size()):
+            result.append(self._labels_major[i])
+        return result
+
+    @labels_major.setter
+    def labels_major(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._labels_major.clear()
+        if value is None:
+            return
+        if PySequence_Check(value) > 0:
+            for v in value:
+                self._labels_major.push_back(v)
+        else:
+            raise ValueError(f"Invalid type {type(value)} passed as labels_major. Expected array of booleans")
 
     @property 
     def keep_default_ticks(self):
@@ -1013,13 +1051,19 @@ cdef class PlotAxisConfig(baseItem):
             implot.SetupAxisZoomConstraints(axis,
                                             self._zoom_min,
                                             self._zoom_max)
-        cdef int32_t label_count = min(<int>self._labels_coord.size(), <int>self._labels_cstr.size())
-        if label_count > 0:
+        if <int>self._labels_coord.size() > 0:
             implot.SetupAxisTicks(axis,
                                   self._labels_coord.data(),
-                                  label_count,
+                                  0,
                                   self._labels_cstr.data(),
                                   self._keep_default_ticks)
+        cdef int32_t i
+        cdef bint major_tick
+        cdef const char* label
+        for i in range(<int32_t>self._labels_coord.size()):
+            major_tick = self._labels_major[i] if i < <int32_t>self._labels_major.size() else False
+            label = self._labels_cstr[i] if i < <int32_t>self._labels_cstr.size() else NULL
+            implot.SetupAxisAddTick(axis, self._labels_coord[i], label, major_tick)
 
     cdef void after_setup(self, int32_t axis) noexcept nogil:
         """

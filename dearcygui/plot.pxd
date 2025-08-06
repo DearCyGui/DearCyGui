@@ -35,6 +35,7 @@ cdef class PlotAxisConfig(baseItem):
     cdef DCGVector[DCGString] _labels
     cdef DCGVector[const char*] _labels_cstr
     cdef DCGVector[double] _labels_coord
+    cdef DCGVector[bint] _labels_major
     cdef bint _keep_default_ticks
     cdef PlotAxisConfig _linked_axis
     cdef void setup(self, int32_t) noexcept nogil # implot.ImAxis
