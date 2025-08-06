@@ -98,6 +98,7 @@ cdef class baseTable(uiItem):
     # Do not use these fields as they may be implemented
     # with a different map implementation than your compiler.
     cdef map[pair[int32_t, int32_t], TableElementData] *_items
+    cdef dict _items_refs
 
     # public API
     cdef void clear_items(self) # assumes mutex is held
@@ -105,7 +106,8 @@ cdef class baseTable(uiItem):
     cpdef void swap_rows(self, int32_t row1, int32_t row2)
     cpdef void swap_cols(self, int32_t col1, int32_t col2)
     # protected, assumes mutex is held
-    cdef void _decref_and_detach(self, PyObject* item)
+    cdef int _decref_and_detach(self, PyObject* item)
+    cdef int _incref(self, PyObject* item)
     cdef void _delete_and_siblings(self)
     cdef bint _delete_item(self, pair[int32_t, int32_t] key)
     cdef TableElement _get_single_item(self, int32_t row, int32_t col)

@@ -477,11 +477,12 @@ cdef class baseTable(uiItem):
         self._num_cols_frozen = 0
         self.can_have_widget_child = True
         self._items = new map[pair[int32_t, int32_t], TableElementData]()
+        self._items_refs = dict()  # This will hold references to items (gc compatibility, see Table class)
         self._iter_state = NULL  # Initialize iterator state to NULL
 
     def __dealloc__(self):
-        self.clear_items()
         if self._items != NULL:
+            self._items.clear()
             del self._items
         if self._iter_state != NULL:
             free(self._iter_state)
@@ -617,7 +618,8 @@ cdef class baseTable(uiItem):
             raise ValueError("num_cols_frozen must be < 512")
         self._num_cols_frozen = value
 
-    cdef void _decref_and_detach(self, PyObject* item):
+    @cython.final
+    cdef int _decref_and_detach(self, PyObject* item):
         """All items are attached as children of the table.
         This function decrefs them and detaches them if needed."""
         cdef pair[int32_t, int32_t] key
@@ -649,21 +651,34 @@ cdef class baseTable(uiItem):
                 if ui_item.parent is self:
                     ui_item.detach_item()
                 ui_item.mutex.unlock()
-        Py_DECREF(<object>item)
+        #Py_DECREF(<object>item)
+        cdef int32_t previous_ref_count = self._items_refs.get(<object>item)
+        cdef int32_t new_ref_count = previous_ref_count - 1
+        if new_ref_count <= 0:
+            del self._items_refs[<object>item]
+        else:
+            self._items_refs[<object>item] = new_ref_count
+
+    @cython.final
+    cdef int _incref(self, PyObject* item):
+        """Increments the reference count of the item."""
+        #Py_INCREF(<object>item)
+        self._items_refs[<object>item] = self._items_refs.get(<object>item, 0) + 1
 
     cdef void clear_items(self):
-        cdef pair[pair[int32_t, int32_t], TableElementData] key_element
-        for key_element in dereference(self._items):
-            # No need to iterate the table
-            # to see if the item is several times
-            # in the table. We will detach it
-            # only once.
-            if key_element.second.ui_item != NULL:
-                Py_DECREF(<object>key_element.second.ui_item)
-            if key_element.second.tooltip_ui_item != NULL:
-                Py_DECREF(<object>key_element.second.tooltip_ui_item)
-            if key_element.second.ordering_value != NULL:
-                Py_DECREF(<object>key_element.second.ordering_value)
+        #cdef pair[pair[int32_t, int32_t], TableElementData] key_element
+        #for key_element in dereference(self._items):
+        #    # No need to iterate the table
+        #    # to see if the item is several times
+        #    # in the table. We will detach it
+        #    # only once.
+        #    if key_element.second.ui_item != NULL:
+        #        Py_DECREF(<object>key_element.second.ui_item)
+        #    if key_element.second.tooltip_ui_item != NULL:
+        #        Py_DECREF(<object>key_element.second.tooltip_ui_item)
+        #    if key_element.second.ordering_value != NULL:
+        #        Py_DECREF(<object>key_element.second.ordering_value)
+        self._items_refs.clear()
         self._items.clear()
         self._num_rows = 0
         self._num_cols = 0
@@ -756,25 +771,25 @@ cdef class baseTable(uiItem):
         if isinstance(value, uiItem):
             if value.parent is not self:
                 value.attach_to_parent(self)
-            Py_INCREF(value)
+            self._incref(<PyObject*>value)
             element.ui_item = <PyObject*>value
         elif isinstance(value, TableElement):
             element = (<TableElement>value).element
             if element.ui_item != NULL:
                 if (<uiItem>element.ui_item).parent is not self:
                    (<uiItem>element.ui_item).attach_to_parent(self)
-                Py_INCREF(<object>element.ui_item)
+                self._incref(element.ui_item)
             if element.tooltip_ui_item != NULL:
                 if (<uiItem>element.tooltip_ui_item).parent is not self:
                    (<uiItem>element.tooltip_ui_item).attach_to_parent(self)
-                Py_INCREF(<object>element.tooltip_ui_item)
+                self._incref(element.tooltip_ui_item)
             if element.ordering_value != NULL:
-                Py_INCREF(<object>element.ordering_value)
+                self._incref(element.ordering_value)
         else:
             try:
                 element.str_item = string_from_str(str(value))
                 element.ordering_value = <PyObject*>value
-                Py_INCREF(value)
+                self._incref(<PyObject*>value)
             except:
                 raise TypeError("Table values must be uiItem, TableElementConfig, or convertible to a str")
         # We lock only after in case the value was child
