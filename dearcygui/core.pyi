@@ -8082,7 +8082,7 @@ class PlotAxisConfig(baseItem):
     along the axis.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], linked_axis : Any = ..., lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., auto_fit : bool = False, before : Any = ..., children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], labels_major : Sequence[bool] | None = [], linked_axis : Any = ..., lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0):
         """
         Parameters
         ----------
@@ -8100,6 +8100,7 @@ class PlotAxisConfig(baseItem):
         - label: Text label for the axis.
         - labels: Custom text labels for specific tick positions.
         - labels_coord: Coordinate positions for custom tick labels.
+        - labels_major: Boolean array to defined whether the custom labels use major or minor ticks
         - linked_axis: **Experimental** Link the values of this axis to another PlotAxisConfig.
         - lock_max: Whether the axis maximum value is locked when panning/zooming.
         - lock_min: Whether the axis minimum value is locked when panning/zooming.
@@ -8128,7 +8129,7 @@ class PlotAxisConfig(baseItem):
         ...
 
 
-    def configure(self, *, auto_fit : bool = False, children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], linked_axis : Any = ..., lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0) -> None:
+    def configure(self, *, auto_fit : bool = False, children : Sequence[AxisTag] = [], constraint_max : float = inf, constraint_min : float = -inf, enabled : bool = True, foreground_grid : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], invert : bool = False, keep_default_ticks : bool = False, label : str = "", labels : Sequence[str] | None = [], labels_coord : Array | None = [], labels_major : Sequence[bool] | None = [], linked_axis : Any = ..., lock_max : bool = False, lock_min : bool = False, max : float = 1.0, min : float = 0.0, next_sibling : 'baseItem' | None = None, no_gridlines : bool = False, no_highlight : bool = False, no_initial_fit : bool = False, no_label : bool = False, no_menus : bool = False, no_side_switch : bool = False, no_tick_labels : bool = False, no_tick_marks : bool = False, opposite : bool = False, pan_stretch : bool = False, parent : 'baseItem' | None = None, previous_sibling : 'baseItem' | None = None, restrict_fit_to_range : bool = False, scale : AxisScale = AxisScale.LINEAR, tick_format : str = "", user_data : Any = ..., zoom_max : float = inf, zoom_min : float = 0.0) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -8146,6 +8147,7 @@ class PlotAxisConfig(baseItem):
         - label: Text label for the axis.
         - labels: Custom text labels for specific tick positions.
         - labels_coord: Coordinate positions for custom tick labels.
+        - labels_major: Boolean array to defined whether the custom labels use major or minor ticks
         - linked_axis: **Experimental** Link the values of this axis to another PlotAxisConfig.
         - lock_max: Whether the axis maximum value is locked when panning/zooming.
         - lock_min: Whether the axis minimum value is locked when panning/zooming.
@@ -8390,7 +8392,8 @@ class PlotAxisConfig(baseItem):
         Coordinate positions for custom tick labels.
 
         Specifies where to place each label from the labels property along
-        the axis. Must contain the same number of elements as labels.
+        the axis. If it contains more elements than the labels property,
+        additional elements use the default tick formatter.
 
         """
         ...
@@ -8398,6 +8401,31 @@ class PlotAxisConfig(baseItem):
 
     @labels_coord.setter
     def labels_coord(self, value : Array | None):
+        ...
+
+
+    @property
+    def labels_major(self) -> Sequence[bool] | None:
+        """
+        Boolean array to defined whether the custom labels use major or minor ticks
+
+        By default, if unspecified, labels added with the `labels` property
+        will use minor ticks. In order to mix major and minor ticks, or
+        use major ticks only, this property can be set to a boolean array
+        of the same length as the `labels` property.
+
+        If the corresponding value is True, the label will be
+        displayed on a major tick, otherwise it will be displayed on a minor tick.
+
+        If the size of the array is shorter than the amount of labels (or unset),
+        the remaining labels will use minor ticks by default.
+
+        """
+        ...
+
+
+    @labels_major.setter
+    def labels_major(self, value : Sequence[bool] | None):
         ...
 
 

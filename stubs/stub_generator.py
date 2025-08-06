@@ -530,6 +530,8 @@ def typename(object_class, instance, name, value):
             return "Sequence[str] | None"
         if name == "labels_coord":
             return "Array | None"
+        if name == "labels_major":
+            return "Sequence[bool] | None"
     if issubclass(object_class, dcg.plotElement) or issubclass(object_class, dcg.Subplots):
         if "ratios" in name:
             return "Array"
