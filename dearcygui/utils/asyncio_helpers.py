@@ -63,7 +63,7 @@ class _SimpleBarrier:
         # and in the worst case, we will miss calling _discard and need
         # to create a new barrier.
 
-async def _async_task(future: Future | asyncio.Future | None,
+async def _async_task(future: Future | asyncio.Future,
                       barrier: _SimpleBarrier | None,
                       fn: Callable | Coroutine, args: tuple, kwargs: dict) -> None:
     """
@@ -105,41 +105,60 @@ async def _async_task(future: Future | asyncio.Future | None,
             raise TypeError(f"Unsupported callable type: {type(fn)}. "
                             "Must be a coroutine function, regular function, or coroutine.")
         # Set the result if not cancelled
-        if future and not future.cancelled():
-            future.set_result(result)
+        if isinstance(future, asyncio.Future):
+            if not future.cancelled():
+                future.set_result(result)
+        else: # concurrent.futures.Future
+            if future.set_running_or_notify_cancel():
+                future.set_result(result)
     except Exception as exc:
-        if future and not future.cancelled():
-            future.set_exception(exc)
+        if isinstance(future, asyncio.Future):
+            if not future.cancelled():
+                future.set_exception(exc)
+        else:
+            if future.set_running_or_notify_cancel():
+                future.set_exception(exc) # cannot report exception if cancelled
+    except asyncio.CancelledError:
+        future.cancel()
+        if isinstance(future, Future):
+            future.set_running_or_notify_cancel()
+    except (SystemExit, KeyboardInterrupt):
+        asyncio.get_event_loop().stop()
+        future.cancel()
+        if isinstance(future, Future):
+            future.set_running_or_notify_cancel()
+
 
 
 def _create_task(loop: asyncio.AbstractEventLoop,
-                 future: Future | None, fn: Callable | Coroutine, args: tuple,
-                 kwargs: dict) -> asyncio.Task:
+                 future: Future, fn: Callable | Coroutine, args: tuple,
+                 kwargs: dict):
     """
     Helper function to instantiate an awaitable for the
     task in the asyncio event loop
     """
-    task = loop.create_task(_async_task(future, None, fn, args, kwargs))
+    try:
+        task = loop.create_task(_async_task(future, None, fn, args, kwargs))
+    except RuntimeError as e:
+        # Handle case where loop is closed or stopping
+        future.set_exception(RuntimeError(f"Cannot create task: {e}"))
+        return
 
-    if future is not None:
-        # Setup bi-directional cancellation propagation
-        def cancel_task_if_not_done(task=task):
-            if not task.done():
-                task.cancel()
+    # Setup bi-directional cancellation propagation
+    def cancel_task_if_not_done(task=task):
+        try:
+            loop.call_soon_threadsafe(task.cancel)
+        except RuntimeError:
+            # Loop might be closed, ignore
+            pass
 
-        future.add_done_callback(
-            lambda f: loop.call_soon_threadsafe(cancel_task_if_not_done) if f.cancelled() else None
-        )
-        
-        task.add_done_callback(
-            lambda t: future.cancel() if t.cancelled() and not future.done() else None
-        )
-        
-        # Prevent task from being garbage collected before completion
-        # Unsure if needed, as task is referenced in the lambda above
-        future.task = task
-    
-    return task
+    future.add_done_callback(
+        lambda f: cancel_task_if_not_done() if f.cancelled() else None
+    )
+
+    task.add_done_callback(
+        lambda t: future.cancel() if t.cancelled() and not future.done() else None
+    )
 
 
 class AsyncPoolExecutor:
