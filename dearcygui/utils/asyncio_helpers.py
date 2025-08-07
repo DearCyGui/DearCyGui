@@ -432,36 +432,83 @@ class AsyncThreadPoolExecutor(Executor):
             if hasattr(asyncio, 'eager_task_factory'):
                 self._thread_loop.set_task_factory(asyncio.eager_task_factory)
 
+        # Set up exception handler to prevent hangs from unhandled exceptions
+        def exception_handler(loop, context):
+            exception = context.get('exception')
+            if isinstance(exception, (KeyboardInterrupt, SystemExit)):
+                loop.stop()
+                return
+            loop.default_exception_handler(context)
+
+        self._thread_loop.set_exception_handler(exception_handler)
+
         self._running = True
         try:
             self._thread_loop.run_forever()
+        except (KeyboardInterrupt, SystemExit):
+            # Handle system-level interrupts gracefully
+            pass
+        except Exception as e:
+            # Log unexpected exceptions but don't let them crash the thread
+            warnings.warn(f"AsyncThreadPoolExecutor thread worker exception: {e}", RuntimeWarning)
         finally:
             self._running = False
-            self._thread_loop.close()
-            self._thread_loop = None
+            # Clean shutdown of the event loop
+            try:
+                # Cancel all remaining tasks
+                pending = asyncio.all_tasks(self._thread_loop)
+                for task in pending:
+                    task.cancel()
+                
+                # Run one final loop iteration to handle cancellations
+                if pending:
+                    self._thread_loop.run_until_complete(
+                        asyncio.gather(*pending, return_exceptions=True)
+                    )
+                
+                # Shutdown async generators
+                self._thread_loop.run_until_complete(
+                    self._thread_loop.shutdown_asyncgens()
+                )
+            except Exception:
+                # If cleanup fails, just proceed to close
+                pass
+            finally:
+                self._thread_loop.close()
+                self._thread_loop = None
 
     def _cancel_all_tasks(self) -> None:
         """Cancel all tasks in the thread's event loop. Called in the thread"""
         if self._thread_loop is None or self._thread is None:
             return
 
-        # Cancel all tasks in the loop
-        tasks = asyncio.all_tasks(self._thread_loop)
+        try:
+            # Cancel all tasks in the loop
+            tasks = asyncio.all_tasks(self._thread_loop)
 
-        # If we are in the thread itself,
-        # do not cancel ourselves
-        if threading.get_ident() == self._thread.ident:
-            current_task = asyncio.current_task(self._thread_loop)
-            tasks = [task for task in tasks if task is not current_task]
+            # If we are in the thread itself,
+            # do not cancel ourselves
+            if threading.get_ident() == self._thread.ident:
+                current_task = asyncio.current_task(self._thread_loop)
+                tasks = [task for task in tasks if task is not current_task]
 
-        for task in tasks:
-            task.cancel()
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
 
-        # Shutdown async generators
-        async def run_shutdown():
-            await self._thread_loop.shutdown_asyncgens()
-        
-        self._thread_loop.create_task(run_shutdown())
+            # Shutdown async generators
+            async def run_shutdown():
+                try:
+                    await self._thread_loop.shutdown_asyncgens()
+                except Exception:
+                    # Ignore errors during shutdown
+                    pass
+            
+            if not self._thread_loop.is_closed():
+                self._thread_loop.create_task(run_shutdown())
+        except Exception:
+            # Ignore any errors during cancellation
+            pass
 
     def _start_background_loop(self) -> None:
         """Start the background thread with its event loop."""
