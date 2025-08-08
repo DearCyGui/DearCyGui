@@ -1062,10 +1062,15 @@ bool SDLViewport::processEvents(int timeout_ms) {
     // Activity: input activity. Needs to render to check impact
     // Needs refresh: if the content has likely changed and we must render and present
     SDL_Event event;
-    auto start_time = std::chrono::steady_clock::now();
+    uint64_t start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                            std::chrono::steady_clock::now().time_since_epoch()
+                        ).count();
+    uint64_t stop_time = start_time + timeout_ms * 1000000;
     auto remaining_timeout = timeout_ms;
-    bool user_requested_refresh = false;
-    bool user_requested_rendering = false;
+
+    // User wake events
+    uint64_t time_requested_refresh = UINT64_MAX;
+    uint64_t time_requested_rendering = UINT64_MAX;
 
     SDL_PumpEvents();
 
@@ -1096,10 +1101,11 @@ bool SDLViewport::processEvents(int timeout_ms) {
             }
             // update the timeout for next iteration
             wakeCallback(callbackData);
-            auto current_time = std::chrono::steady_clock::now();
-            auto elapsed = current_time - start_time;
-            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
-            remaining_timeout = timeout_ms - elapsed_ms;
+            uint64_t current_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()
+            ).count();
+            remaining_timeout = (current_time < stop_time) ?
+                static_cast<int>((stop_time - current_time + 999999) / 1000000) : 0;
             if (!has_event)
                 continue; // No event, continue waiting
             SDL_PumpEvents(); // Probably not needed, but just in case
@@ -1243,22 +1249,32 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 default:
                     if (event.type == UserEventType) {
                         // wake-up handling
-                        auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        uint64_t current_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
                             std::chrono::steady_clock::now().time_since_epoch()
                         ).count();
-                        int64_t target_delay_ns = (int64_t)event.user.timestamp - (int64_t)timestamp_ns;
-                        int64_t target_delay_ms = target_delay_ns / 1000000;
-                        if (target_delay_ms <= 0)
-                            remaining_timeout = 0;
-                        else if (target_delay_ms < remaining_timeout)
-                            remaining_timeout = (int)target_delay_ms;
-    
-                        if (event.user.code == 0) {
-                            // User requested a refresh
-                            user_requested_refresh = true;
-                        } else if (event.user.code == 1) {
-                            // User requested rendering
-                            user_requested_rendering = true;
+                        if (event.user.timestamp <= current_time) {
+                            if (event.user.code == 0) {
+                                // User requested a full refresh
+                                needsRefresh.store(true);
+                            } else if (event.user.code == 1) {
+                                // User requested rendering
+                                activityDetected.store(true);
+                            }
+                        } else {
+                            // User requested a refresh or rendering in the future
+                            if (event.user.code == 0) {
+                                if (time_requested_refresh > event.user.timestamp) {
+                                    time_requested_refresh = event.user.timestamp;
+                                }
+                            } else if (event.user.code == 1) {
+                                if (time_requested_rendering > event.user.timestamp) {
+                                    time_requested_rendering = event.user.timestamp;
+                                }
+                            }
+                            if (event.user.timestamp < stop_time) {
+                                stop_time = event.user.timestamp;
+                                remaining_timeout = static_cast<int>((stop_time - current_time + 999999) / 1000000);
+                            }
                         }
                     }
                     break;
@@ -1277,13 +1293,6 @@ bool SDLViewport::processEvents(int timeout_ms) {
         resizeCallback(callbackData);
     }
 
-    // If we have a user requested refresh, we need to render
-    if (user_requested_refresh) 
-        needsRefresh.store(true);
-    // If we have a user requested rendering, we need to render
-    if (user_requested_rendering)
-        activityDetected.store(true);
-
     // Move back to the queue events meant for other windows
     if (!deferredEvents.empty()) {
         if ((int)deferredEvents.size() >= 1024) {
@@ -1294,7 +1303,57 @@ bool SDLViewport::processEvents(int timeout_ms) {
         }
         deferredEvents.clear();
     }
-    return activityDetected.load() || needsRefresh.load();
+
+    if (time_requested_refresh != UINT64_MAX || time_requested_rendering != UINT64_MAX) {
+        uint64_t current_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()
+            ).count();
+        if (current_time >= time_requested_refresh) {
+            needsRefresh.store(true);
+            activityDetected.store(true);
+            time_requested_refresh = UINT64_MAX;
+            time_requested_rendering = UINT64_MAX;
+        } else if (current_time >= time_requested_rendering) {
+            activityDetected.store(true);
+            time_requested_rendering = UINT64_MAX;
+        }
+    }
+
+    bool need_refresh = needsRefresh.load();
+    bool need_redraw = activityDetected.load();
+
+    if (need_refresh) {
+        time_requested_refresh = UINT64_MAX;
+        time_requested_rendering = UINT64_MAX;
+    } else if (need_redraw) {
+        time_requested_rendering = UINT64_MAX;
+    }
+
+    // schedule again untreated refresh or rendering requests
+
+    if (time_requested_refresh != UINT64_MAX) {
+        SDL_Event user_event;
+        user_event.type = UserEventType;
+        user_event.user.windowID = SDL_GetWindowID(windowHandle);
+        user_event.user.timestamp = time_requested_refresh;
+        user_event.user.code = 0;
+        user_event.user.data1 = NULL;
+        user_event.user.data2 = NULL;
+        SDL_PushEvent(&user_event);
+    }
+
+    if (time_requested_rendering != UINT64_MAX) {
+        SDL_Event user_event;
+        user_event.type = UserEventType;
+        user_event.user.windowID = SDL_GetWindowID(windowHandle);
+        user_event.user.timestamp = time_requested_rendering;
+        user_event.user.code = 1;
+        user_event.user.data1 = NULL;
+        user_event.user.data2 = NULL;
+        SDL_PushEvent(&user_event);
+    }
+
+    return need_redraw || need_refresh;
 }
 
 // Update renderFrame to use member prepare_present
