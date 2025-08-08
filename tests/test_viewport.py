@@ -5,6 +5,8 @@ import asyncio
 import random
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
+import sys
+
 
 import dearcygui as dcg
 from dearcygui.utils.asyncio_helpers import (
@@ -338,3 +340,130 @@ class TestAsyncioIntegration:
         
         # Clean up
         executor.shutdown()
+
+
+def test_viewport_singlethreaded_wake(initialized_viewport: dcg.Viewport):
+    """Test single-threaded wake behavior of the viewport."""
+    ctx = initialized_viewport.context
+    win = dcg.Window(ctx, label="window")
+    text = dcg.Text(ctx, value="text", parent=win)
+
+    frame_count = initialized_viewport.metrics.frame_count
+    timestamp = time.monotonic()
+
+    num_refreshes = 0
+    initialized_viewport.vsync = False
+    initialized_viewport.wait_for_input = True
+
+    # Check the wake does not cause a full refresh
+    # and does trigger an immediate render
+    for _ in range(1000):
+        num_refreshes += 1 * initialized_viewport.render_frame()
+        initialized_viewport.wake(full_refresh=False)
+
+    new_timestamp = time.monotonic()
+    #assert initialized_viewport.metrics.frame_count == frame_count + num_refreshes TODO investigate behaviour
+    assert new_timestamp - timestamp < 1.  # Should be quick
+    assert num_refreshes < 10 # except initial rendering, should not refresh
+
+    frame_count = initialized_viewport.metrics.frame_count
+    timestamp = time.monotonic()
+    num_refreshes = 0
+
+    # Check with full refresh semantics
+    for _ in range(50):
+        initialized_viewport.wake(full_refresh=True)
+        num_refreshes += 1 * initialized_viewport.render_frame()
+
+    new_timestamp = time.monotonic()
+    assert initialized_viewport.metrics.frame_count == frame_count + num_refreshes
+    assert new_timestamp - timestamp < 0.1  # Should be quick because no vsync
+    assert num_refreshes == 50  # Should refresh every time
+
+    # Check with delay semantics
+    timestamp = time.monotonic()
+
+    for _ in range(50):
+        initialized_viewport.wake(full_refresh=False, delay=0.01)
+        initialized_viewport.render_frame()
+
+    new_timestamp = time.monotonic()
+    assert new_timestamp - timestamp > 0.4  # Delay should accumulate
+
+    # same test with full refresh
+    timestamp = time.monotonic()
+    for _ in range(50):
+        initialized_viewport.wake(full_refresh=True, delay=0.01)
+        initialized_viewport.render_frame()
+    new_timestamp = time.monotonic()
+    assert new_timestamp - timestamp > 0.4  # Delay should accumulate
+
+    # Test with multiple threads
+
+    def frequent_wakes(times, wake_delay, sleep_delay):
+        """Function to wake the viewport frequently."""
+        for _ in range(times):
+            initialized_viewport.wake(full_refresh=False, delay=wake_delay)
+            time.sleep(sleep_delay)
+    # Start a thread that wakes the viewport frequently
+    thread = threading.Thread(target=frequent_wakes, args=(100, 0.0, 0.001))
+    thread.start()
+
+    timestamp = time.monotonic()
+    for _ in range(100):
+        initialized_viewport.render_frame()
+
+    new_timestamp = time.monotonic()
+    thread.join(timeout=1.0)  # Wait for the thread to finish
+    assert new_timestamp - timestamp < 0.15  # Should be quick due to frequent wakes
+
+    # flush any event
+    while initialized_viewport.wait_events(0):
+        initialized_viewport.render_frame()
+
+    # Now test that wake calls collapse
+    thread = threading.Thread(target=frequent_wakes, args=(100, 0.3, 0.))
+    thread.start()
+
+    time.sleep(0.2)  # Let the thread send all its wakes
+    timestamp = time.monotonic()
+    initialized_viewport.render_frame()  # may block, but less than 0.3 seconds
+    new_timestamp = time.monotonic()
+    thread.join(timeout=1.0)  # Wait for the thread to finish
+    assert new_timestamp - timestamp < 0.3
+    assert new_timestamp - timestamp > 0.05
+    assert not initialized_viewport.wait_events(0) # no event to process
+
+    # Test this works as well with the asyncio helpers
+    frame_count = initialized_viewport.metrics.frame_count
+
+    def frequent_wake_and_close(times, wake_delay, sleep_delay):
+        """Function to wake the viewport frequently and then close it."""
+        for _ in range(times):
+            initialized_viewport.wake(full_refresh=True, delay=wake_delay)
+            time.sleep(sleep_delay)
+        time.sleep(max(0, wake_delay - sleep_delay))
+        initialized_viewport.context.running = False
+
+    # Start a thread that wakes the viewport frequently
+    thread = threading.Thread(target=frequent_wake_and_close, args=(100, 0.0, 0.001))
+    thread.start()
+    timestamp = time.monotonic()
+    asyncio.run(run_viewport_loop(initialized_viewport, frame_rate=100))
+    new_timestamp = time.monotonic()
+    thread.join(timeout=1.0)  # Wait for the thread to finish
+    assert new_timestamp - timestamp < 0.15  # Should be quick due to frequent wakes
+    assert abs(initialized_viewport.metrics.frame_count - (frame_count + 10)) <= 1
+
+    initialized_viewport.context.running = True # Reset running state for next tests
+
+    thread = threading.Thread(target=frequent_wake_and_close, args=(100, 0.3, 0.))
+    thread.start()
+    time.sleep(0.2)  # Let the thread send all its wakes
+    timestamp = time.monotonic()
+    asyncio.run(run_viewport_loop(initialized_viewport))  # may block, but less than 0.3 seconds
+    new_timestamp = time.monotonic()
+    thread.join(timeout=1.0)  # Wait for the thread to finish
+    assert new_timestamp - timestamp < 0.3
+    assert new_timestamp - timestamp > 0.05
+    assert not initialized_viewport.wait_events(0)  # no event to process
