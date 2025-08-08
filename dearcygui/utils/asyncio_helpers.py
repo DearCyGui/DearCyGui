@@ -478,7 +478,7 @@ class AsyncThreadPoolExecutor(Executor):
                 self._thread_loop = None
 
     def _cancel_all_tasks(self) -> None:
-        """Cancel all tasks in the thread's event loop. Called in the thread"""
+        """Cancel all tasks in the thread's event loop. Called in the thread event loop"""
         if self._thread_loop is None or self._thread is None:
             return
 
@@ -486,11 +486,10 @@ class AsyncThreadPoolExecutor(Executor):
             # Cancel all tasks in the loop
             tasks = asyncio.all_tasks(self._thread_loop)
 
-            # If we are in the thread itself,
+            # We are in the thread itself,
             # do not cancel ourselves
-            if threading.get_ident() == self._thread.ident:
-                current_task = asyncio.current_task(self._thread_loop)
-                tasks = [task for task in tasks if task is not current_task]
+            current_task = asyncio.current_task(self._thread_loop)
+            tasks = [task for task in tasks if task is not current_task]
 
             for task in tasks:
                 if not task.done():
@@ -645,7 +644,7 @@ class AsyncThreadPoolExecutor(Executor):
         """Ensure resources are cleaned up when the executor is garbage collected."""
         if not hasattr(self, '_running') or not self._running:
             return
-        self.shutdown(wait=False)
+        self.shutdown(wait=False, cancel_futures=True)
 
 
 async def run_viewport_loop(viewport: dcg.Viewport,
