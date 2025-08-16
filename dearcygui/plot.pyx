@@ -56,6 +56,12 @@ cdef extern from * nogil:
     {
         return ImPlot::GetCurrentContext()->CurrentPlot->Flags;
     }
+    ImPlotSubplotFlags GetSubplotConfig()
+    {
+        if (ImPlot::GetCurrentContext()->CurrentSubplot != nullptr)
+            return ImPlot::GetCurrentContext()->CurrentSubplot->Flags;
+        return ImPlotSubplotFlags_None;
+    }
     bool IsItemHidden(const char* label_id)
     {
         ImPlotItem* item = ImPlot::GetItem(label_id);
@@ -65,6 +71,7 @@ cdef extern from * nogil:
     implot.ImPlotAxisFlags GetAxisConfig(int)
     implot.ImPlotLocation GetLegendConfig(implot.ImPlotLegendFlags&)
     implot.ImPlotFlags GetPlotConfig()
+    implot.ImPlotSubplotFlags GetSubplotConfig()
     bint IsItemHidden(const char*)
 
 cdef class AxesResizeHandler(baseHandler):
@@ -3943,6 +3950,8 @@ cdef class Subplots(uiItem):
 
             self.context.viewport.parent_pos = pos_p
             self.context.viewport.parent_size = parent_size_backup
+
+            self._flags = GetSubplotConfig()
 
             # End subplot 
             implot.EndSubplots()
