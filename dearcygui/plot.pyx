@@ -3808,7 +3808,7 @@ cdef class Subplots(uiItem):
         if value:
             self._flags |= implot.ImPlotSubplotFlags_ShareItems
 
-    ''' -> does not work, use config item sharing instead
+    ''' -> superseeded by linked_axis. Can still be toggled from the interface.
     @property
     def share_x_all(self):
         """
@@ -3898,12 +3898,104 @@ cdef class Subplots(uiItem):
             self._flags |= implot.ImPlotSubplotFlags_LinkAllY
     '''
 
+    cdef void _setup_linked_axes(self) noexcept:
+        """
+        Setup linked axes for all plot children based on subplot flags.
+        This maps the behaviour of implot.
+        """
+        # we are called from draw() and thus do not need the mutex, but
+        # let's be safe in case of subclassing.
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        
+        # Get subplot flags
+        cdef bint lx = (self._flags & implot.ImPlotSubplotFlags_LinkAllX) != 0
+        cdef bint ly = (self._flags & implot.ImPlotSubplotFlags_LinkAllY) != 0
+        cdef bint lr = (self._flags & implot.ImPlotSubplotFlags_LinkRows) != 0
+        cdef bint lc = (self._flags & implot.ImPlotSubplotFlags_LinkCols) != 0
+        cdef bint col_major = (self._flags & implot.ImPlotSubplotFlags_ColMajor) != 0
+
+        plots = [p for p in self.children if isinstance(p, Plot)]
+
+        # Cap to the visible plots
+        if self._rows <= 0 or self._cols <= 0 or len(plots) == 0:
+            return
+        plots = plots[:self._rows * self._cols]
+
+        # If no linking is enabled, clear all links
+        if not (lx or ly or lr or lc):
+            for plot in plots:
+                plot.X1.linked_axis = None
+                plot.Y1.linked_axis = None
+
+        # Get reference axes for linking
+        first_plot = plots[0]
+        ref_x_axis = first_plot.X1
+        ref_y_axis = first_plot.Y1
+
+        # first plot is a reference and is never linked
+        first_plot.X1.linked_axis = None
+        first_plot.Y1.linked_axis = None
+
+        # Second pass: set up links based on position
+        cdef int32_t ref_idx, idx = 0
+        cdef int32_t row, col
+
+        for idx in range(1, len(plots)):
+            plot = plots[idx]
+
+            # Calculate row and column based on subplot flags
+            if col_major:
+                row = idx % self._rows
+                col = idx // self._rows
+            else:
+                row = idx // self._cols
+                col = idx % self._cols
+            
+            # Setup X-axis linking
+            if lx:
+                # Link all X axes to the first plot's X axis
+                plot.X1.linked_axis = ref_x_axis
+            elif lc:
+                # Link X axes within columns
+                if row == 0:
+                    plot.X1.linked_axis = None
+                    continue # first row is the reference
+
+                # First row of this column
+                ref_idx = col * self._rows if col_major else col
+
+                plot.X1.linked_axis = plots[ref_idx].X1
+            else:
+                # No X linking
+                plot.X1.linked_axis = None
+            
+            # Setup Y-axis linking  
+            if ly:
+                # Link all Y axes to the first plot's Y axis
+                plot.Y1.linked_axis = ref_y_axis
+            elif lr:
+                # Link Y axes within rows
+                if col == 0:
+                    plot.Y1.linked_axis = None
+                    continue # first column is the reference
+
+                # First column of this row
+                ref_idx = row if col_major else row * self._cols
+
+                plot.Y1.linked_axis = plots[ref_idx].Y1
+            else:
+                # No Y linking
+                plot.Y1.linked_axis = None
+
+
     cdef bint draw_item(self) noexcept nogil:
         cdef float* row_sizes = NULL
         cdef float* col_sizes = NULL
         cdef bint visible
         cdef Vec2 pos_p, parent_size_backup
         cdef PyObject *child
+        cdef int32_t prev_flags
         cdef int32_t n = self._rows * self._cols
         cdef int32_t i
 
@@ -3951,7 +4043,21 @@ cdef class Subplots(uiItem):
             self.context.viewport.parent_pos = pos_p
             self.context.viewport.parent_size = parent_size_backup
 
+            prev_flags = self._flags
             self._flags = GetSubplotConfig()
+
+            if ((prev_flags & (implot.ImPlotSubplotFlags_LinkAllX
+                               | implot.ImPlotSubplotFlags_LinkAllY
+                               | implot.ImPlotSubplotFlags_LinkRows
+                               | implot.ImPlotSubplotFlags_LinkCols))
+                != (self._flags & (implot.ImPlotSubplotFlags_LinkAllX
+                                   | implot.ImPlotSubplotFlags_LinkAllY
+                                   | implot.ImPlotSubplotFlags_LinkRows
+                                   | implot.ImPlotSubplotFlags_LinkCols))):
+                # User toggled linked axes in the menu.
+                # TODO: maybe call when children change as well ?
+                with gil:
+                    self._setup_linked_axes()
 
             # End subplot 
             implot.EndSubplots()

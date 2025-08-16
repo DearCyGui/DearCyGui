@@ -134,6 +134,7 @@ cdef class Subplots(uiItem):
     cdef DCGVector[float] _row_ratios
     cdef DCGVector[float] _col_ratios
     cdef int32_t _flags # implot.ImPlotSubplotFlags
+    cdef void _setup_linked_axes(self) noexcept
     cdef bint draw_item(self) noexcept nogil
 
 cdef class PlotBarGroups(plotElementWithLegend):
