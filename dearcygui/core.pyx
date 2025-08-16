@@ -2397,10 +2397,23 @@ cdef class baseItem:
 
         # Skip propagating and handlers if already hidden.
         if self.p_state.cur.rendered:
-            self._update_current_state_as_hidden()
+            # We use a custom _update_current_state_as_hidden to override fewer states.
+            # In particular position and size states.
+            self.p_state.cur.rendered = False
+            self.p_state.cur.active = False
+            self.p_state.cur.clicked = [False, False, False, False, False]
+            self.p_state.cur.double_clicked = [False, False, False, False, False]
+            self.p_state.cur.deactivated_after_edited = False
+            self.p_state.cur.dragging = [False, False, False, False, False]
+            self.p_state.cur.edited = False
+            self.p_state.cur.focused = False
+            self.p_state.cur.hovered = False
+            self.p_state.cur.content_region_size.x = 0 # Unsure, may depend on the item
+            self.p_state.cur.content_region_size.y = 0
+            self.p_state.cur.content_pos.x = self.p_state.cur.pos_to_viewport.x
+            self.p_state.cur.content_pos.y = self.p_state.cur.pos_to_viewport.y
             self._propagate_hidden_state_to_children_with_handlers()
         self.p_state.cur.traversed = True
-        #self.p_state.cur.rendered = False # Implied by _update_current_state_as_hidden
 
     def lock_mutex(self, wait=False):
         """
