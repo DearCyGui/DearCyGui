@@ -348,9 +348,9 @@ cdef class DrawInvisibleButton(drawingItem):
             #size.x += max(0., size.x - (size.y - self._max_side) * ratio)
             size.y = self._max_side
         top_left.x = center.x - size.x * 0.5
-        bottom_right.x = top_left.x + size.x * 0.5
+        bottom_right.x = center.x + size.x * 0.5
         top_left.y = center.y - size.y * 0.5
-        bottom_right.y = top_left.y + size.y
+        bottom_right.y = center.y + size.y * 0.5
         # Update rect and position size
         self.state.cur.rect_size = ImVec2Vec2(size)
         self.state.cur.pos_to_viewport = ImVec2Vec2(top_left)
