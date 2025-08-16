@@ -2417,7 +2417,7 @@ cdef class plotElementWithLegend(plotElement):
             implot.HideNextItem(not(self._enabled), implot.ImPlotCond_Always)
             self._enabled_dirty = False
         else:
-            self._enabled = IsItemHidden(self._imgui_label.c_str())
+            self._enabled = not(IsItemHidden(self._imgui_label.c_str()))
         self.draw_element()
 
         self.state.cur.rendered = True
