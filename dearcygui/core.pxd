@@ -198,18 +198,19 @@ cdef class baseItem:
     cpdef void delete_item(self)
     cdef void set_previous_states(self) noexcept nogil
     cdef void run_handlers(self) noexcept nogil
-    cdef void update_current_state_as_hidden(self) noexcept nogil
-    cdef void propagate_hidden_state_to_children_with_handlers(self) noexcept nogil
-    cdef void propagate_hidden_state_to_children_no_handlers(self) noexcept
     cdef void set_hidden_and_propagate_to_siblings_with_handlers(self) noexcept nogil
     cdef void set_hidden_and_propagate_to_siblings_no_handlers(self) noexcept
-    cdef void set_hidden_no_handler_and_propagate_to_children_with_handlers(self) noexcept nogil
-    cdef void set_hidden_and_propagate_to_children_no_handlers(self) noexcept
-    ### protected methods ###
+    ### final protected methods ###
+    cdef void _update_current_state_as_hidden(self) noexcept nogil
+    cdef void _propagate_hidden_state_to_children_with_handlers(self) noexcept nogil
+    cdef void _propagate_hidden_state_to_children_no_handlers(self) noexcept
+    cdef void _set_hidden_and_propagate_to_children_with_handlers(self) noexcept nogil
+    cdef void _set_hidden_and_propagate_to_children_no_handlers(self) noexcept
+    cdef void _set_not_rendered_and_propagate_to_children_with_handlers(self) noexcept nogil
     #cdef void _copy(self, object)
     ### private methods ###
     cdef void _copy_children(self, baseItem)
-    cdef bint _check_rendered(self)
+    cdef bint _check_traversed(self)
     cdef void _detach_item_and_lock(self, unique_lock[DCGMutex]&)
     cdef void _delete_and_siblings(self)
 
@@ -230,23 +231,43 @@ cdef struct itemStateCapabilities:
     bint has_content_region
 
 cdef struct itemStateValues:
-    bint hovered  # Mouse is over the item + overlap rules of mouse ownership
-    bint active # Item is 'active': mouse pressed, editing field, etc.
-    bint focused # Item has focus
-    bint[5] clicked # <int>imgui.ImGuiMouseButton_COUNT
+    bint traversed # Seen during frame rendering (not optimized away because parent not open or clipped)
+    bint rendered  # traversed + visible
+    # * can_be_active states *
+    # Item is 'active': mouse pressed, editing field, etc.
+    bint active
+    # * can_be_clicked states *
+    # Item is 'clicked': mouse button pressed
+    bint[5] clicked # <int>imgui.ImGuiMouseButton_COUNT. TODO: check if it can be removed
     bint[5] double_clicked
-    bint[5] dragging
-    Vec2[5] drag_deltas # only valid when dragging
+    # * can_be_deactivated_after_edited states *
+    bint deactivated_after_edited # TODO: check if it can be removed
+    # * can_be_dragged states *
+    bint[5] dragging # TODO: check if it can be removed
+    Vec2[5] drag_deltas # only valid when dragging # TODO: check if it can be removed
+    # * can_be_edited states *
     bint edited # text fields, etc
-    bint deactivated_after_edited
+    # * can_be_focused states *
+    bint focused # Item has focus
+    # * can_be_hovered states *
+    bint hovered  # Mouse is over the item + overlap rules of mouse ownership
+    # * can_be_toggled states *
     bint open # menu open, etc
+    # * has_position states *
+    # Position in viewport coordinates
     Vec2 pos_to_viewport
+    # Position in window coordinates (window's content area)
     Vec2 pos_to_window
+    # Position in parent coordinates (parent's content area)
     Vec2 pos_to_parent
-    Vec2 rect_size # size on screen in pixels
-    Vec2 content_region_size # size available to the children in pixels
+    # * has_rect_size states *
+    # Size on screen in (unscaled) pixels
+    Vec2 rect_size
+    # * has_content_region states *
+    # Size available to the children in pixels
+    Vec2 content_region_size
+    # Position of the content area in viewport coordinates
     Vec2 content_pos
-    bint rendered # No optimization due to parent menu not open or clipped
 
 cdef struct itemState:
     ### Read-only public variables set by subclasses during cinit ###

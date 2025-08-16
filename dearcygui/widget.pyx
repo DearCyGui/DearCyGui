@@ -304,6 +304,10 @@ cdef class DrawInvisibleButton(drawingItem):
                    void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
+            if not self.state.cur.traversed:
+                return
+            self.set_previous_states()
+            self._set_hidden_and_propagate_to_children_with_handlers()
             return
 
         self.set_previous_states()
@@ -351,6 +355,7 @@ cdef class DrawInvisibleButton(drawingItem):
         bottom_right.x = center.x + size.x * 0.5
         top_left.y = center.y - size.y * 0.5
         bottom_right.y = center.y + size.y * 0.5
+        self.state.cur.traversed = True
         # Update rect and position size
         self.state.cur.rect_size = ImVec2Vec2(size)
         self.state.cur.pos_to_viewport = ImVec2Vec2(top_left)
@@ -700,7 +705,7 @@ cdef class DrawInWindow(uiItem):
         if clip_height <= 0 or clip_width <= 0:
             if no_frame:
                 imgui.PopStyleVar(2)
-            self.set_hidden_no_handler_and_propagate_to_children_with_handlers() # won't propagate though
+            self._set_not_rendered_and_propagate_to_children_with_handlers()
             return False
         cdef imgui.ImDrawList* drawlist = imgui.GetWindowDrawList()
 
@@ -3645,8 +3650,7 @@ cdef class MenuBar(uiItem):
         if not(self._show):
             if self._show_update_requested:
                 self.set_previous_states()
-                self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
-                self.run_handlers()
+                self._set_hidden_and_propagate_to_children_with_handlers()
                 self._show_update_requested = False
             return
 
@@ -3701,7 +3705,7 @@ cdef class MenuBar(uiItem):
         else:
             # We should hit this only if window is invisible
             # or has no menu bar
-            self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+            self._set_not_rendered_and_propagate_to_children_with_handlers()
         cdef bint activated = self.state.cur.active and not(self.state.prev.active)
         cdef int32_t i
         if activated and not(self._callbacks.empty()):
@@ -3768,7 +3772,7 @@ cdef class Menu(uiItem):
                 self.context.viewport.parent_size = parent_size_backup
             imgui.EndMenu()
         else:
-            self.propagate_hidden_state_to_children_with_handlers()
+            self._propagate_hidden_state_to_children_with_handlers()
         self.state.cur.open = menu_open
         SharedBool.set(<SharedBool>self._value, menu_open)
         return self.state.cur.active and not(self.state.prev.active)
@@ -3981,9 +3985,10 @@ cdef class Tooltip(uiItem):
                 self.context.viewport.parent_size = parent_size_backup
 
             imgui.EndTooltip() 
+            self.state.cur.traversed = True
             self.state.cur.rendered = True
         else:
-            self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+            self._set_not_rendered_and_propagate_to_children_with_handlers()
             # NOTE: we could also set the rects. DPG does it.
         # The sizing of a tooltip takes a few frames to converge
         if self.state.cur.rendered != was_visible or \
@@ -4298,7 +4303,7 @@ cdef class Tab(uiItem):
                 self.context.viewport.parent_size = parent_size_backup
             imgui.EndTabItem()
         else:
-            self.propagate_hidden_state_to_children_with_handlers()
+            self._propagate_hidden_state_to_children_with_handlers()
         self.state.cur.open = menu_open
         SharedBool.set(<SharedBool>self._value, menu_open)
         return self.state.cur.active and not(self.state.prev.active)
@@ -4553,7 +4558,7 @@ cdef class TabBar(uiItem):
                 self.context.viewport.parent_size = parent_size_backup
             imgui.EndTabBar()
         else:
-            self.propagate_hidden_state_to_children_with_handlers()
+            self._propagate_hidden_state_to_children_with_handlers()
         # PushStyleVar was added because EngGroup adds itemSpacing
         # which messed up requested sizes. However it seems the
         # issue was fixed by imgui
@@ -4773,7 +4778,7 @@ cdef class TreeNode(uiItem):
         elif self.state.cur.rendered and was_open and not(open_and_visible):
             SharedBool.set(<SharedBool>self._value, False)
             self.state.cur.open = False
-            self.propagate_hidden_state_to_children_with_handlers()
+            self._propagate_hidden_state_to_children_with_handlers()
         cdef Vec2 pos_p, parent_size_backup
         cdef float dx, dy
         if open_and_visible:
@@ -4963,7 +4968,7 @@ cdef class CollapsingHeader(uiItem):
         elif self.state.cur.rendered and was_open and not(open_and_visible): # TODO: unsure
             SharedBool.set(<SharedBool>self._value, False)
             self.state.cur.open = False
-            self.propagate_hidden_state_to_children_with_handlers()
+            self._propagate_hidden_state_to_children_with_handlers()
         cdef Vec2 pos_p, parent_size_backup
         cdef float dx, dy
         if open_and_visible:
@@ -5370,6 +5375,7 @@ cdef class ChildWindow(uiItem): # TODO: remove label
             self.context.viewport.window_pos = pos_w
             self.context.viewport.parent_pos = pos_p
             self.context.viewport.parent_size = parent_size_backup
+            self.state.cur.traversed = True
             self.state.cur.rendered = True
             self.state.cur.hovered = imgui.IsWindowHovered(imgui.ImGuiHoveredFlags_ChildWindows | imgui.ImGuiHoveredFlags_NoPopupHierarchy)
             self.state.cur.focused = imgui.IsWindowFocused(imgui.ImGuiFocusedFlags_ChildWindows | imgui.ImGuiFocusedFlags_NoPopupHierarchy)
@@ -5381,7 +5387,7 @@ cdef class ChildWindow(uiItem): # TODO: remove label
                self.state.cur.content_region_size.y != self.state.prev.content_region_size.y:
                 self.context.viewport.redraw_needed = True
         else:
-            self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+            self._set_not_rendered_and_propagate_to_children_with_handlers()
         imgui.EndChild()
         return False # maybe True when visible ?
 

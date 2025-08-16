@@ -1875,6 +1875,7 @@ cdef class TableColConfig(baseItem):
         """After draw, update the states"""
         cdef imgui.ImGuiTableColumnFlags flags = imgui.TableGetColumnFlags(col_idx)
 
+        self.state.cur.traversed = True
         self.state.cur.rendered = (flags & imgui.ImGuiTableColumnFlags_IsVisible) != 0
         self.state.cur.open = (flags & imgui.ImGuiTableColumnFlags_IsEnabled) != 0
         self.state.cur.hovered = (flags & imgui.ImGuiTableColumnFlags_IsHovered) != 0
@@ -2558,7 +2559,7 @@ cdef class Table(baseTable):
             imgui.EndTable()
             self.update_current_state()
         else:
-            self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+            self._set_not_rendered_and_propagate_to_children_with_handlers()
 
         # Release the row configurations
         for row_data in dereference(self._row_configs):

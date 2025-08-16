@@ -996,11 +996,13 @@ cdef class PlotAxisConfig(baseItem):
         self.set_previous_states()
         self.state.cur.hovered = False
         self.state.cur.rendered = False
+        self.state.cur.traversed = False
 
         if self._enabled == False:
             self.context.viewport.enabled_axes[axis] = False
             return
         self.context.viewport.enabled_axes[axis] = True
+        self.state.cur.traversed = True
         self.state.cur.rendered = True
 
         cdef implot.ImPlotAxisFlags flags = self._flags
@@ -1160,6 +1162,7 @@ cdef class PlotAxisConfig(baseItem):
     cdef void set_hidden(self) noexcept nogil:
         self.set_previous_states()
         self.state.cur.hovered = False
+        self.state.cur.traversed = False
         self.state.cur.rendered = False
         cdef int32_t i
         for i in range(<int>imgui.ImGuiMouseButton_COUNT):
@@ -2135,6 +2138,7 @@ cdef class Plot(uiItem):
         # BeginPlot created the imgui Item
         if visible:
             self.state.cur.rect_size = ImVec2Vec2(imgui.GetItemRectSize())
+            self.state.cur.traversed = True
             self.state.cur.rendered = True
             
             # Setup mouse position text
@@ -2198,7 +2202,7 @@ cdef class Plot(uiItem):
                     self.context.viewport.force_present()
 
         elif self.state.cur.rendered:
-            self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+            self._set_not_rendered_and_propagate_to_children_with_handlers()
             self._X1.set_hidden()
             self._X2.set_hidden()
             self._X3.set_hidden()
@@ -2403,10 +2407,7 @@ cdef class plotElementWithLegend(plotElement):
            not(self.context.viewport.enabled_axes[self._axes[0]]) or \
            not(self.context.viewport.enabled_axes[self._axes[1]]):
             self.set_previous_states()
-            self.state.cur.rendered = False
-            self.state.cur.hovered = False
-            self.propagate_hidden_state_to_children_with_handlers()
-            self.run_handlers()
+            self._set_hidden_and_propagate_to_children_with_handlers()
             return
 
         self.set_previous_states()
@@ -2427,6 +2428,7 @@ cdef class plotElementWithLegend(plotElement):
             self._enabled = not(IsItemHidden(self._imgui_label.c_str()))
         self.draw_element()
 
+        self.state.cur.traversed = True
         self.state.cur.rendered = True
         self.state.cur.hovered = False
         cdef Vec2 pos_w, pos_p
@@ -3238,186 +3240,6 @@ cdef class PlotScatter(plotElementXY):
                                     0,
                                     self._X.stride())
 
-'''
-cdef class plotDraggable(plotElement):
-    """
-    Base class for plot draggable elements.
-    """
-    def __cinit__(self):
-        self.state.cap.can_be_hovered = True
-        self.state.cap.can_be_clicked = True
-        self.state.cap.can_be_active = True
-        self._flags = implot.ImPlotDragToolFlags_None
-
-    @property
-    def color(self):
-        """
-        Writable attribute: text color.
-        If set to 0 (default), that is
-        full transparent text, use the
-        default value given by the style
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return <int>self._color
-
-    @color.setter
-    def color(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._color = parse_color(value)
-
-    @property
-    def no_cursors(self):
-        """
-        Writable attribute to make drag tools
-        not change cursor icons when hovered or held.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return (self._flags & implot.ImPlotDragToolFlags_NoCursors) != 0
-
-    @no_cursors.setter
-    def no_cursors(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._flags &= ~implot.ImPlotDragToolFlags_NoCursors
-        if value:
-            self._flags |= implot.ImPlotDragToolFlags_NoCursors
-
-    @property
-    def ignore_fit(self):
-        """
-        Writable attribute to make the drag tool
-        not considered for plot fits.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return (self._flags & implot.ImPlotDragToolFlags_NoFit) != 0
-
-    @ignore_fit.setter
-    def ignore_fit(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._flags &= ~implot.ImPlotDragToolFlags_NoFit
-        if value:
-            self._flags |= implot.ImPlotDragToolFlags_NoFit
-
-    @property
-    def ignore_inputs(self):
-        """
-        Writable attribute to lock the tool from user inputs
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return (self._flags & implot.ImPlotDragToolFlags_NoInputs) != 0
-
-    @ignore_inputs.setter
-    def ignore_inputs(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._flags &= ~implot.ImPlotDragToolFlags_NoInputs
-        if value:
-            self._flags |= implot.ImPlotDragToolFlags_NoInputs
-
-    @property
-    def delayed(self):
-        """
-        Writable attribute to delay rendering
-        by one frame.
-
-        One use case is position-contraints.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return (self._flags & implot.ImPlotDragToolFlags_Delayed) != 0
-
-    @delayed.setter
-    def delayed(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._flags &= ~implot.ImPlotDragToolFlags_Delayed
-        if value:
-            self._flags |= implot.ImPlotDragToolFlags_Delayed
-
-    @property
-    def active(self):
-        """
-        Readonly attribute: is the drag tool held
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.active
-
-    @property
-    def clicked(self):
-        """
-        Readonly attribute: has the item just been clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return tuple(self.state.cur.clicked)
-
-    @property
-    def double_clicked(self):
-        """
-        Readonly attribute: has the item just been double-clicked.
-        The returned value is a tuple of len 5 containing the individual test
-        mouse buttons (up to 5 buttons)
-        If True, the attribute is reset the next frame. It's better to rely
-        on handlers to catch this event.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.double_clicked
-
-    @property
-    def hovered(self):
-        """
-        Readonly attribute: Is the item hovered.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self.state.cur.hovered
-
-    cdef void draw(self) noexcept nogil:
-        cdef int32_t i
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-
-        # Check the axes are enabled
-        if not(self._show) or \
-           not(self.context.viewport.enabled_axes[self._axes[0]]) or \
-           not(self.context.viewport.enabled_axes[self._axes[1]]):
-            self.state.cur.hovered = False
-            self.state.cur.rendered = False
-            for i in range(imgui.ImGuiMouseButton_COUNT):
-                self.state.cur.clicked[i] = False
-                self.state.cur.double_clicked[i] = False
-            self.propagate_hidden_state_to_children_with_handlers()
-            return
-
-        # push theme, font
-
-        if self._theme is not None:
-            self._theme.push()
-
-        implot.SetAxes(self._axes[0], self._axes[1])
-        self.state.cur.rendered = True
-        self.draw_element()
-
-        # pop theme, font
-        if self._theme is not None:
-            self._theme.pop()
-
-        self.run_handlers()
-
-    cdef void draw_element(self) noexcept nogil:
-        return
-'''
 
 cdef class DrawInPlot(plotElementWithLegend):
     """
@@ -3465,10 +3287,7 @@ cdef class DrawInPlot(plotElementWithLegend):
            not(self.context.viewport.enabled_axes[self._axes[0]]) or \
            not(self.context.viewport.enabled_axes[self._axes[1]]):
             self.set_previous_states()
-            self.state.cur.rendered = False
-            self.state.cur.hovered = False
-            self.propagate_hidden_state_to_children_with_handlers()
-            self.run_handlers()
+            self._set_hidden_and_propagate_to_children_with_handlers()
             return
 
         self.set_previous_states()
@@ -3506,6 +3325,7 @@ cdef class DrawInPlot(plotElementWithLegend):
             else:
                 implot.PopPlotClipRect()
 
+        self.state.cur.traversed = True
         self.state.cur.rendered = True
         self.state.cur.hovered = False
         cdef Vec2 pos_w, pos_p
@@ -4061,8 +3881,8 @@ cdef class Subplots(uiItem):
 
             # End subplot 
             implot.EndSubplots()
-        elif self.state.cur.rendered:
-            self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+        else:
+            self._set_not_rendered_and_propagate_to_children_with_handlers()
         return False
 
 cdef class PlotBarGroups(plotElementWithLegend):

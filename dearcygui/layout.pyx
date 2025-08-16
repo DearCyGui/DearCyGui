@@ -1027,8 +1027,7 @@ cdef class WindowLayout(uiItem):
         if not(self._show):
             if self._show_update_requested:
                 self.set_previous_states()
-                self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
-                self.run_handlers()
+                self._set_hidden_and_propagate_to_children_with_handlers()
                 self._show_update_requested = False
             return
 

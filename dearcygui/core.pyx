@@ -1777,9 +1777,9 @@ cdef class baseItem:
             child._copy(new_child)
             new_child.attach_to_parent(target)
 
-    cdef bint _check_rendered(self):
+    cdef bint _check_traversed(self):
         """
-        Returns if an item is rendered
+        Returns if an item is traversed
         """
         cdef baseItem item = self
         # Find a parent with state
@@ -1789,7 +1789,7 @@ cdef class baseItem:
             item = item.parent
         if item is None or item.p_state == NULL:
             return False
-        return item.p_state.cur.rendered
+        return item.p_state.cur.traversed
 
 
     cpdef void attach_to_parent(self, target):
@@ -1965,8 +1965,8 @@ cdef class baseItem:
                 target_parent.last_window_child = <Window>self
                 attached = True
         assert(attached) # because we checked before compatibility
-        if not(self.parent._check_rendered()): # TODO: could be optimized. Also not totally correct (attaching to a menu for instance)
-            self.set_hidden_and_propagate_to_children_no_handlers()
+        if not(self.parent._check_traversed()): # TODO: could be optimized. Also not totally correct (attaching to a menu for instance)
+            self._set_hidden_and_propagate_to_children_no_handlers()
 
     cpdef void attach_before(self, target):
         """
@@ -2028,8 +2028,8 @@ cdef class baseItem:
         self.prev_sibling = prev_sibling
         self.next_sibling = target_before
         target_before.prev_sibling = self
-        if not(self.parent._check_rendered()):
-            self.set_hidden_and_propagate_to_children_no_handlers()
+        if not(self.parent._check_traversed()):
+            self._set_hidden_and_propagate_to_children_no_handlers()
 
     cdef void _detach_item_and_lock(self, unique_lock[DCGMutex]& m):
         # NOTE: the mutex is not locked if we raise an exception.
@@ -2097,7 +2097,7 @@ cdef class baseItem:
         self._detach_item_and_lock(m)
         # Mark as hidden. Useful for OtherItemHandler
         # when we want to detect loss of hover, render, etc
-        self.set_hidden_and_propagate_to_children_no_handlers()
+        self._set_hidden_and_propagate_to_children_no_handlers()
 
     cpdef void delete_item(self):
         """
@@ -2213,9 +2213,11 @@ cdef class baseItem:
                 (<baseHandler>(self._handlers[i])).run_handler(self)
 
     @cython.final
-    cdef void update_current_state_as_hidden(self) noexcept nogil:
+    cdef void _update_current_state_as_hidden(self) noexcept nogil:
         """
-        Indicates the object is hidden
+        Indicates the object is hidden (in the sense "not traversed")
+
+        An item that is traversed, but is not on screen, is not hidden.
         """
         if (self.p_state == NULL):
             # No state
@@ -2226,64 +2228,80 @@ cdef class baseItem:
         self.p_state.cur.open = open
 
     @cython.final
-    cdef void propagate_hidden_state_to_children_with_handlers(self) noexcept nogil:
+    cdef void _propagate_hidden_state_to_children_with_handlers(self) noexcept nogil:
         """
-        Called during rendering only.
-        The item has children, but will not render them
-        (closed window, etc). The item itself might, or
-        might not be rendered.
-        Propagate the hidden state to children and call
-        their handlers.
+        Indicate to children they used to be traversed, but won't be anymore (rendering version).
 
-        Used also to avoid duplication in the functions below.
+        This method is called during rendering only.
+
+        It is called when an item (this item or a parent) is traversed, but somehow won't be
+        traversing its children anymore starting from this frame.
+
+        When an item goes from traversed to not traversed, the handlers are called
+        one last time to allow detecting the change in all states (including rendered)
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        if self.last_window_child is not None:
-            (<baseItem>self.last_window_child).set_hidden_and_propagate_to_siblings_with_handlers()
-        if self.last_widgets_child is not None:
-            (<baseItem>self.last_widgets_child).set_hidden_and_propagate_to_siblings_with_handlers()
-        if self.last_tab_child is not None:
-            (<baseItem>self.last_tab_child).set_hidden_and_propagate_to_siblings_with_handlers()
-        if self.last_menubar_child is not None:
-            (<baseItem>self.last_menubar_child).set_hidden_and_propagate_to_siblings_with_handlers()
         if self.last_drawings_child is not None:
             (<baseItem>self.last_drawings_child).set_hidden_and_propagate_to_siblings_with_handlers()
+        if self.last_menubar_child is not None:
+            (<baseItem>self.last_menubar_child).set_hidden_and_propagate_to_siblings_with_handlers()
         if self.last_plot_element_child is not None:
             (<baseItem>self.last_plot_element_child).set_hidden_and_propagate_to_siblings_with_handlers()
-        # handlers, themes, font have no states and no children that can have some.
+        if self.last_tab_child is not None:
+            (<baseItem>self.last_tab_child).set_hidden_and_propagate_to_siblings_with_handlers()
+        if self.last_widgets_child is not None:
+            (<baseItem>self.last_widgets_child).set_hidden_and_propagate_to_siblings_with_handlers()
+        if self.last_window_child is not None:
+            (<baseItem>self.last_window_child).set_hidden_and_propagate_to_siblings_with_handlers()
+        # handlers, themes, tag, font have no states and no children that can have some.
+        # viewport drawlist is always traversed
         # TODO: plotAxis
 
     @cython.final
-    cdef void propagate_hidden_state_to_children_no_handlers(self) noexcept:
+    cdef void _propagate_hidden_state_to_children_no_handlers(self) noexcept:
         """
-        Same as above, but will not call any handlers. Used as helper for functions below
-        Assumes the lock is already held.
+        Indicate to children they used to be traversed, but won't be anymore (programmatic version).
+
+        This method is called when an item or its parent was removed from the rendering tree,
+        or if the states were somehow made to skip the subtree of this item (for instance show set to False)
+
+        This the item and all its children are now in the un-traversed state.
+
+        As this is not called during rendering, we do not call the handlers. This is
+        because the user is the author of the change, and thus can handle directly
+        the impact of the state change, and also it enables to avoid spurious handler calls.
+
+        Assumes the item lock is held.
         """
-        if self.last_window_child is not None:
-            (<baseItem>self.last_window_child).set_hidden_and_propagate_to_siblings_no_handlers()
-        if self.last_widgets_child is not None:
-            (<baseItem>self.last_widgets_child).set_hidden_and_propagate_to_siblings_no_handlers()
         if self.last_drawings_child is not None:
             (<baseItem>self.last_drawings_child).set_hidden_and_propagate_to_siblings_no_handlers()
+        if self.last_menubar_child is not None:
+            (<baseItem>self.last_menubar_child).set_hidden_and_propagate_to_siblings_no_handlers()
         if self.last_plot_element_child is not None:
             (<baseItem>self.last_plot_element_child).set_hidden_and_propagate_to_siblings_no_handlers()
+        if self.last_tab_child is not None:
+            (<baseItem>self.last_tab_child).set_hidden_and_propagate_to_siblings_no_handlers()
+        if self.last_widgets_child is not None:
+            (<baseItem>self.last_widgets_child).set_hidden_and_propagate_to_siblings_no_handlers()
+        if self.last_window_child is not None:
+            (<baseItem>self.last_window_child).set_hidden_and_propagate_to_siblings_no_handlers()
 
     @cython.final
     cdef void set_hidden_and_propagate_to_siblings_with_handlers(self) noexcept nogil:
         """
-        A parent item is hidden and this item is not going to be rendered.
-        Propagate to children and siblings.
-        Called during rendering, thus we call the handlers, in order to help
-        users catch an item getting hidden.
+        Indicate this item used to be traversed, but won't be anymore (rendering version).
+
+        Called exclusively from _propagate_hidden_state_to_children_with_handlers
+        as part of the propagation process.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Skip propagating and handlers if already hidden.
         if self.p_state == NULL or \
-            self.p_state.cur.rendered:
+            self.p_state.cur.traversed:
             self.set_previous_states()
-            self.update_current_state_as_hidden()
-            self.propagate_hidden_state_to_children_with_handlers()
+            self._update_current_state_as_hidden()
+            self._propagate_hidden_state_to_children_with_handlers()
             self.run_handlers()
         if self.prev_sibling is not None:
             self.prev_sibling.set_hidden_and_propagate_to_siblings_with_handlers()
@@ -2291,9 +2309,10 @@ cdef class baseItem:
     @cython.final
     cdef void set_hidden_and_propagate_to_siblings_no_handlers(self) noexcept:
         """
-        Same as above, version without calling handlers:
-        Item is programmatically made hidden, but outside rendering,
-        for instance by detaching it.
+        Indicate this item used to be traversed, but won't be anymore (programmatic version).
+
+        Called exclusively from _propagate_hidden_state_to_children_no_handlers
+        as part of the propagation process.
 
         The item might still be shown the next frame, and have been
         shown the frame before.
@@ -2301,10 +2320,6 @@ cdef class baseItem:
         What this function does is set the current state of item and
         its children to a hidden state, but not running any handler.
         This has these effects:
-        TODO - If item was shown the frame before and is still shown,
-          there will be no jump in the item status (for example
-          it won't go from rendered, to not rendered, to rendered),
-          as the current state will be overwritten when frame is rendered.
         - Possibly undesired effect, but with limited implications:
           when the item states will be read by the user before the frame
           is rendered, it will show the default hidden values.
@@ -2314,45 +2329,78 @@ cdef class baseItem:
           OtherItemHandler to catch this item being not rendered. This is
           required for instance for items that should destroy when
           an item is not rendered anymore. 
+
+        An additional desired effect, but not implemented is:
+        - If item was shown the frame before and is still shown,
+          there will be no jump in the item status (for example
+          it won't go from rendered, to not rendered, to rendered),
+          as the current state will be overwritten when frame is rendered.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
 
         # Skip propagating and handlers if already hidden.
         if self.p_state == NULL or \
-            self.p_state.cur.rendered:
-            self.update_current_state_as_hidden()
-            self.propagate_hidden_state_to_children_no_handlers()
+            self.p_state.cur.traversed:
+            self._update_current_state_as_hidden()
+            self._propagate_hidden_state_to_children_no_handlers()
         if self.prev_sibling is not None:
             self.prev_sibling.set_hidden_and_propagate_to_siblings_no_handlers()
 
     @cython.final
-    cdef void set_hidden_no_handler_and_propagate_to_children_with_handlers(self) noexcept nogil:
+    cdef void _set_hidden_and_propagate_to_children_with_handlers(self) noexcept nogil:
         """
-        The item is hidden, wants its state to be set to hidden, but
-        manages itself his previous state and his handlers.
+        During rendering, this item was skipped from being rendered.
+
+        * Important note *: by convention, an item with its draw() method executed,
+        but with show set to False is considered NOT traversed. 
+
+        This method is called when show has turned to False.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Skip propagating and handlers if already hidden.
         if self.p_state == NULL or \
-            self.p_state.cur.rendered:
-            self.update_current_state_as_hidden()
-            self.propagate_hidden_state_to_children_with_handlers()
+            self.p_state.cur.traversed:
+            self._update_current_state_as_hidden()
+            self._propagate_hidden_state_to_children_with_handlers()
+
+        self.run_handlers()
 
     @cython.final
-    cdef void set_hidden_and_propagate_to_children_no_handlers(self) noexcept:
+    cdef void _set_hidden_and_propagate_to_children_no_handlers(self) noexcept:
         """
-        See set_hidden_and_propagate_to_siblings_no_handlers.
+        The item's show attribute has been set to False or the item was removed from the rendering tree.
 
         Assumes the lock is already held.
         """
 
         # Skip propagating and handlers if already hidden.
         if self.p_state == NULL or \
-            self.p_state.cur.rendered:
-            self.update_current_state_as_hidden()
-            self.propagate_hidden_state_to_children_no_handlers()
+            self.p_state.cur.traversed:
+            self._update_current_state_as_hidden()
+            self._propagate_hidden_state_to_children_no_handlers()
+
+    @cython.final
+    cdef void _set_not_rendered_and_propagate_to_children_with_handlers(self) noexcept nogil:
+        """
+        During rendering, this item was traversed, but was skipped from being rendered.
+
+        The item manages itself his previous state and his handlers.
+        However we set the state as hidden and propagate.
+        """
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+
+        if self.p_state == NULL:
+            self._propagate_hidden_state_to_children_with_handlers()
+            return
+
+        # Skip propagating and handlers if already hidden.
+        if self.p_state.cur.rendered:
+            self._update_current_state_as_hidden()
+            self._propagate_hidden_state_to_children_with_handlers()
+        self.p_state.cur.traversed = True
+        #self.p_state.cur.rendered = False # Implied by _update_current_state_as_hidden
 
     def lock_mutex(self, wait=False):
         """
@@ -2823,6 +2871,7 @@ cdef class Viewport(baseItem):
         self.wait_for_input = False
         self.always_submit_to_gpu = False
         self._target_refresh_time = 0.
+        self.state.cur.traversed = True
         self.state.cur.rendered = True # For compatibility with RenderHandlers
         self.p_state = &self.state
         self._cursor = imgui.ImGuiMouseCursor_Arrow
@@ -5693,7 +5742,7 @@ cdef class drawingItem(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(value) and self._show:
-            self.set_hidden_and_propagate_to_children_no_handlers()
+            self._set_hidden_and_propagate_to_children_no_handlers()
         self._show = value
 
     '''
@@ -6373,9 +6422,8 @@ cdef class uiItem(baseItem):
         #        self.state.cur.open = True
         if self.state.cap.has_rect_size:
             self.state.cur.rect_size = ImVec2Vec2(imgui.GetItemRectSize())
+        self.state.cur.traversed = True
         self.state.cur.rendered = imgui.IsItemVisible()
-        #if not(self.state.cur.rendered):
-        #    self.propagate_hidden_state_to_children_with_handlers()
 
     cdef void update_current_state_subset(self) noexcept nogil:
         """
@@ -6398,9 +6446,8 @@ cdef class uiItem(baseItem):
             update_current_mouse_states(self.state)
         if self.state.cap.has_rect_size:
             self.state.cur.rect_size = ImVec2Vec2(imgui.GetItemRectSize())
+        self.state.cur.traversed = True
         self.state.cur.rendered = imgui.IsItemVisible()
-        #if not(self.state.cur.rendered):
-        #    self.propagate_hidden_state_to_children_with_handlers()
 
     # TODO: Find a better way to share all these attributes while avoiding AttributeError
     def __dir__(self):
@@ -6612,7 +6659,7 @@ cdef class uiItem(baseItem):
         if self._show == value:
             return
         if not(value) and self._show:
-            self.set_hidden_and_propagate_to_children_no_handlers() # TODO: already handled in draw() ?
+            self._set_hidden_and_propagate_to_children_no_handlers() # TODO: already handled in draw() ?
         self._show_update_requested = True
         self._show = value
 
@@ -6950,8 +6997,7 @@ cdef class uiItem(baseItem):
         if not(self._show):
             if self._show_update_requested:
                 self.set_previous_states()
-                self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
-                self.run_handlers()
+                self._set_hidden_and_propagate_to_children_with_handlers()
                 self._show_update_requested = False
             return
 
@@ -8002,8 +8048,7 @@ cdef class Window(uiItem):
         if not(self._show):
             if self._show_update_requested:
                 self.set_previous_states()
-                self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
-                self.run_handlers()
+                self._set_hidden_and_propagate_to_children_with_handlers()
                 self._show_update_requested = False
             return
 
@@ -8252,6 +8297,7 @@ cdef class Window(uiItem):
 
         if visible:
             # Set current states
+            self.state.cur.traversed = True
             self.state.cur.rendered = True
             self.state.cur.hovered = imgui.IsWindowHovered(imgui.ImGuiHoveredFlags_ChildWindows | imgui.ImGuiHoveredFlags_NoPopupHierarchy)
             self.state.cur.focused = imgui.IsWindowFocused(imgui.ImGuiFocusedFlags_ChildWindows | imgui.ImGuiFocusedFlags_NoPopupHierarchy)
@@ -8263,7 +8309,7 @@ cdef class Window(uiItem):
             self.state.cur.pos_to_parent.y = self.state.cur.pos_to_viewport.y - self.context.viewport.parent_pos.y
         else:
             # Window is hidden or closed
-            self.set_hidden_no_handler_and_propagate_to_children_with_handlers()
+            self._set_not_rendered_and_propagate_to_children_with_handlers()
 
         self.state.cur.open = not(imgui.IsWindowCollapsed())
         self._scroll_x = imgui.GetScrollX()
@@ -8360,7 +8406,7 @@ cdef class plotElement(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         if not(value) and self._show:
-            self.set_hidden_and_propagate_to_children_no_handlers()
+            self._set_hidden_and_propagate_to_children_no_handlers()
         self._show = value
 
     @property
@@ -8440,7 +8486,7 @@ cdef class plotElement(baseItem):
         if not(self._show) or \
            not(self.context.viewport.enabled_axes[self._axes[0]]) or \
            not(self.context.viewport.enabled_axes[self._axes[1]]):
-            self.propagate_hidden_state_to_children_with_handlers()
+            self._propagate_hidden_state_to_children_with_handlers()
             return
 
         # push theme
