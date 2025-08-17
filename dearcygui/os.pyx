@@ -24,7 +24,7 @@ from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 from .core cimport Context
 from .c_types cimport unique_lock, mutex, condition_variable
 
-from traceback import format_exc
+from traceback import format_exc as _format_exc
 
 """
 System File dialog
@@ -224,7 +224,7 @@ cdef class _FileDialogQuery:
         try:
             self.callback(result)
         except Exception as e:
-            print(format_exc())
+            print(_format_exc())
 
     def submit(self):
         """

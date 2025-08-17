@@ -25,11 +25,11 @@ from .core cimport uiItem, Callback, lock_gil_friendly
 from .c_types cimport Vec2, make_Vec2, swap_Vec2, DCGMutex, unique_lock
 from .imgui_types cimport ImVec2Vec2, Vec2ImVec2
 from .sizing cimport resolve_size
-from .sizing import Size
+from .sizing import Size as _Size
 from .types cimport child_type
 from .wrapper cimport imgui
 
-from warnings import warn
+from warnings import warn as _warn
 
 cdef class Layout(uiItem):
     """
@@ -283,7 +283,7 @@ cdef class HorizontalLayout(Layout):
         lock_gil_friendly(m, self.mutex)
         self._wrap_x = value
         if value != 0.0:
-            warn("wrap_x is deprecated, it will be replaced by a new interface", DeprecationWarning)
+            _warn("wrap_x is deprecated, it will be replaced by a new interface", DeprecationWarning)
         self._force_update = True
 
     @property
@@ -368,7 +368,7 @@ cdef class HorizontalLayout(Layout):
             # Set item position and ensure it stays within bounds
             pos_start = max(0, pos_start)
             pos_change |= pos_start != (<uiItem>child).state.cur.pos_to_parent.x ## cur or prev ? -> to double check
-            (<uiItem>child).requested_x.set_item_o(Size.ADD(Size.PARENT_X1(), Size.FIXED(pos_start)))
+            (<uiItem>child).requested_x.set_item_o(_Size.ADD(_Size.PARENT_X1(), _Size.FIXED(pos_start)))
             (<uiItem>child).requested_y.set_value(0)
             (<uiItem>child).no_newline = True
 
@@ -634,7 +634,7 @@ cdef class VerticalLayout(Layout):
         lock_gil_friendly(m, self.mutex)
         self._wrap_y = value
         if value != 0.0:
-            warn("wrap_y is deprecated, it will be replaced by a new interface", DeprecationWarning)
+            _warn("wrap_y is deprecated, it will be replaced by a new interface", DeprecationWarning)
         self._force_update = True
 
     @property
@@ -720,7 +720,7 @@ cdef class VerticalLayout(Layout):
             pos_start = max(0, pos_start)
             pos_change |= pos_start != (<uiItem>child).state.cur.pos_to_parent.y
             (<uiItem>child).requested_x.set_value(0)
-            (<uiItem>child).requested_y.set_item_o(Size.ADD(Size.PARENT_Y1(), Size.FIXED(pos_start)))
+            (<uiItem>child).requested_y.set_item_o(_Size.ADD(_Size.PARENT_Y1(), _Size.FIXED(pos_start)))
             (<uiItem>child).no_newline = False
 
             child = <PyObject*>(<uiItem>child).next_sibling
@@ -817,8 +817,8 @@ cdef class VerticalLayout(Layout):
                 else:
                     # TODO: pos_change
                     # Use positions relative to the parent
-                    (<uiItem>sibling).requested_x.set_item_o(Size.ADD(Size.PARENT_X1(), Size.FIXED(x)))
-                    (<uiItem>sibling).requested_y.set_item_o(Size.ADD(Size.PARENT_Y1(), Size.FIXED(target_y)))
+                    (<uiItem>sibling).requested_x.set_item_o(_Size.ADD(_Size.PARENT_X1(), _Size.FIXED(x)))
+                    (<uiItem>sibling).requested_y.set_item_o(_Size.ADD(_Size.PARENT_Y1(), _Size.FIXED(target_y)))
                 (<uiItem>sibling).no_newline = False
                 expected_y = target_y + self._spacing.y + (<uiItem>sibling).state.cur.rect_size.y
                 target_y = target_y + spacing_y + (<uiItem>sibling).state.cur.rect_size.y
@@ -851,8 +851,8 @@ cdef class VerticalLayout(Layout):
                 (<uiItem>sibling).requested_x.set_value(0.) # default position
                 (<uiItem>sibling).requested_y.set_value((target_y - expected_y)*global_scale_inv) # delta to default position
             else:
-                (<uiItem>sibling).requested_x.set_item_o(Size.ADD(Size.PARENT_X1(), Size.FIXED(x)))
-                (<uiItem>sibling).requested_y.set_item_o(Size.ADD(Size.PARENT_Y1(), Size.FIXED(target_y)))
+                (<uiItem>sibling).requested_x.set_item_o(_Size.ADD(_Size.PARENT_X1(), _Size.FIXED(x)))
+                (<uiItem>sibling).requested_y.set_item_o(_Size.ADD(_Size.PARENT_Y1(), _Size.FIXED(target_y)))
 
             (<uiItem>sibling).no_newline = False
             child = <PyObject*>(<uiItem>sibling).next_sibling

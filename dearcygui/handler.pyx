@@ -30,8 +30,8 @@ from .types cimport make_Positioning, read_rect, Rect,\
 from .widget cimport SharedBool
 from .wrapper cimport imgui
 
-from traceback import format_exc
-from warnings import warn
+from traceback import format_exc as _format_exc
+from warnings import warn as _warn
 
 ctypedef void* void_p
 
@@ -85,7 +85,7 @@ cdef class CustomHandler(baseHandler):
             try:
                 condition = self.check_status(item)
             except Exception as e:
-                warn(f"An error occured running check_status of {self} on {item}. {format_exc()}")
+                _warn(f"An error occured running check_status of {self} on {item}. {_format_exc()}")
         lock_im_context(self.context.viewport)
         return condition
 
@@ -105,12 +105,12 @@ cdef class CustomHandler(baseHandler):
                 try:
                     self.run(item)
                 except Exception as e:
-                    warn(f"An error occured running run of {self} on {item}. {format_exc()}")
+                    _warn(f"An error occured running run of {self} on {item}. {_format_exc()}")
             elif self._callback is not None:
                 try:
                     condition = self.check_status(item)
                 except Exception as e:
-                    warn(f"An error occured running check_status of {self} on {item}. {format_exc()}")
+                    _warn(f"An error occured running check_status of {self} on {item}. {_format_exc()}")
         lock_im_context(self.context.viewport)
         if condition:
             self.run_callback(item)

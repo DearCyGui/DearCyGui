@@ -25,7 +25,7 @@ from cython.view cimport array as cython_array
 from .c_types cimport DCG1DArrayView, DCG2DContiguousArrayView, DCGArrayType
 from .wrapper cimport imgui
 
-from enum import IntFlag, IntEnum
+from enum import IntFlag as _IntFlag, IntEnum as _IntEnum
 
 
 
@@ -1183,7 +1183,7 @@ cdef object parse_texture(src):
         raise ValueError(f"Invalid texture data {src}")
 
 
-class ChildType(IntFlag):
+class ChildType(_IntFlag):
     """
     Enum representing different types of child elements that can be attached to items.
     """
@@ -1263,7 +1263,7 @@ cdef object get_item_type(int element_child_category):
         return ChildType.WINDOW
     return ChildType.NOCHILD
 
-class Key(IntEnum):
+class Key(_IntEnum):
     """
     Enum representing various keyboard keys.
     """
@@ -1454,7 +1454,7 @@ cdef object make_Key(object key):
             raise ValueError(f"Invalid key value: {key}")
     raise TypeError(f"Expected Key enum or string, got {type(key).__name__}")
 
-class KeyMod(IntFlag):
+class KeyMod(_IntFlag):
     """
     Enum representing key modifiers (Ctrl, Shift, Alt, Super).
     """
@@ -1496,7 +1496,7 @@ cdef object make_KeyMod(object key):
             raise ValueError(f"Invalid KeyMod value: {key}")
     raise TypeError(f"Expected KeyMod enum or string, got {type(key).__name__}")
 
-class KeyOrMod(IntFlag):
+class KeyOrMod(_IntFlag):
     """
     Enum representing both keys and key modifiers.
     """
@@ -1660,7 +1660,7 @@ class KeyOrMod(IntFlag):
     ALT = imgui.ImGuiMod_Alt,
     SUPER = imgui.ImGuiMod_Super
 
-class TableFlag(IntFlag):
+class TableFlag(_IntFlag):
     """
     Flags for controlling table behavior and appearance.
 

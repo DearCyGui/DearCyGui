@@ -32,10 +32,10 @@ from .c_types cimport unique_lock, DCGMutex
 from .texture cimport Texture
 from .types cimport parse_texture
 
-from weakref import WeakKeyDictionary, WeakValueDictionary
+from weakref import WeakKeyDictionary as _WeakKeyDictionary, WeakValueDictionary as _WeakValueDictionary
 
-from atexit import register as atexit_register
-from concurrent.futures import ThreadPoolExecutor
+from atexit import register as _atexit_register
+from concurrent.futures import ThreadPoolExecutor as _ThreadPoolExecutor
 
 """
 Loading a font is complicated.
@@ -85,7 +85,7 @@ def get_system_fonts() -> list[str]:
 
 
 # Global font cache: context -> {font_key -> weak_font}
-_font_cache = WeakKeyDictionary()
+_font_cache = _WeakKeyDictionary()
 
 # Function to create a hashable key from font parameters
 cdef tuple _create_font_key(str font_type, dict params):
@@ -109,7 +109,7 @@ cdef tuple _create_font_key(str font_type, dict params):
 cdef object _get_font_from_cache(Context context, str font_type, dict params):
     # Initialize cache for this context if needed
     if context not in _font_cache:
-        _font_cache[context] = WeakValueDictionary()
+        _font_cache[context] = _WeakValueDictionary()
         return None
     
     # Create a hashable key from the parameters
@@ -131,7 +131,7 @@ cdef object _get_font_from_cache(Context context, str font_type, dict params):
 cdef object _store_font_in_cache(Context context, str font_type, dict params, font):
     # Initialize cache for this context if needed
     if context not in _font_cache:
-        _font_cache[context] = WeakValueDictionary()
+        _font_cache[context] = _WeakValueDictionary()
 
     # Create a hashable key from the parameters
     key = _create_font_key(font_type, params)
@@ -449,7 +449,7 @@ cdef class AutoFont(FontMultiScales):
         self._base_size = base_size
         self._kwargs = kwargs
         self._font_creator = font_creator if font_creator is not None else make_extended_latin_font
-        self._font_creation_executor = ThreadPoolExecutor(max_workers=1)
+        self._font_creation_executor = _ThreadPoolExecutor(max_workers=1)
         self._pending_fonts = set()
         
         # Set up callback for new scales
@@ -1349,7 +1349,7 @@ def _cleanup_freetype():
         freetype.FT_Done_FreeType(FT)
         FT = NULL
 
-atexit_register(_cleanup_freetype)
+_atexit_register(_cleanup_freetype)
 
 cdef DCGMutex freetype_mutex
 

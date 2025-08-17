@@ -45,15 +45,15 @@ from .types cimport Vec2, child_type,\
     is_MouseCursor, make_MouseCursor, is_MouseButton, make_MouseButton
 from .wrapper cimport imgui, implot
 
-from atexit import register as atexit_register
-from concurrent.futures import Executor, ThreadPoolExecutor
-from os import name as os_name, sched_yield as os_sched_yield
-from threading import get_ident as _get_ident, local as threading_local
-from time import sleep as python_sleep
-from traceback import format_exc
+from atexit import register as _atexit_register
+from concurrent.futures import Executor as _Executor, ThreadPoolExecutor as _ThreadPoolExecutor
+from os import name as _os_name, sched_yield as _os_sched_yield
+from threading import get_ident as _get_ident, local as _threading_local
+from time import sleep as _python_sleep
+from traceback import format_exc as _format_exc
 
-from warnings import warn
-from weakref import ref as weak_ref
+from warnings import warn as _warn
+from weakref import ref as _weak_ref
 #import gc
 #import sys
 """
@@ -281,22 +281,22 @@ cdef void lock_gil_friendly_block(unique_lock[DCGMutex] &m) noexcept:
         locked = m.try_lock()
 
 cdef inline void sched_yield():
-    if os_name == 'posix':
+    if _os_name == 'posix':
         # os sched is only available on posix
-        os_sched_yield()
+        _os_sched_yield()
     else:
         # time.sleep(0) on Windows has a
         # similar effect to sched_yield.
         # behaviour on non-posix is different
         # thus why we don't use it for posix.
-        python_sleep(0)
+        _python_sleep(0)
 
 cdef void internal_resize_callback(void *object) noexcept nogil:
     with gil:
         try:
             (<Viewport>object).__on_resize()
         except Exception as e:
-            print("An error occured in the viewport resize callback", format_exc())
+            print("An error occured in the viewport resize callback", _format_exc())
 
 cdef void internal_close_callback(void *object) noexcept nogil:
     with gil:
@@ -304,7 +304,7 @@ cdef void internal_close_callback(void *object) noexcept nogil:
         try:
             (<Viewport>object).__on_close()
         except Exception as e:
-            print("An error occured in the viewport close callback", format_exc())
+            print("An error occured in the viewport close callback", _format_exc())
 
 cdef void internal_kill_callback(void *object) noexcept nogil:
     (<Viewport>object)._kill_signal = True
@@ -314,7 +314,7 @@ cdef void internal_drop_callback(void *object, int type, const char *data) noexc
         try:
             (<Viewport>object).__on_drop(type, data)
         except Exception as e:
-            print("An error occured in the viewport drop callback", format_exc())
+            print("An error occured in the viewport drop callback", _format_exc())
 
 cdef void internal_render_callback(void *object) noexcept nogil:
     (<Viewport>object).__render()
@@ -416,9 +416,9 @@ cdef class Context:
         # contexts can share the same queue
 
         if queue is None:
-            self._queue = ThreadPoolExecutor(max_workers=1)
+            self._queue = _ThreadPoolExecutor(max_workers=1)
         else:
-            if not(isinstance(queue, Executor)) and \
+            if not(isinstance(queue, _Executor)) and \
                 (not hasattr(queue, 'submit') and callable(queue.submit)):
                 raise TypeError("queue must be a subclass of concurrent.futures.Executor or implement a 'submit' method")
             self._queue = queue
@@ -445,7 +445,7 @@ cdef class Context:
         return self.viewport
 
     @property
-    def queue(self) -> Executor:
+    def queue(self) -> _Executor:
         """
         Executor for managing thread-pooled callbacks.
         """
@@ -463,7 +463,7 @@ cdef class Context:
         if queue is self._queue:
             return
         # Check type
-        if not(isinstance(queue, Executor)) and \
+        if not(isinstance(queue, _Executor)) and \
             (not hasattr(queue, 'submit') and callable(queue.submit)):
             raise TypeError("queue must be a subclass of concurrent.futures.Executor or implement a 'submit' method")
         #old_queue = self._queue
@@ -527,7 +527,7 @@ cdef class Context:
             try:
                 self._queue.submit(callback, parent_item, target_item, None)
             except Exception as e:
-                print(format_exc())
+                print(_format_exc())
         lock_im_context(self.viewport)
 
     cdef void queue_callback_arg1button(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1) noexcept nogil:
@@ -551,7 +551,7 @@ cdef class Context:
             try:
                 self._queue.submit(callback, parent_item, target_item, make_MouseButton(arg1))
             except Exception as e:
-                print(format_exc())
+                print(_format_exc())
         lock_im_context(self.viewport)
 
     cdef void queue_callback_arg1value(self, Callback callback, baseItem parent_item, baseItem target_item, SharedValue arg1) noexcept nogil:
@@ -575,7 +575,7 @@ cdef class Context:
             try:
                 self._queue.submit(callback, parent_item, target_item, arg1.value)
             except Exception as e:
-                print(format_exc())
+                print(_format_exc())
         lock_im_context(self.viewport)
 
     cdef void queue_callback(self, Callback callback, baseItem sender, baseItem target, object data) noexcept:
@@ -597,7 +597,7 @@ cdef class Context:
         try:
             self._queue.submit(callback, sender, target, data)
         except Exception as e:
-            print(format_exc())
+            print(_format_exc())
         finally:
             lock_gil_friendly(m, imgui_context_pointer_mutex) # To avoid deadlock with gil (there are other ways to do it)
             # No deadlock because we ensured we own the mutex
@@ -2549,7 +2549,7 @@ cdef class _WrapMutex:
         instance._target = target
         return instance
 
-class _local_list(threading_local):
+class _local_list(_threading_local):
     def __init__(self):
         super().__init__()
         self.items = []
@@ -2856,7 +2856,7 @@ cdef class ViewportMetrics:
         """
         return self.frame_count
 
-def _wake_viewport_on_exit(viewport_ref: weak_ref):
+def _wake_viewport_on_exit(viewport_ref: _weak_ref):
     """
     Wake and help clean the viewport if it is still alive (atexit)
     """
@@ -2946,7 +2946,7 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex, defer_lock_t())
         cdef unique_lock[DCGMutex] m2 = unique_lock[DCGMutex](imgui_context_pointer_mutex, defer_lock_t())
         if not m.try_lock():
-            warn("Internal lock error while releasing Viewport")
+            _warn("Internal lock error while releasing Viewport")
             return
 
         if not m2.try_lock():
@@ -2968,7 +2968,7 @@ cdef class Viewport(baseItem):
         if platform != NULL:
             # Maybe just a warning ? Not sure how to solve this issue.
             if not platform.checkPrimaryThread():
-                warn("Viewport deallocated from a different thread than the one it was created in. All resources won't be freed.", 
+                _warn("Viewport deallocated from a different thread than the one it was created in. All resources won't be freed.", 
                      RuntimeWarning, stacklevel=2)
             elif self._platform_external_count.load() == 0:
                 platform.cleanup()
@@ -3072,7 +3072,7 @@ cdef class Viewport(baseItem):
         # real guarantee. If it runs in a different thread to the
         # viewport, this will enable to avoid being hanged during
         # exit
-        atexit_register(_wake_viewport_on_exit, weak_ref(self))
+        _atexit_register(_wake_viewport_on_exit, _weak_ref(self))
 
     cdef void __check_initialized(self):
         if not(self._initialized):
@@ -4749,7 +4749,7 @@ cdef class Viewport(baseItem):
            and (current_time - self.last_t_after_swapping) < 5000000: # 5 ms
             # cap 'cpu' framerate when not presenting
             m.unlock()
-            python_sleep(0.005 - <double>(current_time - self.last_t_after_swapping) * 1e-9)
+            _python_sleep(0.005 - <double>(current_time - self.last_t_after_swapping) * 1e-9)
             current_time = ctime.monotonic_ns()
             lock_gil_friendly(m, self.mutex)
         self.delta_frame = current_time - self.last_t_after_swapping
@@ -4927,7 +4927,7 @@ cdef class Callback:
                 print(f"Callback argument was: {source_item}")
             else:
                 print("Callback called without arguments")
-            print(format_exc())
+            print(_format_exc())
         except (KeyboardInterrupt, SystemExit) as e:
             try:
                 source_item.context.running = False
@@ -4964,7 +4964,7 @@ cdef class DPGCallback(Callback):
                 print(f"Callback argument was: {source_item.uuid} (for {source_item})")
             else:
                 print("Callback called without arguments")
-            print(format_exc())
+            print(_format_exc())
 
 """
 PlaceHolder parent
@@ -7471,7 +7471,7 @@ cdef class Window(uiItem):
         if value:
             self._window_flags |= imgui.ImGuiWindowFlags_NoSavedSettings
         if value:
-            warn("no_saved_settings is deprecated and will be removed in a future version", DeprecationWarning)
+            _warn("no_saved_settings is deprecated and will be removed in a future version", DeprecationWarning)
 
     @property
     def no_mouse_inputs(self):

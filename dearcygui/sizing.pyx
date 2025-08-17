@@ -25,9 +25,9 @@ from .c_types cimport unique_lock, DCGMutex
 from .imgui cimport get_theme_style_float, get_theme_style_vec2
 from .types cimport Vec2
 
-from .imgui_types import ImGuiStyleIndex
+from .imgui_types import ImGuiStyleIndex as _ImGuiStyleIndex
 
-from inspect import currentframe
+from inspect import currentframe as _currentframe
 
 cdef class baseSizing:
     """
@@ -1544,7 +1544,7 @@ cdef class ThemeStyleSize(baseSizing):
         """
         Retrieve the original style name
         """
-        for item in list(ImGuiStyleIndex):
+        for item in list(_ImGuiStyleIndex):
             if int(item) == self._style_idx:
                 return item.name.lower()
         return "unknown" # fallback
@@ -2112,7 +2112,7 @@ cdef class CythonParser:
                 break
 
         if identifier_found:
-            frame = currentframe()
+            frame = _currentframe()
             caller_globals = frame.f_globals
             caller_locals = frame.f_locals
             self.scope = {**caller_globals, **caller_locals}
@@ -2523,22 +2523,22 @@ cdef class CythonParser:
             self.advance()  # Consume the token
             style_name = self.get_token_value(token).upper()
             try:
-                style_idx = int(ImGuiStyleIndex[style_name])
+                style_idx = int(_ImGuiStyleIndex[style_name])
             except KeyError:
                 raise ValueError(f"Unknown theme style: '{style_name.lower()}'\n"\
                                   "Available styles: " +\
-                                  ", ".join([e.name.lower() for e in list(ImGuiStyleIndex)]))
+                                  ", ".join([e.name.lower() for e in list(_ImGuiStyleIndex)]))
             return ThemeStyleSize(style_idx, False)  # x component (or scalar value)
             
         if token.type == TokenType.IDENT_THEME_STYLE_Y:
             self.advance()  # Consume the token
             style_name = self.get_token_value(token).upper()
             try:
-                style_idx = int(ImGuiStyleIndex[style_name])
+                style_idx = int(_ImGuiStyleIndex[style_name])
             except KeyError:
                 raise ValueError(f"Unknown theme style: '{style_name.lower()}'\n"\
                                   "Available styles: " +\
-                                  ", ".join([e.name.lower() for e in list(ImGuiStyleIndex)]))
+                                  ", ".join([e.name.lower() for e in list(_ImGuiStyleIndex)]))
             return ThemeStyleSize(style_idx, True)  # y component
 
         # Handle identifiers and keywords
@@ -3468,11 +3468,11 @@ class Size:
         """
         style_name = style_name.upper()
         try:
-            style_idx = int(ImGuiStyleIndex[style_name])
+            style_idx = int(_ImGuiStyleIndex[style_name])
         except KeyError:
             raise ValueError(f"Unknown theme style: '{style_name.lower()}'\n"\
                               "Available styles: " +\
-                              ", ".join([e.name.lower() for e in list(ImGuiStyleIndex)]))
+                              ", ".join([e.name.lower() for e in list(_ImGuiStyleIndex)]))
         return ThemeStyleSize(style_idx, use_y_component)
 
 # Define a shorter alias for the Size factory

@@ -30,7 +30,7 @@ from .core cimport Context, baseItem, lock_gil_friendly
 from .c_types cimport unique_lock, DCGMutex, defer_lock_t
 from .types cimport parse_texture
 
-from weakref import WeakKeyDictionary, WeakValueDictionary
+from weakref import WeakKeyDictionary as _WeakKeyDictionary, WeakValueDictionary as _WeakValueDictionary
 
 
 cdef class Texture(baseItem):
@@ -696,7 +696,7 @@ cdef class Texture(baseItem):
         self.c_gl_end_write()
 
 # Global pattern cache: context -> {pattern_key -> weak_pattern}
-_pattern_cache = WeakKeyDictionary()
+_pattern_cache = _WeakKeyDictionary()
 
 # Function to create a hashable key from pattern parameters
 cdef tuple _create_pattern_key(str pattern_type, dict params):
@@ -708,7 +708,7 @@ cdef tuple _create_pattern_key(str pattern_type, dict params):
 cdef object _get_pattern_from_cache(Context context, str pattern_type, dict params):
     # Initialize cache for this context if needed
     if context not in _pattern_cache:
-        _pattern_cache[context] = WeakValueDictionary()
+        _pattern_cache[context] = _WeakValueDictionary()
         return None
     
     # Create a hashable key from the parameters
@@ -727,7 +727,7 @@ cdef object _get_pattern_from_cache(Context context, str pattern_type, dict para
 cdef object _store_pattern_in_cache(Context context, str pattern_type, dict params, pattern):
     # Initialize cache for this context if needed
     if context not in _pattern_cache:
-        _pattern_cache[context] = WeakValueDictionary()
+        _pattern_cache[context] = _WeakValueDictionary()
     
     # Create a hashable key from the parameters
     key = _create_pattern_key(pattern_type, params)
