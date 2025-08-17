@@ -8,10 +8,8 @@ from .c_types cimport DCGMutex, DCGVector, ValueOrItem
 cdef class baseSizing:
     cdef DCGMutex mutex
     cdef bint _frozen
-    cdef int32_t _last_frame_resolved
     cdef float _current_value
     cdef float resolve(self, uiItem target) noexcept nogil
-    cdef void _push(self, uiItem target) noexcept nogil
     cdef float _update_value(self, uiItem target) noexcept nogil
     @staticmethod
     cdef baseSizing Size(value)

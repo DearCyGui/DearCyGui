@@ -80,12 +80,6 @@ cdef class baseSizing:
         if self._frozen:
             return self._current_value
 
-        cdef int32_t frame_count = target.context.viewport.frame_count
-        if self._last_frame_resolved == frame_count:
-            if self._push != baseSizing._push:
-                self._push(target)
-            return self._current_value
-
         cdef float current_value = self._current_value
 
         if self._update_value != baseSizing._update_value:
@@ -95,28 +89,11 @@ cdef class baseSizing:
             # Possibility of cascading updates
             target.context.viewport.redraw_needed = True
 
-        if self._push != baseSizing._push:
-            self._push(target)
-
-        self._last_frame_resolved = target.context.viewport.frame_count
         return self._current_value
-
-    cdef void _push(self, uiItem target) noexcept nogil:
-        """
-        Called during rendering to indicate resolve was
-        called for this item. Some subclasses need to retrieve
-        the state of the viewport and of the cursor to compute
-        the value, thus they need to get their measurements here.
-
-        The expected behaviour is that classes that need to use
-        item states retrieve them during _push.
-        """
-        return
 
     cdef float _update_value(self, uiItem target) noexcept nogil:
         """
-        Actual computation of the value, to be implemented by subclasses,
-        and should use previous frame values retrieved during _push.
+        Actual computation of the value, to be implemented by subclasses.
         """
         return 0.0
 
@@ -171,7 +148,7 @@ cdef class baseSizing:
             return NotImplemented
         return ModuloSize(self, other_size)
         
-    def __pow__(baseSizing self, other, modulo=None):
+    def __pow__(baseSizing self, other):
         cdef baseSizing other_size = baseSizing.Size(other)
         if other_size is None:
             return NotImplemented
@@ -301,12 +278,6 @@ cdef class binarySizeOp(baseSizing):
         self._right = right
         self._left_value = 0.0
         self._right_value = 0.0
-
-    cdef void _push(self, uiItem target) noexcept nogil:
-        if self._left._push != baseSizing._push:
-            self._left._push(target)
-        if self._right._push != baseSizing._push:
-            self._right._push(target)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self._left!r}, {self._right!r})"
@@ -446,10 +417,6 @@ cdef class NegateSize(baseSizing):
     
     def __cinit__(self, baseSizing operand not None):
         self._operand = operand
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        if self._operand._push != baseSizing._push:
-            self._operand._push(target)
             
     cdef float _update_value(self, uiItem target) noexcept nogil:
         return -self._operand.resolve(target)
@@ -472,10 +439,6 @@ cdef class AbsoluteSize(baseSizing):
     
     def __cinit__(self, baseSizing operand not None):
         self._operand = operand
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        if self._operand._push != baseSizing._push:
-            self._operand._push(target)
             
     cdef float _update_value(self, uiItem target) noexcept nogil:
         return fabs(self._operand.resolve(target))
@@ -496,25 +459,9 @@ cdef class FillSizeX(baseSizing):
     """
     Fill available content width.
     """
-    cdef float _available_space
-
-    def __cinit__(self):
-        self._available_space = 0.0
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        cdef float available = target.context.viewport.parent_size.x
-        # Note: at this step cur is up to date
-        available -= target.state.cur.pos_to_parent.x
-
-        if available > self._available_space:
-            self._available_space = available
-
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        # Return available space
-        cdef float current_value = max(0.0, self._available_space)
-        # Reset available space
-        self._available_space = 0.0
-        return current_value
+        # Note: at this step cur is up to date
+        return target.context.viewport.parent_size.x - target.state.cur.pos_to_parent.x
 
     def __repr__(self):
         return "FillSizeX()"
@@ -530,24 +477,9 @@ cdef class FillSizeY(baseSizing):
     """
     Fill available content height.
     """
-    cdef float _available_space
-
-    def __cinit__(self):
-        self._available_space = 0.0
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        cdef float available = target.context.viewport.parent_size.y
-        available -= target.state.cur.pos_to_parent.y
-
-        if available > self._available_space:
-            self._available_space = available
-
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        # Return available space
-        cdef float current_value = max(0.0, self._available_space)
-        # Reset available space
-        self._available_space = 0.0
-        return current_value
+        # Note: at this step cur is up to date
+        return target.context.viewport.parent_size.y - target.state.cur.pos_to_parent.y
 
     def __repr__(self):
         return "FillSizeY()"
@@ -563,23 +495,8 @@ cdef class FullSizeX(baseSizing):
     """
     Full parent content width (no position offset subtraction).
     """
-    cdef float _available_space
-
-    def __cinit__(self):
-        self._available_space = 0.0
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        cdef float available = target.context.viewport.parent_size.x
-
-        if available > self._available_space:
-            self._available_space = available
-
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        # Return available space
-        cdef float current_value = max(0.0, self._available_space)
-        # Reset available space
-        self._available_space = 0.0
-        return current_value
+        return target.context.viewport.parent_size.x
 
     def __repr__(self):
         return "FullSizeX()"
@@ -595,23 +512,8 @@ cdef class FullSizeY(baseSizing):
     """
     Full parent content height (no position offset subtraction).
     """
-    cdef float _available_space
-
-    def __cinit__(self):
-        self._available_space = 0.0
-        
-    cdef void _push(self, uiItem target) noexcept nogil:
-        cdef float available = target.context.viewport.parent_size.y
-
-        if available > self._available_space:
-            self._available_space = available
-
     cdef float _update_value(self, uiItem target) noexcept nogil:
-        # Return available space
-        cdef float current_value = max(0.0, self._available_space)
-        # Reset available space
-        self._available_space = 0.0
-        return current_value
+        return target.context.viewport.parent_size.y
 
     def __repr__(self):
         return "FullSizeY()"
