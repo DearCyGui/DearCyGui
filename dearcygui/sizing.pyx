@@ -20,16 +20,14 @@ from libcpp.cmath cimport fabs, pow, fmod
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
-from cpython.object cimport PyObject
-
-from .core cimport uiItem, lock_gil_friendly, Viewport
-from .c_types cimport DCGVector, unique_lock, DCGMutex
+from .core cimport uiItem, lock_gil_friendly
+from .c_types cimport unique_lock, DCGMutex
 from .imgui cimport get_theme_style_float, get_theme_style_vec2
 from .types cimport Vec2
 
 from .imgui_types import ImGuiStyleIndex
 
-import inspect
+from inspect import currentframe
 
 cdef class baseSizing:
     """
@@ -2114,7 +2112,7 @@ cdef class CythonParser:
                 break
 
         if identifier_found:
-            frame = inspect.currentframe()
+            frame = currentframe()
             caller_globals = frame.f_globals
             caller_locals = frame.f_locals
             self.scope = {**caller_globals, **caller_locals}

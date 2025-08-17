@@ -34,8 +34,7 @@ from .types cimport parse_texture
 
 from weakref import WeakKeyDictionary, WeakValueDictionary
 
-import atexit
-import ctypes
+from atexit import register as atexit_register
 from concurrent.futures import ThreadPoolExecutor
 
 """
@@ -67,7 +66,7 @@ What is up to you to provide:
 - Passing correct spacing value to have characters properly aligned, etc
 """
 
-import os
+from os.path import dirname, exists as path_exists, join as path_join
 
 from .wrapper cimport freetype
 
@@ -615,8 +614,8 @@ cdef class AutoFont(FontMultiScales):
             "base_size": 17.0,
             "font_creator": None,
         }
-        root_dir = os.path.dirname(__file__)
-        bold_font_path = os.path.join(root_dir, 'lmsans10-bold.otf')
+        root_dir = dirname(__file__)
+        bold_font_path = path_join(root_dir, 'lmsans10-bold.otf')
         default_args["main_font_path"] = bold_font_path
         default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
         default_args.update(kwargs)
@@ -647,8 +646,8 @@ cdef class AutoFont(FontMultiScales):
             "base_size": 17.0,
             "font_creator": None,
         }
-        root_dir = os.path.dirname(__file__)
-        bold_italic_font_path = os.path.join(root_dir, 'lmromandemi10-oblique.otf')
+        root_dir = dirname(__file__)
+        bold_italic_font_path = path_join(root_dir, 'lmromandemi10-oblique.otf')
         default_args["main_font_path"] = bold_italic_font_path
         default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
         default_args.update(kwargs)
@@ -687,8 +686,8 @@ cdef class AutoFont(FontMultiScales):
             "font_creator": None,
         }
         if monospaced:
-            root_dir = os.path.dirname(__file__)
-            monospaced_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+            root_dir = dirname(__file__)
+            monospaced_font_path = path_join(root_dir, 'lmmono10-regular.otf')
             default_args["main_font_path"] = monospaced_font_path
         default_args["restrict_to"] = frozenset([ord(c) for c in " 0123456789"])
         default_args.update(kwargs)
@@ -719,8 +718,8 @@ cdef class AutoFont(FontMultiScales):
             "base_size": 17.0,
             "font_creator": None,
         }
-        root_dir = os.path.dirname(__file__)
-        italic_font_path = os.path.join(root_dir, 'lmromanslant10-regular.otf')
+        root_dir = dirname(__file__)
+        italic_font_path = path_join(root_dir, 'lmromanslant10-regular.otf')
         default_args["main_font_path"] = italic_font_path
         default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
         default_args.update(kwargs)
@@ -751,8 +750,8 @@ cdef class AutoFont(FontMultiScales):
             "base_size": 17.0,
             "font_creator": None,
         }
-        root_dir = os.path.dirname(__file__)
-        monospaced_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+        root_dir = dirname(__file__)
+        monospaced_font_path = path_join(root_dir, 'lmmono10-regular.otf')
         default_args["main_font_path"] = monospaced_font_path
         default_args["restrict_to"] = frozenset(range(0, 256))  # Restrict to basic latin characters
         default_args.update(kwargs)
@@ -792,8 +791,8 @@ cdef class AutoFont(FontMultiScales):
             "font_creator": None,
         }
         if monospaced:
-            root_dir = os.path.dirname(__file__)
-            monospaced_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+            root_dir = dirname(__file__)
+            monospaced_font_path = path_join(root_dir, 'lmmono10-regular.otf')
             default_args["main_font_path"] = monospaced_font_path
         default_args["restrict_to"] = frozenset([ord(c) for c in " 0123456789e.,+-*/=()[]{}%$€#@!&^|<>?;:"])
         default_args.update(kwargs)
@@ -884,7 +883,7 @@ cdef class FontTexture(baseItem):
         cdef imgui.ImFontAtlas *atlas = <imgui.ImFontAtlas*>self._atlas
         if self._built:
             raise ValueError("Cannot add Font to built FontTexture")
-        if not(os.path.exists(path)):
+        if not(path_exists(path)):
             raise ValueError(f"File {path} does not exist")
         if size <= 0. or density_scale <= 0.:
             raise ValueError("Invalid texture size")
@@ -1350,7 +1349,7 @@ def _cleanup_freetype():
         freetype.FT_Done_FreeType(FT)
         FT = NULL
 
-atexit.register(_cleanup_freetype)
+atexit_register(_cleanup_freetype)
 
 cdef DCGMutex freetype_mutex
 
@@ -1423,7 +1422,7 @@ cdef class _Face:
         self._file_data = None
         
     def __init__(self, path):
-        if not os.path.exists(path):
+        if not path_exists(path):
             raise ValueError(f"Font file {path} not found")
             
         # Load the font file into memory to avoid file handle issues
@@ -1525,7 +1524,7 @@ cdef class FontRenderer:
     A class that manages font loading,
     glyph rendering and text rendering."""
     def __init__(self, path):
-        if not os.path.exists(path):
+        if not path_exists(path):
             raise ValueError(f"Font file {path} not found")
         self._face = _Face(path)
         if self._face is None:
@@ -2101,20 +2100,20 @@ def make_extended_latin_font(size: int,
 
     # Use default font paths if not specified
     if main_font_path is None:
-        root_dir = os.path.dirname(__file__)
-        main_font_path = os.path.join(root_dir, 'lmsans17-regular.otf')
+        root_dir = dirname(__file__)
+        main_font_path = path_join(root_dir, 'lmsans17-regular.otf')
     if italic_font_path is None:
-        root_dir = os.path.dirname(__file__)
-        italic_font_path = os.path.join(root_dir, 'lmromanslant10-regular.otf')
+        root_dir = dirname(__file__)
+        italic_font_path = path_join(root_dir, 'lmromanslant10-regular.otf')
     if bold_font_path is None:
-        root_dir = os.path.dirname(__file__)
-        bold_font_path = os.path.join(root_dir, 'lmsans10-bold.otf')
+        root_dir = dirname(__file__)
+        bold_font_path = path_join(root_dir, 'lmsans10-bold.otf')
     if bold_italic_path is None:
-        root_dir = os.path.dirname(__file__)
-        bold_italic_path = os.path.join(root_dir, 'lmromandemi10-oblique.otf')
+        root_dir = dirname(__file__)
+        bold_italic_path = path_join(root_dir, 'lmromandemi10-oblique.otf')
     if mono_font_path is None:
-        root_dir = os.path.dirname(__file__)
-        mono_font_path = os.path.join(root_dir, 'lmmono10-regular.otf')
+        root_dir = dirname(__file__)
+        mono_font_path = path_join(root_dir, 'lmmono10-regular.otf')
 
     # Prepare font configurations
     def make_bold_map(key):

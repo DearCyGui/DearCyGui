@@ -29,7 +29,7 @@ from .sizing import Size
 from .types cimport child_type
 from .wrapper cimport imgui
 
-import warnings
+from warnings import warn
 
 cdef class Layout(uiItem):
     """
@@ -283,7 +283,7 @@ cdef class HorizontalLayout(Layout):
         lock_gil_friendly(m, self.mutex)
         self._wrap_x = value
         if value != 0.0:
-            warnings.warn("wrap_x is deprecated, it will be replaced by a new interface", DeprecationWarning)
+            warn("wrap_x is deprecated, it will be replaced by a new interface", DeprecationWarning)
         self._force_update = True
 
     @property
@@ -634,7 +634,7 @@ cdef class VerticalLayout(Layout):
         lock_gil_friendly(m, self.mutex)
         self._wrap_y = value
         if value != 0.0:
-            warnings.warn("wrap_y is deprecated, it will be replaced by a new interface", DeprecationWarning)
+            warn("wrap_y is deprecated, it will be replaced by a new interface", DeprecationWarning)
         self._force_update = True
 
     @property
