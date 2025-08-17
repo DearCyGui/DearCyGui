@@ -359,15 +359,12 @@ def test_sizing_edge_cases(ctx):
     
     # max(100, fillx/4) - should be exactly the larger value
     btn_max = dcg.Button(ctx, label="Max", width="max(100, fillx/4)", parent=window)
-    while not viewport.render_frame():
-        pass
+    viewport.render_frame()
     expected_max = max(100, content_w / 4)
     assert btn_max.state.rect_size[0] == expected_max, f"max() should be exact: expected {expected_max}"
     
     # min(fillx, 300) - should be exactly the smaller value  
     btn_min = dcg.Button(ctx, label="Min", width="min(fillx, 300)", parent=window)
-    while not viewport.render_frame(): # TODO: fill x should instantly converge. Investigate why needed.
-        pass
-    viewport.render_frame() # TODO investigate why needed.
+    viewport.render_frame()
     expected_min = min(content_w, 300)
     assert btn_min.state.rect_size[0] == expected_min, f"min() should be exact: expected {expected_min}"
