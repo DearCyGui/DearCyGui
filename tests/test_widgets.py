@@ -99,6 +99,7 @@ def test_slider_widget(ctx):
     slider.value = 50.0
     assert slider.value == 50.0
 
+
 def test_combo_widget(ctx):
     # Test basic creation and value assignment for a Combo widget.
     combo = dcg.Combo(ctx, items=["Item1", "Item2", "Item3"])
