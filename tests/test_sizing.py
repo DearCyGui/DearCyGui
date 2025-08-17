@@ -216,8 +216,7 @@ def test_widget_sizing_comprehensive(ctx):
     w, _ = get_size(btn)
     assert w == content_w, f"Button fillx should be exact: {w} vs {content_w}"
 
-
-@pytest.mark.xfail(reason="Text widgets don't support fillx properly")
+@pytest.mark.xfail(reason="Text widgets don't support setting their size")
 def test_text_fillx_fails(ctx):
     """Text widgets are known to not support fillx correctly."""
     viewport = ctx.viewport
@@ -234,7 +233,7 @@ def test_text_fillx_fails(ctx):
     w = get_size(text)
     assert w == content_w, f"Text fillx should match content width: {w} vs {content_w}"
 
-
+# Note: these fails are due to the label and pass if we set an empty one
 @pytest.mark.xfail(reason="Slider widgets overshoot with fillx")
 def test_slider_fillx_overshoots(ctx):
     """Slider widgets are known to overshoot with fillx."""
@@ -247,9 +246,11 @@ def test_slider_fillx_overshoots(ctx):
             viewport.render_frame()
         return widget.state.rect_size[0]
     
-    content_w = window.state.content_region_avail[0]
-    slider = dcg.Slider(ctx, label="Slider", width="fillx", parent=window)
+    size = dcg.Size.FILLX()
+    slider = dcg.Slider(ctx, label="Slider", width=size, parent=window)
     w = get_size(slider)
+    content_w = window.state.content_region_avail[0]
+    assert content_w == size.value
     assert w == content_w, f"Slider fillx should match content width: {w} vs {content_w}"
 
 
@@ -265,9 +266,9 @@ def test_inputtext_fillx_overshoots(ctx):
             viewport.render_frame()
         return widget.state.rect_size[0]
     
-    content_w = window.state.content_region_avail[0]
     input_text = dcg.InputText(ctx, label="Input", width="fillx", parent=window)
     w = get_size(input_text)
+    content_w = window.state.content_region_avail[0]
     assert w == content_w, f"InputText fillx should match content width: {w} vs {content_w}"
 
 
@@ -282,10 +283,10 @@ def test_coloredit_fillx_overshoots(ctx):
         for _ in range(frames):
             viewport.render_frame()
         return widget.state.rect_size[0]
-    
-    content_w = window.state.content_region_avail[0]
+
     color_edit = dcg.ColorEdit(ctx, label="Color", width="fillx", parent=window)
     w = get_size(color_edit)
+    content_w = window.state.content_region_avail[0]
     assert w == content_w, f"ColorEdit fillx should match content width: {w} vs {content_w}"
 
 
@@ -300,10 +301,10 @@ def test_combo_fillx_overshoots(ctx):
         for _ in range(frames):
             viewport.render_frame()
         return widget.state.rect_size[0]
-    
-    content_w = window.state.content_region_avail[0]
+
     combo = dcg.Combo(ctx, items=["A", "B"], label="Combo", width="fillx", parent=window)
     w = get_size(combo)
+    content_w = window.state.content_region_avail[0]
     assert w == content_w, f"Combo fillx should match content width: {w} vs {content_w}"
 
 
