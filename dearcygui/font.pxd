@@ -32,6 +32,7 @@ cdef class AutoFont(FontMultiScales):
     cdef float _base_size
     cdef object _font_creation_executor  # ThreadPoolExecutor
     cdef set _pending_fonts  # set of scales being created
+    cdef set _failed_scales # set of secondary scales that are known to fail
     cdef object _font_creator  # Callable that creates fonts
     cpdef void _create_font_at_scale(self, float scale, bint no_fail)
     cdef void _add_new_font_to_list(self, Font font)

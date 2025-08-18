@@ -451,6 +451,7 @@ cdef class AutoFont(FontMultiScales):
         self._font_creator = font_creator if font_creator is not None else make_extended_latin_font
         self._font_creation_executor = _ThreadPoolExecutor(max_workers=1)
         self._pending_fonts = set()
+        self._failed_scales = set()
         
         # Set up callback for new scales
         self.callbacks = self._on_new_scale
@@ -484,6 +485,9 @@ cdef class AutoFont(FontMultiScales):
         lock_gil_friendly(m, self.mutex)
         if scale in self._pending_fonts:
             return
+        if scale in self._failed_scales:
+            # If we know this scale fails, we do not try to create it again
+            return
         self._pending_fonts.add(scale)
         m.unlock()
         self._font_creation_executor.submit(self._create_font_at_scale, scale, True)
@@ -514,6 +518,9 @@ cdef class AutoFont(FontMultiScales):
         except Exception as e:
             if not(no_fail):
                 raise e
+            lock_gil_friendly(m, self.mutex)
+            self._failed_scales.add(scale)
+            m.unlock()
             pass # ignore failures (maybe we have a huge scale and
                  # the font is too big to fit in the texture)
         finally:
