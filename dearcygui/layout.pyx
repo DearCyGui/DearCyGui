@@ -392,16 +392,16 @@ cdef class HorizontalLayout(Layout):
         cdef PyObject *child = <PyObject*>self.last_widgets_child
         cdef float end_x = self.state.cur.content_region_size.x
         cdef float available_width = end_x
-        #cdef float available_height = self.prev_content_area.y
+        # cdef float available_height = self.prev_content_area.y
         cdef float spacing_x = self._spacing.x
-        #cdef float spacing_y = self._spacing.y
+        # cdef float spacing_y = self._spacing.y
         # Get back to the first child
         while ((<uiItem>child).prev_sibling) is not None:
             child = <PyObject*>((<uiItem>child).prev_sibling)
         cdef PyObject *sibling
         cdef int32_t i, n_items_this_row, row
         cdef float target_x, expected_x, expected_size, expected_size_next
-        #cdef float y, next_y = 0
+        # cdef float y, next_y = 0
         cdef float wrap_x = max(-self.state.cur.pos_to_window.x, self._wrap_x)
         cdef bint pos_change = False
         cdef float global_scale_inv = 1./fmax(self.context.viewport.global_scale, 0.00001)
