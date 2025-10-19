@@ -1037,6 +1037,7 @@ class DragRect(dcg.DrawingList):
         self._was_dragging = False
         self._hover_count = 0
         self._drag_type = "unknown"
+        self._hints: list[dcg.DrawCircle] = []  # List of hint circles
         self._handlers = DragRect._get_handlers(context)
         
         # Setup callbacks
@@ -1214,6 +1215,9 @@ class DragRect(dcg.DrawingList):
             self._visible_rect.color = value
             self._diagonal1.color = value
             self._diagonal2.color = value
+            # Update hint circles color if they exist
+            for hint_circle in self._hints:
+                hint_circle.fill = value
 
     @property
     def fill(self):
@@ -1268,6 +1272,46 @@ class DragRect(dcg.DrawingList):
                 ]
             else:
                 plot.handlers = [h for h in plot.handlers if h is not self.handler_visible_for_clamping]
+
+    @property
+    def hint(self) -> bool:
+        """Controls whether hints are displayed when hovering over interaction areas.
+
+        When enabled, hints will appear at corner and center positions when the
+        corresponding invisible buttons are hovered, providing visual feedback about
+        where the user can interact with the rectangle.
+        """
+        with self.mutex:
+            return len(self._hints) > 0
+
+    @hint.setter
+    def hint(self, value: bool) -> None:
+        with self.mutex:
+            current_state = len(self._hints) > 0
+            if bool(value) == current_state:
+                return  # No change needed
+
+            if value:
+                # Create hint circles for each button, except sides
+                buttons: list[dcg.DrawInvisibleButton] = [
+                    self._center_button,
+                    self._corner_tl, self._corner_tr, self._corner_bl, self._corner_br,
+                ]
+
+                for button in buttons:
+                    with button:
+                        hint_circle = dcg.DrawCircle(self.context)
+                        hint_circle.center = (0.5, 0.5)
+                        hint_circle.radius = 0.5
+                        hint_circle.color = (0, 0, 0, 0)  # Transparent outline
+                        hint_circle.fill = self._color
+                        hint_circle.show = False  # Hidden by default, shown on hover
+                        self._hints.append(hint_circle)
+            else:
+                # Delete all hint circles
+                for hint_circle in self._hints:
+                    hint_circle.delete_item()
+                self._hints.clear()
 
     @property
     def on_hover(self) -> None | dcg.Callback:
@@ -1356,6 +1400,8 @@ class DragRect(dcg.DrawingList):
             if self._hover_count == 1:  # First hover
                 self._diagonal1.show = True
                 self._diagonal2.show = True
+                for hint_circle in self._hints:
+                    hint_circle.show = True  # Show hints
 
     @classmethod
     def handler_lost_hover(cls, _, target: dcg.DrawInvisibleButton) -> None:
@@ -1369,6 +1415,8 @@ class DragRect(dcg.DrawingList):
             if self._hover_count == 0:  # No more hovers
                 self._diagonal1.show = False
                 self._diagonal2.show = False
+                for hint_circle in self._hints:
+                    hint_circle.show = False  # Hide hints
 
     @classmethod
     def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:

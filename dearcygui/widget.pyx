@@ -164,7 +164,7 @@ cdef class DrawInvisibleButton(drawingItem):
         read_point[double](self._p2, value)
 
     @property
-    def min_side(self):
+    def min_side(self): # TODO: in future version, make positive dpi scaled and negative unscaled
         """
         If the rectangle width or height after
         coordinate transform is lower than this,
