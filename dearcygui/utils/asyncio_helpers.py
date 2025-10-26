@@ -123,7 +123,7 @@ async def _async_task(future: Future | asyncio.Future,
         if isinstance(future, Future):
             future.set_running_or_notify_cancel()
     except (SystemExit, KeyboardInterrupt):
-        asyncio.get_event_loop().stop()
+        asyncio.get_running_loop().stop()
         future.cancel()
         if isinstance(future, Future):
             future.set_running_or_notify_cancel()
@@ -143,6 +143,10 @@ def _create_task(loop: asyncio.AbstractEventLoop,
         # Handle case where loop is closed or stopping
         future.set_exception(RuntimeError(f"Cannot create task: {e}"))
         return
+
+    # Keep strong reference to prevent GC in Python 3.14 freethreaded
+    loop._dcg_tasks.add(task)
+    task.add_done_callback(loop._dcg_tasks.discard)
 
     # Setup bi-directional cancellation propagation
     def cancel_task_if_not_done(task=task):
@@ -174,13 +178,17 @@ class AsyncPoolExecutor:
     def __init__(self, loop: asyncio.AbstractEventLoop | None = None):
         """Initialize the executor with standard ThreadPoolExecutor parameters."""
         if loop is None:
-            self._loop = asyncio.get_event_loop()
+            try:
+                self._loop = asyncio.get_event_loop()
+            except RuntimeError:
+                self._loop = None # Python 3.14+
             if self._loop is None:
                 raise RuntimeError("No event loop found. Please set an event loop before using AsyncPoolExecutor.")
         else:
             if not isinstance(loop, asyncio.AbstractEventLoop):
                 raise TypeError("Expected an instance of asyncio.AbstractEventLoop.")
             self._loop = loop
+        self._loop._dcg_tasks = set() # We will store strong references to submitted tasks
         self._barrier_pool = []
         self._pool_mutex = threading.Lock()
         self._loop_thread_id = None
@@ -248,7 +256,11 @@ class AsyncPoolExecutor:
                 barrier = _SimpleBarrier(self._barrier_pool, self._pool_mutex)
 
         # Schedule the coroutine execution in the event loop
-        self._loop.create_task(_async_task(future, barrier, fn, args, kwargs))
+        task = self._loop.create_task(_async_task(future, barrier, fn, args, kwargs))
+
+        # Keep strong reference on the loop
+        self._loop._dcg_tasks.add(task)
+        task.add_done_callback(self._loop._dcg_tasks.discard)
 
         return future
 
@@ -441,6 +453,7 @@ class AsyncThreadPoolExecutor(Executor):
             loop.default_exception_handler(context)
 
         self._thread_loop.set_exception_handler(exception_handler)
+        self._thread_loop._dcg_tasks = set()
 
         self._running = True
         try:
