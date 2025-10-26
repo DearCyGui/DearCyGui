@@ -10,7 +10,7 @@ on:
 jobs:
   build_wheels_linux:
     name: Build Linux wheels
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -19,17 +19,17 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.12'
 
     - name: Install cibuildwheel
       run: python -m pip install cibuildwheel
 
     - name: Build wheels
       env:
-        CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64 cp313t-manylinux_x86_64 pp310-manylinux_x86_64"
-        CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
+        CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64 cp313t-manylinux_x86_64 cp314-manylinux_x86_64 cp314t-manylinux_x86_64 pp311-manylinux_x86_64"
+        CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_34"
         CIBW_ENABLE: "cpython-freethreading pypy"
-        CIBW_BEFORE_BUILD: "yum install -y cmake3 libXext-devel libX11-devel mesa-libGL-devel libXext-devel libX11-devel mesa-libGL-devel wayland-devel wayland-protocols-devel libxkbcommon-devel mesa-libEGL-devel mesa-libwayland-egl-devel"
+        CIBW_BEFORE_BUILD: "yum install -y cmake3 libXext-devel libX11-devel mesa-libGL-devel wayland-devel wayland-protocols-devel libxkbcommon-devel mesa-libEGL-devel"
       run: python -m cibuildwheel --platform linux --output-dir wheelhouse
 
     - name: Upload wheels
@@ -71,7 +71,7 @@ jobs:
     - name: Build wheels
       run: python -m cibuildwheel --platform windows --output-dir C:\build\wheelhouse
       env:
-        CIBW_BUILD: "cp310-win_amd64 cp311-win_amd64 cp312-win_amd64 cp313-win_amd64 cp313t-win_amd64 pp310-win_amd64"
+        CIBW_BUILD: "cp310-win_amd64 cp311-win_amd64 cp312-win_amd64 cp313-win_amd64 cp313t-win_amd64 cp314-win_amd64 cp314t-win_amd64 pp311-win_amd64"
         CIBW_ENABLE: "cpython-freethreading pypy"
         CIBW_ENVIRONMENT: "TEMP=C:\\temp TMP=C:\\temp TMPDIR=C:\\temp"
         CIBW_BEFORE_BUILD: "IF NOT EXIST C:\\temp mkdir C:\\temp"
@@ -113,7 +113,7 @@ jobs:
 
     - name: Build wheels
       env:
-        CIBW_BUILD: "cp310-macosx_x86_64 cp311-macosx_x86_64 cp312-macosx_x86_64 cp313-macosx_x86_64 cp313t-macosx_x86_64"
+        CIBW_BUILD: "cp310-macosx_x86_64 cp311-macosx_x86_64 cp312-macosx_x86_64 cp313-macosx_x86_64 cp313t-macosx_x86_64 cp314-macosx_x86_64 cp314t-macosx_x86_64"
         CIBW_BEFORE_BUILD: "pip install cython==3.1.1 wheel"
         CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.15"
         CIBW_ENABLE: "cpython-freethreading pypy"
@@ -160,7 +160,7 @@ jobs:
 
     - name: Build wheels
       env:
-        CIBW_BUILD: "cp310-macosx_arm64 cp311-macosx_arm64 cp312-macosx_arm64 cp313-macosx_arm64 cp313t-macosx_arm64"
+        CIBW_BUILD: "cp310-macosx_arm64 cp311-macosx_arm64 cp312-macosx_arm64 cp313-macosx_arm64 cp313t-macosx_arm64 cp314-macosx_arm64 cp314t-macosx_arm64"
         CIBW_BEFORE_BUILD: "pip install cython==3.1.1 wheel"
         CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=11.0"
         CIBW_ENABLE: "cpython-freethreading pypy"
