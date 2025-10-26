@@ -3,6 +3,7 @@ from enum import IntEnum
 from collections.abc import Sequence, Iterator, Callable
 from math import inf
 from typing import Protocol, Self, TypeVar, Never, Concatenate
+from contextlib import AbstractContextManager
 from .core import *
 
 SenderT = TypeVar('SenderT', bound='baseItem')

@@ -320,6 +320,8 @@ hardcoded = {
     "legend_handlers": "Sequence['baseHandler'] | 'baseHandler' | None",
     "recent_scales": "Sequence[float]",
     "queue": "TaskSubmitter",
+    "mutex": "AbstractContextManager",
+    "parents_mutex": "AbstractContextManager"
 }
 
 

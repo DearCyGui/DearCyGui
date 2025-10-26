@@ -2562,13 +2562,15 @@ class _local_list(_threading_local):
 
 cdef class _WrapThisAndParentsMutex:
     cdef baseItem _target
+    _locked: _local_list
+    _nlocked: _local_list
     def __init__(self, *args, **kwargs):
         raise PermissionError("Cannot instantiate _WrapThisAndParentsMutex directly")
     def __cinit__(self):
         # We use local list for extra safety in case
         # this item is used in several threads at the same time
-        self.locked = _local_list()
-        self.nlocked = _local_list()
+        self._locked = _local_list()
+        self._nlocked = _local_list()
     def __enter__(self):
         while True:
             locked = []
@@ -2585,8 +2587,9 @@ cdef class _WrapThisAndParentsMutex:
                 # worrying it could change
                 item = item.parent
             if success:
-                self.locked += locked
-                self.nlocked.append(len(locked))
+                for lock_item in locked:
+                    self._locked.append(lock_item)
+                self._nlocked.append(len(locked))
                 return
             # We failed to lock one of the parent.
             # We must release our locks and retry
@@ -2596,9 +2599,9 @@ cdef class _WrapThisAndParentsMutex:
             # thread retaining the lock to run
             sched_yield()
     def __exit__(self, exc_type, exc_value, traceback):
-        cdef int32_t N = self.nlocked.pop()
+        cdef int32_t N = self._nlocked.pop()
         for _ in range(N):
-            self.locked.pop().unlock_mutex()
+            self._locked.pop().unlock_mutex()
         return False # Do not catch exceptions
     @staticmethod
     cdef _WrapThisAndParentsMutex from_item(baseItem target):

@@ -3,6 +3,7 @@ from enum import IntEnum
 from collections.abc import Sequence, Iterator, Callable
 from math import inf
 from typing import Protocol, Self, TypeVar, Never, Concatenate
+from contextlib import AbstractContextManager
 from .core import *
 
 SenderT = TypeVar('SenderT', bound='baseItem')
@@ -4330,7 +4331,7 @@ class baseItem(object):
 
 
     @property
-    def mutex(self) -> wrap_mutex:
+    def mutex(self) -> AbstractContextManager:
         """
         (Read-only) Context manager instance for the item mutex
 
@@ -4427,7 +4428,7 @@ class baseItem(object):
 
 
     @property
-    def parents_mutex(self) -> wrap_this_and_parents_mutex:
+    def parents_mutex(self) -> AbstractContextManager:
         """
         (Read-only) Context manager instance for the item mutex and all its parents
 
