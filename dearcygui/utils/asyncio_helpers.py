@@ -129,6 +129,14 @@ async def _async_task(future: Future | asyncio.Future,
             future.set_running_or_notify_cancel()
 
 
+def _cancel_task_if_cancelled(task, future):
+    """Callback to cancel a task when its future is cancelled."""
+    if future.cancelled() and not task.done():
+        try:
+            asyncio.get_running_loop().call_soon_threadsafe(task.cancel)
+        except RuntimeError:
+            pass
+
 
 def _create_task(loop: asyncio.AbstractEventLoop,
                  future: Future, fn: Callable | Coroutine, args: tuple,
@@ -149,20 +157,9 @@ def _create_task(loop: asyncio.AbstractEventLoop,
     task.add_done_callback(loop._dcg_tasks.discard)
 
     # Setup bi-directional cancellation propagation
-    def cancel_task_if_not_done(task=task):
-        try:
-            loop.call_soon_threadsafe(task.cancel)
-        except RuntimeError:
-            # Loop might be closed, ignore
-            pass
+    future.add_done_callback(lambda f, t=task: _cancel_task_if_cancelled(t, f) if f.cancelled() else None)
+    task.add_done_callback(lambda t: future.cancel() if t.cancelled() and not future.done() else None)
 
-    future.add_done_callback(
-        lambda f: cancel_task_if_not_done() if f.cancelled() else None
-    )
-
-    task.add_done_callback(
-        lambda t: future.cancel() if t.cancelled() and not future.done() else None
-    )
 
 
 class AsyncPoolExecutor:
