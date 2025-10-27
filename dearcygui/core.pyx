@@ -47,7 +47,8 @@ from .wrapper cimport imgui, implot
 
 from atexit import register as _atexit_register
 from concurrent.futures import Executor as _Executor, ThreadPoolExecutor as _ThreadPoolExecutor
-from os import name as _os_name, sched_yield as _os_sched_yield
+from os import name as _os_name
+import os
 from threading import get_ident as _get_ident, local as _threading_local
 from time import sleep as _python_sleep
 from traceback import format_exc as _format_exc
@@ -283,7 +284,7 @@ cdef void lock_gil_friendly_block(unique_lock[DCGMutex] &m) noexcept:
 cdef inline void sched_yield():
     if _os_name == 'posix':
         # os sched is only available on posix
-        _os_sched_yield()
+        os.sched_yield()
     else:
         # time.sleep(0) on Windows has a
         # similar effect to sched_yield.
