@@ -29,7 +29,7 @@ jobs:
         CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64 cp313t-manylinux_x86_64 cp314-manylinux_x86_64 cp314t-manylinux_x86_64 pp311-manylinux_x86_64"
         CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_34"
         CIBW_ENABLE: "cpython-freethreading pypy"
-        CIBW_BEFORE_BUILD: "yum install -y cmake3 libXext-devel libX11-devel mesa-libGL-devel wayland-devel wayland-protocols-devel libxkbcommon-devel mesa-libEGL-devel"
+        CIBW_BEFORE_BUILD: "yum install -y cmake3 libXext-devel libX11-devel mesa-libGL-devel wayland-devel wayland-protocols-devel libxkbcommon-devel mesa-libEGL-devel libXcursor-devel libXi-devel libXfixes-devel libXss-devel"
       run: python -m cibuildwheel --platform linux --output-dir wheelhouse
 
     - name: Upload wheels
