@@ -51,9 +51,18 @@ def _get_children_recursively(item: dcg.uiItem) -> set[dcg.uiItem]:
         children.update(_get_children_recursively(child))
     return children
 
-class NodeEditor(dcg.ChildWindow):
+class BaseNodeEditor(dcg.ChildWindow):
     """
-    SubWindow that contains nodes
+    SubWindow that contains nodes and links between them.
+
+    Nodes are instances of BaseNode (or subclasses) and links are instances of BaseLink (or subclasses).
+    Rendering is performed using three layers:
+    - Background layer: for background drawings (textured pattern, grid, etc)
+        It contains items subclassing drawingItem.
+    - Nodes layer: for the nodes themselves, which are BaseNode instances.
+        Note BaseNode is a ChildWindow, so it can contain any uiItem.
+    - Foreground layer: for foreground drawings (links between nodes, highlights, etc)
+        It contains items subclassing drawingItem.
     """
     def __init__(self, C: dcg.Context, **kwargs) -> None:
         super().__init__(C, **kwargs)
@@ -75,10 +84,18 @@ class NodeEditor(dcg.ChildWindow):
                                             height=self.height.content_height,
                                             parent=self
                                             )
+        self._setup_handlers()
 
+    def _setup_handlers(self) -> None:
+        """
+        Setup event handlers for the NodeEditor.
+
+        Replace this method to customize event handling.
+        """
         # Context menu
         self.handlers += [
-            dcg.ClickedHandler(C, button=dcg.MouseButton.RIGHT,
+            dcg.ClickedHandler(self.context,
+                               button=dcg.MouseButton.RIGHT,
                                callback=self._open_context_menu)
         ]
 
@@ -97,47 +114,41 @@ class NodeEditor(dcg.ChildWindow):
                        callback=self.add_node
                        )
 
-    def add_node(self, **kwargs) -> '_Node':
+    def add_node(self, **kwargs) -> 'BaseNode':
         """Add a new node to the editor"""
-        node = _Node(self.context, parent=self._nodes, **kwargs)
-        return node
+        return BaseNode(self.context, parent=self._nodes, **kwargs)
 
     def add_link(self,
                  start: dcg.uiItem,
-                 end: dcg.uiItem) -> None:
+                 end: dcg.uiItem) -> 'BaseLink':
         """Add a link between two elements"""
-        _Link(self.context, start=start, end=end,
+        return BaseLink(self.context, start=start, end=end,
               parent=self._foreground)
-        return
 
-    def delete_link(self, link: '_Link') -> None:
+    def delete_link(self, link: 'BaseLink') -> None:
         """Delete a link from the editor"""
-        if not isinstance(link, _Link):
-            raise TypeError("link must be of type _Link")
+        if not isinstance(link, BaseLink):
+            raise TypeError("link must be of type BaseLink")
         if link.parent is not self._foreground:
             raise ValueError("link is not a child of this NodeEditor")
         link.delete_item()
 
-    def delete_links_of_node(self, node: '_Node') -> None:
-        """Delete all links connected to a node"""
-        if not isinstance(node, _Node):
-            raise TypeError("node must be of type _Node")
-        if node.parent is not self._nodes:
-            raise ValueError("node is not a child of this NodeEditor")
+    def delete_links_of_node(self, node: 'BaseNode', start=True, end=True) -> None:
+        """Delete all links connected to a node
 
-        # Retrieve all children recursively
-        subitems = _get_children_recursively(node)
-
+        Args:
+            node (BaseNode): The node to delete links for
+            start (bool): If True, include links where the node is the start
+            end (bool): If True, include links where the node is the end
+        """
         # Remove all links connected to the node
-        for child in list(self._foreground.children):
-            if isinstance(child, _Link):
-                if child.start in subitems or child.end in subitems:
-                    child.delete_item()
+        for link in self.get_links_of_node(node, start=start, end=end):
+            self.delete_link(link)
 
-    def delete_node(self, node: '_Node') -> None:
+    def delete_node(self, node: 'BaseNode') -> None:
         """Delete a node from the editor"""
-        if not isinstance(node, _Node):
-            raise TypeError("node must be of type _Node")
+        if not isinstance(node, BaseNode):
+            raise TypeError("node must be of type BaseNode")
         if node.parent is not self._nodes:
             raise ValueError("node is not a child of this NodeEditor")
 
@@ -147,20 +158,20 @@ class NodeEditor(dcg.ChildWindow):
         # Remove the node itself
         node.delete_item()
 
-    def get_links(self) -> list['_Link']:
+    def get_links(self) -> list['BaseLink']:
         """Return all links in the editor"""
-        return [child for child in self._foreground.children if isinstance(child, _Link)]
+        return [child for child in self._foreground.children if isinstance(child, BaseLink)]
 
-    def get_links_of_node(self, node: '_Node', start=True, end=True) -> list['_Link']:
+    def get_links_of_node(self, node: 'BaseNode', start=True, end=True) -> list['BaseLink']:
         """Return all links connected to a node
         
         Args:
-            node (_Node): The node to get links for
+            node (BaseNode): The node to get links for
             start (bool): If True, include links where the node is the start
             end (bool): If True, include links where the node is the end
         """
-        if not isinstance(node, _Node):
-            raise TypeError("node must be of type _Node")
+        if not isinstance(node, BaseNode):
+            raise TypeError("node must be of type BaseNode")
         if node.parent is not self._nodes:
             raise ValueError("node is not a child of this NodeEditor")
 
@@ -170,19 +181,23 @@ class NodeEditor(dcg.ChildWindow):
         # Retrieve all links connected to the node
         links = []
         for child in self._foreground.children:
-            if isinstance(child, _Link):
-                if child.start in subitems or child.end in subitems:
+            if isinstance(child, BaseLink):
+                if (start and child.start in subitems)\
+                    or (end and child.end in subitems):
                     links.append(child)
         return links
 
-    def get_nodes(self) -> list['_Node']:
+    def get_nodes(self) -> list['BaseNode']:
         """Return all nodes in the editor"""
-        return [child for child in self._nodes.children if isinstance(child, _Node)]
+        return [child for child in self._nodes.children if isinstance(child, BaseNode)]
 
 
-class _Node(dcg.ChildWindow):
+class BaseNode(dcg.ChildWindow):
     """
-    A node in the NodeEditor
+    Base node class to subclass for the NodeEditor.
+
+    A node is a ChildWindow that can contain any uiItem of your choice.
+    It can be pinned to one of its subitems or another item using pin_to().
     """
     def __init__(self, C: dcg.Context, **kwargs) -> None:
         super().__init__(C, **kwargs)
@@ -228,9 +243,13 @@ class _Node(dcg.ChildWindow):
         self.y = item.y.y0 + delta_y
 
 
-class _Link(dcg.DrawingList):
+class BaseLink(dcg.DrawingList):
     """
-    A link between two items in the NodeEditor
+    Base link between two items in the NodeEditor.
+
+    A link is a drawing visual (DrawingList) drawn on the foreground of the NodeEditor,
+    It connects two uiItems (start and end). The base link uses a cubic Bezier curve,
+    but it can be replaced by subclassing and overriding _draw_link().
     """
     def __init__(self,
                  C: dcg.Context,
@@ -257,17 +276,27 @@ class _Link(dcg.DrawingList):
         self._pattern = pattern
         self._control_points = ((0.0, 0.0), (0.0, 0.0), (0.0, 0.0), (0.0, 0.0))
 
-        self._start.handlers += [
-            dcg.MotionHandler(C,
-                              pos_policy=(dcg.Positioning.REL_WINDOW, dcg.Positioning.REL_WINDOW),
-                              callback=self._update_position)
-        ]
-        self._end.handlers += [
-            dcg.MotionHandler(C,
-                              pos_policy=(dcg.Positioning.REL_WINDOW, dcg.Positioning.REL_WINDOW),
-                              callback=self._update_position)
+        self._motion_handler = dcg.MotionHandler(C,
+            pos_policy=(dcg.Positioning.REL_WINDOW, dcg.Positioning.REL_WINDOW),
+            callback=self._update_position)
+
+        with self._start.mutex:
+            self._start.handlers += [
+                self._motion_handler
+            ]
+        with self._end.mutex:
+            self._end.handlers += [
+                self._motion_handler
         ]
         self._update_position()
+
+    def delete_item(self) -> None:
+        """Delete the link and remove handlers"""
+        with self._start.mutex:
+            self._start.handlers = [h for h in self._start.handlers if h is not self._motion_handler]
+        with self._end.mutex:
+            self._end.handlers = [h for h in self._end.handlers if h is not self._motion_handler]
+        super().delete_item()
 
     @property
     def start(self) -> dcg.uiItem:
@@ -310,22 +339,22 @@ class _Link(dcg.DrawingList):
 
     def _update_position(self) -> None:
         """Update the position of the link based on the start and end items"""
-        start_state = self._start.state
-        stop_state = self._end.state
+        start_state: dcg.ItemStateView = self._start.state
+        stop_state: dcg.ItemStateView = self._end.state
 
         ref_parent = self.parent
-        while ref_parent is not None and not isinstance(ref_parent, NodeEditor):
+        while ref_parent is not None and not isinstance(ref_parent, BaseNodeEditor):
             ref_parent = ref_parent.parent
         if ref_parent is None:
             raise ValueError("link must be inside a NodeEditor")
 
-        ref_position = ref_parent.state.pos_to_viewport
-        start_x = start_state.pos_to_viewport.x - ref_position.x + start_state.rect_size.x * 0.5
-        start_y = start_state.pos_to_viewport.y - ref_position.y + start_state.rect_size.y * 0.5
-        end_x = stop_state.pos_to_viewport.x - ref_position.x + stop_state.rect_size.x * 0.5
-        end_y = stop_state.pos_to_viewport.y - ref_position.y + stop_state.rect_size.y * 0.5
+        ref_position: dcg.Coord = ref_parent.state.pos_to_viewport
+        start_x: float = start_state.pos_to_viewport.x - ref_position.x + start_state.rect_size.x * 0.5
+        start_y: float = start_state.pos_to_viewport.y - ref_position.y + start_state.rect_size.y * 0.5
+        end_x: float = stop_state.pos_to_viewport.x - ref_position.x + stop_state.rect_size.x * 0.5
+        end_y: float = stop_state.pos_to_viewport.y - ref_position.y + stop_state.rect_size.y * 0.5
 
-        start_pos = (start_x, start_y)
-        end_pos = (end_x, end_y)
+        start_pos: tuple[float, float] = (start_x, start_y)
+        end_pos: tuple[float, float] = (end_x, end_y)
 
         self._draw_link(start_pos, end_pos)
