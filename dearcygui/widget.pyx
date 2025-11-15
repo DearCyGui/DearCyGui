@@ -5339,6 +5339,49 @@ cdef class ChildWindow(uiItem): # TODO: remove label
         if value:
             self._child_flags |= imgui.ImGuiChildFlags_ResizeY
 
+    @property
+    def no_background(self):
+        """
+        Don't draw background color and outside border.
+        
+        When enabled, the child window will be transparent with no background
+        drawing. This is useful for creating overlay effects or organizing
+        layout without visible container boundaries.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._window_flags & imgui.ImGuiWindowFlags_NoBackground) != 0
+
+    @no_background.setter
+    def no_background(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._window_flags &= ~imgui.ImGuiWindowFlags_NoBackground
+        if value:
+            self._window_flags |= imgui.ImGuiWindowFlags_NoBackground
+
+    @property
+    def no_inputs(self):
+        """
+        Disable all mouse and navigation inputs to this window.
+        
+        When enabled, the child window becomes completely non-interactive,
+        allowing input to pass through to windows behind it. Combines
+        NoMouseInputs, NoNavInputs, and NoNavFocus flags. Useful for
+        display-only or overlay child windows.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return (self._window_flags & imgui.ImGuiWindowFlags_NoInputs) != 0
+
+    @no_inputs.setter
+    def no_inputs(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._window_flags &= ~imgui.ImGuiWindowFlags_NoInputs
+        if value:
+            self._window_flags |= imgui.ImGuiWindowFlags_NoInputs
+
     cdef bint draw_item(self) noexcept nogil:
         cdef imgui.ImGuiWindowFlags flags = self._window_flags
         if self.last_menubar_child is not None:

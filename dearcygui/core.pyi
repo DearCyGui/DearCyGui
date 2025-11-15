@@ -12337,7 +12337,7 @@ class ChildWindow(uiItem):
     structured layouts.
 
     """
-    def __init__(self, context : Context, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : 'uiItem' | None = None, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : 'uiItem' | None = None, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12363,6 +12363,8 @@ class ChildWindow(uiItem):
         - label: Text label displayed with or within the item.
         - menubar: Enable a menu bar at the top of the child window.
         - next_sibling: Child of the parent rendered just after this item.
+        - no_background: Don't draw background color and outside border.
+        - no_inputs: Disable all mouse and navigation inputs to this window.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_scroll_with_mouse: Forward mouse wheel events to parent instead of scrolling this window.
         - no_scrollbar: Hide scrollbars but still allow scrolling with mouse/keyboard.
@@ -12383,7 +12385,7 @@ class ChildWindow(uiItem):
         ...
 
 
-    def configure(self, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12407,6 +12409,8 @@ class ChildWindow(uiItem):
         - label: Text label displayed with or within the item.
         - menubar: Enable a menu bar at the top of the child window.
         - next_sibling: Child of the parent rendered just after this item.
+        - no_background: Don't draw background color and outside border.
+        - no_inputs: Disable all mouse and navigation inputs to this window.
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_scroll_with_mouse: Forward mouse wheel events to parent instead of scrolling this window.
         - no_scrollbar: Hide scrollbars but still allow scrolling with mouse/keyboard.
@@ -12650,6 +12654,43 @@ class ChildWindow(uiItem):
 
     @menubar.setter
     def menubar(self, value : bool):
+        ...
+
+
+    @property
+    def no_background(self) -> bool:
+        """
+        Don't draw background color and outside border.
+
+        When enabled, the child window will be transparent with no background
+        drawing. This is useful for creating overlay effects or organizing
+        layout without visible container boundaries.
+
+        """
+        ...
+
+
+    @no_background.setter
+    def no_background(self, value : bool):
+        ...
+
+
+    @property
+    def no_inputs(self) -> bool:
+        """
+        Disable all mouse and navigation inputs to this window.
+
+        When enabled, the child window becomes completely non-interactive,
+        allowing input to pass through to windows behind it. Combines
+        NoMouseInputs, NoNavInputs, and NoNavFocus flags. Useful for
+        display-only or overlay child windows.
+
+        """
+        ...
+
+
+    @no_inputs.setter
+    def no_inputs(self, value : bool):
         ...
 
 
