@@ -644,8 +644,8 @@ cdef class DraggingHandler(baseHandler):
                 self.context.queue_callback(self._callback,
                                             self,
                                             item,
-                                            (<float>state.cur.drag_deltas[i].x,
-                                             <float>state.cur.drag_deltas[i].y))
+                                            (state.cur.drag_deltas[i].x,
+                                             state.cur.drag_deltas[i].y))
 
 cdef class EditedHandler(baseHandler):
     """
