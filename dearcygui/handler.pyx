@@ -145,10 +145,10 @@ cdef bint check_state_from_list(baseHandler start_handler,
             while (<baseItem>child).prev_sibling is not None:
                 child = <PyObject *>(<baseItem>child).prev_sibling
         while (<baseHandler>child) is not None:
-            child_state = (<baseHandler>child).check_state(item)
             if not((<baseHandler>child)._enabled):
                 child = <PyObject*>((<baseHandler>child).next_sibling)
                 continue
+            child_state = (<baseHandler>child).check_state(item)
             if op == HandlerListOP.ALL:
                 current_state = current_state and child_state
                 if not(current_state):
@@ -280,11 +280,12 @@ cdef class ConditionalHandler(baseHandler):
         cdef bint current_state = True
         cdef bint child_state
         while child is not <PyObject*>None:
-            child_state = (<baseHandler>child).check_state(item)
-            child = <PyObject*>((<baseHandler>child).prev_sibling)
             if not((<baseHandler>child)._enabled):
+                child = <PyObject*>((<baseHandler>child).prev_sibling)
                 continue
+            child_state = (<baseHandler>child).check_state(item)
             current_state = current_state and child_state
+            child = <PyObject*>((<baseHandler>child).prev_sibling)
         self.last_handler_child.unlock_and_previous_siblings()
         return current_state
 
@@ -299,15 +300,14 @@ cdef class ConditionalHandler(baseHandler):
         cdef bint condition_held = True
         cdef PyObject* child = <PyObject*>self.last_handler_child
         cdef bint child_state
-        cdef bint child_enabled
         # Note: we already have tested there is at least one child
         while ((<baseHandler>child).prev_sibling) is not None:
-            child_state = (<baseHandler>child).check_state(item)
-            child_enabled = (<baseHandler>child)._enabled
-            child = <PyObject*>((<baseHandler>child).prev_sibling)
-            if not(child_enabled):
+            if not((<baseHandler>child)._enabled):
+                child = <PyObject*>((<baseHandler>child).prev_sibling)
                 continue
+            child_state = (<baseHandler>child).check_state(item)
             condition_held = condition_held and child_state
+            child = <PyObject*>((<baseHandler>child).prev_sibling)
         if condition_held:
             (<baseHandler>child).run_handler(item)
         self.last_handler_child.unlock_and_previous_siblings()
