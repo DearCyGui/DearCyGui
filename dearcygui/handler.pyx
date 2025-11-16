@@ -299,11 +299,13 @@ cdef class ConditionalHandler(baseHandler):
         cdef bint condition_held = True
         cdef PyObject* child = <PyObject*>self.last_handler_child
         cdef bint child_state
+        cdef bint child_enabled
         # Note: we already have tested there is at least one child
         while ((<baseHandler>child).prev_sibling) is not None:
             child_state = (<baseHandler>child).check_state(item)
+            child_enabled = (<baseHandler>child)._enabled
             child = <PyObject*>((<baseHandler>child).prev_sibling)
-            if not((<baseHandler>child)._enabled):
+            if not(child_enabled):
                 continue
             condition_held = condition_held and child_state
         if condition_held:
