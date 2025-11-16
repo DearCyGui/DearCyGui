@@ -764,7 +764,7 @@ cdef class Rect:
         ymin = min(self._y1, self._y2)
         xmax = max(self._x1, self._x2)
         ymax = max(self._y1, self._y2)
-        return xmin <= other_coord[0] <= xmax and ymin <= other_coord[1] <= ymax
+        return xmin <= other_coord[0] and other_coord[0] <= xmax and ymin <= other_coord[1] and other_coord[1] <= ymax
 
     # Fast instanciation from Cython
     @staticmethod
