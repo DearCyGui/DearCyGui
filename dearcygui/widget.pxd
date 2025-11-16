@@ -14,7 +14,7 @@ cdef class DrawInvisibleButton(drawingItem):
     cdef bint _capture_mouse
     cdef double[2] _p1
     cdef double[2] _p2
-    cdef Vec2 _initial_mouse_position
+    cdef double[2] _initial_mouse_position
 
 cdef class DrawInWindow(uiItem):
     cdef bint has_frame
