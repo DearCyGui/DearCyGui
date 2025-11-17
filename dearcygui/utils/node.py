@@ -883,23 +883,23 @@ class SimpleGridStyle(StrEnum):
 
 class SimpleNodeEditorTheme:
     """Simple Node Editor theme colors and styles"""
-    background_color: dcg.Color = (30, 30, 30, 255)
-    grid_color: dcg.Color = (50, 50, 50, 200)
+    background_color: 'dcg.Color' = (30, 30, 30, 255)
+    grid_color: 'dcg.Color' = (50, 50, 50, 200)
     grid_style: SimpleGridStyle = SimpleGridStyle.LINES
     grid_spacing: int = 64 # Size of grid cells in pixels
 
-    node_background_color: dcg.Color = (60, 60, 60, 255)
-    node_border_color: dcg.Color = (100, 100, 100, 255)
+    node_background_color: 'dcg.Color' = (60, 60, 60, 255)
+    node_border_color: 'dcg.Color' = (100, 100, 100, 255)
 
-    node_title_bg_color: dcg.Color = (45, 45, 45, 255)
-    node_title_text_color: dcg.Color = (220, 220, 220, 255)
-    node_title_border_color: dcg.Color = (80, 80, 80, 255)
-    node_title_hover_color: dcg.Color = (70, 70, 70, 255)
-    node_title_active_color: dcg.Color = (90, 90, 90, 255)
+    node_title_bg_color: 'dcg.Color' = (45, 45, 45, 255)
+    node_title_text_color: 'dcg.Color' = (220, 220, 220, 255)
+    node_title_border_color: 'dcg.Color' = (80, 80, 80, 255)
+    node_title_hover_color: 'dcg.Color' = (70, 70, 70, 255)
+    node_title_active_color: 'dcg.Color' = (90, 90, 90, 255)
     node_title_scale: float = 1.5
 
     # Pin/link colors
-    color_map: dict[str, dcg.Color] = {
+    color_map: dict[str, 'dcg.Color'] = {
         'flow': (255, 255, 255, 255),
         'bool': (220, 48, 48, 255),
         'int': (68, 201, 156, 255),
@@ -925,15 +925,15 @@ class SimpleNodeEditorTheme:
     # None: use color from color_map
     # float: use a factor to darken/lighten the color from color_map
     # Color: use this color directly
-    pin_fill_color: dcg.Color | float | None = None
-    pin_fill_hover_color: dcg.Color | float | None = 1.2
-    pin_border_color: dcg.Color | float | None = None
-    pin_border_hover_color: dcg.Color | float | None = 1.2
+    pin_fill_color: 'dcg.Color | float | None' = None
+    pin_fill_hover_color: 'dcg.Color | float | None' = 1.2
+    pin_border_color: 'dcg.Color | float | None' = None
+    pin_border_hover_color: 'dcg.Color | float | None' = 1.2
     pin_border_thickness: float = 0.1 # in proportion of pin size
     pin_border_hover_thickness: float = 0.13 # in proportion of pin size
 
-    link_color: dcg.Color | float | None = None
-    link_selected_color: dcg.Color | float | None = 1.2
+    link_color: 'dcg.Color | float | None' = None
+    link_selected_color: 'dcg.Color | float | None' = 1.2
     link_thickness: float = 1.8
 
     # Optional modifier or key that must be held to start a drag from a pin
@@ -943,7 +943,7 @@ class SimpleNodeEditorTheme:
 
     def add_type(self,
                  type_name: str,
-                 color: dcg.Color,
+                 color: 'dcg.Color',
                  shape: SimplePinShape) -> None:
         """Add a new type to the theme"""
         if not isinstance(type_name, str):
@@ -956,8 +956,8 @@ class SimpleNodeEditorTheme:
         self.color_map[type_name] = color
         self.shape_map[type_name] = shape
 
-def _resolve_color(base_color: dcg.Color,
-                   modifier: dcg.Color | float | None) -> dcg.Color:
+def _resolve_color(base_color: 'dcg.Color',
+                   modifier: 'dcg.Color | float | None') -> 'dcg.Color':
     """Resolve a color modifier on a base color"""
     if modifier is None:
         return base_color
@@ -1013,8 +1013,8 @@ class SimplePin(dcg.DrawInWindow):
                  C: dcg.Context,
                  accepted_drops: str | Sequence[str] | None = None,
                  drag_type: str | None = None,
-                 fill_color: dcg.Color | None = None,
-                 outline_color: dcg.Color | None = None,
+                 fill_color: 'dcg.Color' | None = None,
+                 outline_color: 'dcg.Color' | None = None,
                  node_editor_theme: SimpleNodeEditorTheme | None = None,
                  shape: SimplePinShape | None = None,
                  type_name: str = "any",
@@ -1097,22 +1097,22 @@ class SimplePin(dcg.DrawInWindow):
         self._draw()
 
     @property
-    def fill_color(self) -> dcg.Color | None:
+    def fill_color(self) -> 'dcg.Color' | None:
         """Override fill color of the pin"""
         return self._fill_color
 
     @fill_color.setter
-    def fill_color(self, value: dcg.Color | None) -> None:
+    def fill_color(self, value: 'dcg.Color' | None) -> None:
         self._fill_color = value
         self._draw()
 
     @property
-    def outline_color(self) -> dcg.Color | None:
+    def outline_color(self) -> 'dcg.Color' | None:
         """Override outline color of the pin"""
         return self._outline_color
 
     @outline_color.setter
-    def outline_color(self, value: dcg.Color | None) -> None:
+    def outline_color(self, value: 'dcg.Color' | None) -> None:
         self._outline_color = value
         self._draw()
 
@@ -1306,7 +1306,7 @@ class SimpleLink(BaseLink):
                  C: dcg.Context,
                  start: dcg.uiItem,
                  end: dcg.uiItem,
-                 color: dcg.Color | None = None,
+                 color: 'dcg.Color' | None = None,
                  node_editor_theme: SimpleNodeEditorTheme | None = None,
                  type_name: str | None = None,
                  **kwargs) -> None:
@@ -1402,7 +1402,7 @@ class SimpleLink(BaseLink):
             current = current.parent
         return None
     
-    def _calculate_appearance(self) -> tuple[dcg.Color, float]:
+    def _calculate_appearance(self) -> tuple['dcg.Color', float]:
         """Calculate color and thickness based on current state"""
         # Determine color based on state
         if self._color_override is None:
