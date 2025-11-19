@@ -13,11 +13,11 @@ Base classes (for advanced users who want full control):
 """
 
 from collections.abc import Callable, Sequence
-from enum import StrEnum
-
-from dearcygui import DrawInWindow
 import dearcygui as dcg
-from typing import Any, TypeVar
+from dearcygui.utils.handler import auto_cleanup_handler
+from enum import StrEnum
+import math
+from typing import TypeVar
 
 
 def _get_bezier_control_points(start_pos: tuple[float, float], 
@@ -42,9 +42,9 @@ def _get_bezier_control_points(start_pos: tuple[float, float],
         x1, y1, x4, y4 = x4, y4, x1, y1
     
     # Horizontal distance for control points (can be adjusted for curve tension)
-    # Use a minimum offset to handle vertical alignment
+    # Use a minimum offset to handle vertical alignment -> commented for consistent behaviour on zooming
     dx = x4 - x1
-    offset = max(abs(dx) * 0.5, abs(y4 - y1) * 0.25, 50.0)
+    offset = max(abs(dx) * 0.5, abs(y4 - y1) * 0.25)#, 50.0)
     
     # Control points with horizontal tangents
     # p2 is to the right of p1 at the same height
@@ -225,6 +225,53 @@ def _get_parent_of_type(item: dcg.baseItem, parent_type: type[T]) -> T | None:
         current = current.parent
     return None
 
+# Note: the _get_current methods are needed because of current
+# DCG scaling limitations that may be addressed in future versions.
+# They are needed for wheel DPI scaling to work properly in NodeEditors.
+
+def _get_current_dpi_scale(item: dcg.uiItem) -> float:
+    """
+    Get the current DPI scale factor for an item.
+    
+    Walks up the parent chain to accumulate scaling factors,
+    up to the viewport level where the screen dpi is retrieved.
+    """
+    scale = 1.0
+    current = item
+    while current is not None and not isinstance(current, dcg.Viewport):
+        scale *= current.scaling_factor
+        current = current.parent
+    if isinstance(current, dcg.Viewport):
+        # viewport has both scale and dpi
+        scale *= current.dpi * current.scale
+    return scale
+
+def _get_current_font(item: dcg.uiItem) -> dcg.Font | None:
+    """
+    Get the current font for an item.
+    
+    Walks up the parent chain to find the first font assigned,
+    up to the viewport level where the default font is retrieved.
+    """
+    current = item
+    while current is not None:
+        if current.font is not None:
+            return current.font
+        current = current.parent
+    return None
+
+def _get_current_style(item: dcg.uiItem) -> dcg.ThemeStyleImGui:
+    """
+    Get the current theme style for an item.
+    """
+    theme = dcg.ThemeStyleImGui(item.context)
+    for attribute in dir(dcg.ThemeStyleImGui):
+        try:
+            setattr(theme, attribute, dcg.resolve_theme(item, dcg.ThemeStyleImGui, attribute))
+        except:
+            pass # all attributes that are not theme components
+
+    return theme
 
 """
 ===========================================================================
@@ -281,7 +328,7 @@ class BaseNodeEditor(dcg.ChildWindow):
         '_background': 'DrawInWindow for background layer drawings',
         '_canvas': 'Container for the entire node editor',
         '_foreground': 'DrawInWindow for foreground layer drawings (links, highlights)',
-        '_nodes': 'Layout container holding all node instances',
+        '_nodes': 'Layout container holding all node instances'
     }
     
     def __init__(self, C: dcg.Context, **kwargs) -> None:
@@ -298,14 +345,15 @@ class BaseNodeEditor(dcg.ChildWindow):
                                  no_scrollbar=True,
                                  x=self.x.x1,
                                  y=self.y.y1,
-                                 width=100000,
-                                 height=100000
+                                 width=128000,
+                                 height=128000,
                                  ) as self._canvas:
                 # Background drawings, convering the full inner region
                 self._background = dcg.DrawInWindow(C,
-                                                    x=self.x.x1, y=self.y.y1,
-                                                    width=self.width.content_width,
-                                                    height=self.height.content_height
+                                                    x=self._canvas.x.x1, y=self._canvas.y.y1,
+                                                    width=self._canvas.width.content_width,
+                                                    height=self._canvas.height.content_height,
+                                                    no_global_scaling=False
                                                     )
                 # Node subcontainer
                 self._nodes = dcg.ChildWindow(C,
@@ -314,10 +362,14 @@ class BaseNodeEditor(dcg.ChildWindow):
                                               no_background=True,
                                               no_scroll_with_mouse=True,
                                               no_scrollbar=True,
-                                              x=self.x.x1,
-                                              y=self.y.y1,
-                                              width=self.width.content_width,
-                                              height=self.height.content_height
+                                              x=self._canvas.x.x1,
+                                              y=self._canvas.y.y1,
+                                              width=self._canvas.width.content_width,
+                                              height=self._canvas.height.content_height,
+                                              # We catch the font and the theme as it is currently needed to have scaling_factor apply to them
+                                              # a drawback is that future changes won't be propagated
+                                              font=_get_current_font(self),
+                                              theme=_get_current_style(self)
                                               )
                 # foreground drawings, on top of nodes
                 # We encapsulate it in a ChildWindow to ensure rendering order
@@ -327,17 +379,18 @@ class BaseNodeEditor(dcg.ChildWindow):
                                      no_background=True,
                                      no_scroll_with_mouse=True,
                                      no_scrollbar=True,
-                                     x=self.x.x1,
-                                     y=self.y.y1,
-                                     width=self.width.content_width,
-                                     height=self.height.content_height
+                                     x=self._canvas.x.x1,
+                                     y=self._canvas.y.y1,
+                                     width=self._canvas.width.content_width,
+                                     height=self._canvas.height.content_height
                                      ):
                     self._foreground = \
                         dcg.DrawInWindow(C,
-                                        x=self.x.x1,
-                                        y=self.y.y1,
-                                        width=self.width.content_width,
-                                        height=self.height.content_height
+                                        x=self._canvas.x.x1,
+                                        y=self._canvas.y.y1,
+                                        width=self._canvas.width.content_width,
+                                        height=self._canvas.height.content_height,
+                                        no_global_scaling=True
                                         )
 
     def add_node(self, **kwargs) -> 'BaseNode':
@@ -776,7 +829,32 @@ class BaseDraggableButton(dcg.Button):
         self._no_clamp = no_clamp
         self._dragging_original_pos = None
         self._setup_drag_handlers()
-    
+        self._setup_init_handler()
+
+    def _setup_init_handler(self) -> None:
+        """*May be removed in the future* Wait until first render to introduce dpi scaling"""
+        def move_to_init(self=self):
+            """Set up the dpi position mecanics on init"""
+            ref_item = self._get_ref_item()
+            if ref_item is None:
+                ref_item = self.parent
+                if ref_item is None:
+                    return  # No reference available
+                assert isinstance(ref_item, dcg.uiItem)
+            current_pos = self.state.pos_to_viewport
+            try:
+                ref_pos = ref_item.state.content_pos
+            except AttributeError:
+                ref_pos = ref_item.state.pos_to_viewport
+            relative_pos = current_pos - ref_pos
+            self._move_to(ref_item, relative_pos)
+        init_handler = dcg.GotRenderHandler(self.context, callback=move_to_init)
+
+        # spawn only once
+        auto_cleanup_handler(init_handler)
+
+        self.handlers += [init_handler]
+
     def _get_ref_item(self) -> dcg.uiItem | None:
         """Get the reference item for motion calculations.
         
@@ -821,8 +899,21 @@ class BaseDraggableButton(dcg.Button):
         # Clamp position to keep center within bounds
         x = max(-dragged_half_size.x, min(pos.x, ref_content.x - dragged_half_size.x))
         y = max(-dragged_half_size.y, min(pos.y, ref_content.y - dragged_half_size.y))
-        
+
         return dcg.Coord(x, y)
+
+    def _move_to(self, ref_item: dcg.uiItem, new_pos: dcg.Coord) -> None:
+        """Move the button to a new position relative to reference item"""
+        # Apply clamping if enabled
+        if not self._no_clamp:
+            new_pos = self._clamp_position(new_pos, ref_item, self)
+
+        # Update position to follow the mouse motion.
+        # x1/y1 refer to content_pos (with pos_to_viewport fallback).
+        # Using them will make us follow automatically if the ref_item moves.
+        current_dpi = _get_current_dpi_scale(self) # needed for wheel DPI scaling
+        self.x = ref_item.x.x1 + dcg.Size.FIXED(new_pos.x) * dcg.Size.DPI() / current_dpi
+        self.y = ref_item.y.y1 + dcg.Size.FIXED(new_pos.y) * dcg.Size.DPI() / current_dpi
     
     def _on_dragging(self, handler, target, drag_deltas):
         """Handle dragging event - stores position and calls callback"""
@@ -848,15 +939,8 @@ class BaseDraggableButton(dcg.Button):
         # Calculate new position
         new_pos = self._dragging_original_pos + drag_deltas
 
-        # Apply clamping if enabled
-        if not self._no_clamp:
-            new_pos = self._clamp_position(new_pos, ref_item, self)
-
-        # Update position to follow the mouse motion.
-        # x1/y1 refer to content_pos (with pos_to_viewport fallback).
-        # Using them will make us follow automatically if the ref_item moves.
-        self.x = ref_item.x.x1 + dcg.Size.FIXED(new_pos.x)
-        self.y = ref_item.y.y1 + dcg.Size.FIXED(new_pos.y)
+        # Move to new position
+        self._move_to(ref_item, new_pos)
     
     def _on_dragged(self, handler, target, drag_deltas):
         """Handle drag complete - resets tracking state"""
@@ -1723,7 +1807,9 @@ class SimpleNode(BaseNode):
             self._title_bar.x = kwargs.pop('x', dcg.Size.FIXED(0))
             self._title_bar.y = kwargs.pop('y', dcg.Size.FIXED(0))
 
-        self.pin_to(self._title_bar, -dcg.Size.THEME_STYLE("item_spacing", False), -dcg.Size.THEME_STYLE("item_spacing", True))
+        self.pin_to(self._title_bar,
+                    -dcg.Size.THEME_STYLE("item_spacing", False),
+                    -dcg.Size.THEME_STYLE("item_spacing", True))
 
     @property
     def node_editor_theme(self) -> SimpleNodeEditorTheme:
@@ -1878,6 +1964,7 @@ class SimpleNodeEditor(BaseNodeEditor):
     __slots__ = {
         '_context_menu_callback': 'Callback for context menu',
         '_node_editor_theme': 'Theme to use for the node editor',
+        '_dragging_original_pos': 'Position where a drag operation started',
     }
     
     def __init__(self,
@@ -1889,6 +1976,7 @@ class SimpleNodeEditor(BaseNodeEditor):
 
         self._node_editor_theme: SimpleNodeEditorTheme = node_editor_theme
         self._context_menu_callback = context_menu_callback
+        self._dragging_original_pos = None
 
         # Apply theme to editor background
         self._canvas.theme = self._create_editor_theme(C)
@@ -1990,16 +2078,16 @@ class SimpleNodeEditor(BaseNodeEditor):
                         pixels_row.append((0, 0, 0, 0))
                 pixels.append(pixels_row)
         # Create texture
-        grid_texture = dcg.Texture(self.context, pixels, wrap_x=True, wrap_y=True)
+        grid_texture = dcg.Texture(self.context, pixels, wrap_x=True, wrap_y=True, nearest_neighbor_upsampling=1, antialiased=True)
         
         # Draw the texture covering a large area
         with self._background:
             dcg.DrawImage(self.context,
                           texture=grid_texture,
-                          pmin=(-10000, -10000),
-                          pmax=(10000, 10000),
+                          pmin=(0, 0),
+                          pmax=(128000, 128000),
                           uv_min=(0, 0),
-                          uv_max=(10000 / size, 10000 / size),
+                          uv_max=(128000 / size, 128000 / size),
                           color_multiplier=dcg.color_as_floats(theme.grid_color))
 
     def _setup_handlers(self) -> None:
@@ -2009,13 +2097,98 @@ class SimpleNodeEditor(BaseNodeEditor):
             dcg.ClickedHandler(self.context,
                              button=dcg.MouseButton.RIGHT,
                              callback=self._on_right_click),
+            # Panning
+            dcg.DraggingHandler(self.context,
+                                button=dcg.MouseButton.LEFT,
+                                callback=self._on_dragging),
+            dcg.DraggedHandler(self.context,
+                               button=dcg.MouseButton.LEFT,
+                               callback=self._on_dragged),
+            # zooming
+            dcg.ConditionalHandler(self.context,
+                                   children = [
+                dcg.MouseWheelHandler(self.context,
+                                      callback=self._on_wheel),
+                dcg.FocusHandler(self.context)
+            ])
         ]
+
+    def _clamp_canvas_position(self, pos: dcg.Coord) -> dcg.Coord:
+        """Clamp canvas position to prevent excessive panning"""
+        # For now, we allow large panning, but clamp to avoid extreme values
+        clamped_x = min(0, max(pos.x, self.state.content_region_avail.x-self._canvas.state.rect_size.x))
+        clamped_y = min(0, max(pos.y, self.state.content_region_avail.y-self._canvas.state.rect_size.y))
+        return dcg.Coord(clamped_x, clamped_y)
+
+    def _on_dragging(self, handler, target, drag_deltas):
+        """Handle panning while dragging"""
+        if self._dragging_original_pos is None:
+            # Store original position relative to reference
+            cur_pos = self._canvas.state.pos_to_viewport
+            ref_pos = self.state.content_pos
+            self._dragging_original_pos = cur_pos - ref_pos
+
+        # Calculate new position
+        new_pos = self._dragging_original_pos + drag_deltas
+
+        # Apply clamping
+        new_pos = self._clamp_canvas_position(new_pos)
+
+        # Update position to follow the mouse motion.
+        # x1/y1 refer to content_pos (with pos_to_viewport fallback).
+        # Using them will make us follow automatically if the ref_item moves.
+        self._canvas.x = self.x.x1 + dcg.Size.FIXED(new_pos.x)
+        self._canvas.y = self.y.y1 + dcg.Size.FIXED(new_pos.y)
+
+    def _on_dragged(self, handler, target, drag_deltas):
+        """Handle drag complete - resets tracking state"""
+        self._dragging_original_pos = None
+
+    def _on_wheel(self, handler, target, wheel_delta):
+        """Handle zooming with mouse wheel"""
+        # prevent dragging and zooming at the same time
+        if self._dragging_original_pos is not None:
+            return
+
+        current_zoom = self._canvas.scaling_factor
+        factor = math.exp(0.1 * wheel_delta)
+        new_zoom = current_zoom * factor
+
+        new_zoom = max(0.1, min(new_zoom, 4.0))  # Clamp zoom between 0.1x and 4x
+
+        # Get mouse position in viewport coordinates
+        mouse_viewport_pos = self.context.get_mouse_position()
+
+        # Get canvas position in viewport coordinates
+        canvas_viewport_pos = self._canvas.state.pos_to_viewport
+
+        # Mouse position relative to canvas origin (before zoom)
+        mouse_canvas_relative_x = (mouse_viewport_pos.x - canvas_viewport_pos.x) / current_zoom
+        mouse_canvas_relative_y = (mouse_viewport_pos.y - canvas_viewport_pos.y) / current_zoom
+
+        # After zoom, we want the same canvas point to be under the mouse
+        # So: mouse_viewport_pos = canvas_new_pos + mouse_canvas_relative * new_zoom
+        # Therefore: canvas_new_pos = mouse_viewport_pos - mouse_canvas_relative * new_zoom
+        new_canvas_x = mouse_viewport_pos.x - mouse_canvas_relative_x * new_zoom
+        new_canvas_y = mouse_viewport_pos.y - mouse_canvas_relative_y * new_zoom
+
+        # Convert to position relative to editor content area
+        editor_content_pos = self.state.content_pos
+        new_pos = dcg.Coord(new_canvas_x - editor_content_pos.x,
+                            new_canvas_y - editor_content_pos.y)
+
+        # Apply clamping
+        new_pos = self._clamp_canvas_position(new_pos)
+
+        # Apply zoom and position
+        self._canvas.scaling_factor = new_zoom
+        self._canvas.x = self.x.x1 + dcg.Size.FIXED(new_pos.x)
+        self._canvas.y = self.y.y1 + dcg.Size.FIXED(new_pos.y)
 
     def _on_right_click(self) -> None:
         """Handle right click for context menu"""
         if self._context_menu_callback is not None:
-            self._context_menu_callback(self)
-    
+            self._context_menu_callback(self)    
     
     def add_node(self, **kwargs) -> SimpleNode:
         """Add a new node to the editor"""
