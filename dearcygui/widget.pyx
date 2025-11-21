@@ -430,9 +430,8 @@ cdef class DrawInvisibleButton(drawingItem):
             screen_p[0] = cur_mouse_pos.x
             screen_p[1] = cur_mouse_pos.y
             self.context.viewport.screen_to_coordinate(coordinate_p, screen_p)
-            cur_mouse_pos.x = coordinate_p[0]
-            cur_mouse_pos.y = coordinate_p[1]
-            self._initial_mouse_position = cur_mouse_pos
+            self._initial_mouse_position[0] = coordinate_p[0]
+            self._initial_mouse_position[1] = coordinate_p[1]
         cdef bint dragging = False
         cdef int32_t i
         if self.state.cur.active:
@@ -440,15 +439,13 @@ cdef class DrawInvisibleButton(drawingItem):
             screen_p[0] = cur_mouse_pos.x
             screen_p[1] = cur_mouse_pos.y
             self.context.viewport.screen_to_coordinate(coordinate_p, screen_p)
-            cur_mouse_pos.x = coordinate_p[0]
-            cur_mouse_pos.y = coordinate_p[1]
-            dragging = cur_mouse_pos.x != self._initial_mouse_position.x or \
-                       cur_mouse_pos.y != self._initial_mouse_position.y
+            dragging = coordinate_p[0] != self._initial_mouse_position[0] or \
+                       coordinate_p[1] != self._initial_mouse_position[1]
             for i in range(<int>imgui.ImGuiMouseButton_COUNT):
                 self.state.cur.dragging[i] = dragging and imgui.IsMouseDown(i)
                 if dragging:
-                    self.state.cur.drag_deltas[i].x = cur_mouse_pos.x - self._initial_mouse_position.x
-                    self.state.cur.drag_deltas[i].y = cur_mouse_pos.y - self._initial_mouse_position.y
+                    self.state.cur.drag_deltas[i].x = coordinate_p[0] - self._initial_mouse_position[0]
+                    self.state.cur.drag_deltas[i].y = coordinate_p[1] - self._initial_mouse_position[1]
         else:
             for i in range(<int>imgui.ImGuiMouseButton_COUNT):
                 self.state.cur.dragging[i] = False
