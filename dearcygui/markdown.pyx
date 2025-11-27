@@ -977,6 +977,38 @@ cdef inline bint in_pua(uint32_t codepoint) nogil:
     return in_pua_table[codepoint]
 
 
+cdef inline const float get_space_advance_x() noexcept nogil:
+    """Get for the current font the advance width between characters"""
+    cdef const imgui.ImFontGlyph* space_glyph = imgui.GetFont().FindGlyph(32)
+    if space_glyph != NULL:
+        return space_glyph.AdvanceX  # Add space width if available
+    return imgui.GetStyle().ItemSpacing.x  # Use default spacing if no glyph found
+
+cdef inline const float get_uppercase_center_y() noexcept nogil:
+    """Get the vertical center of uppercase text for the current font"""
+    cdef const imgui.ImFontGlyph* A_glyph = imgui.GetFont().FindGlyph(65)  # 'A' glyph for height
+    if A_glyph != NULL:
+        return (A_glyph.Y0 + A_glyph.Y1) * 0.5
+    else:
+        return imgui.GetTextLineHeight() * 0.5 # Default height if no glyph found
+
+cdef inline const float get_lowercase_center_y() noexcept nogil:
+    """Get the vertical center of lowercase text for the current font"""
+    cdef const imgui.ImFontGlyph* o_glyph = imgui.GetFont().FindGlyph(111)  # 'o' glyph for height
+    if o_glyph != NULL:
+        return (o_glyph.Y0 + o_glyph.Y1) * 0.5
+    else:
+        return imgui.GetTextLineHeight() * 0.5 # Default height if no glyph found
+
+cdef inline const float get_lowercase_height() noexcept nogil:
+    """Get the height of lowercase text for the current font"""
+    cdef const imgui.ImFontGlyph* o_glyph = imgui.GetFont().FindGlyph(111)  # 'o' glyph for height
+    if o_glyph != NULL:
+        return o_glyph.Y1 - o_glyph.Y0
+    else:
+        return imgui.GetTextLineHeight()
+
+
 # Main Markdown Text component
 #--------------------------
 cdef class MarkDownText(uiItem):
@@ -996,6 +1028,7 @@ cdef class MarkDownText(uiItem):
     
     # Layout
     cdef float _last_width
+    cdef float _last_global_scale
     cdef Vec2 _rect_size
     cdef vector[MDProcessedLine] _lines  # Processed lines for rendering, in order of increasing y position
     cdef vector[MDProcessedBlock] _blocks  # Processed blocks for rendering, in a topological order
@@ -1699,11 +1732,10 @@ cdef class MarkDownText(uiItem):
     @cython.final
     cdef void _process_text(self, MDParsedBlock* block, float indent) noexcept nogil:
         """Process text content within a block."""
-        cdef float global_scale = self.context.viewport.global_scale
+        cdef float global_scale_backup = self.context.viewport.global_scale
 
-        cdef const imgui.ImFontGlyph* space_glyph
-        cdef float space_advance_x = 0.0
-        cdef float prev_font_scale = global_scale, font_scale
+        cdef float space_advance_x = get_space_advance_x()
+        cdef float prev_font_scale = global_scale_backup, font_scale
         cdef PyObject *font_to_pop = NULL
         cdef int32_t style_font_mask = <int32_t>MDTextType.MD_TEXT_EMPH \
             | <int32_t>MDTextType.MD_TEXT_STRONG | <int32_t>MDTextType.MD_TEXT_CODE
@@ -1722,18 +1754,12 @@ cdef class MarkDownText(uiItem):
         if self._lines.empty():
             self._finish_line(0, False)
 
-        space_glyph = imgui.GetFont().FindGlyph(32)
-        if space_glyph is not NULL:
-            space_advance_x = space_glyph.AdvanceX  # Add space width if available
-        else:
-            space_advance_x = imgui.GetStyle().ItemSpacing.x  # Use default spacing if no glyph found
-
         for i in range(<int>block.words.size()):
             word = &block.words[i]
 
             # Compute font characteristics
             #cur_bi_mask = <int32_t>(word.type) & bi_mask
-            font_scale = self._heading_scales[word.level] * global_scale
+            font_scale = self._heading_scales[word.level] * global_scale_backup
 
             if font_scale != prev_font_scale: # cur_bi_mask != last_bi_mask
                 self.context.viewport.global_scale = font_scale
@@ -1745,11 +1771,7 @@ cdef class MarkDownText(uiItem):
                 if <object>self._applicable_font is not None:
                     font_to_pop = self._applicable_font
                     (<baseFont>font_to_pop).push()
-                    space_glyph = imgui.GetFont().FindGlyph(32)
-                    if space_glyph is not NULL:
-                        space_advance_x = space_glyph.AdvanceX  # Add space width if available
-                    else:
-                        space_advance_x = imgui.GetStyle().ItemSpacing.x  # Use default spacing if no glyph found
+                    space_advance_x = get_space_advance_x()
             assert word.level >= 0 and word.level <= 6, "Heading level must be between 0 and 6"
 
             # apply font style
@@ -1813,7 +1835,7 @@ cdef class MarkDownText(uiItem):
                 self._last_is_soft_break = False
 
         # Restore state
-        self.context.viewport.global_scale = global_scale
+        self.context.viewport.global_scale = global_scale_backup
         if font_to_pop != NULL:
             (<baseFont>font_to_pop).pop()
             font_to_pop = NULL
@@ -1943,32 +1965,38 @@ cdef class MarkDownText(uiItem):
             self._blocks.back().ymin = init_y
             self._blocks.back().ymax = final_y
 
+    @cython.final
+    cdef PyObject* _get_applicable_font(self) noexcept nogil:
+        """Get the applicable font based on the current settings."""
+        if self._font is not None:
+            return <PyObject *>self._font
+
+        # Find the font in the parent tree
+        cdef PyObject *parent_item = <PyObject *>self.parent
+        while <object>parent_item is not None:
+            # Important Note: assume that all parents are uiItem except the viewport
+            if <baseItem>parent_item is self.context.viewport:
+                # Reached the viewport, use its font
+                return <PyObject*>self.context.viewport._font
+            else:
+                # Use the parent's font
+                if (<uiItem>parent_item)._font is not None:
+                    return <PyObject*>(<uiItem>parent_item)._font
+            # Move to the parent item
+            parent_item = <PyObject*>(<baseItem>parent_item).parent
+
+        # Not attached to the viewport ??? Shouldn't occur
+        return <PyObject *>self._font
+
     # Processing of the parsed content
     cdef void _process(self, float available_width) noexcept nogil:
         """Process the whole document tree to compute layout"""
-        cdef PyObject *applicable_font = <PyObject *>self._font
-        cdef PyObject *parent_item = <PyObject *>self.parent
-
-        # Retrieve applicable font
-        if self._font is None:
-            # Find the font in the parent tree
-            while <object>parent_item is not None:
-                # Important Note: assume that all parents are uiItem except the viewport
-                if <baseItem>parent_item is self.context.viewport:
-                    # Reached the viewport, use its font
-                    applicable_font = <PyObject*>self.context.viewport._font
-                    break
-                else:
-                    # Use the parent's font
-                    applicable_font = <PyObject*>(<uiItem>parent_item)._font
-                    if <object>applicable_font is not None:
-                        break
-                # Move to the parent item
-                parent_item = <PyObject*>(<baseItem>parent_item).parent
+        cdef PyObject *applicable_font = self._get_applicable_font()
 
         # Skip if width or font hasn't changed TODO: also on global scale change
         if self._last_width == available_width\
-           and self._applicable_font == applicable_font:
+           and self._applicable_font == applicable_font\
+           and self._last_global_scale == self.context.viewport.global_scale:
             self.state.cur.rect_size = self._rect_size
             return
 
@@ -1978,6 +2006,11 @@ cdef class MarkDownText(uiItem):
         self._block_details.clear()
         self._applicable_font = applicable_font
         self._last_width = available_width
+        self._last_global_scale = self.context.viewport.global_scale
+
+        # Apply the font to make sure scaling is taken into account
+        if <object>applicable_font is not None:
+            (<baseFont>applicable_font).push()
 
         # Process the document tree recursively
         self._process_block(&self._parser.content, 0, False)
@@ -2005,6 +2038,10 @@ cdef class MarkDownText(uiItem):
             self.state.cur.rect_size.y = fmax(self.state.cur.rect_size.y, self._blocks[i].ymax)
 
         self._rect_size = self.state.cur.rect_size
+
+        # Pop the font after processing
+        if <object>applicable_font is not None:
+            (<baseFont>applicable_font).pop()
 
     # Rendering
     cdef bint draw_item(self) noexcept nogil:
@@ -2044,34 +2081,22 @@ cdef class MarkDownText(uiItem):
 
         cdef imgui.ImDrawList* draw_list = imgui.GetWindowDrawList()
 
-        cdef float global_scale = self.context.viewport.global_scale
+        cdef float global_scale_backup = self.context.viewport.global_scale
 
-        cdef const imgui.ImFontGlyph* space_glyph
-        cdef const imgui.ImFontGlyph* A_glyph
-        cdef const imgui.ImFontGlyph* o_glyph
-        cdef float space_advance_x = 0.0, A_center = 0.0, A_height = 0.0, o_center = 0.0, o_height = 0.0
-        space_glyph = imgui.GetFont().FindGlyph(32)
-        if space_glyph is not NULL:
-            space_advance_x = space_glyph.AdvanceX  # Add space width if available
-        else:
-            space_advance_x = imgui.GetStyle().ItemSpacing.x  # Use default spacing if no glyph found
-        A_glyph = imgui.GetFont().FindGlyph(65)  # 'A' glyph for height
-        if A_glyph is not NULL:
-            A_center = (A_glyph.Y0 + A_glyph.Y1) * 0.5
-            A_height = A_glyph.Y1 - A_glyph.Y0
-        else:
-            A_center = imgui.GetTextLineHeight() * 0.5 # Default height if no glyph found
-            A_height = imgui.GetTextLineHeight()
-        o_glyph = imgui.GetFont().FindGlyph(111)  # 'o' glyph for height
-        if o_glyph is not NULL:
-            o_center = (o_glyph.Y0 + o_glyph.Y1) * 0.5
-            o_height = o_glyph.Y1 - o_glyph.Y0
-        else:
-            o_center = imgui.GetTextLineHeight() * 0.5 # Default height if no glyph found
-            o_height = imgui.GetTextLineHeight()
+        # Apply font to make sure scaling is taken into account
+        cdef PyObject *applicable_font = self._get_applicable_font()
+        if <object>applicable_font is not None:
+            (<baseFont>applicable_font).push()
 
-        cdef float prev_font_scale = global_scale, font_scale
-        cdef PyObject *font_to_pop = NULL
+        cdef float space_advance_x = 0.0, upper_case_center = 0.0, lower_case_center = 0.0, lower_case_height = 0.0
+        space_advance_x = get_space_advance_x()
+        # For strikethrough and underline positioning
+        upper_case_center = get_uppercase_center_y()
+        lower_case_center = get_lowercase_center_y()
+        lower_case_height = get_lowercase_height()
+
+        cdef float prev_font_scale = global_scale_backup, font_scale
+        cdef PyObject *font_to_pop = <PyObject *>NULL if <object>applicable_font is None else <PyObject *>applicable_font
         cdef uint32_t codepoint
 
         cdef int i, j
@@ -2134,12 +2159,12 @@ cdef class MarkDownText(uiItem):
             elif self._blocks[i].type == MD_BLOCKTYPE_EXT.MD_BLOCK_QUOTE:
                 # Draw quote block background
                 t_draw_line(self.context, draw_list,
-                            item_pos.x + 0.5 * global_scale * imgui.GetStyle().SeparatorTextBorderSize,
-                            item_pos.y + 0.5 * global_scale * imgui.GetStyle().SeparatorTextBorderSize,
-                            item_pos.x + 0.5 * global_scale * imgui.GetStyle().SeparatorTextBorderSize,
-                            initial_pos_backup.y + self._blocks[i].ymax - 0.5 * global_scale * imgui.GetStyle().SeparatorTextBorderSize,
+                            item_pos.x + 0.5 * global_scale_backup * imgui.GetStyle().SeparatorTextBorderSize,
+                            item_pos.y + 0.5 * global_scale_backup * imgui.GetStyle().SeparatorTextBorderSize,
+                            item_pos.x + 0.5 * global_scale_backup * imgui.GetStyle().SeparatorTextBorderSize,
+                            initial_pos_backup.y + self._blocks[i].ymax - 0.5 * global_scale_backup * imgui.GetStyle().SeparatorTextBorderSize,
                             None, border_color,
-                            global_scale * imgui.GetStyle().SeparatorTextBorderSize)
+                            global_scale_backup * imgui.GetStyle().SeparatorTextBorderSize)
 
 
         for i in range(<int>self._lines.size()):
@@ -2178,25 +2203,10 @@ cdef class MarkDownText(uiItem):
                     if <object>self._applicable_font is not None:
                         font_to_pop = self._applicable_font
                         (<baseFont>font_to_pop).push()
-                    space_glyph = imgui.GetFont().FindGlyph(32)
-                    if space_glyph is not NULL:
-                        space_advance_x = space_glyph.AdvanceX  # Add space width if available
-                    else:
-                        space_advance_x = imgui.GetStyle().ItemSpacing.x  # Use default spacing if no glyph found
-                    A_glyph = imgui.GetFont().FindGlyph(65)  # 'A' glyph for height
-                    if A_glyph is not NULL:
-                        A_center = (A_glyph.Y0 + A_glyph.Y1) * 0.5
-                        A_height = A_glyph.Y1 - A_glyph.Y0
-                    else:
-                        A_center = imgui.GetTextLineHeight() * 0.5
-                        A_height = imgui.GetTextLineHeight()
-                    o_glyph = imgui.GetFont().FindGlyph(111)  # 'o' glyph for height
-                    if o_glyph is not NULL:
-                        o_center = (o_glyph.Y0 + o_glyph.Y1) * 0.5
-                        o_height = o_glyph.Y1 - o_glyph.Y0
-                    else:
-                        o_center = imgui.GetTextLineHeight() * 0.5
-                        o_height = imgui.GetTextLineHeight()
+                        space_advance_x = get_space_advance_x()
+                        upper_case_center = get_uppercase_center_y()
+                        lower_case_center = get_lowercase_center_y()
+                        lower_case_height = get_lowercase_height()
 
                 # Draw the item based on its type
                 if item.item_type == 0 or item.item_type == 2:  # Regular text
@@ -2213,34 +2223,34 @@ cdef class MarkDownText(uiItem):
                     if item.text[0] == r"*":
                         t_draw_star(self.context, draw_list,
                                     item_pos.x + item_size.x * 0.5,
-                                    item_pos.y + o_center - 0.5,
-                                    o_height * 0.5,
-                                    o_height * 0.3,
+                                    item_pos.y + lower_case_center - 0.5,
+                                    lower_case_height * 0.5,
+                                    lower_case_height * 0.3,
                                     0.5*3.1415, 5, None, 0,
                                     color_table[<int32_t>item.color_index], 0.)
                     elif item.text == r"-":
                         t_draw_line(self.context, draw_list,
                                     item_pos.x,
-                                    item_pos.y + A_center,
+                                    item_pos.y + upper_case_center,
                                     item_pos.x + space_advance_x,
-                                    item_pos.y + A_center,
+                                    item_pos.y + upper_case_center,
                                     None,
                                     color_table[<int32_t>item.color_index],
                                     self.context.viewport.global_scale)
                     elif item.text == r"." or item.text == r")":
                         # Draw a left-aligned small point
                         t_draw_circle(self.context, draw_list,
-                                      item_pos.x + o_height * 0.5,
-                                      item_pos.y + o_center + 0.25 * o_height,
-                                      o_height * 0.2,
+                                      item_pos.x + lower_case_height * 0.5,
+                                      item_pos.y + lower_case_center + 0.25 * lower_case_height,
+                                      lower_case_height * 0.2,
                                       None, 0,
                                       color_table[<int32_t>item.color_index], 0., 12)
                     else: # item.text == r"+":
                         # Fallback to bullet
                         t_draw_circle(self.context, draw_list,
                                       item_pos.x + item_size.x * 0.5,
-                                      item_pos.y + o_center,
-                                      o_height * 0.45,
+                                      item_pos.y + lower_case_center,
+                                      lower_case_height * 0.45,
                                       None, 0,
                                       color_table[<int32_t>item.color_index], 0., 12)
                 elif item.item_type == 3:  # Horizontal rule
@@ -2274,6 +2284,8 @@ cdef class MarkDownText(uiItem):
                     last_strikethrough = False
 
                 last_x = item_pos.x + item_size.x
+
+        self.context.viewport.global_scale = global_scale_backup
 
         if font_to_pop != NULL:
             (<baseFont>font_to_pop).pop()

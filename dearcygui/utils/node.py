@@ -393,7 +393,7 @@ class BaseNodeEditor(dcg.ChildWindow):
                                         no_global_scaling=True
                                         )
 
-    def add_node(self, **kwargs) -> 'BaseNode':
+    def add_node(self, **kwargs) -> 'BaseNode': # TODO: document relative positioning aspect
         """Create and return a new node"""
         return BaseNode(self.context, parent=self._nodes, **kwargs)
 
