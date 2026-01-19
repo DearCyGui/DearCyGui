@@ -1893,6 +1893,7 @@ cdef class InputText(uiItem):
         self.state.cap.can_be_hovered = True
         self._multiline = False
         self._max_characters = 1024
+        self._last_frame_update = -1
         self._flags = imgui.ImGuiInputTextFlags_None
         self._buffer = <char*>malloc(self._max_characters + 1)
         if self._buffer == NULL:
@@ -2322,14 +2323,14 @@ cdef class InputText(uiItem):
         
         # Get current value from source if needed
         SharedStr.get(<SharedStr>self._value, current_value)
-        cdef bint need_update = (<SharedStr>self._value)._last_frame_change >= self._last_frame_update 
+        cdef bint need_update = (<SharedStr>self._value)._last_frame_change != self._last_frame_change
 
         if need_update:
             size = min(<int>current_value.size(), self._max_characters)
             # Copy value to buffer
             memcpy(self._buffer, current_value.data(), size)
             self._buffer[size] = 0
-            self._last_frame_update = (<SharedStr>self._value)._last_frame_update
+            self._last_frame_change = (<SharedStr>self._value)._last_frame_change
 
         cdef bint changed = False
         if not(self._enabled):
@@ -2364,6 +2365,7 @@ cdef class InputText(uiItem):
         if changed:
             current_value = DCGString(<char*>self._buffer)
             SharedStr.set(<SharedStr>self._value, current_value)
+            self._last_frame_change = (<SharedStr>self._value)._last_frame_change
 
         if not(self._enabled):
             changed = False
@@ -4154,6 +4156,7 @@ cdef class Tab(uiItem):
         self.state.cap.has_rect_size = True
         self._closable = False
         self._flags = imgui.ImGuiTabItemFlags_None
+        self._last_frame_update = -1
 
     @property
     def closable(self):
@@ -4269,10 +4272,8 @@ cdef class Tab(uiItem):
 
     cdef bint draw_item(self) noexcept nogil:
         cdef imgui.ImGuiTabItemFlags flags = self._flags
-        if (<SharedBool>self._value)._last_frame_change == self.context.viewport.frame_count:
-            # The value was changed after the last time we drew
-            # TODO: will have no effect if we switch from show to no show.
-            # maybe have a counter here.
+        if (<SharedBool>self._value)._last_frame_change != self._last_frame_change:
+            # The value was changed, and not by this item.
             if SharedBool.get(<SharedBool>self._value):
                 flags |= imgui.ImGuiTabItemFlags_SetSelected
         cdef bint menu_open = imgui.BeginTabItem(self._imgui_label.c_str(),
@@ -4302,6 +4303,7 @@ cdef class Tab(uiItem):
             self._propagate_hidden_state_to_children_with_handlers()
         self.state.cur.open = menu_open
         SharedBool.set(<SharedBool>self._value, menu_open)
+        self._last_frame_change = (<SharedBool>self._value)._last_frame_change
         return self.state.cur.active and not(self.state.prev.active)
 
 

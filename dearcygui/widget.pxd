@@ -85,7 +85,7 @@ cdef class InputText(uiItem):
     cdef bint _multiline
     cdef int32_t _max_characters
     cdef char* _buffer
-    cdef int64_t _last_frame_update
+    cdef int64_t _last_frame_change
     cdef int32_t _flags # imgui.ImGuiInputTextFlags
     cdef bint draw_item(self) noexcept nogil
 
@@ -162,6 +162,7 @@ cdef class TabButton(uiItem):
 cdef class Tab(uiItem):
     cdef bint _closable
     cdef int32_t _flags # imgui.ImGuiTabItemFlags
+    cdef int64_t _last_frame_change
 
 cdef class TabBar(uiItem):
     cdef int32_t _flags # imgui.ImGuiTabBarFlags
