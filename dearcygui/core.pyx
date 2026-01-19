@@ -2851,7 +2851,7 @@ cdef class ViewportMetrics:
         return self.active_windows
         
     @property
-    def frame_count(self) -> float:
+    def frame_count(self) -> int:
         """
         Counter indicating which frame these metrics belong to.
         

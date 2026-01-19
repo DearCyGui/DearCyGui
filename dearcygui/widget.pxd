@@ -1,4 +1,4 @@
-from libc.stdint cimport uint32_t, int32_t
+from libc.stdint cimport uint32_t, int32_t, int64_t
 
 from .core cimport baseItem, uiItem, drawingItem, itemState, \
     baseHandler, SharedValue
@@ -34,7 +34,7 @@ cdef class SimplePlot(uiItem):
     cdef float _scale_max
     cdef bint _histogram
     cdef bint _autoscale
-    cdef int32_t _last_frame_autoscale_update
+    cdef int64_t _last_frame_autoscale_update
     cdef bint draw_item(self) noexcept nogil
 
 
@@ -85,7 +85,7 @@ cdef class InputText(uiItem):
     cdef bint _multiline
     cdef int32_t _max_characters
     cdef char* _buffer
-    cdef int32_t _last_frame_update
+    cdef int64_t _last_frame_update
     cdef int32_t _flags # imgui.ImGuiInputTextFlags
     cdef bint draw_item(self) noexcept nogil
 

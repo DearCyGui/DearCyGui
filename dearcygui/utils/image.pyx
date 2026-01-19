@@ -27,7 +27,7 @@ cdef struct TileData:
     double ymax
     int32_t width
     int32_t height
-    int32_t last_frame_count
+    int64_t last_frame_count
     bint show
     PyObject *texture
 
@@ -110,7 +110,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         """
         cdef pair[int64_t, TileData] tile_data
         cdef int64_t uuid = -1
-        cdef int32_t worst_last_frame_count = -1
+        cdef int64_t worst_last_frame_count = -1
         for tile_data in dereference(self._tiles):
             if uuid == -1 or \
                tile_data.second.last_frame_count < worst_last_frame_count:

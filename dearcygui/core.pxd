@@ -340,7 +340,7 @@ One instance is if making call to unknown user call which might change the imgui
 
 cdef class Viewport(baseItem):
     ### Public read-only variables
-    cdef int32_t frame_count # frame count
+    cdef int64_t frame_count # frame count
     cdef bint skipped_last_frame
     cdef itemState state
     # For timing stats
@@ -693,8 +693,8 @@ cdef class SharedValue:
     # Public read-only variables
     cdef DCGMutex mutex
     cdef Context context
-    cdef int32_t _last_frame_update # Last frame count the value was updated
-    cdef int32_t _last_frame_change # Last frame count the value changed (>= updated)
+    cdef int64_t _last_frame_update # Last frame count the value was updated
+    cdef int64_t _last_frame_change # Last frame count the value changed (>= updated)
     cdef int32_t _num_attached # number of items the value is attached to
     # call when the value is updated. the second argument should be True if the
     # value changed, False else.
