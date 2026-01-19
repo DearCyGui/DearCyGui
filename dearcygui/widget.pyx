@@ -1083,7 +1083,7 @@ cdef class Combo(uiItem):
     @items.setter
     def items(self, value):
         cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] value_m
+        # cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1095,12 +1095,16 @@ cdef class Combo(uiItem):
                 self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        lock_gil_friendly(value_m, self._value.mutex)
-        if self._value._num_attached == 1 and \
-           self._value._last_frame_update == -1 and \
-           self._items.size() > 0: # TODO: this doesn't seem reliable enough
-            # initialize the value with the first element
-            SharedStr.set(<SharedStr>self._value, self._items[0])
+        ### Note: original intent was to initialize the value with the first element
+        ### Unless given. Unfortunately a bug in the implementation below meant
+        ### this never happened. Re-adding it would be a breaking change for 0.1.x.
+        ### TODO: consider re-adding fixed in 0.2.0
+        #lock_gil_friendly(value_m, self._value.mutex)
+        #if self._value._num_attached == 1 and \
+        #   self._value._last_frame_update == -1 and \
+        #   self._items.size() > 0:
+        #    # initialize the value with the first element
+        #    SharedStr.set(<SharedStr>self._value, self._items[0])
 
     @property
     def height_mode(self):
@@ -1662,7 +1666,7 @@ cdef class ListBox(uiItem):
     @items.setter
     def items(self, value):
         cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] value_m
+        # cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1674,12 +1678,16 @@ cdef class ListBox(uiItem):
                 self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        lock_gil_friendly(value_m, self._value.mutex)
-        if self._value._num_attached == 1 and \
-           self._value._last_frame_update == -1 and \
-           self._items.size() > 0:
-            # initialize the value with the first element
-            SharedStr.set(<SharedStr>self._value, self._items[0])
+        ### Note: original intent was to initialize the value with the first element
+        ### Unless given. Unfortunately a bug in the implementation below meant
+        ### this never happened. Re-adding it would be a breaking change for 0.1.x.
+        ### TODO: consider re-adding fixed in 0.2.0
+        #lock_gil_friendly(value_m, self._value.mutex)
+        #if self._value._num_attached == 1 and \
+        #   self._value._last_frame_update == -1 and \
+        #   self._items.size() > 0:
+        #    # initialize the value with the first element
+        #    SharedStr.set(<SharedStr>self._value, self._items[0])
 
     @property
     def num_items_shown_when_open(self):
@@ -1792,7 +1800,7 @@ cdef class RadioButton(uiItem):
     @items.setter
     def items(self, value):
         cdef unique_lock[DCGMutex] m
-        cdef unique_lock[DCGMutex] value_m
+        # cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1804,12 +1812,16 @@ cdef class RadioButton(uiItem):
                 self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        lock_gil_friendly(value_m, self._value.mutex)
-        if self._value._num_attached == 1 and \
-           self._value._last_frame_update == -1 and \
-           self._items.size() > 0:
-            # initialize the value with the first element
-            SharedStr.set(<SharedStr>self._value, self._items[0])
+        ### Note: original intent was to initialize the value with the first element
+        ### Unless given. Unfortunately a bug in the implementation below meant
+        ### this never happened. Re-adding it would be a breaking change for 0.1.x.
+        ### TODO: consider re-adding fixed in 0.2.0
+        #lock_gil_friendly(value_m, self._value.mutex)
+        #if self._value._num_attached == 1 and \
+        #   self._value._last_frame_update == -1 and \
+        #   self._items.size() > 0: # The issue is that _last_frame_update is never -1 as it is initialized to the frame count
+        #    # initialize the value with the first element
+        #    SharedStr.set(<SharedStr>self._value, self._items[0])
 
     @property
     def horizontal(self):
@@ -1893,7 +1905,7 @@ cdef class InputText(uiItem):
         self.state.cap.can_be_hovered = True
         self._multiline = False
         self._max_characters = 1024
-        self._last_frame_update = -1
+        self._last_frame_change = -1
         self._flags = imgui.ImGuiInputTextFlags_None
         self._buffer = <char*>malloc(self._max_characters + 1)
         if self._buffer == NULL:
@@ -4156,7 +4168,7 @@ cdef class Tab(uiItem):
         self.state.cap.has_rect_size = True
         self._closable = False
         self._flags = imgui.ImGuiTabItemFlags_None
-        self._last_frame_update = -1
+        self._last_frame_change = -1
 
     @property
     def closable(self):
