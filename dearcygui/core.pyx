@@ -4663,6 +4663,7 @@ cdef class Viewport(baseItem):
                 style_p.ErrorBarWeight = gs * 1.5
                 style_p.DigitalBitHeight = cround(gs * 8.)
                 style_p.DigitalBitGap = cround(gs * 4.)
+                style_p.PlotBorderSize = gs * 1.
                 style_p.MajorTickLen = imgui.ImVec2(gs*10, gs*10)
                 style_p.MinorTickLen = imgui.ImVec2(gs*5, gs*5)
                 style_p.MajorTickSize = imgui.ImVec2(gs*1, gs*1)
@@ -4676,6 +4677,7 @@ cdef class Viewport(baseItem):
                 style_p.LegendSpacing = imgui.ImVec2(cround(gs*5), cround(gs*0))
                 style_p.MousePosPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
                 style_p.AnnotationPadding = imgui.ImVec2(cround(gs*2), cround(gs*2))
+                style_p.FitPadding = imgui.ImVec2(gs*0.1, gs*0.1)
                 style_p.PlotDefaultSize = imgui.ImVec2(cround(gs*400), cround(gs*300))
                 style_p.PlotMinSize = imgui.ImVec2(cround(gs*200), cround(gs*150))
 
