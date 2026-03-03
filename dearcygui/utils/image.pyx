@@ -591,9 +591,13 @@ cdef class DrawSVG(dcg.drawingItem):
     def svg_path(self, str value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+    
         # Store path and create renderer
         self._svg_path = value
         self._renderer = SkiaSVGRenderer(value)
+
+        # Force texture reallocation and re-rendering on next draw    
+        self._texture_width = 0
 
     @property
     def pmin(self):
