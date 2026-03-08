@@ -4246,7 +4246,9 @@ cdef class Viewport(baseItem):
         self.__check_alive()
         if value and not((<platformViewport*>self._platform).isMinimized):
             (<platformViewport*>self._platform).shouldMinimize = True
+            (<platformViewport*>self._platform).shouldRestore = False
         elif (<platformViewport*>self._platform).isMinimized:
+            (<platformViewport*>self._platform).shouldMinimize = False
             (<platformViewport*>self._platform).shouldRestore = True
 
     @property
@@ -4271,7 +4273,9 @@ cdef class Viewport(baseItem):
         self.__check_alive()
         if value and not((<platformViewport*>self._platform).isMaximized):
             (<platformViewport*>self._platform).shouldMaximize = True
+            (<platformViewport*>self._platform).shouldRestore = False
         elif (<platformViewport*>self._platform).isMaximized:
+            (<platformViewport*>self._platform).shouldMaximize = False
             (<platformViewport*>self._platform).shouldRestore = True
 
     @property
@@ -4293,9 +4297,11 @@ cdef class Viewport(baseItem):
         lock_gil_friendly(m, self.mutex)
         self.__check_alive()
         if value and not((<platformViewport*>self._platform).isVisible):
+            (<platformViewport*>self._platform).shouldHide = False
             (<platformViewport*>self._platform).shouldShow = True
         elif not value and (<platformViewport*>self._platform).isVisible:
             (<platformViewport*>self._platform).shouldHide = True
+            (<platformViewport*>self._platform).shouldShow = False
 
     @property
     def wait_for_input(self):

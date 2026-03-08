@@ -917,8 +917,12 @@ bool SDLViewport::initialize() {
     SDL_SetWindowSize(windowHandle, (int)(windowWidth * factor), (int)(windowHeight * factor));
     SDL_SetWindowMaximumSize(windowHandle, (int)(maxWidth * factor), (int)(maxHeight * factor));
     SDL_SetWindowMinimumSize(windowHandle, (int)(minWidth * factor), (int)(minHeight * factor));
-    if (!shouldHide)
+    if (!shouldHide || shouldShow)
         SDL_ShowWindow(windowHandle);
+    else
+        isVisible = false;
+    shouldHide = false;
+    shouldShow = false;
 
     // Retry after showing the window and getting the actual values
     SDL_SyncWindow(windowHandle);
