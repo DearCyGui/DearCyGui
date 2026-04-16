@@ -4669,6 +4669,7 @@ cdef class Viewport(baseItem):
                 style_p.MinorTickSize = imgui.ImVec2(gs*1, gs*1)
                 style_p.MajorGridSize = imgui.ImVec2(gs*1, gs*1)
                 style_p.MinorGridSize = imgui.ImVec2(gs*1, gs*1)
+                style_p.PlotBorderSize = gs * 1.
                 style_p.PlotPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
                 style_p.LabelPadding = imgui.ImVec2(cround(gs*5), cround(gs*5))
                 style_p.LegendPadding = imgui.ImVec2(cround(gs*10), cround(gs*10))
