@@ -92,6 +92,16 @@ def build_SDL3():
         if os.environ.get('CMAKE_OSX_ARCHITECTURES'):
             cmake_config_args.append(f'-DCMAKE_OSX_ARCHITECTURES={os.environ["CMAKE_OSX_ARCHITECTURES"]}')
 
+    if get_platform() == "Linux":
+        # Disable optional X11/Wayland extensions that require extra dev packages
+        cmake_config_args += [
+            '-DSDL_X11_XRANDR=OFF',
+            '-DSDL_X11_XSCRNSAVER=OFF',
+            '-DSDL_X11_XTEST=OFF',
+            '-DSDL_FRIBIDI=OFF',
+            '-DSDL_WAYLAND_LIBDECOR=OFF',
+        ]
+
     if get_platform() == "Windows":
         # gamepad input bug https://github.com/libsdl-org/SDL/issues/11487
         cmake_config_args += ["-DSDL_PRESEED=OFF"]
