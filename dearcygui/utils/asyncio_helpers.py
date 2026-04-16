@@ -181,9 +181,9 @@ class AsyncPoolExecutor:
         """Initialize the executor with standard ThreadPoolExecutor parameters."""
         if loop is None:
             try:
-                self._loop = asyncio.get_event_loop()
+                self._loop = asyncio.get_running_loop()
             except RuntimeError:
-                self._loop = None # Python 3.14+
+                self._loop = None
             if self._loop is None:
                 raise RuntimeError("No event loop found. Please set an event loop before using AsyncPoolExecutor.")
         else:
