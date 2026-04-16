@@ -63,9 +63,13 @@ class _SimpleBarrier:
         # and in the worst case, we will miss calling _discard and need
         # to create a new barrier.
 
-async def _async_task(future: Future | asyncio.Future,
-                      barrier: _SimpleBarrier | None,
-                      fn: Callable | Coroutine, args: tuple, kwargs: dict) -> None:
+async def _async_task(
+    future: Future | asyncio.Future,
+    barrier: _SimpleBarrier | None,
+    fn: Callable | Coroutine,
+    args: tuple,
+    kwargs: dict
+) -> None:
     """
     Internal function to run a callable in the asyncio event loop.
     This function is designed to be run as a task in the event loop,
@@ -129,21 +133,19 @@ async def _async_task(future: Future | asyncio.Future,
             future.set_running_or_notify_cancel()
 
 
-def _cancel_task_if_cancelled(task, future):
+def _cancel_task_if_cancelled(task: asyncio.Task, future):
     """Callback to cancel a task when its future is cancelled."""
-    if future.cancelled() and not task.done():
-        try:
-            # TODO: task .done shoud be checked in the loop as well,
-            # And the loop should be obtained a different way than
-            # get_running_loop (cancelation may occur in different thread)
-            asyncio.get_running_loop().call_soon_threadsafe(task.cancel)
-        except RuntimeError:
-            pass
+    if future.cancelled():
+        task.get_loop().call_soon_threadsafe(task.cancel)
 
 
-def _create_task(loop: asyncio.AbstractEventLoop,
-                 future: Future, fn: Callable | Coroutine, args: tuple,
-                 kwargs: dict):
+def _create_task(
+    loop: asyncio.AbstractEventLoop,
+    future: Future,
+    fn: Callable | Coroutine,
+    args: tuple,
+    kwargs: dict
+):
     """
     Helper function to instantiate an awaitable for the
     task in the asyncio event loop
@@ -660,8 +662,10 @@ class AsyncThreadPoolExecutor(Executor):
         self.shutdown(wait=False, cancel_futures=True)
 
 
-async def run_viewport_loop(viewport: dcg.Viewport,
-                            frame_rate: float = 120) -> None:
+async def run_viewport_loop(
+    viewport: dcg.Viewport,
+    frame_rate: float = 120
+) -> None:
     """
     Run the viewport's rendering loop in an asyncio-friendly manner.
 
