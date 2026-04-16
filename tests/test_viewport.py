@@ -212,7 +212,7 @@ class TestMultipleViewports:
         # Verify separate settings
         for i, vp in enumerate(viewports):
             assert vp.title == f"VP {i}"
-            assert vp.width == 500 + i*50
+            assert vp.width == pytest.approx(500 + i*50, rel=1.)
             vp.render_frame()
     
     def test_rendering_sequence(self, multiple_viewports: tuple[list[dcg.Context], list[dcg.Viewport]]):

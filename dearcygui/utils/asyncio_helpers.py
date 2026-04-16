@@ -133,6 +133,9 @@ def _cancel_task_if_cancelled(task, future):
     """Callback to cancel a task when its future is cancelled."""
     if future.cancelled() and not task.done():
         try:
+            # TODO: task .done shoud be checked in the loop as well,
+            # And the loop should be obtained a different way than
+            # get_running_loop (cancelation may occur in different thread)
             asyncio.get_running_loop().call_soon_threadsafe(task.cancel)
         except RuntimeError:
             pass
