@@ -2156,8 +2156,89 @@ cdef class baseItem:
         # destroy anything else: the item might
         # still be referenced for instance in handlers,
         # and thus should be valid.
+        if self._clear_additional_references_on_delete != baseItem._clear_additional_references_on_delete:
+            self._clear_additional_references_on_delete()
 
+    cdef void _clear_additional_references_on_delete(self) noexcept:
+        """
+        Called for each item by delete_item or _delete_and_siblings
+        
+        Used for subclasses to insert specific reference clearing
+        code during delete_item traversal.
+
+        Called with item lock held
+        """
+        return
+
+    @cython.final
+    cdef void _delete_and_siblings(self) noexcept:  # noexcept to not stop on an invalid state
+        """
+        Remove the current item from its parent and all siblings.
+
+        Called on last child of a category. Assumes parent lock is held.
+        """
+        # Note: we set noexcept to prevent inconsistent state if we
+        # stop in the middle of the process due to an exception.
+        cdef unique_lock[DCGMutex] m
+        # Start from current item (last sibling)
+        cdef baseItem current = self
+        cdef baseItem prev
+
+        # Loop until all siblings are processed.
+        while current is not None:
+            lock_gil_friendly(m, current.mutex)
+            prev = current.prev_sibling  # save strong ref before clearing
+
+            # Recurse into children
+            if current.last_drawings_child is not None:
+                (<baseItem>current.last_drawings_child)._delete_and_siblings()
+            if current.last_handler_child is not None:
+                (<baseItem>current.last_handler_child)._delete_and_siblings()
+            if current.last_menubar_child is not None:
+                (<baseItem>current.last_menubar_child)._delete_and_siblings()
+            if current.last_plot_element_child is not None:
+                (<baseItem>current.last_plot_element_child)._delete_and_siblings()
+            if current.last_tab_child is not None:
+                (<baseItem>current.last_tab_child)._delete_and_siblings()
+            if current.last_tag_child is not None:
+                (<baseItem>current.last_tag_child)._delete_and_siblings()
+            if current.last_theme_child is not None:
+                (<baseItem>current.last_theme_child)._delete_and_siblings()
+            if current.last_viewport_drawlist_child is not None:
+                (<baseItem>current.last_viewport_drawlist_child)._delete_and_siblings()
+            if current.last_widgets_child is not None:
+                (<baseItem>current.last_widgets_child)._delete_and_siblings()
+            if current.last_window_child is not None:
+                (<baseItem>current.last_window_child)._delete_and_siblings()
+
+            # Break all owning references
+            current.parent = None
+            current.prev_sibling = None
+            current.next_sibling = None
+            current.last_drawings_child = None
+            current.last_handler_child = None
+            current.last_menubar_child = None
+            current.last_plot_element_child = None
+            current.last_tab_child = None
+            current.last_tag_child = None
+            current.last_theme_child = None
+            current.last_viewport_drawlist_child = None
+            current.last_widgets_child = None
+            current.last_window_child = None
+
+            # Release additional references
+            if current._clear_additional_references_on_delete != baseItem._clear_additional_references_on_delete:
+                current._clear_additional_references_on_delete()
+
+            # Note: just like delete_item, we keep the item state valid.
+            m.unlock()
+            current = prev
+
+    """
+    *** Old version that was recursive but suffered from call stack overflow issues
     cdef void _delete_and_siblings(self):
+        
+
         # Must only be called from delete_item or itself.
         # Assumes the parent mutex is already held
         cdef unique_lock[DCGMutex] m
@@ -2198,6 +2279,7 @@ cdef class baseItem:
         self.last_viewport_drawlist_child = None
         self.last_widgets_child = None
         self.last_window_child = None
+    """
 
 
     @cython.final # The final is for performance, to avoid a virtual function and thus allow inlining
@@ -2292,9 +2374,14 @@ cdef class baseItem:
         """
         Indicate this item used to be traversed, but won't be anymore (rendering version).
 
+        *IMPORTANT*: called from last child + parent mutex held
+
         Called exclusively from _propagate_hidden_state_to_children_with_handlers
         as part of the propagation process.
         """
+
+        """
+        *** Recursive old version that suffers from depth recursion limit issues
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
 
         # Skip propagating and handlers if already hidden.
@@ -2306,11 +2393,43 @@ cdef class baseItem:
             self.run_handlers()
         if self.prev_sibling is not None:
             self.prev_sibling.set_hidden_and_propagate_to_siblings_with_handlers()
+        """
+
+        # Start from current (last child)
+        cdef PyObject* current = <PyObject*>self
+        cdef PyObject* prev
+        cdef unique_lock[DCGMutex] m
+
+        # Loop until there is no more sibling to update
+        while (<baseItem>current) is not None:
+            # Lock current item
+            m = unique_lock[DCGMutex]((<baseItem>current).mutex)
+            if (<baseItem>current).p_state == NULL or (<baseItem>current).p_state.cur.traversed:
+                # Update the state of the item
+                (<baseItem>current).set_previous_states()
+                (<baseItem>current)._update_current_state_as_hidden()
+
+                # Handle subtree
+                (<baseItem>current)._propagate_hidden_state_to_children_with_handlers()
+
+                # Run handlers are requested
+                (<baseItem>current).run_handlers()
+
+            # Continue with previous sibling
+            # NOTE: it is expected that the parent mutex is held when
+            # this method is called, thus there cannot be any change
+            # to the child list, and thus it isn't possible
+            # for prev_sibling to change.
+            prev = <PyObject*>((<baseItem>current).prev_sibling)
+            m.unlock()
+            current = prev
 
     @cython.final
     cdef void set_hidden_and_propagate_to_siblings_no_handlers(self) noexcept:
         """
         Indicate this item used to be traversed, but won't be anymore (programmatic version).
+
+        *IMPORTANT*: called from last child + parent mutex held
 
         Called exclusively from _propagate_hidden_state_to_children_no_handlers
         as part of the propagation process.
@@ -2337,6 +2456,10 @@ cdef class baseItem:
           it won't go from rendered, to not rendered, to rendered),
           as the current state will be overwritten when frame is rendered.
         """
+
+
+        """
+        *** Recursive old version that suffers from depth recursion limit issues
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
 
@@ -2347,6 +2470,32 @@ cdef class baseItem:
             self._propagate_hidden_state_to_children_no_handlers()
         if self.prev_sibling is not None:
             self.prev_sibling.set_hidden_and_propagate_to_siblings_no_handlers()
+        """
+
+        # Start from current (last child)
+        cdef baseItem current = self
+        cdef baseItem prev
+        cdef unique_lock[DCGMutex] m
+
+        # Loop until there is no more sibling to update
+        while current is not None:
+            # Lock current item.
+            # Note we expect the parent to be locked when this
+            # method is called. The locking order is respected.
+            lock_gil_friendly(m, current.mutex)
+
+            # If the item has a state and used to be traversed,
+            # mark it as hidden and propagate to its children.
+            if current.p_state == NULL or current.p_state.cur.traversed:
+                current._update_current_state_as_hidden()
+                current._propagate_hidden_state_to_children_no_handlers()
+
+            # Continue with previous sibling
+            # Same comment as for set_hidden_and_propagate_to_siblings_with_handlers
+            # regarding the expected stability of the child list.
+            prev = current.prev_sibling
+            m.unlock()
+            current = prev
 
     @cython.final
     cdef void _set_hidden_and_propagate_to_children_with_handlers(self) noexcept nogil:
@@ -6410,21 +6559,15 @@ cdef class uiItem(baseItem):
         m.unlock()
         return baseItem.configure(self, **kwargs)
 
-    cpdef void delete_item(self):
-        baseItem.delete_item(self)
-        # Lock AFTER parent delete_item, as
-        # parent delete_item requires to be able
-        # to fully unlock the mutex
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._font = None
-        self._theme = None
-        self.handlers = []
+    cdef void _clear_additional_references_on_delete(self) noexcept:
+        """
+        Called for each item by delete_item or _delete_and_siblings
+        
+        Used for subclasses to insert specific reference clearing
+        code during delete_item traversal.
 
-    cdef void _delete_and_siblings(self):
-        baseItem._delete_and_siblings(self)
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
+        Called with item lock held
+        """
         self._font = None
         self._theme = None
         self.handlers = []

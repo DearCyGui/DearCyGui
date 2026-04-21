@@ -208,11 +208,13 @@ cdef class baseItem:
     cdef void _set_hidden_and_propagate_to_children_no_handlers(self) noexcept
     cdef void _set_not_rendered_and_propagate_to_children_with_handlers(self) noexcept nogil
     #cdef void _copy(self, object)
+    ## protected methods
+    cdef void _clear_additional_references_on_delete(self) noexcept
     ### private methods ###
     cdef void _copy_children(self, baseItem)
     cdef bint _check_traversed(self)
     cdef void _detach_item_and_lock(self, unique_lock[DCGMutex]&)
-    cdef void _delete_and_siblings(self)
+    cdef void _delete_and_siblings(self) noexcept
 
 
 # The capabilities are set during item creation
@@ -672,8 +674,7 @@ cdef class uiItem(baseItem):
     cdef list _callbacks_backing # same as for handlers
     cdef float _scaling_factor
 
-    cpdef void delete_item(self)
-    cdef void _delete_and_siblings(self)
+    cdef void _clear_additional_references_on_delete(self) noexcept
     cdef void update_current_state(self) noexcept nogil
     cdef void update_current_state_subset(self) noexcept nogil
     cdef Vec2 get_requested_size(self) noexcept nogil

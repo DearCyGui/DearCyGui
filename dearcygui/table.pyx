@@ -678,8 +678,8 @@ cdef class baseTable(uiItem):
         #        Py_DECREF(<object>key_element.second.tooltip_ui_item)
         #    if key_element.second.ordering_value != NULL:
         #        Py_DECREF(<object>key_element.second.ordering_value)
-        self._items_refs.clear()
         self._items.clear()
+        self._items_refs.clear()
         self._num_rows = 0
         self._num_cols = 0
         self._dirty_num_rows_cols = False
@@ -696,20 +696,16 @@ cdef class baseTable(uiItem):
         self.clear_items()
         self.children = []
 
-    cpdef void delete_item(self):
-        uiItem.delete_item(self)
-        # Lock AFTER parent delete_item, as
-        # parent delete_item requires to be able
-        # to fully unlock the mutex
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self.clear()
+    cdef void _clear_additional_references_on_delete(self) noexcept:
+        """
+        Called for each item by delete_item or _delete_and_siblings
+        
+        Used for subclasses to insert specific reference clearing
+        code during delete_item traversal.
 
-    cdef void _delete_and_siblings(self):
-        uiItem._delete_and_siblings(self)
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self.clear()
+        Called with item lock held
+        """
+        self.clear_items()
 
     cdef bint _delete_item(self, pair[int32_t, int32_t] key):
         """Delete the item at target key.
