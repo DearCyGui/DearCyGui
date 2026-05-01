@@ -357,3 +357,560 @@ def test_color_edit_basic():
     color_edit.display_mode = "hsv"
     assert color_edit.display_mode == "hsv"
 
+
+# ---- Tests for state.rendered (state.visible) property ----
+
+def test_item_rendered_starts_false(ctx):
+    """Test that items start with rendered=False before being displayed"""
+    # Test various UI item types
+    button = dcg.Button(ctx, label="Test Button")
+    assert not button.state.visible, "Button should start with rendered=False"
+    
+    text = dcg.Text(ctx, value="Test Text")
+    assert not text.state.visible, "Text should start with rendered=False"
+    
+    checkbox = dcg.Checkbox(ctx, label="Test Checkbox")
+    assert not checkbox.state.visible, "Checkbox should start with rendered=False"
+    
+    slider = dcg.Slider(ctx, label="Test Slider")
+    assert not slider.state.visible, "Slider should start with rendered=False"
+
+
+def test_draw_invisible_button_rendered_starts_false(ctx):
+    """Test that DrawInvisibleButton starts with rendered=False (it's the only draw item with state)"""
+    from dearcygui import DrawInvisibleButton
+    
+    draw_button = DrawInvisibleButton(ctx, p1=(0, 0), p2=(100, 100))
+    assert not draw_button.state.visible, "DrawInvisibleButton should start with rendered=False"
+
+
+def test_item_rendered_becomes_true_when_displayed(ctx):
+    """Test that rendered becomes True when item is displayed"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    # Create a window with items
+    win = dcg.Window(ctx, label="Test Window")
+    button = dcg.Button(ctx, label="Test Button", parent=win)
+    text = dcg.Text(ctx, value="Test Text", parent=win)
+    
+    # Before rendering
+    assert not button.state.visible
+    assert not text.state.visible
+    
+    # Render a frame
+    viewport.render_frame()
+    
+    # After rendering, items should be visible
+    assert button.state.visible, "Button should be rendered after render_frame()"
+    assert text.state.visible, "Text should be rendered after render_frame()"
+
+
+def test_draw_invisible_button_rendered_lifecycle(ctx):
+    """Test DrawInvisibleButton rendered property through its lifecycle"""
+    from dearcygui import DrawInvisibleButton, ViewportDrawList
+    
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    # Create a viewport draw list and a draw button
+    draw_list = ViewportDrawList(ctx)
+    draw_button = DrawInvisibleButton(ctx, p1=(10, 10), p2=(100, 100), parent=draw_list)
+    
+    # Should start False
+    assert not draw_button.state.visible, "DrawInvisibleButton should start with rendered=False"
+    
+    # Render a frame
+    viewport.render_frame()
+    
+    # Should become True after rendering
+    assert draw_button.state.visible, "DrawInvisibleButton should be rendered after render_frame()"
+    
+    # Detach the button
+    draw_button.parent = None
+    
+    # Should immediately become False after detachment
+    assert not draw_button.state.visible, "DrawInvisibleButton rendered should be False immediately after detachment"
+
+
+def test_item_rendered_false_when_detached(ctx):
+    """Test that rendered becomes False immediately when item is detached"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    # Create and render items
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    button = dcg.Button(ctx, label="Test Button", parent=win)
+    text = dcg.Text(ctx, value="Test Text", parent=win)
+    slider = dcg.Slider(ctx, label="Test Slider", parent=win)
+    
+    viewport.render_frame()
+    
+    # Items should be visible
+    assert button.state.visible
+    assert text.state.visible
+    assert slider.state.visible
+    
+    # Detach button
+    button.parent = None
+    
+    # Should be False immediately without rendering another frame
+    assert not button.state.visible, "Button rendered should be False immediately after detachment"
+    
+    # Other items should still be True
+    assert text.state.visible
+    assert slider.state.visible
+    
+    # Detach text
+    text.parent = None
+    assert not text.state.visible, "Text rendered should be False immediately after detachment"
+    assert slider.state.visible
+
+
+def test_item_rendered_false_when_parent_detached(ctx):
+    """Test that rendered becomes False when parent item is detached"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    # Create hierarchy: window -> tree node -> button
+    win = dcg.Window(ctx, label="Parent Window")
+    tree = dcg.TreeNode(ctx, label="Tree", parent=win, value=True)  # Start expanded so button is rendered
+    button = dcg.Button(ctx, label="Test Button", parent=tree)
+    
+    viewport.render_frame()
+    
+    # All should be visible
+    assert win.state.visible
+    assert tree.state.visible
+    assert button.state.visible
+    
+    # Detach the tree node
+    tree.parent = None
+    
+    # Tree and its children should immediately be not rendered
+    assert not tree.state.visible, "Tree should not be rendered after detachment"
+    assert not button.state.visible, "Button should not be rendered when parent is detached"
+    
+    # Parent window should still be visible
+    assert win.state.visible
+
+
+def test_draw_invisible_button_rendered_false_when_parent_detached(ctx):
+    """Test that DrawInvisibleButton rendered becomes False when parent is detached"""
+    from dearcygui import DrawInvisibleButton, DrawInWindow
+    
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    # Create hierarchy: window -> DrawInWindow -> DrawInvisibleButton
+    # (DrawingList and other pure draw items don't have state, only DrawInvisibleButton does)
+    win = dcg.Window(ctx, label="Parent Window")
+    draw_in_window = DrawInWindow(ctx, parent=win)
+    draw_button = DrawInvisibleButton(ctx, p1=(10, 10), p2=(100, 100), parent=draw_in_window)
+    
+    viewport.render_frame()
+    
+    # UI items with state should be visible
+    assert win.state.visible
+    assert draw_in_window.state.visible
+    assert draw_button.state.visible
+    
+    # Detach the DrawInWindow
+    draw_in_window.parent = None
+    
+    # DrawInWindow and its children should immediately be not rendered
+    assert not draw_in_window.state.visible, "DrawInWindow should not be rendered after detachment"
+    assert not draw_button.state.visible, "DrawInvisibleButton should not be rendered when parent is detached"
+    
+    # Parent window should still be visible
+    assert win.state.visible
+
+
+def test_item_rendered_false_when_show_false(ctx):
+    """Test that rendered respects the show property"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window")
+    button = dcg.Button(ctx, label="Test Button", parent=win)
+    
+    viewport.render_frame()
+    assert button.state.visible
+    
+    # Hide the button
+    button.show = False
+    viewport.render_frame()
+    
+    # Should not be rendered
+    assert not button.state.visible, "Button should not be rendered when show=False"
+    
+    # Show it again
+    button.show = True
+    viewport.render_frame()
+    
+    # Should be rendered again
+    assert button.state.visible, "Button should be rendered when show=True"
+
+
+def test_multiple_items_rendered_after_detach(ctx):
+    """Test rendered property with multiple items being detached"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    items = [
+        dcg.Button(ctx, label=f"Button {i}", parent=win)
+        for i in range(5)
+    ]
+    
+    viewport.render_frame()
+    
+    # All should be visible
+    for item in items:
+        assert item.state.visible
+    
+    # Detach items 1 and 3
+    items[1].parent = None
+    items[3].parent = None
+    
+    # Check states
+    assert items[0].state.visible, "Item 0 should still be rendered"
+    assert not items[1].state.visible, "Item 1 should not be rendered after detachment"
+    assert items[2].state.visible, "Item 2 should still be rendered"
+    assert not items[3].state.visible, "Item 3 should not be rendered after detachment"
+    assert items[4].state.visible, "Item 4 should still be rendered"
+
+
+def test_rendered_with_nested_draw_items(ctx):
+    """Test rendered with deeply nested UI items"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    # Create deep hierarchy with UI items that have state
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    tree1 = dcg.TreeNode(ctx, label="Tree1", parent=win, value=True)
+    header = dcg.CollapsingHeader(ctx, label="Header", parent=tree1, value=True)
+    tree2 = dcg.TreeNode(ctx, label="Tree2", parent=header, value=True)
+    button = dcg.Button(ctx, label="Test Button", parent=tree2)
+    
+    viewport.render_frame()
+    
+    # All should be visible
+    assert win.state.visible
+    assert tree1.state.visible
+    assert header.state.visible
+    assert tree2.state.visible
+    assert button.state.visible
+    
+    # Detach middle item
+    header.parent = None
+    
+    # Everything below header should not be rendered
+    assert win.state.visible
+    assert tree1.state.visible
+    assert not header.state.visible, "Header should not be rendered after detachment"
+    assert not tree2.state.visible, "Tree 2 should not be rendered when parent is detached"
+
+def test_rendered_reattachment(ctx):
+    """Test that rendered becomes True again when item is reattached"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window")
+    button = dcg.Button(ctx, label="Test Button", parent=win)
+    
+    viewport.render_frame()
+    assert button.state.visible
+    
+    # Detach
+    button.parent = None
+    assert not button.state.visible
+    
+    # Reattach
+    button.parent = win
+    viewport.render_frame()
+    
+    # Should be rendered again
+    assert button.state.visible, "Button should be rendered after reattachment"
+
+
+def test_treenode_collapse_hides_children(ctx):
+    """Test that collapsing a TreeNode sets children's visible to False"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    tree = dcg.TreeNode(ctx, label="Tree", parent=win, value=True)  # Start expanded
+    button1 = dcg.Button(ctx, label="Button 1", parent=tree)
+    text = dcg.Text(ctx, value="Text", parent=tree)
+    
+    # Render multiple frames to ensure nested items are drawn
+    for _ in range(3):
+        viewport.render_frame()
+    
+    # All should be visible when tree is expanded
+    assert win.state.visible
+    assert tree.state.visible
+    assert button1.state.visible, "Button1 should be visible when tree is expanded"
+    assert text.state.visible, "Text should be visible when tree is expanded"
+    
+    # Collapse the tree
+    tree.value = False
+    # Try rendering multiple frames to see if visibility updates
+    for _ in range(3):
+        viewport.render_frame()
+    
+    # Tree should still be visible (it's just collapsed), but children should not be
+    assert tree.state.visible, "Tree itself should still be visible when collapsed"
+    # Note: This reveals a bug - children's visible state is not updated when parent is collapsed
+    # The children are not actually drawn, but their visible flag remains True
+    assert not button1.state.visible, "Button1 should not be visible when tree is collapsed"
+    assert not text.state.visible, "Text should not be visible when tree is collapsed"
+    
+    # Expand again
+    tree.value = True
+    for _ in range(2):
+        viewport.render_frame()
+    
+    # Children should be visible again
+    assert button1.state.visible, "Button1 should be visible when tree is re-expanded"
+    assert text.state.visible, "Text should be visible when tree is re-expanded"
+
+
+def test_nested_treenode_collapse(ctx):
+    """Test that collapsing parent TreeNode affects nested children"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    tree1 = dcg.TreeNode(ctx, label="Tree1", parent=win, value=True)
+    button = dcg.Button(ctx, label="Button", parent=tree1)
+    
+    # Render multiple frames for nested items
+    for _ in range(3):
+        viewport.render_frame()
+    
+    # All should be visible
+    assert tree1.state.visible
+    assert button.state.visible
+    
+    # Collapse the tree
+    tree1.value = False
+    viewport.render_frame()
+    
+    # Tree visible but collapsed, children not visible
+    assert tree1.state.visible, "Tree1 should be visible when collapsed"
+    assert not button.state.visible, "Button should not be visible when parent is collapsed"
+    
+    # Expand again
+    tree1.value = True
+    for _ in range(2):
+        viewport.render_frame()
+    
+    # Both should be visible
+    assert tree1.state.visible
+    assert button.state.visible, "Button should be visible when parent is expanded"
+
+
+def test_collapsing_header_collapse_hides_children(ctx):
+    """Test that collapsing a CollapsingHeader sets children's visible to False"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    header = dcg.CollapsingHeader(ctx, label="Header", parent=win, value=True)  # Start expanded
+    button = dcg.Button(ctx, label="Button", parent=header)
+    
+    # Render multiple frames
+    for _ in range(3):
+        viewport.render_frame()
+    
+    # All should be visible when header is expanded
+    assert header.state.visible
+    assert button.state.visible
+    
+    # Collapse the header
+    header.value = False
+    viewport.render_frame()
+    
+    # Header visible but children not
+    assert header.state.visible, "Header should be visible when collapsed"
+    assert not button.state.visible, "Button should not be visible when header is collapsed"
+
+
+def test_show_false_immediately_hides_item(ctx):
+    """Test that setting show=False immediately sets visible to False"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window")
+    button = dcg.Button(ctx, label="Button", parent=win)
+    text = dcg.Text(ctx, value="Text", parent=win)
+    
+    viewport.render_frame()
+    
+    # Both should be visible
+    assert button.state.visible
+    assert text.state.visible
+    
+    # Set show=False without rendering
+    button.show = False
+    
+    # Should be immediately False
+    assert not button.state.visible, "Button visible should be False immediately after show=False"
+    assert text.state.visible, "Text should still be visible"
+    
+    # Setting show back to True doesn't make it visible until rendering
+    button.show = True
+    # Still not visible until we render
+    # (This behavior might vary, but we test the immediate effect of show=False)
+    
+    viewport.render_frame()
+    assert button.state.visible, "Button should be visible after show=True and render"
+
+
+def test_show_false_hides_children_immediately(ctx):
+    """Test that setting show=False on parent immediately hides children"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    tree = dcg.TreeNode(ctx, label="Tree", parent=win, value=True)
+    button1 = dcg.Button(ctx, label="Button 1", parent=tree)
+    
+    # Render multiple frames
+    for _ in range(3):
+        viewport.render_frame()
+    
+    # All should be visible
+    assert tree.state.visible
+    assert button1.state.visible
+    
+    # Set show=False on parent
+    tree.show = False
+    
+    # Parent and children should immediately be not visible
+    assert not tree.state.visible, "Tree should not be visible immediately after show=False"
+    assert not button1.state.visible, "Button should not be visible when parent show=False"
+
+
+def test_detach_hides_children_immediately(ctx):
+    """Test that detaching a parent immediately hides all children"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    tree1 = dcg.TreeNode(ctx, label="Tree1", parent=win, value=True)
+    tree2 = dcg.TreeNode(ctx, label="Tree2", parent=tree1, value=True)
+    button = dcg.Button(ctx, label="Button", parent=tree2)
+    
+    # Render multiple frames for nested items
+    for _ in range(3):
+        viewport.render_frame()
+    
+    # All should be visible
+    assert tree1.state.visible
+    assert tree2.state.visible
+    assert button.state.visible
+    
+    # Detach tree1
+    tree1.parent = None
+    
+    # All should immediately be not visible
+    assert not tree1.state.visible, "Tree1 should not be visible after detachment"
+    assert not tree2.state.visible, "Tree2 should not be visible when parent detached"
+    assert not button.state.visible, "Button should not be visible when ancestor detached"
+
+
+def test_detach_deeply_nested_children(ctx):
+    """Test that detaching affects deeply nested children immediately"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    tree1 = dcg.TreeNode(ctx, label="Tree1", parent=win, value=True)
+    tree2 = dcg.TreeNode(ctx, label="Tree2", parent=tree1, value=True)
+    button = dcg.Button(ctx, label="Button", parent=tree2)
+    
+    # Render multiple frames for nested items
+    for _ in range(3):
+        viewport.render_frame()
+    
+    # All should be visible
+    assert tree1.state.visible
+    assert tree2.state.visible
+    assert button.state.visible
+    
+    # Detach middle tree
+    tree2.parent = None
+    
+    # tree2 and all its descendants should be not visible
+    assert tree1.state.visible, "Tree1 should still be visible"
+    assert not tree2.state.visible, "Tree2 should not be visible after detachment"
+    assert not button.state.visible, "Button should not be visible when parent detached"
+
+
+def test_show_false_with_draw_invisible_button(ctx):
+    """Test that show=False works correctly with DrawInvisibleButton"""
+    from dearcygui import DrawInvisibleButton, ViewportDrawList
+    
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    draw_list = ViewportDrawList(ctx)
+    draw_button = DrawInvisibleButton(ctx, p1=(10, 10), p2=(100, 100), parent=draw_list)
+    
+    viewport.render_frame()
+    
+    assert draw_button.state.visible
+    
+    # Set show=False
+    draw_button.show = False
+    
+    # Should be immediately not visible
+    assert not draw_button.state.visible, "DrawInvisibleButton should not be visible after show=False"
+    
+    # Render to confirm it stays False
+    viewport.render_frame()
+    assert not draw_button.state.visible
+    
+    # Set show=True and render
+    draw_button.show = True
+    viewport.render_frame()
+    
+    assert draw_button.state.visible, "DrawInvisibleButton should be visible after show=True"
+
+
+def test_mixed_show_and_detach_effects(ctx):
+    """Test combinations of show=False and detachment"""
+    viewport = ctx.viewport
+    viewport.initialize(visible=False)
+    
+    win = dcg.Window(ctx, label="Test Window", primary=True)
+    button1 = dcg.Button(ctx, label="Button 1", parent=win)
+    button2 = dcg.Button(ctx, label="Button 2", parent=win)
+    
+    # Render multiple frames
+    for _ in range(3):
+        viewport.render_frame()
+    
+    # All visible
+    assert button1.state.visible
+    assert button2.state.visible
+    
+    # Hide button1
+    button1.show = False
+    assert not button1.state.visible
+    
+    # button2 should still be visible
+    assert button2.state.visible
+    
+    # Render to make sure states persist correctly
+    viewport.render_frame()
+    assert not button1.state.visible, "Button1 should remain hidden"
+    assert button2.state.visible, "Button2 should remain visible"
+    
+    # Now detach button2 and check
+    button2.parent = None
+    assert not button2.state.visible, "Button2 should not be visible after detachment"
+
