@@ -21,7 +21,7 @@ from libcpp.cmath cimport sin, cos, sqrt, atan2, pow, fmod, fabs, fmin, fmax
 
 from .core cimport Context
 from .c_types cimport DCGVector
-from .draw_helpers cimport generate_elliptical_arc_points
+from .draw_helpers cimport generate_elliptical_arc_points, generate_rect_points
 from .imgui_types cimport ImGuiStyleIndex, ImVec2Vec2
 from .texture cimport Pattern, get_pattern_u
 from .wrapper cimport imgui
@@ -1968,6 +1968,10 @@ cdef void t_draw_polygon_outline(Context context,
     """
     cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
 
+    # Quick exit for transparent color
+    if color & imgui.IM_COL32_A_MASK == 0:
+        return
+
     if pattern is not None:
         _t_draw_polygon_outline_pattern(
             context, drawlist_ptr, points, points_count,
@@ -2203,7 +2207,6 @@ cdef void t_draw_polygon_filling_adaptive(Context context,
                                           int inner_points_count,
                                           const uint32_t* indices,
                                           int indices_count,
-                                          Pattern pattern,
                                           uint32_t outline_color,
                                           uint32_t fill_color,
                                           float thickness) noexcept nogil:
@@ -2223,13 +2226,12 @@ cdef void t_draw_polygon_filling_adaptive(Context context,
         inner_points_count: number of inner points m
         indices: Triangulation indices for the polygon (groups of 3 indices per triangle)
         indices_count: Number of indices (should be a multiple of 3)
-        pattern: The outline pattern (None for solid)
         outline_color: Color for the polygon outline (ImU32)
         fill_color: Color to fill the polygon with (ImU32)
         thickness: Thickness of the outline
     """
     # If the outline is opaque we don't need AA borders for the filling
-    if pattern is None and thickness >= 1.\
+    if thickness >= 1.\
        and (outline_color & imgui.IM_COL32_A_MASK) == imgui.IM_COL32_A_MASK:
         # Draw the filling without AA
         t_draw_polygon_filling_no_aa(context,
@@ -2315,7 +2317,6 @@ cdef void t_draw_polygon(Context context,
                                     inner_points_count,
                                     indices,
                                     indices_count,
-                                    pattern,
                                     outline_color,
                                     fill_color,
                                     thickness)
@@ -2549,7 +2550,6 @@ cdef void draw_triangle(Context context, void* drawlist,
     t_draw_triangle(context, drawlist, p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
                     pattern, color, fill_color, thickness)
 
-# We use AddRect as it supports rounding TODO: pattern
 cdef void t_draw_rect(Context context, void* drawlist,
                       float x1, float y1, float x2, float y2,
                       Pattern pattern,
@@ -2563,29 +2563,57 @@ cdef void t_draw_rect(Context context, void* drawlist,
                             fmax(y1, y2) + thickness):
         return
 
-    # Create imgui.ImVec2 points
-    cdef imgui.ImVec2 ipmin = imgui.ImVec2(x1, y1)
-    cdef imgui.ImVec2 ipmax = imgui.ImVec2(x2, y2)
+    context.viewport.temp_point_coords.clear()
+    context.viewport.temp_normals.clear()
 
-    # Handle coordinate order
-    if ipmin.x > ipmax.x:
-        swap(ipmin.x, ipmax.x)
-    if ipmin.y > ipmax.y:
-        swap(ipmin.y, ipmax.y)
+    # The path starts at (x1, y1) so that patterns start there
+    generate_rect_points(
+        context.viewport.temp_point_coords,
+        context.viewport.temp_normals,
+        x1, y1, x2, y2,
+        rounding,
+        0
+    )
+    cdef int num_points = context.viewport.temp_point_coords.size() >> 1
+    if num_points < 3:
+        return
 
-    if fill_color & imgui.IM_COL32_A_MASK != 0:
-        (<imgui.ImDrawList*>drawlist).AddRectFilled(ipmin,
-                            ipmax,
-                            fill_color,
-                            rounding,
-                            imgui.ImDrawFlags_RoundCornersAll)
+    cdef int i
+    if (fill_color & imgui.IM_COL32_A_MASK) != 0:
+        # Convex fan
+        context.viewport.temp_indices.clear()
+        for i in range(1, num_points - 1):
+            context.viewport.temp_indices.push_back(0)
+            context.viewport.temp_indices.push_back(i)
+            context.viewport.temp_indices.push_back(i + 1)
 
-    (<imgui.ImDrawList*>drawlist).AddRect(ipmin,
-                        ipmax,
-                        color,
-                        rounding,
-                        imgui.ImDrawFlags_RoundCornersAll,
-                        thickness)
+        t_draw_polygon_filling_adaptive(
+            context,
+            drawlist,
+            context.viewport.temp_point_coords.data(),
+            num_points,
+            context.viewport.temp_normals.data(),
+            NULL,
+            0,
+            context.viewport.temp_indices.data(),
+            context.viewport.temp_indices.size(),
+            color,
+            fill_color,
+            thickness
+        )
+
+    if (color & imgui.IM_COL32_A_MASK) != 0:
+        t_draw_polygon_outline(
+            context,
+            drawlist,
+            context.viewport.temp_point_coords.data(),
+            num_points,
+            context.viewport.temp_normals.data(),
+            pattern,
+            color,
+            thickness,
+            True
+        )
 
 
 cdef void draw_rect(Context context, void* drawlist,
@@ -2594,16 +2622,16 @@ cdef void draw_rect(Context context, void* drawlist,
                     uint32_t color, uint32_t fill_color,
                     float thickness, float rounding) noexcept nogil:
     # Transform coordinates
-    cdef float[2] pmin, pmax
+    cdef float[2] p1, p2
     cdef double[2] pos1, pos2
     pos1[0] = x1
     pos1[1] = y1
     pos2[0] = x2
     pos2[1] = y2
-    (context.viewport).coordinate_to_screen(pmin, pos1)
-    (context.viewport).coordinate_to_screen(pmax, pos2)
+    (context.viewport).coordinate_to_screen(p1, pos1)
+    (context.viewport).coordinate_to_screen(p2, pos2)
 
-    t_draw_rect(context, drawlist, pmin[0], pmin[1], pmax[0], pmax[1],
+    t_draw_rect(context, drawlist, p1[0], p1[1], p2[0], p2[1],
                 pattern, color, fill_color, thickness, rounding)
 
 
@@ -2664,7 +2692,6 @@ cdef void draw_quad(Context context, void* drawlist,
                 pattern, color, fill_color, thickness)
 
 
-# We use AddCircle as it does the computation of the points for us. TODO: pattern
 cdef void t_draw_circle(Context context, void* drawlist,
                         float x, float y, float radius,
                         Pattern pattern,
@@ -2673,6 +2700,7 @@ cdef void t_draw_circle(Context context, void* drawlist,
 
     radius = fabs(radius)
 
+    # Use t_draw_ellipse (slower than AddCircle) to handle patterned circles
     if pattern is not None:
         t_draw_ellipse(context,
                        drawlist,
@@ -2701,7 +2729,8 @@ cdef void t_draw_circle(Context context, void* drawlist,
     if fill_color & imgui.IM_COL32_A_MASK != 0:
         (<imgui.ImDrawList*>drawlist).AddCircleFilled(icenter, radius, fill_color, num_segments)
     
-    (<imgui.ImDrawList*>drawlist).AddCircle(icenter, radius, color, num_segments, thickness)
+    # We add 0.5 to the radius to cancel out the half-pixel offset used by ImGui for anti-aliasing
+    (<imgui.ImDrawList*>drawlist).AddCircle(icenter, radius+0.5, color, num_segments, thickness)
 
 
 cdef void draw_circle(Context context, void* drawlist,
@@ -2831,7 +2860,6 @@ cdef void t_draw_elliptical_arc(Context context, void* drawlist,
             0,
             context.viewport.temp_indices.data(),
             context.viewport.temp_indices.size(),
-            pattern,
             outline_color,
             fill_color,
             thickness
@@ -2963,7 +2991,6 @@ cdef void t_draw_elliptical_pie_slice(Context context, void* drawlist,
             0,
             context.viewport.temp_indices.data(),
             context.viewport.temp_indices.size(),
-            pattern,
             outline_color,
             fill_color,
             thickness
@@ -3140,7 +3167,6 @@ cdef void t_draw_elliptical_ring_segment(Context context, void* drawlist,
             0,
             context.viewport.temp_indices.data(),
             context.viewport.temp_indices.size(),
-            pattern,
             outline_color,
             fill_color,
             thickness
@@ -3233,7 +3259,6 @@ cdef void t_draw_ellipse(Context context, void* drawlist,
             1,
             context.viewport.temp_indices.data(),
             context.viewport.temp_indices.size(),
-            pattern,
             outline_color,
             fill_color,
             thickness
@@ -3361,7 +3386,6 @@ cdef void t_draw_elliptical_ring(Context context, void* drawlist,
         num_points_inner_arc,
         context.viewport.temp_indices.data(),
         context.viewport.temp_indices.size(),
-        pattern,
         outline_color,
         fill_color,
         thickness

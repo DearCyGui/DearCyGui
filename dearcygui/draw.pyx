@@ -33,9 +33,10 @@ from libcpp cimport bool
 from libcpp.vector cimport vector
 
 from .wrapper.delaunator cimport delaunator_get_triangles, DelaunationResult
-from .imgui cimport t_draw_polygon, t_draw_polyline,\
+from .draw_helpers cimport generate_bezier_cubic_points, generate_bezier_quadratic_points
+from .imgui cimport t_draw_polygon, t_draw_polyline, t_draw_polygon_outline,\
     t_draw_elliptical_arc, t_draw_elliptical_pie_slice, t_draw_elliptical_ring_segment,\
-    t_draw_elliptical_ring, t_draw_ellipse, draw_regular_polygon,\
+    t_draw_elliptical_ring, t_draw_ellipse, draw_regular_polygon, t_draw_rect,\
     t_draw_line, t_draw_triangle, draw_star, draw_triangle, draw_quad, draw_text_quad,\
     get_scaled_thickness, get_scaled_radius, draw_circle, t_item_fully_clipped
 
@@ -998,7 +999,7 @@ cdef class DrawArrow(drawingItem):
                         y1 - 0.5 * self._size * sin((M_PI / 2.0) - angle)]
 
     cdef void draw(self,
-                   void* drawlist) noexcept nogil: # TODO pattern
+                   void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
@@ -1046,7 +1047,7 @@ cdef class DrawBezierCubic(drawingItem):
     def __cinit__(self):
         # p1, etc are zero init by cython
         self._color = 4294967295 # 0xffffffff
-        self._thickness = 0.
+        self._thickness = 1.
         self._segments = 0
 
     @property
@@ -1174,7 +1175,7 @@ cdef class DrawBezierCubic(drawingItem):
         Number of line segments used to approximate the Bezier curve.
         
         Higher values create a smoother curve at the cost of performance.
-        A value of 0 uses the default number of segments determined by ImGui.
+        A value of 0 means the number of segments will be automatically determined.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1186,13 +1187,16 @@ cdef class DrawBezierCubic(drawingItem):
         self._segments = max(0, value)
 
     cdef void draw(self,
-                   void* drawlist) noexcept nogil: # TODO pattern
+                   void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
+            return
+        if (self._color & imgui.IM_COL32_A_MASK) == 0:
             return
 
         cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
+        # Transform control points from coordinate space to screen space
         cdef float[2] p1
         cdef float[2] p2
         cdef float[2] p3
@@ -1201,11 +1205,29 @@ cdef class DrawBezierCubic(drawingItem):
         self.context.viewport.coordinate_to_screen(p2, self._p2)
         self.context.viewport.coordinate_to_screen(p3, self._p3)
         self.context.viewport.coordinate_to_screen(p4, self._p4)
-        cdef imgui.ImVec2 ip1 = imgui.ImVec2(p1[0], p1[1])
-        cdef imgui.ImVec2 ip2 = imgui.ImVec2(p2[0], p2[1])
-        cdef imgui.ImVec2 ip3 = imgui.ImVec2(p3[0], p3[1])
-        cdef imgui.ImVec2 ip4 = imgui.ImVec2(p4[0], p4[1])
-        (<imgui.ImDrawList*>drawlist).AddBezierCubic(ip1, ip2, ip3, ip4, <imgui.ImU32>self._color, thickness, self._segments)
+
+        # Generate bezier cubic points
+        self.context.viewport.temp_point_coords.clear()
+        self.context.viewport.temp_normals.clear()
+        generate_bezier_cubic_points(
+            self.context.viewport.temp_point_coords,
+            self.context.viewport.temp_normals,
+            p1[0], p1[1], p2[0], p2[1], p3[0], p3[1], p4[0], p4[1],
+            self._segments
+        )
+
+        # Draw polyline using the generated bezier cubic points
+        t_draw_polygon_outline(
+            self.context,
+            drawlist,
+            self.context.viewport.temp_point_coords.data(),
+            self.context.viewport.temp_point_coords.size() // 2,
+            self.context.viewport.temp_normals.data(),
+            self._pattern,
+            self._color,
+            thickness,
+            False
+        )
 
 cdef class DrawBezierQuadratic(drawingItem):
     """
@@ -1221,7 +1243,7 @@ cdef class DrawBezierQuadratic(drawingItem):
     def __cinit__(self):
         # p1, etc are zero init by cython
         self._color = 4294967295 # 0xffffffff
-        self._thickness = 0.
+        self._thickness = 1.
         self._segments = 0
 
     @property
@@ -1332,7 +1354,7 @@ cdef class DrawBezierQuadratic(drawingItem):
         Number of line segments used to approximate the Bezier curve.
         
         Higher values create a smoother curve at the cost of performance.
-        A value of 0 uses the default number of segments determined by ImGui.
+        A value of 0 means the number of segments will be automatically determined.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1344,23 +1366,45 @@ cdef class DrawBezierQuadratic(drawingItem):
         self._segments = max(0, value)
 
     cdef void draw(self,
-                   void* drawlist) noexcept nogil: # TODO pattern
+                   void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
+            return
+        if (self._color & imgui.IM_COL32_A_MASK) == 0:
             return
 
         cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
+        # Transform control points from coordinate space to screen space
         cdef float[2] p1
         cdef float[2] p2
         cdef float[2] p3
         self.context.viewport.coordinate_to_screen(p1, self._p1)
         self.context.viewport.coordinate_to_screen(p2, self._p2)
         self.context.viewport.coordinate_to_screen(p3, self._p3)
-        cdef imgui.ImVec2 ip1 = imgui.ImVec2(p1[0], p1[1])
-        cdef imgui.ImVec2 ip2 = imgui.ImVec2(p2[0], p2[1])
-        cdef imgui.ImVec2 ip3 = imgui.ImVec2(p3[0], p3[1])
-        (<imgui.ImDrawList*>drawlist).AddBezierQuadratic(ip1, ip2, ip3, <imgui.ImU32>self._color, thickness, self._segments)
+
+        # Generate bezier quadratic points
+        self.context.viewport.temp_point_coords.clear()
+        self.context.viewport.temp_normals.clear()
+        generate_bezier_quadratic_points(
+            self.context.viewport.temp_point_coords,
+            self.context.viewport.temp_normals,
+            p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
+            self._segments
+        )
+
+        # Draw the outline using the generated points
+        t_draw_polygon_outline(
+            self.context,
+            drawlist,
+            self.context.viewport.temp_point_coords.data(),
+            self.context.viewport.temp_point_coords.size() // 2,
+            self.context.viewport.temp_normals.data(),
+            self._pattern,
+            self._color,
+            thickness,
+            False
+        )
 
 cdef class DrawCircle(drawingItem):
     """
@@ -1497,7 +1541,8 @@ cdef class DrawCircle(drawingItem):
         Number of line segments used to approximate the circle.
         
         Higher values create a smoother circle at the cost of performance.
-        A value of 0 uses the default number of segments determined by ImGui.
+        A value of 0 means the number of segments will be automatically
+        determined.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -2215,10 +2260,11 @@ cdef class DrawImage(drawingItem):
         cdef imgui.ImVec2 iuv2 = imgui.ImVec2(self._uv2[0], self._uv2[1])
         cdef imgui.ImVec2 iuv3 = imgui.ImVec2(self._uv3[0], self._uv3[1])
         cdef imgui.ImVec2 iuv4 = imgui.ImVec2(self._uv4[0], self._uv4[1])
+        cdef float rounding = get_scaled_radius(self.context, self._rounding)
 
         # Should be ensure clockwise order for ImageQuad ? -> no because no AA
 
-        if self._rounding != 0.:
+        if rounding != 0.:
             # AddImageRounded requires ip1.x < ip3.x and ip1.y < ip3.y
             if ip1.x > ip3.x:
                 ip1.x, ip3.x = ip3.x, ip1.x
@@ -2228,7 +2274,7 @@ cdef class DrawImage(drawingItem):
                 iuv1.y, iuv3.y = iuv3.y, iuv1.y
             # TODO: we could allow to control what is rounded.
             (<imgui.ImDrawList*>drawlist).AddImageRounded(<imgui.ImTextureID>self._texture.allocated_texture, \
-            ip1, ip3, iuv1, iuv3, <imgui.ImU32>self._color_multiplier, self._rounding, imgui.ImDrawFlags_RoundCornersAll)
+            ip1, ip3, iuv1, iuv3, <imgui.ImU32>self._color_multiplier, rounding, imgui.ImDrawFlags_RoundCornersAll)
         else:
             (<imgui.ImDrawList*>drawlist).AddImageQuad(<imgui.ImTextureID>self._texture.allocated_texture, \
                 ip1, ip2, ip3, ip4, iuv1, iuv2, iuv3, iuv4, <imgui.ImU32>self._color_multiplier)
@@ -2796,11 +2842,17 @@ cdef class DrawPolygon(drawingItem):
 
         # Degenerate case: two points
         if self._points.size() == 2:
-            (<imgui.ImDrawList*>drawlist).AddLine(
-                imgui.ImVec2(ipoints_p[0], ipoints_p[1]),
-                imgui.ImVec2(ipoints_p[2], ipoints_p[3]),
+            t_draw_line(
+                self.context,
+                drawlist,
+                ipoints_p[0],
+                ipoints_p[1],
+                ipoints_p[2],
+                ipoints_p[3],
+                self._pattern,
                 <imgui.ImU32>self._color,
-                thickness)
+                thickness
+            )
             return
 
         # For the convex hull, the points are not necessarily in order.
@@ -3274,13 +3326,13 @@ cdef class DrawRect(drawingItem):
         self._rounding = value
 
     cdef void draw(self,
-                   void* drawlist) noexcept nogil: # TODO: pattern
+                   void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         if not(self._show):
             return
 
         cdef float thickness = get_scaled_thickness(self.context, self._thickness)
-        cdef float rounding = self._rounding
+        cdef float rounding = get_scaled_radius(self.context, self._rounding)
 
         cdef float[2] pmin
         cdef float[2] pmax
@@ -3311,33 +3363,42 @@ cdef class DrawRect(drawingItem):
         if self._multicolor:
             if col_up_left == col_up_right and \
                col_up_left == col_bot_left and \
-               col_up_left == col_up_right:
+               col_up_left == col_bot_right:
                 self._fill = col_up_left
                 self._multicolor = False
 
         if self._multicolor:
-            if (col_up_left|col_up_right|col_bot_left|col_up_right) & imgui.IM_COL32_A_MASK != 0:
-                (<imgui.ImDrawList*>drawlist).AddRectFilledMultiColor(ipmin,
-                                                 ipmax,
-                                                 col_up_left,
-                                                 col_up_right,
-                                                 col_bot_right,
-                                                 col_bot_left)
-                rounding = 0
+            if (col_up_left|col_up_right|col_bot_left|col_bot_right) & imgui.IM_COL32_A_MASK != 0:
+                (<imgui.ImDrawList*>drawlist).AddRectFilledMultiColor(
+                    ipmin,
+                    ipmax,
+                    col_up_left,
+                    col_up_right,
+                    col_bot_right,
+                    col_bot_left
+                )
+            if self._color & imgui.IM_COL32_A_MASK != 0:
+                t_draw_rect(
+                    self.context,
+                    drawlist,
+                    pmin[0], pmin[1], pmax[0], pmax[1],
+                    self._pattern,
+                    self._color,
+                    0, # fill was handled by AddRectFilledMultiColor
+                    thickness,
+                    0 # AddRectFilledMultiColor doesn't handle rounding
+                )
         else:
-            if self._fill & imgui.IM_COL32_A_MASK != 0:
-                (<imgui.ImDrawList*>drawlist).AddRectFilled(ipmin,
-                                       ipmax,
-                                       self._fill,
-                                       rounding,
-                                       imgui.ImDrawFlags_RoundCornersAll)
-
-        (<imgui.ImDrawList*>drawlist).AddRect(ipmin,
-                                ipmax,
-                                self._color,
-                                rounding,
-                                imgui.ImDrawFlags_RoundCornersAll,
-                                thickness)
+            t_draw_rect(
+                self.context,
+                drawlist,
+                pmin[0], pmin[1], pmax[0], pmax[1],
+                self._pattern,
+                self._color,
+                self._fill,
+                thickness,
+                rounding
+            )
 
 
 cdef class DrawRegularPolygon(drawingItem):
