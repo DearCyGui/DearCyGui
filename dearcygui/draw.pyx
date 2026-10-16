@@ -2136,8 +2136,11 @@ cdef class DrawImage(drawingItem):
     cdef void update_extremities(self) noexcept nogil:
         cdef double cos_dir = cos(self._direction)
         cdef double sin_dir = sin(self._direction)
-        cdef double half_width = 0.5 * self._width
-        cdef double half_height = 0.5 * self._height
+        # Note the formula is ignored if, when drawing, width/height
+        # are negative. We use absolute values to have meaningful
+        # p1/p2/p3/p4 if the user accesses them.
+        cdef double half_width = 0.5 * fabs(self._width)
+        cdef double half_height = 0.5 * fabs(self._height)
 
         cdef double dx_width = half_width * cos_dir
         cdef double dy_width = half_width * sin_dir
@@ -2197,7 +2200,7 @@ cdef class DrawImage(drawingItem):
         cdef float[2] p3
         cdef float[2] p4
         cdef float[2] center
-        cdef float dx, dy
+        cdef float dx_width, dx_height, dy_width, dy_height
         cdef imgui.ImVec2 ip1
         cdef imgui.ImVec2 ip2
         cdef imgui.ImVec2 ip3
@@ -2206,41 +2209,59 @@ cdef class DrawImage(drawingItem):
         cdef double actual_height
         cdef double direction = fmod(self._direction, M_PI * 2.)
 
+        # Positive width/height: either p1/p2/p3/p4 are used directly
+        # or center/direction/width/height but width and height are
+        # both meant in coordinate space.
         if self._width >= 0 and self._height >= 0:
             self.context.viewport.coordinate_to_screen(p1, self._p1)
             self.context.viewport.coordinate_to_screen(p2, self._p2)
             self.context.viewport.coordinate_to_screen(p3, self._p3)
             self.context.viewport.coordinate_to_screen(p4, self._p4)
+        # center/direction/width/height but either width or height is
+        # meant in screen space.
         else:
             self.context.viewport.coordinate_to_screen(center, self._center)
-            actual_width = -self._width
-            actual_height = -self._height
+
+            # Used below for screen space size estimation
             if self._height >= 0 or self._width >= 0:
                 self.context.viewport.coordinate_to_screen(p1, self._p1)
                 self.context.viewport.coordinate_to_screen(p2, self._p2)
                 self.context.viewport.coordinate_to_screen(p3, self._p3)
-                if actual_width < 0:
-                    # compute the coordinate space width
-                    actual_width = sqrt(
-                        (p1[0] - p2[0]) * (p1[0] - p2[0]) +\
-                        (p1[1] - p2[1]) * (p1[1] - p2[1])
-                    )
-                else:
-                    # compute the coordinate space height
-                    actual_height = sqrt(
-                        (p2[0] - p3[0]) * (p2[0] - p3[0]) +\
-                        (p2[1] - p3[1]) * (p2[1] - p3[1])
-                    )
-            dx = 0.5 * cos(direction) * actual_width
-            dy = 0.5 * sin(direction) * actual_height
-            p1[0] = center[0] - dx
-            p1[1] = center[1] - dy
-            p3[0] = center[0] + dx
-            p3[1] = center[1] + dy
-            p2[1] = p1[0]
-            p4[0] = p1[1]
-            p2[0] = p3[0]
-            p4[1] = p3[1]
+
+            # Determine screen space width
+            if self._width >= 0:
+                # compute the coordinate space width
+                actual_width = sqrt(
+                    (p1[0] - p2[0]) * (p1[0] - p2[0]) +\
+                    (p1[1] - p2[1]) * (p1[1] - p2[1])
+                )
+            else:
+                # screen space
+                actual_width = -self._width
+
+            # Same for height
+            if self._height >= 0:
+                actual_height = sqrt(
+                    (p2[0] - p3[0]) * (p2[0] - p3[0]) +\
+                    (p2[1] - p3[1]) * (p2[1] - p3[1])
+                )
+            else:
+                actual_height = -self._height
+
+            dx_width = 0.5 * actual_width * cos(direction)
+            dy_width = 0.5 * actual_height * sin(direction)
+            dx_height = -0.5 * actual_width * sin(direction)
+            dy_height = 0.5 * actual_height * cos(direction)
+
+            # Assign every corner in screen space from the center;
+            p1[0] = center[0] - dx_width - dx_height
+            p1[1] = center[1] - dy_width - dy_height
+            p2[0] = center[0] + dx_width - dx_height
+            p2[1] = center[1] + dy_width - dy_height
+            p3[0] = center[0] + dx_width + dx_height
+            p3[1] = center[1] + dy_width + dy_height
+            p4[0] = center[0] - dx_width + dx_height
+            p4[1] = center[1] - dy_width + dy_height
 
         if t_item_fully_clipped(
             self.context,
@@ -2264,7 +2285,16 @@ cdef class DrawImage(drawingItem):
 
         # Should be ensure clockwise order for ImageQuad ? -> no because no AA
 
-        if rounding != 0.:
+        # NOTE: ImageRounded doesn't support rotation or quad. In present of either
+        # We favor disabling rounding.
+        cdef float eps = 0.01  # screen-space tolerance, in pixels
+        cdef bint axis_aligned_rect = (
+            fabs(p1[1] - p2[1]) <= eps and
+            fabs(p2[0] - p3[0]) <= eps and
+            fabs(p3[1] - p4[1]) <= eps and
+            fabs(p4[0] - p1[0]) <= eps
+        )
+        if rounding != 0. and axis_aligned_rect:
             # AddImageRounded requires ip1.x < ip3.x and ip1.y < ip3.y
             if ip1.x > ip3.x:
                 ip1.x, ip3.x = ip3.x, ip1.x
