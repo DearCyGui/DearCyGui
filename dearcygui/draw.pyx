@@ -878,7 +878,6 @@ cdef class DrawArrow(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._end, value)
-        self.__compute_tip()
 
     @property
     def p2(self):
@@ -895,7 +894,6 @@ cdef class DrawArrow(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         read_coord(self._start, value)
-        self.__compute_tip()
 
     @property
     def pattern(self):
@@ -948,7 +946,6 @@ cdef class DrawArrow(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._thickness = value
-        self.__compute_tip()
 
     @property
     def size(self):
@@ -957,6 +954,7 @@ cdef class DrawArrow(drawingItem):
         
         Controls how large the triangular head of the arrow appears. Larger values 
         create a more prominent arrowhead.
+        Negative sizes mean screen space units rather than coordinate units
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -966,37 +964,6 @@ cdef class DrawArrow(drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._size = value
-        self.__compute_tip()
-
-    cdef void __compute_tip(self):
-        # Copy paste from original code
-
-        cdef double xsi = self._end[0]
-        cdef double xfi = self._start[0]
-        cdef double ysi = self._end[1]
-        cdef double yfi = self._start[1]
-
-        # length of arrow head
-        cdef double xoffset = self._size
-        cdef double yoffset = self._size
-
-        # get pointer angle w.r.t +X (in radians)
-        cdef double angle = 0.0
-        if xsi >= xfi and ysi >= yfi:
-            angle = atan((ysi - yfi) / (xsi - xfi))
-        elif xsi < xfi and ysi >= yfi:
-            angle = M_PI + atan((ysi - yfi) / (xsi - xfi))
-        elif xsi < xfi and ysi < yfi:
-            angle = -M_PI + atan((ysi - yfi) / (xsi - xfi))
-        elif xsi >= xfi and ysi < yfi:
-            angle = atan((ysi - yfi) / (xsi - xfi))
-
-        cdef double x1 = <double>(xsi - xoffset * cos(angle))
-        cdef double y1 = <double>(ysi - yoffset * sin(angle))
-        self._corner1 = [x1 - 0.5 * self._size * sin(angle),
-                        y1 + 0.5 * self._size * cos(angle)]
-        self._corner2 = [x1 + 0.5 * self._size * cos((M_PI / 2.0) - angle),
-                        y1 - 0.5 * self._size * sin((M_PI / 2.0) - angle)]
 
     cdef void draw(self,
                    void* drawlist) noexcept nogil:
@@ -1004,33 +971,129 @@ cdef class DrawArrow(drawingItem):
         if not(self._show):
             return
 
+        # Get screen space thickness and size
         cdef float thickness = get_scaled_thickness(self.context, self._thickness)
+        cdef float size = get_scaled_radius(self.context, self._size)
 
+        # Convert arrow extremities to screen space
         cdef float[2] tstart
         cdef float[2] tend
-        cdef float[2] tcorner1
-        cdef float[2] tcorner2
         self.context.viewport.coordinate_to_screen(tstart, self._start)
         self.context.viewport.coordinate_to_screen(tend, self._end)
-        self.context.viewport.coordinate_to_screen(tcorner1, self._corner1)
-        self.context.viewport.coordinate_to_screen(tcorner2, self._corner2)
 
-        t_draw_triangle(self.context,
-                        drawlist,
-                        tend[0], tend[1],
-                        tcorner1[0], tcorner1[1],
-                        tcorner2[0], tcorner2[1],
-                        self._pattern,
-                        self._color,
-                        self._color,
-                        thickness)
-        t_draw_line(self.context,
-                    drawlist,
-                    tstart[0], tstart[1],
-                    tend[0], tend[1],
-                    self._pattern,
-                    self._color,
-                    thickness)
+        # Early exit if the arrow is fully clipped in screen space
+        cdef float clip_margin = 1.5 * (thickness + size)
+        if t_item_fully_clipped(
+            self.context,
+            drawlist,
+            fmin(tstart[0], tend[0]) - clip_margin,
+            fmax(tstart[0], tend[0]) + clip_margin,
+            fmin(tstart[1], tend[1]) - clip_margin,
+            fmax(tstart[1], tend[1]) + clip_margin
+        ):
+            return
+
+        # Determine screen space length
+        cdef float dx = tend[0] - tstart[0]
+        cdef float dy = tend[1] - tstart[1]
+        cdef float arrow_length = sqrt(dx * dx + dy * dy)
+
+        # Compute the direction vector of the arrow in screen space
+        cdef float inv_length = 1.0 / arrow_length if arrow_length > 0.001 else 0.0
+        cdef float dir_x = dx * inv_length
+        cdef float dir_y = dy * inv_length
+
+
+        cdef float base_length = fmax(0., arrow_length - size)
+
+        # Deduce screen space coordinate of the arrow base end (for the line segment)
+        cdef float[2] tbase_end
+        tbase_end[0] = tstart[0] + dir_x * base_length
+        tbase_end[1] = tstart[1] + dir_y * base_length
+
+        # Deduce as well the two missing corners of the arrow tip in screen space
+        cdef float[2] tcorner1
+        cdef float[2] tcorner2
+        tcorner1[0] = tend[0] - dir_x * size - dir_y * size * 0.5
+        tcorner1[1] = tend[1] - dir_y * size + dir_x * size * 0.5
+        tcorner2[0] = tend[0] - dir_x * size + dir_y * size * 0.5
+        tcorner2[1] = tend[1] - dir_y * size - dir_x * size * 0.5
+
+        # Coordinates of the full arrow in a single shape
+        cdef float[14] coords = [
+            tend[0], tend[1],
+            tcorner1[0], tcorner1[1],
+            tbase_end[0] - dir_y * 0.5 * thickness, tbase_end[1] + dir_x * 0.5 * thickness,
+            tstart[0] - dir_y * 0.5 * thickness, tstart[1] + dir_x * 0.5 * thickness,
+            tstart[0] + dir_y * 0.5 * thickness, tstart[1] - dir_x * 0.5 * thickness,
+            tbase_end[0] + dir_y * 0.5 * thickness, tbase_end[1] - dir_x * 0.5 * thickness,
+            tcorner2[0], tcorner2[1]
+        ]
+        cdef uint32_t[9] indices = [
+            0, 1, 6,
+            2, 3, 4,
+            2, 4, 5
+        ]
+
+        # When a pattern is specified, use two separate shapes
+        if self._pattern is not None:
+            # If the base length is zero, only draw the arrow tip
+            if base_length - thickness + 0.5 > 0:
+                # We need to remove the thickness on the base length
+                # as each end of the line segment extends by half the thickness
+                tstart[0] += dir_x * 0.5 * thickness
+                tstart[1] += dir_y * 0.5 * thickness
+                # Keep a margin to avoid gaps
+                # The margin means there will be a small overlap visible
+                # when the color has alpha transparency, but is configured to
+                # have no dark gap when no transparency is used.
+                # The only way to avoid gaps entirely would be to draw the arrow tip
+                # and line as a single shape, which is incompatible with patterns.
+                tbase_end[0] += dir_x * (-0.5 * thickness + 0.5)
+                tbase_end[1] += dir_y * (-0.5 * thickness + 0.5)
+                t_draw_line(self.context,
+                            drawlist,
+                            tstart[0], tstart[1],
+                            tbase_end[0], tbase_end[1],
+                            self._pattern,
+                            self._color,
+                            thickness)
+            t_draw_triangle(self.context,
+                            drawlist,
+                            tend[0], tend[1],
+                            tcorner1[0], tcorner1[1],
+                            tcorner2[0], tcorner2[1],
+                            None, # No pattern for the tip
+                            0, # Only filling, else we would have overlap with the line segment
+                            self._color,
+                            thickness)
+
+        # Draw in a single shape
+        elif base_length <= 0.:
+            # Only draw the arrow tip as the base length is too small
+            t_draw_triangle(self.context,
+                            drawlist,
+                            tend[0], tend[1],
+                            tcorner1[0], tcorner1[1],
+                            tcorner2[0], tcorner2[1],
+                            None, # No pattern
+                            0, # Only filling
+                            self._color,
+                            thickness)
+        else:
+            # Draw the arrow as a single shape, including the base and tip
+            t_draw_polygon(self.context,
+                           drawlist,
+                           coords,
+                           7,
+                           NULL,
+                           0,
+                           indices,
+                           9,
+                           None, # No pattern
+                           0, # Only filling
+                           self._color,
+                           thickness)
 
 
 cdef class DrawBezierCubic(drawingItem):

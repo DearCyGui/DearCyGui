@@ -46,14 +46,11 @@ cdef class DrawArc(drawingItem):
 cdef class DrawArrow(drawingItem):
     cdef double[2] _start
     cdef double[2] _end
-    cdef double[2] _corner1
-    cdef double[2] _corner2
     cdef Pattern _pattern
     cdef uint32_t _color # imgui.ImU32
     cdef float _thickness
     cdef float _size
     cdef void draw(self, void*) noexcept nogil
-    cdef void __compute_tip(self)
 
 cdef class DrawBezierCubic(drawingItem):
     cdef double[2] _p1
