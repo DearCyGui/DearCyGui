@@ -1031,8 +1031,8 @@ cdef void _t_draw_polygon_outline_pattern(Context context,
         half_inner_thickness = 0.
 
     # Reserve space for vertices and indices (worst case)
-    cdef int max_vtx_count = points_count * 20
-    cdef int max_idx_count = points_count * 60
+    cdef int max_vtx_count = points_count * 14 + 4
+    cdef int max_idx_count = points_count * 63
 
     draw_list.PushTextureID(<imgui.ImTextureID>pattern._texture.allocated_texture)
 
