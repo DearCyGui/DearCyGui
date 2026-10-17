@@ -1,4 +1,4 @@
-from libcpp.map cimport map, pair
+from libcpp.map cimport map as cpp_map, pair
 from libc.stdint cimport uint32_t, int32_t
 
 from cpython.object cimport PyObject
@@ -29,9 +29,9 @@ cdef struct TableElementData:
 # Iterator state for table items
 cdef struct TableIterState:
     # Current iterator position
-    map[pair[int32_t, int32_t], TableElementData].iterator it
+    cpp_map[pair[int32_t, int32_t], TableElementData].iterator it
     # End iterator for comparison
-    map[pair[int32_t, int32_t], TableElementData].iterator end
+    cpp_map[pair[int32_t, int32_t], TableElementData].iterator end
     # Whether iteration has started
     bint started
 
@@ -97,7 +97,7 @@ cdef class baseTable(uiItem):
     # even if map implementation changes.
     # Do not use these fields as they may be implemented
     # with a different map implementation than your compiler.
-    cdef map[pair[int32_t, int32_t], TableElementData] *_items
+    cdef cpp_map[pair[int32_t, int32_t], TableElementData] *_items
     cdef dict _items_refs
 
     # public API
@@ -121,8 +121,8 @@ cdef class baseTable(uiItem):
     # private do not call outside (map ABI)
     cdef void _swap_items_from_it(self,
                              int32_t row1, int32_t col1, int32_t row2, int32_t col2,
-                             map[pair[int32_t, int32_t], TableElementData].iterator &it1,
-                             map[pair[int32_t, int32_t], TableElementData].iterator &it2) noexcept nogil
+                             cpp_map[pair[int32_t, int32_t], TableElementData].iterator &it1,
+                             cpp_map[pair[int32_t, int32_t], TableElementData].iterator &it2) noexcept nogil
 
 
 cdef class TableColConfig(baseItem):
@@ -191,8 +191,8 @@ cdef class Table(baseTable):
 
     This class implements the base imgui Table visual.
     """
-    cdef map[int32_t, PyObject*] *_col_configs # TableColConfig
-    cdef map[int32_t, PyObject*] *_row_configs # TableRowConfig
+    cdef cpp_map[int32_t, PyObject*] *_col_configs # TableColConfig
+    cdef cpp_map[int32_t, PyObject*] *_row_configs # TableRowConfig
     cdef dict _col_configs_backing
     cdef dict _row_configs_backing
     cdef float _inner_width

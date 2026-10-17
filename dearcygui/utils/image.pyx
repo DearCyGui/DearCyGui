@@ -7,8 +7,8 @@ from dearcygui.c_types cimport unique_lock, DCGMutex
 from dearcygui.imgui cimport draw_image_quad, t_draw_image_quad
 from libc.stdint cimport int32_t, int64_t
 from libcpp.cmath cimport round as cround
-from libcpp.map cimport map, pair
-from libcpp.set cimport set
+from libcpp.map cimport map as cpp_map, pair
+from libcpp.set cimport set as cpp_set
 from libcpp.vector cimport vector
 from cython.operator cimport dereference
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
@@ -43,13 +43,13 @@ cdef class DrawTiledImage(dcg.drawingItem):
     cdef double margin
     # We use a pointer for fixed structure size
     # if the map/set implementation changes.
-    cdef map[int64_t, TileData] *_tiles
-    cdef set[pair[int32_t, int32_t]] *_requested_tiles
+    cdef cpp_map[int64_t, TileData] *_tiles
+    cdef cpp_set[pair[int32_t, int32_t]] *_requested_tiles
 
     def __cinit__(self):
         self.margin = 128
-        self._tiles = new map[int64_t, TileData]()
-        self._requested_tiles = new set[pair[int32_t, int32_t]]()
+        self._tiles = new cpp_map[int64_t, TileData]()
+        self._requested_tiles = new cpp_set[pair[int32_t, int32_t]]()
 
     def __dealloc__(self):
         cdef pair[int64_t, TileData] tile_data
@@ -74,7 +74,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         """
         Get tile information
         """
-        cdef map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
+        cdef cpp_map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
         cdef pair[int64_t, TileData] tile
         if tile_data != self._tiles.end():
             tile = dereference(tile_data)
@@ -188,7 +188,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
             uuid: the unique identifier of the tile.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
+        cdef cpp_map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
         if tile_data != self._tiles.end():
             Py_DECREF(<dcg.Texture>dereference(tile_data).second.texture)
             self._tiles.erase(tile_data)
@@ -204,7 +204,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
         By default tiles start visible.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
+        cdef cpp_map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
         if tile_data != self._tiles.end():
             dereference(tile_data).second.show = visible
         else:
@@ -218,7 +218,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
             content: the new content of the tile.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
+        cdef cpp_map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
         cdef pair[int64_t, TileData] tile
         if tile_data != self._tiles.end():
             tile = dereference(tile_data)

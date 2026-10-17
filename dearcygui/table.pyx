@@ -19,7 +19,7 @@ from libc.stdint cimport uint32_t, int32_t
 from libc.stdlib cimport malloc, free
 from libcpp cimport bool
 from libcpp.algorithm cimport stable_sort
-from libcpp.map cimport map, pair
+from libcpp.map cimport map as cpp_map, pair
 from libcpp.vector cimport vector
 
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
@@ -476,7 +476,7 @@ cdef class baseTable(uiItem):
         self._num_rows_frozen = 0
         self._num_cols_frozen = 0
         self.can_have_widget_child = True
-        self._items = new map[pair[int32_t, int32_t], TableElementData]()
+        self._items = new cpp_map[pair[int32_t, int32_t], TableElementData]()
         self._items_refs = dict()  # This will hold references to items (gc compatibility, see Table class)
         self._iter_state = NULL  # Initialize iterator state to NULL
 
@@ -712,7 +712,7 @@ cdef class baseTable(uiItem):
         
         Returns False if there was no item to delete,
         True else."""
-        cdef map[pair[int32_t, int32_t], TableElementData].iterator it
+        cdef cpp_map[pair[int32_t, int32_t], TableElementData].iterator it
         it = self._items.find(key)
         if it == self._items.end():
             return False # already deleted
@@ -732,7 +732,7 @@ cdef class baseTable(uiItem):
         cdef unique_lock[DCGMutex] m
         cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
         lock_gil_friendly(m, self.mutex)
-        cdef map[pair[int32_t, int32_t], TableElementData].iterator it
+        cdef cpp_map[pair[int32_t, int32_t], TableElementData].iterator it
         it = self._items.find(map_key)
         if it == self._items.end():
             return None
@@ -864,7 +864,7 @@ cdef class baseTable(uiItem):
         cdef int32_t row, col
         (row, col) = key
         cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
-        cdef map[pair[int32_t, int32_t], TableElementData].iterator it
+        cdef cpp_map[pair[int32_t, int32_t], TableElementData].iterator it
         it = self._items.find(map_key)
         return it != self._items.end()
 
@@ -900,7 +900,7 @@ cdef class baseTable(uiItem):
         cdef int32_t row, col
         (row, col) = key
         cdef pair[int32_t, int32_t] map_key = pair[int32_t, int32_t](row, col)
-        cdef map[pair[int32_t, int32_t], TableElementData].iterator it
+        cdef cpp_map[pair[int32_t, int32_t], TableElementData].iterator it
         it = self._items.find(map_key)
         if it != self._items.end():
             return TableElement.from_element(dereference(it).second)
@@ -909,8 +909,8 @@ cdef class baseTable(uiItem):
     @cython.final
     cdef void _swap_items_from_it(self,
                              int32_t row1, int32_t col1, int32_t row2, int32_t col2,
-                             map[pair[int32_t, int32_t], TableElementData].iterator &it1,
-                             map[pair[int32_t, int32_t], TableElementData].iterator &it2) noexcept nogil:
+                             cpp_map[pair[int32_t, int32_t], TableElementData].iterator &it1,
+                             cpp_map[pair[int32_t, int32_t], TableElementData].iterator &it2) noexcept nogil:
         """
         Same as _swap_items but assuming we already have
         the iterators on the items.
@@ -951,7 +951,7 @@ cdef class baseTable(uiItem):
         """
         cdef pair[int32_t, int32_t] key1 = pair[int32_t, int32_t](row1, col1)
         cdef pair[int32_t, int32_t] key2 = pair[int32_t, int32_t](row2, col2)
-        cdef map[pair[int32_t, int32_t], TableElementData].iterator it1, it2
+        cdef cpp_map[pair[int32_t, int32_t], TableElementData].iterator it1, it2
         it1 = self._items.find(key1)
         it2 = self._items.find(key2)
         self._swap_items_from_it(row1, col1, row2, col2, it1, it2)
@@ -1265,7 +1265,7 @@ cdef class baseTable(uiItem):
             row_mapping[row_values[i].first] = i
 
         # Create copy of items and remap using sorted indices
-        cdef map[pair[int32_t, int32_t], TableElementData] items_copy = dereference(self._items)
+        cdef cpp_map[pair[int32_t, int32_t], TableElementData] items_copy = dereference(self._items)
         self._items.clear()
 
         # Apply new ordering
@@ -1329,7 +1329,7 @@ cdef class baseTable(uiItem):
             col_mapping[col_values[i].first] = i
 
         # Create copy of items and remap using sorted indices
-        cdef map[pair[int32_t, int32_t], TableElementData] items_copy = dereference(self._items)
+        cdef cpp_map[pair[int32_t, int32_t], TableElementData] items_copy = dereference(self._items)
         self._items.clear()
 
         # Apply new ordering
@@ -2126,8 +2126,8 @@ cdef class Table(baseTable):
         self.state.cap.can_be_clicked = True
         self.state.cap.has_position = True
         #self.state.cap.has_content_region = True # TODO, unsure if possible
-        self._col_configs = new map[int32_t, PyObject*]()
-        self._row_configs = new map[int32_t, PyObject*]()
+        self._col_configs = new cpp_map[int32_t, PyObject*]()
+        self._row_configs = new cpp_map[int32_t, PyObject*]()
         # These mirrors will hold the reference count for us.
         # We use a map for faster rendering and avoiding the gil
         # We use mirrors because managing manually the reference count
@@ -2162,7 +2162,7 @@ cdef class Table(baseTable):
         lock_gil_friendly(m, self.mutex)
         if col_idx < 0:
             raise ValueError(f"Invalid column index {col_idx}")
-        #cdef map[int32_t, PyObject*].iterator it
+        #cdef cpp_map[int32_t, PyObject*].iterator it
         #it = self._col_configs.find(col_idx)
         #if it == self._col_configs.end():
         #    config = TableColConfig(self.context)
@@ -2190,7 +2190,7 @@ cdef class Table(baseTable):
         lock_gil_friendly(m, self.mutex)
         if col_idx < 0:
             raise ValueError(f"Invalid column index {col_idx}")
-        #cdef map[int32_t, PyObject*].iterator it
+        #cdef cpp_map[int32_t, PyObject*].iterator it
         #it = self._col_configs.find(col_idx)
         #if it != self._col_configs.end():
         #    Py_DECREF(<object>dereference(it).second)
@@ -2210,7 +2210,7 @@ cdef class Table(baseTable):
         lock_gil_friendly(m, self.mutex)
         if row_idx < 0:
             raise ValueError(f"Invalid row index {row_idx}")
-        #cdef map[int32_t, PyObject*].iterator it
+        #cdef cpp_map[int32_t, PyObject*].iterator it
         #it = self._row_configs.find(row_idx)
         #if it == self._row_configs.end():
         #    config = TableRowConfig(self.context)
@@ -2238,7 +2238,7 @@ cdef class Table(baseTable):
         lock_gil_friendly(m, self.mutex)
         if row_idx < 0:
             raise ValueError(f"Invalid row index {row_idx}")
-        #cdef map[int32_t, PyObject*].iterator it
+        #cdef cpp_map[int32_t, PyObject*].iterator it
         #it = self._row_configs.find(row_idx)
         #if it != self._row_configs.end():
         #    Py_DECREF(<object>dereference(it).second)
@@ -2393,7 +2393,7 @@ cdef class Table(baseTable):
         cdef Vec2 pos_p_backup, pos_w_backup, parent_size_backup
         cdef pair[int32_t , PyObject*] col_data
         cdef pair[int32_t , PyObject*] row_data
-        cdef map[int32_t , PyObject*].iterator it_row
+        cdef cpp_map[int32_t , PyObject*].iterator it_row
 
         cdef bint row_hidden = False
 
