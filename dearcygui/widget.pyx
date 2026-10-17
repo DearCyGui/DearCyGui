@@ -1104,7 +1104,6 @@ cdef class Combo(uiItem):
     @items.setter
     def items(self, value):
         cdef unique_lock[DCGMutex] m
-        # cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1116,16 +1115,8 @@ cdef class Combo(uiItem):
                 self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        ### Note: original intent was to initialize the value with the first element
-        ### Unless given. Unfortunately a bug in the implementation below meant
-        ### this never happened. Re-adding it would be a breaking change for 0.1.x.
-        ### TODO: consider re-adding fixed in 0.2.0
-        #lock_gil_friendly(value_m, self._value.mutex)
-        #if self._value._num_attached == 1 and \
-        #   self._value._last_frame_update == -1 and \
-        #   self._items.size() > 0:
-        #    # initialize the value with the first element
-        #    SharedStr.set(<SharedStr>self._value, self._items[0])
+        # Changing items does not implicitly choose or replace a selection. The
+        # empty default is explicit and avoids mutating a potentially shared value.
 
     @property
     def height_mode(self):
@@ -1688,7 +1679,6 @@ cdef class ListBox(uiItem):
     @items.setter
     def items(self, value):
         cdef unique_lock[DCGMutex] m
-        # cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1700,16 +1690,8 @@ cdef class ListBox(uiItem):
                 self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        ### Note: original intent was to initialize the value with the first element
-        ### Unless given. Unfortunately a bug in the implementation below meant
-        ### this never happened. Re-adding it would be a breaking change for 0.1.x.
-        ### TODO: consider re-adding fixed in 0.2.0
-        #lock_gil_friendly(value_m, self._value.mutex)
-        #if self._value._num_attached == 1 and \
-        #   self._value._last_frame_update == -1 and \
-        #   self._items.size() > 0:
-        #    # initialize the value with the first element
-        #    SharedStr.set(<SharedStr>self._value, self._items[0])
+        # Changing items does not implicitly choose or replace a selection. The
+        # empty default is explicit and avoids mutating a potentially shared value.
 
     @property
     def num_items_shown_when_open(self):
@@ -1823,7 +1805,6 @@ cdef class RadioButton(uiItem):
     @items.setter
     def items(self, value):
         cdef unique_lock[DCGMutex] m
-        # cdef unique_lock[DCGMutex] value_m
         lock_gil_friendly(m, self.mutex)
         self._items.clear()
         if value is None:
@@ -1835,16 +1816,8 @@ cdef class RadioButton(uiItem):
                 self._items.push_back(string_from_str(v))
         else:
             raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        ### Note: original intent was to initialize the value with the first element
-        ### Unless given. Unfortunately a bug in the implementation below meant
-        ### this never happened. Re-adding it would be a breaking change for 0.1.x.
-        ### TODO: consider re-adding fixed in 0.2.0
-        #lock_gil_friendly(value_m, self._value.mutex)
-        #if self._value._num_attached == 1 and \
-        #   self._value._last_frame_update == -1 and \
-        #   self._items.size() > 0: # The issue is that _last_frame_update is never -1 as it is initialized to the frame count
-        #    # initialize the value with the first element
-        #    SharedStr.set(<SharedStr>self._value, self._items[0])
+        # Changing items does not implicitly choose or replace a selection. The
+        # empty default is explicit and avoids mutating a potentially shared value.
 
     @property
     def horizontal(self):
