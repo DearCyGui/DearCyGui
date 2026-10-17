@@ -1089,9 +1089,7 @@ cdef class Combo(uiItem):
         
         This property contains all available options that will be displayed
         when the combo is opened. If the value of the combo is not in this
-        list, no item will appear selected. When the list is first created
-        and the value is not yet set, the first item in this list (if any)
-        will be automatically selected.
+        list, no item will appear selected.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1105,18 +1103,21 @@ cdef class Combo(uiItem):
     def items(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._items.clear()
         if value is None:
+            self._items.clear()
             return
+        cdef DCGVector[DCGString] new_items
+
         if isinstance(value, str):
-            self._items.push_back(string_from_str(value))
+            new_items.push_back(string_from_str(value))
         elif PySequence_Check(value) > 0:
             for v in value:
-                self._items.push_back(string_from_str(v))
+                new_items.push_back(string_from_str(v))
         else:
-            raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        # Changing items does not implicitly choose or replace a selection. The
+            raise TypeError(f"Invalid type {type(value)} passed as items. Expected array of strings")
+        # Note changing items does not implicitly choose or replace a selection. The
         # empty default is explicit and avoids mutating a potentially shared value.
+        self._items = new_items
 
     @property
     def height_mode(self):
@@ -1665,8 +1666,7 @@ cdef class ListBox(uiItem):
         
         This property contains all available options that will be displayed in the 
         listbox. If the value of the listbox is not in this list, no item will 
-        appear selected. When the list is first created and the value is not yet 
-        set, the first item in this list (if any) will be automatically selected.
+        appear selected.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -1680,18 +1680,21 @@ cdef class ListBox(uiItem):
     def items(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._items.clear()
         if value is None:
+            self._items.clear()
             return
+        cdef DCGVector[DCGString] new_items
+
         if isinstance(value, str):
-            self._items.push_back(string_from_str(value))
+            new_items.push_back(string_from_str(value))
         elif PySequence_Check(value) > 0:
             for v in value:
-                self._items.push_back(string_from_str(v))
+                new_items.push_back(string_from_str(v))
         else:
-            raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        # Changing items does not implicitly choose or replace a selection. The
+            raise TypeError(f"Invalid type {type(value)} passed as items. Expected array of strings")
+        # Note changing items does not implicitly choose or replace a selection. The
         # empty default is explicit and avoids mutating a potentially shared value.
+        self._items = new_items
 
     @property
     def num_items_shown_when_open(self):
@@ -1806,18 +1809,21 @@ cdef class RadioButton(uiItem):
     def items(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        self._items.clear()
         if value is None:
+            self._items.clear()
             return
+        cdef DCGVector[DCGString] new_items
+
         if isinstance(value, str):
-            self._items.push_back(string_from_str(value))
+            new_items.push_back(string_from_str(value))
         elif PySequence_Check(value) > 0:
             for v in value:
-                self._items.push_back(string_from_str(v))
+                new_items.push_back(string_from_str(v))
         else:
-            raise ValueError(f"Invalid type {type(value)} passed as items. Expected array of strings")
-        # Changing items does not implicitly choose or replace a selection. The
+            raise TypeError(f"Invalid type {type(value)} passed as items. Expected array of strings")
+        # Note changing items does not implicitly choose or replace a selection. The
         # empty default is explicit and avoids mutating a potentially shared value.
+        self._items = new_items
 
     @property
     def horizontal(self):

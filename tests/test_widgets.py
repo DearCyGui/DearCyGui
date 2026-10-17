@@ -154,6 +154,24 @@ def test_radiobutton_widget(ctx):
     assert radiobutton1.value == "ItemB"
     assert radiobutton2.value == ""  # Value should not change
 
+
+def test_items_valid_on_error(ctx):
+    # Test basic creation and value assignment for a Combo widget.
+    combo = dcg.Combo(ctx, items=["Item1", "Item2", "Item3"])
+    assert combo.items == ["Item1", "Item2", "Item3"]
+    
+    # Attempt to set an invalid item and check that an error is raised.
+    try:
+        combo.items = ("a", b"a")
+    except TypeError:
+        pass
+    else:
+        assert False, "Expected TypeError when setting an invalid item"
+
+    # The previous valid content has not altered previous assignment
+    assert combo.items == ["Item1", "Item2", "Item3"]
+
+
 def test_menu_widget(ctx):
     # Test basic creation of a Menu widget.
     menu_bar = dcg.MenuBar(ctx)
