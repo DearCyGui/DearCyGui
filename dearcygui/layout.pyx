@@ -356,29 +356,6 @@ cdef class HorizontalLayout(Layout):
         self._force_update = True
         self._no_wrap = value
 
-    @property
-    def wrap_x(self):
-        """
-        *DEPRECATION WARNING* X position from which items start on wrapped rows.
-        
-        When items wrap to a second or later row, this value determines the
-        horizontal offset from the starting position. The value is in pixels
-        and must be scaled if needed. The position is clamped to ensure items
-        always start at a position >= 0 relative to the window content area.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._wrap_x
-
-    @wrap_x.setter
-    def wrap_x(self, float value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._wrap_x = value
-        if value != 0.0:
-            _warn("wrap_x is deprecated, it will be replaced by a new interface", DeprecationWarning)
-        self._force_update = True
-
     cdef bint __check_children_neutral(self) noexcept nogil:
         """
         Returns True if all children are already in neutral positioning state:
@@ -492,7 +469,7 @@ cdef class HorizontalLayout(Layout):
 
         # Deduce wrapping start region.
         # First row starts at parent_start_x; wrapped rows start at wrap_start_x.
-        cdef float wrap_start_x = parent_start_x + fmax(-self.state.cur.pos_to_window.x, self._wrap_x)
+        cdef float wrap_start_x = parent_start_x + fmax(-self.state.cur.pos_to_window.x, 0.)
         wrap_start_x = fmax(parent_start_x, wrap_start_x)
 
         cdef float cursor_y_before # Y coordinate before drawing the item
@@ -527,7 +504,7 @@ cdef class HorizontalLayout(Layout):
                     imgui.Dummy(imgui.ImVec2(0., 0.))
 
                     # Reposition x to the wrap indent when one is configured.
-                    if self._wrap_x != 0. or -self.state.cur.pos_to_window.x > 0.:
+                    if -self.state.cur.pos_to_window.x > 0.:
                         imgui.SetCursorScreenPos(
                             imgui.ImVec2(
                                 wrap_start_x,
@@ -602,7 +579,7 @@ cdef class HorizontalLayout(Layout):
 
         # Deduce wrapping start region.
         # First row starts at parent_start_x; wrapped rows start at wrap_start_x.
-        cdef float wrap_start_x = parent_start_x + fmax(-self.state.cur.pos_to_window.x, self._wrap_x)
+        cdef float wrap_start_x = parent_start_x + fmax(-self.state.cur.pos_to_window.x, 0.)
         wrap_start_x = fmax(parent_start_x, wrap_start_x)
 
         cdef bint changed = False
@@ -836,7 +813,6 @@ cdef class VerticalLayout(Layout):
     def __cinit__(self):
         self._alignment_mode = Alignment.TOP
         self._no_wrap = True
-        self._wrap_y = 0.0
 
     @property
     def alignment_mode(self):
@@ -888,29 +864,6 @@ cdef class VerticalLayout(Layout):
             return
         self._force_update = True
         self._no_wrap = not(value)
-
-    @property
-    def wrap_y(self):
-        """
-        Y position from which items start on wrapped columns.
-        
-        When items wrap to a second or later column, this value determines the
-        vertical offset from the starting position. The value is in pixels
-        and must be scaled if needed. The position is clamped to ensure items
-        always start at a position >= 0 relative to the window content area.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._wrap_y
-
-    @wrap_y.setter
-    def wrap_y(self, float value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._wrap_y = value
-        if value != 0.0:
-            _warn("wrap_y is deprecated, it will be replaced by a new interface", DeprecationWarning)
-        self._force_update = True
 
     cdef bint __check_children_neutral(self) noexcept nogil:
         """
@@ -1010,7 +963,7 @@ cdef class VerticalLayout(Layout):
 
         # Deduce wrapping start region.
         # First column starts at parent_start_y; wrapped columns start at wrap_start_y.
-        cdef float wrap_start_y = parent_start_y + fmax(-self.state.cur.pos_to_window.y, self._wrap_y)
+        cdef float wrap_start_y = parent_start_y + fmax(-self.state.cur.pos_to_window.y, 0.)
         wrap_start_y = fmax(parent_start_y, wrap_start_y)
 
         cdef float col_x = parent_start_x       # screen-x of the current column's left edge
@@ -1118,7 +1071,7 @@ cdef class VerticalLayout(Layout):
         cdef float end_y = parent_start_y + self.state.cur.content_region_size.y  # bottom edge (screen coords)
         cdef float available_height = self.state.cur.content_region_size.y
         # Columns after the first start at wrap_start_y (mirrors the old wrap_y calc).
-        cdef float wrap_start_y = parent_start_y + max(-self.state.cur.pos_to_window.y, self._wrap_y)
+        cdef float wrap_start_y = parent_start_y + max(-self.state.cur.pos_to_window.y, 0.)
         wrap_start_y = max(parent_start_y, wrap_start_y)
 
         cdef float col_x = parent_start_x  # screen-x of the current column
