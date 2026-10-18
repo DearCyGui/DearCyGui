@@ -18,7 +18,6 @@ cdef class Layout(uiItem):
 cdef class HorizontalLayout(Layout):
     cdef Alignment _alignment_mode
     cdef bint _no_wrap
-    cdef float _wrap_x
     cdef bint __check_children_neutral(self) noexcept nogil
     cdef void __apply_children_neutral(self)
     cdef bint __draw_item_left_no_wrap(self) noexcept nogil
@@ -29,7 +28,6 @@ cdef class HorizontalLayout(Layout):
 cdef class VerticalLayout(Layout):
     cdef Alignment _alignment_mode
     cdef bint _no_wrap
-    cdef float _wrap_y
     cdef bint __check_children_neutral(self) noexcept nogil
     cdef void __apply_children_neutral(self)
     cdef bint __draw_item_top_no_wrap(self) noexcept nogil

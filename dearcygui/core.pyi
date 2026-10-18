@@ -5369,10 +5369,6 @@ class uiItem(baseItem):
         ...
 
 
-    def delete_item(self):
-        ...
-
-
     def focus(self) -> None:
         """
         Request focus for this item.
@@ -12337,7 +12333,7 @@ class ChildWindow(uiItem):
     structured layouts.
 
     """
-    def __init__(self, context : Context, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : 'uiItem' | None = None, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : 'uiItem' | None = None, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12360,7 +12356,6 @@ class ChildWindow(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - horizontal_scrollbar: Enable horizontal scrolling and show horizontal scrollbar.
-        - label: Text label displayed with or within the item.
         - menubar: Enable a menu bar at the top of the child window.
         - next_sibling: Child of the parent rendered just after this item.
         - no_background: Don't draw background color and outside border.
@@ -12385,7 +12380,7 @@ class ChildWindow(uiItem):
         ...
 
 
-    def configure(self, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12406,7 +12401,6 @@ class ChildWindow(uiItem):
         - handlers: List of event handlers attached to this item.
         - height: Requested height for the item.
         - horizontal_scrollbar: Enable horizontal scrolling and show horizontal scrollbar.
-        - label: Text label displayed with or within the item.
         - menubar: Enable a menu bar at the top of the child window.
         - next_sibling: Child of the parent rendered just after this item.
         - no_background: Don't draw background color and outside border.
@@ -14308,9 +14302,7 @@ class Combo(uiItem):
 
         This property contains all available options that will be displayed
         when the combo is opened. If the value of the combo is not in this
-        list, no item will appear selected. When the list is first created
-        and the value is not yet set, the first item in this list (if any)
-        will be automatically selected.
+        list, no item will appear selected.
 
         """
         ...
@@ -15577,6 +15569,7 @@ class DrawArrow(drawingItem):
 
         Controls how large the triangular head of the arrow appears. Larger values
         create a more prominent arrowhead.
+        Negative sizes mean screen space units rather than coordinate units
 
         """
         ...
@@ -15616,7 +15609,7 @@ class DrawBezierCubic(drawingItem):
     with higher values creating smoother curves at the cost of performance.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'drawingItem' | None = None, children : list[Never] = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : 'drawingItem' | None = None, p1 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pattern : 'Pattern' | None = None, previous_sibling : 'drawingItem' | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'drawingItem' | None = None, children : list[Never] = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : 'drawingItem' | None = None, p1 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pattern : 'Pattern' | None = None, previous_sibling : 'drawingItem' | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15640,7 +15633,7 @@ class DrawBezierCubic(drawingItem):
         ...
 
 
-    def configure(self, *, children : list[Never] = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : 'drawingItem' | None = None, p1 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pattern : 'Pattern' | None = None, previous_sibling : 'drawingItem' | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...) -> None:
+    def configure(self, *, children : list[Never] = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : 'drawingItem' | None = None, p1 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p4 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pattern : 'Pattern' | None = None, previous_sibling : 'drawingItem' | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -15770,7 +15763,7 @@ class DrawBezierCubic(drawingItem):
         Number of line segments used to approximate the Bezier curve.
 
         Higher values create a smoother curve at the cost of performance.
-        A value of 0 uses the default number of segments determined by ImGui.
+        A value of 0 means the number of segments will be automatically determined.
 
         """
         ...
@@ -15810,7 +15803,7 @@ class DrawBezierQuadratic(drawingItem):
     with higher values creating smoother curves at the cost of performance.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'drawingItem' | None = None, children : list[Never] = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : 'drawingItem' | None = None, p1 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pattern : 'Pattern' | None = None, previous_sibling : 'drawingItem' | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'drawingItem' | None = None, children : list[Never] = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : 'drawingItem' | None = None, p1 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pattern : 'Pattern' | None = None, previous_sibling : 'drawingItem' | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15833,7 +15826,7 @@ class DrawBezierQuadratic(drawingItem):
         ...
 
 
-    def configure(self, *, children : list[Never] = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : 'drawingItem' | None = None, p1 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pattern : 'Pattern' | None = None, previous_sibling : 'drawingItem' | None = None, segments : int = 0, show : bool = True, thickness : float = 0.0, user_data : Any = ...) -> None:
+    def configure(self, *, children : list[Never] = [], color : Color = [1.0, 1.0, 1.0, 1.0], next_sibling : 'drawingItem' | None = None, p1 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p2 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), p3 : Sequence[float] | tuple[float, float] | 'Coord' = (0.0, 0.0), parent : 'DrawInWindow' | 'DrawInPlot' | 'ViewportDrawList' | 'drawingItem' | None = None, pattern : 'Pattern' | None = None, previous_sibling : 'drawingItem' | None = None, segments : int = 0, show : bool = True, thickness : float = 1.0, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -15945,7 +15938,7 @@ class DrawBezierQuadratic(drawingItem):
         Number of line segments used to approximate the Bezier curve.
 
         Higher values create a smoother curve at the cost of performance.
-        A value of 0 uses the default number of segments determined by ImGui.
+        A value of 0 means the number of segments will be automatically determined.
 
         """
         ...
@@ -16125,7 +16118,8 @@ class DrawCircle(drawingItem):
         Number of line segments used to approximate the circle.
 
         Higher values create a smoother circle at the cost of performance.
-        A value of 0 uses the default number of segments determined by ImGui.
+        A value of 0 means the number of segments will be automatically
+        determined.
 
         """
         ...
@@ -21840,33 +21834,99 @@ class Layout(uiItem):
     of the layout is used to initialize the default position for the first item.
     An indentation will shift all the items of the Layout.
 
-    Subclassing Layout:
-    For custom layouts, you can use Layout with a callback. The callback is
-    called whenever the layout should be updated.
+    ## Subclassing `Layout`:
 
-    If the automated update detection is not sufficient, update_layout() can be
-    called to force a recomputation of the layout.
+    As layout can hold several objects, subclassing `Layout` can be used to
+    implement containers composed of several items. `ChildWindow` can be
+    used as well. Visually `Layout` is comparable to a `ChildWindow` created with
+    without border, scrollbars and padding, but with subtle differences:
+    * ```
+    ChildWindow(
+        context,
+        auto_resize_x=True,
+        auto_resize_y=True,
+        border=False,
+        flattened_navigation=True,
+        no_background=True,
+        no_scroll_with_mouse=True,
+        no_scrollbar=True
+        )
+      ``` behaves similarly to `Layout(context)`. Both visually have no difference
+        to whether the items were directly added to the parent container rather
+        than the `Layout`/`ChildWindow`.
+    * When setting a width/height on a `Layout`, they affect the content area
+       seen as available by child items. For instance 'dcg.Slider(context, width=-1)'
+       will fill available space as defined by the parent Layout. On the other hand,
+       the real height/width advertised by the `Layout` will always correspond
+       to the minimum bounding box containing the items, regardless of the width/height set
+       on the `Layout`. Note for this reason prefer `"fillx"`, `"fullx"`, etc, which refer
+       to the content area, rather than `"parent.height"`, etc when specifying sizes
+       for child items.
+       In other words, in regard to the size of the `Layout` advertised, the behaviour
+       corresponds to `ChildWindow`'s `auto_resize_x` and `auto_resize_y` parameters
+       being always True. However the size available inside the `Layout` corresponds
+       to the requested width/height.
+       Unlike `ChildWindow`, the content will not be clipped and may overflow the
+       requested width/height.
+    * In contrast, when setting a width/height on a `ChildWindow`, this affects both the
+      content area seen by children and the real height/width of the `ChildWindow`. If
+      the content exceeds the size, it will be clipped or scrollbars will appear depending on
+      the scrollbar settings.
 
-    Currently the update detection detects a change in the size of the remaining
-    content area available locally within the window, or if the last item has
-    changed.
+    Due to the above difference, `ChildWindow` is more suitable when you want to enforce
+    a specific size or to clip overflowing content. In the other cases, `Layout` offers
+    a lighter-weight alternative.
 
-    The layout item works by changing the x, y and no_newline fields
+    ## Layout update
+
+    One interest of `Layout̀` is in its subclasses such as `HorizontalLayout` or
+    `VerticalLayout` which automatically organize the position of their children.
+    All three share a similar implementation to detect changes in the layout that
+    justify a recomputation of the position of the children. If using `Layout`
+    directly, the user can implement their own logic by attaching a callback.
+    The callback is triggered when the layout needs to update the position of the children.
+    If this logic is not sufficient, the user can manually trigger an update by calling `update_layout()`.
+    Currently the detection logic consists of checking for a change in the size of the remaining
+    content area available locally within the window, or whether the size of child items changed,
+    or if the last item has changed. It also checks for changes in the spacing style, which can
+    affect the layout. This logic may be improved in the future.
+
+    ## Positioning of children
+
+    Layout items work by changing the x, y and no_newline fields
     of its children, and thus there is no guarantee that the user set
     x, y and no_newline fields of the children are preserved.
+    When using `Layout` directly, the user is responsible for
+    setting the x, y and no_newline fields of the children. When using
+    `HorizontalLayout` or `VerticalLayout`, the x, y and no_newline fields
+    of the children are managed by the layout. In this case,
+    the user values for these fields on the children will be overridden
+    by the layout's logic.
 
-    If an item is moved out of the layout, the user has to manually
+    ## Removing items from the layout
+
+    As said above, the contents of an item x, y and no_newline fields are not managed by DearCyGui
+    for `Layout` but are managed for `HorizontalLayout` and `VerticalLayout`. For them,
+    the values are managed and undefined. They may differ from a DearCyGui version to
+    another. Thus if an item is moved out of the layout, the user has to manually
     set the x, y and no_newline fields of the item to their new desired values.
 
-    Contrary to other items, the `height` and `width` values filled in the
-    attributes will apply to the content area visible inside the layout (
-    for instance when referencing the parent size: "fillx", "fullx", etc).
-    The final size fitted to the position and size of the children is then
-    stored in the `rect_size` attribute. In other words, it is possible
-    to have `content_area_avail` larger than `rect_size`, and `item.y2` > `item.y3`.
+    ## Size of the layout
 
-    This specific behaviour of Layouts enables to to have the expected behaviour when
-    nesting layouts. If you intend to force a specific size, use a `ChildWindow`.
+    As mentioned above, the size of a layout always corresponds to the minimum
+    bounding box containing the items, regardless of the width/height set on the `Layout`.
+    The content area available for the children is defined by the width/height set on
+    the `Layout` and is independent of the real size of the `Layout`. Be careful
+    of this fact and avoid `parent.width` and `parent.height` when specifying sizes
+    or positions for children, prefer `"fillx"`, `"fullx"`, etc, which refer to the content area.
+
+    By default, width=0 and height=0, which for `Layout` and subclasses are interpreted as
+    width="fillx" and height="filly". In other words, the full remaining area available
+    in the parent is advertised as available to the children.
+
+    It is possible to have larger content area than real size and vice versa.
+
+    If you intend to force a specific size, use a `ChildWindow`.
 
     """
     def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
@@ -22045,8 +22105,7 @@ class ListBox(uiItem):
 
         This property contains all available options that will be displayed in the
         listbox. If the value of the listbox is not in this list, no item will
-        appear selected. When the list is first created and the value is not yet
-        set, the first item in this list (if any) will be automatically selected.
+        appear selected.
 
         """
         ...
@@ -28331,7 +28390,7 @@ class Window(uiItem):
     menu bars can be attached using menubar items.
 
     """
-    def __init__(self, context : Context, *, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : 'Window' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], collapsed : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_close_button : bool = True, height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | 'Coord' = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | 'Coord' = (100.0, 100.0), modal : bool = False, next_sibling : 'Window' | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : 'Viewport' | 'WindowLayout' | None = None, popup : bool = False, previous_sibling : 'Window' | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : 'Window' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], collapsed : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_close_button : bool = True, height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | 'Coord' = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | 'Coord' = (100.0, 100.0), modal : bool = False, next_sibling : 'Window' | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : 'Viewport' | 'WindowLayout' | None = None, popup : bool = False, previous_sibling : 'Window' | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -28366,7 +28425,6 @@ class Window(uiItem):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_open_over_existing_popup: Prevents opening if another popup is already visible.
         - no_resize: Disables resizing of the window by the user.
-        - no_saved_settings: Unused. Has no effect as settings are never saved.
         - no_scroll_with_mouse: Disables scrolling the window content with the mouse wheel.
         - no_scrollbar: Hides the scrollbars when content overflows.
         - no_title_bar: Hides the title bar of the window.
@@ -28389,7 +28447,7 @@ class Window(uiItem):
         ...
 
 
-    def configure(self, *, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], collapsed : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_close_button : bool = True, height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | 'Coord' = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | 'Coord' = (100.0, 100.0), modal : bool = False, next_sibling : 'Window' | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_saved_settings : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : 'Viewport' | 'WindowLayout' | None = None, popup : bool = False, previous_sibling : 'Window' | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], collapsed : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_close_button : bool = True, height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | 'Coord' = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | 'Coord' = (100.0, 100.0), modal : bool = False, next_sibling : 'Window' | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : 'Viewport' | 'WindowLayout' | None = None, popup : bool = False, previous_sibling : 'Window' | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -28422,7 +28480,6 @@ class Window(uiItem):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_open_over_existing_popup: Prevents opening if another popup is already visible.
         - no_resize: Disables resizing of the window by the user.
-        - no_saved_settings: Unused. Has no effect as settings are never saved.
         - no_scroll_with_mouse: Disables scrolling the window content with the mouse wheel.
         - no_scrollbar: Hides the scrollbars when content overflows.
         - no_title_bar: Hides the title bar of the window.
@@ -28828,20 +28885,6 @@ class Window(uiItem):
 
 
     @property
-    def no_saved_settings(self) -> bool:
-        """
-        Unused. Has no effect as settings are never saved.
-
-        """
-        ...
-
-
-    @no_saved_settings.setter
-    def no_saved_settings(self, value : bool):
-        ...
-
-
-    @property
     def no_scroll_with_mouse(self) -> bool:
         """
         Disables scrolling the window content with the mouse wheel.
@@ -29115,6 +29158,14 @@ class WindowLayout(uiItem):
 
 
     def update_layout(self):
+        """
+        Force an update of the layout next time the scene is rendered.
+
+        This method triggers the recalculation of item positions and sizes
+        within the layout. It's useful when the automated update detection
+        is not sufficient to detect layout changes.
+
+        """
         ...
 
 
@@ -29579,17 +29630,18 @@ class HorizontalLayout(Layout):
     HorizontalLayout arranges child elements in a row, with customizable
     alignment modes, spacing, and wrapping options. It can align items to
     the left or right edge, center them, distribute them evenly using the
-    justified mode, or position them manually.
+    justified mode.
 
     The layout automatically tracks content width changes and repositions
     children when needed. Wrapping behavior can be customized to control
     how items overflow when they exceed available width.
 
-    The `height` attribute is ignored for HorizontalLayout. If you intend
-    to clip the content, use a `ChildWindow` instead.
+    The `height` attribute attribute does not affect the horizontal layout
+    algorithm, but does set the content area height available for
+    children's sizing expressions.
 
     """
-    def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap_x : float = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -29608,7 +29660,6 @@ class HorizontalLayout(Layout):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_wrap: Controls whether items wrap to the next row when exceeding available width.
         - parent: Parent of the item in the rendering tree.
-        - positions: X positions for items when using MANUAL alignment mode.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -29617,14 +29668,13 @@ class HorizontalLayout(Layout):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        - wrap_x: *DEPRECIATION WARNING* X position from which items start on wrapped rows.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
         ...
 
 
-    def configure(self, *, alignment_mode : Alignment = Alignment.LEFT, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap_x : float = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, alignment_mode : Alignment = Alignment.LEFT, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -29641,7 +29691,6 @@ class HorizontalLayout(Layout):
         - no_newline: Controls whether to advance to the next line after rendering.
         - no_wrap: Controls whether items wrap to the next row when exceeding available width.
         - parent: Parent of the item in the rendering tree.
-        - positions: X positions for items when using MANUAL alignment mode.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -29650,7 +29699,6 @@ class HorizontalLayout(Layout):
         - user_data: User data of any type.
         - value: Main value associated with this item.
         - width: Requested width for the item.
-        - wrap_x: *DEPRECIATION WARNING* X position from which items start on wrapped rows.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
@@ -29667,7 +29715,6 @@ class HorizontalLayout(Layout):
         CENTER: items are centered
         JUSTIFIED: spacing is organized such that items start at the left
             and end at the right
-        MANUAL: items are positioned at the requested positions
 
         For LEFT/RIGHT/CENTER, ItemSpacing's style can be used to control
         spacing between the items. Default is LEFT.
@@ -29696,49 +29743,6 @@ class HorizontalLayout(Layout):
 
     @no_wrap.setter
     def no_wrap(self, value : bool):
-        ...
-
-
-    @property
-    def positions(self) -> Sequence[int] | Sequence[float]:
-        """
-        X positions for items when using MANUAL alignment mode.
-
-        When in MANUAL mode, these are the x positions from the top left of this
-        layout at which to place the children items.
-
-        Values between 0 and 1 are interpreted as percentages relative to the
-        layout width. Negative values are interpreted as relative to the right
-        edge rather than the left. Items are still left-aligned to the target
-        position.
-
-        Setting this property automatically sets alignment_mode to MANUAL.
-
-        """
-        ...
-
-
-    @positions.setter
-    def positions(self, value : Sequence[int] | Sequence[float]):
-        ...
-
-
-    @property
-    def wrap_x(self) -> float:
-        """
-        *DEPRECIATION WARNING* X position from which items start on wrapped rows.
-
-        When items wrap to a second or later row, this value determines the
-        horizontal offset from the starting position. The value is in pixels
-        and must be scaled if needed. The position is clamped to ensure items
-        always start at a position >= 0 relative to the window content area.
-
-        """
-        ...
-
-
-    @wrap_x.setter
-    def wrap_x(self, value : float):
         ...
 
 
@@ -33146,17 +33150,18 @@ class VerticalLayout(Layout):
     VerticalLayout arranges child elements in a column, with customizable
     alignment modes, spacing, and wrapping options. It can align items to
     the top or bottom edge, center them, distribute them evenly using the
-    justified mode, or position them manually.
+    justified mode.
 
     The layout automatically tracks content height changes and repositions
     children when needed. Wrapping behavior can be customized to control
     how items overflow when they exceed available height.
 
-    The `width` attribute is ignored for VerticalLayout. If you intend
-    to clip the content, use a `ChildWindow` instead.
+    The `width` attribute does not affect the vertical layout algorithm,
+    but does set the content area width available for children's
+    sizing expressions.
 
     """
-    def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -33174,7 +33179,6 @@ class VerticalLayout(Layout):
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - parent: Parent of the item in the rendering tree.
-        - positions: Y positions for items when using MANUAL alignment mode.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -33184,14 +33188,13 @@ class VerticalLayout(Layout):
         - value: Main value associated with this item.
         - width: Requested width for the item.
         - wrap: Controls whether items wrap to the next column when exceeding available height.
-        - wrap_y: Y position from which items start on wrapped columns.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
         ...
 
 
-    def configure(self, *, alignment_mode : Alignment = Alignment.LEFT, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, positions : Sequence[int] | Sequence[float] = [], previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, wrap_y : float = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, alignment_mode : Alignment = Alignment.LEFT, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -33207,7 +33210,6 @@ class VerticalLayout(Layout):
         - next_sibling: Child of the parent rendered just after this item.
         - no_newline: Controls whether to advance to the next line after rendering.
         - parent: Parent of the item in the rendering tree.
-        - positions: Y positions for items when using MANUAL alignment mode.
         - previous_sibling: Child of the parent rendered just before this item.
         - scaling_factor: Additional scaling multiplier applied to this item and its children.
         - shareable_value: Reference to the underlying value that can be shared between items.
@@ -33217,7 +33219,6 @@ class VerticalLayout(Layout):
         - value: Main value associated with this item.
         - width: Requested width for the item.
         - wrap: Controls whether items wrap to the next column when exceeding available height.
-        - wrap_y: Y position from which items start on wrapped columns.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
@@ -33234,7 +33235,6 @@ class VerticalLayout(Layout):
         CENTER: items are centered
         JUSTIFIED: spacing is organized such that items start at the top
             and end at the bottom
-        MANUAL: items are positioned at the requested positions
 
         For TOP/BOTTOM/CENTER, ItemSpacing's style can be used to control
         spacing between the items. Default is TOP.
@@ -33245,30 +33245,6 @@ class VerticalLayout(Layout):
 
     @alignment_mode.setter
     def alignment_mode(self, value : Alignment):
-        ...
-
-
-    @property
-    def positions(self) -> Sequence[int] | Sequence[float]:
-        """
-        Y positions for items when using MANUAL alignment mode.
-
-        When in MANUAL mode, these are the y positions from the top left of this
-        layout at which to place the children items.
-
-        Values between 0 and 1 are interpreted as percentages relative to the
-        layout height. Negative values are interpreted as relative to the bottom
-        edge rather than the top. Items are still top-aligned to the target
-        position.
-
-        Setting this property automatically sets alignment_mode to MANUAL.
-
-        """
-        ...
-
-
-    @positions.setter
-    def positions(self, value : Sequence[int] | Sequence[float]):
         ...
 
 
@@ -33287,25 +33263,6 @@ class VerticalLayout(Layout):
 
     @wrap.setter
     def wrap(self, value : bool):
-        ...
-
-
-    @property
-    def wrap_y(self) -> float:
-        """
-        Y position from which items start on wrapped columns.
-
-        When items wrap to a second or later column, this value determines the
-        vertical offset from the starting position. The value is in pixels
-        and must be scaled if needed. The position is clamped to ensure items
-        always start at a position >= 0 relative to the window content area.
-
-        """
-        ...
-
-
-    @wrap_y.setter
-    def wrap_y(self, value : float):
         ...
 
 
