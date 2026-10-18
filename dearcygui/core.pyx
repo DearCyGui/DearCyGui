@@ -7622,25 +7622,6 @@ cdef class Window(uiItem):
             self._window_flags |= imgui.ImGuiWindowFlags_NoBackground
 
     @property
-    def no_saved_settings(self):
-        """
-        Unused. Has no effect as settings are never saved.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return True if (self._window_flags & imgui.ImGuiWindowFlags_NoSavedSettings) else False
-
-    @no_saved_settings.setter
-    def no_saved_settings(self, bint value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        self._window_flags &= ~imgui.ImGuiWindowFlags_NoSavedSettings
-        if value:
-            self._window_flags |= imgui.ImGuiWindowFlags_NoSavedSettings
-        if value:
-            _warn("no_saved_settings is deprecated and will be removed in a future version", DeprecationWarning)
-
-    @property
     def no_mouse_inputs(self):
         """
         Disables mouse input events for the window and its contents.
