@@ -5140,26 +5140,11 @@ cdef class ChildWindow(uiItem):
     
     @property
     def label(self):
-        """
-        Text label displayed with or within the item.
-        
-        The label is displayed differently depending on the item type. For buttons
-        and selectable items it appears inside them, for windows it becomes the
-        title, and for sliders and input fields it appears next to them.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        return self._user_label
+        raise AttributeError("label has no effect on ChildWindow and cannot be accessed")
 
     @label.setter
     def label(self, str value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if value is None:
-            self._user_label = ""
-        else:
-            self._user_label = value
-        _warn("label has no effect on ChildWindow and will be removed in a future version", DeprecationWarning)
+        raise AttributeError("label has no effect on ChildWindow and cannot be set")
 
     @property
     def menubar(self):
