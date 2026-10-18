@@ -292,7 +292,7 @@ cdef class HorizontalLayout(Layout):
     HorizontalLayout arranges child elements in a row, with customizable 
     alignment modes, spacing, and wrapping options. It can align items to 
     the left or right edge, center them, distribute them evenly using the
-    justified mode, or position them manually.
+    justified mode.
     
     The layout automatically tracks content width changes and repositions 
     children when needed. Wrapping behavior can be customized to control 
@@ -315,7 +315,6 @@ cdef class HorizontalLayout(Layout):
         CENTER: items are centered
         JUSTIFIED: spacing is organized such that items start at the left 
             and end at the right
-        MANUAL: items are positioned at the requested positions
         
         For LEFT/RIGHT/CENTER, ItemSpacing's style can be used to control 
         spacing between the items. Default is LEFT.
@@ -328,12 +327,10 @@ cdef class HorizontalLayout(Layout):
     def alignment_mode(self, Alignment value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if <int>value < 0 or value > Alignment.MANUAL:
+        if <int>value < 0 or value > Alignment.JUSTIFIED:
             raise ValueError("Invalid alignment value")
         if value == self._alignment_mode:
             return
-        if value == Alignment.MANUAL:
-            _warn("MANUAL alignment mode is deprecated. Use string-based positioning (e.g. item.x = '10') on children instead.", DeprecationWarning, stacklevel=2)
         self._force_update = True
         self._alignment_mode = value
 
@@ -380,50 +377,6 @@ cdef class HorizontalLayout(Layout):
         self._wrap_x = value
         if value != 0.0:
             _warn("wrap_x is deprecated, it will be replaced by a new interface", DeprecationWarning)
-        self._force_update = True
-
-    @property
-    def positions(self):
-        """
-        *DEPRECATED* X positions for items when using MANUAL alignment mode.
-
-        Use string-based positioning on each child instead:
-        - value > 1  : absolute pixel offset from the left edge
-                       e.g. ``item.x = '42'``
-        - 0 < value <= 1 : fraction of the layout width
-                           e.g. ``item.x = '0.5*fullx'``
-        - value < 0  : offset from the right edge
-                       e.g. ``item.x = 'fullx - 42'``
-
-        When in MANUAL mode, these are the x positions from the top left of this
-        layout at which to place the children items.
-        
-        Values between 0 and 1 are interpreted as percentages relative to the
-        layout width. Negative values are interpreted as relative to the right
-        edge rather than the left. Items are still left-aligned to the target
-        position.
-        
-        Setting this property automatically sets alignment_mode to MANUAL.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        result = []
-        cdef int i
-        for i in range(<int>self._positions.size()):
-            result.append(self._positions[i])
-        return result
-
-    @positions.setter
-    def positions(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if len(value) > 0:
-            _warn("positions and MANUAL alignment mode are deprecated. Use string-based positioning (e.g. item.x = '10') on children instead.", DeprecationWarning, stacklevel=2)
-            self._alignment_mode = Alignment.MANUAL
-        # TODO: checks
-        self._positions.clear()
-        for v in value:
-            self._positions.push_back(v)
         self._force_update = True
 
     cdef bint __check_children_neutral(self) noexcept nogil:
@@ -607,58 +560,6 @@ cdef class HorizontalLayout(Layout):
 
             # Move on to next child
             child = <PyObject*>(<uiItem>child).next_sibling
-        return changed
-
-    cdef bint __draw_item_manual(self) noexcept nogil:
-        """
-        MANUAL mode: draw each child at the absolute x position given by
-        self._positions (relative to the layout's left edge).  All children
-        share the same y baseline (the cursor y when this layout starts).
-        """
-        # Walk backwards to the first sibling
-        cdef PyObject *child = <PyObject*>self.last_widgets_child
-        while (<uiItem>child).prev_sibling is not None:
-            child = <PyObject*>(<uiItem>child).prev_sibling
-
-        cdef float available_width = self.state.cur.content_region_size.x
-        cdef float parent_start_x = self.context.viewport.parent_pos.x
-        cdef float start_y = imgui.GetCursorScreenPos().y  # fixed y baseline for all children
-        cdef float pos_start = 0.  # resolved x offset for the current child
-        cdef int32_t i = 0
-        cdef bint changed = False
-
-        while (<uiItem>child) is not None:
-            # Read the configured position (last entry repeated for extra children)
-            if not(self._positions.empty()):
-                pos_start = self._positions[min(i, <int>self._positions.size()-1)]
-
-            # Normalise: fraction (0-1) → pixels; negative → offset from right edge
-            if pos_start > 0.:
-                if pos_start < 1.:
-                    pos_start = floor(pos_start * available_width)
-            elif pos_start < 0:
-                if pos_start > -1.:
-                    pos_start = floor(pos_start * available_width + available_width)
-                else:
-                    pos_start = pos_start + available_width
-            pos_start = max(0., pos_start)
-
-            imgui.SetCursorScreenPos(imgui.ImVec2(parent_start_x + pos_start, start_y))
-            (<uiItem>child).draw()
-
-            # Track size changes so the parent knows to redraw next frame
-            if (<uiItem>child).state.cur.rect_size.x != (<uiItem>child).state.prev.rect_size.x or \
-               (<uiItem>child).state.cur.rect_size.y != (<uiItem>child).state.prev.rect_size.y:
-                changed = True
-
-            # SameLine keeps ImGui's group bounding-box calculation from treating
-            # each manually-positioned item as the start of a new line.
-            # Might be useless though.
-            if (<uiItem>child).next_sibling is not None:
-                imgui.SameLine(0., 0.)
-
-            child = <PyObject*>(<uiItem>child).next_sibling
-            i += 1
         return changed
 
     cdef bint __draw_item_aligned(self) noexcept nogil:
@@ -880,9 +781,7 @@ cdef class HorizontalLayout(Layout):
                 self.__apply_children_neutral()
 
         # Dispatch to the appropriate inline drawing strategy
-        if self._alignment_mode == Alignment.MANUAL:
-            children_changed = self.__draw_item_manual()
-        elif self._alignment_mode == Alignment.LEFT:
+        if self._alignment_mode == Alignment.LEFT:
             if self._no_wrap:
                 children_changed = self.__draw_item_left_no_wrap()
             else:
@@ -924,7 +823,7 @@ cdef class VerticalLayout(Layout):
     VerticalLayout arranges child elements in a column, with customizable 
     alignment modes, spacing, and wrapping options. It can align items to 
     the top or bottom edge, center them, distribute them evenly using the
-    justified mode, or position them manually.
+    justified mode.
     
     The layout automatically tracks content height changes and repositions 
     children when needed. Wrapping behavior can be customized to control 
@@ -949,7 +848,6 @@ cdef class VerticalLayout(Layout):
         CENTER: items are centered
         JUSTIFIED: spacing is organized such that items start at the top 
             and end at the bottom
-        MANUAL: items are positioned at the requested positions
         
         For TOP/BOTTOM/CENTER, ItemSpacing's style can be used to control 
         spacing between the items. Default is TOP.
@@ -962,12 +860,10 @@ cdef class VerticalLayout(Layout):
     def alignment_mode(self, Alignment value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        if <int>value < 0 or value > Alignment.MANUAL:
+        if <int>value < 0 or value > Alignment.JUSTIFIED:
             raise ValueError("Invalid alignment value")
         if value == self._alignment_mode:
             return
-        if value == Alignment.MANUAL:
-            _warn("MANUAL alignment mode is deprecated. Use string-based positioning (e.g. item.y = '10') on children instead.", DeprecationWarning, stacklevel=2)
         self._force_update = True
         self._alignment_mode = value
 
@@ -1014,50 +910,6 @@ cdef class VerticalLayout(Layout):
         self._wrap_y = value
         if value != 0.0:
             _warn("wrap_y is deprecated, it will be replaced by a new interface", DeprecationWarning)
-        self._force_update = True
-
-    @property
-    def positions(self):
-        """
-        *DEPRECATED* Y positions for items when using MANUAL alignment mode.
-
-        Use string-based positioning on each child instead:
-        - value > 1  : absolute pixel offset from the top edge
-                       e.g. ``item.y = '42'``
-        - 0 < value <= 1 : fraction of the layout height
-                           e.g. ``item.y = '0.5*fully'``
-        - value < 0  : offset from the bottom edge
-                       e.g. ``item.y = 'fully - 42'``
-
-        When in MANUAL mode, these are the y positions from the top left of this
-        layout at which to place the children items.
-        
-        Values between 0 and 1 are interpreted as percentages relative to the
-        layout height. Negative values are interpreted as relative to the bottom
-        edge rather than the top. Items are still top-aligned to the target
-        position.
-        
-        Setting this property automatically sets alignment_mode to MANUAL.
-        """
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        result = []
-        cdef int i
-        for i in range(<int>self._positions.size()):
-            result.append(self._positions[i])
-        return result
-
-    @positions.setter
-    def positions(self, value):
-        cdef unique_lock[DCGMutex] m
-        lock_gil_friendly(m, self.mutex)
-        if len(value) > 0:
-            _warn("positions and MANUAL alignment mode are deprecated. Use string-based positioning (e.g. item.y = '10') on children instead.", DeprecationWarning, stacklevel=2)
-            self._alignment_mode = Alignment.MANUAL
-        # TODO: checks
-        self._positions.clear()
-        for v in value:
-            self._positions.push_back(v)
         self._force_update = True
 
     cdef bint __check_children_neutral(self) noexcept nogil:
@@ -1226,52 +1078,6 @@ cdef class VerticalLayout(Layout):
 
             # Move on to next child
             child = <PyObject*>(<uiItem>child).next_sibling
-        return changed
-
-    cdef bint __draw_item_manual(self) noexcept nogil:
-        """
-        MANUAL mode: draw each child at the absolute y position given by
-        self._positions (relative to the layout's top edge).  All children
-        share the same x (parent_start_x, i.e. the layout's left edge).
-        """
-        # Walk backwards to the first sibling
-        cdef PyObject *child = <PyObject*>self.last_widgets_child
-        while (<uiItem>child).prev_sibling is not None:
-            child = <PyObject*>(<uiItem>child).prev_sibling
-
-        cdef float available_height = self.state.cur.content_region_size.y
-        cdef float parent_start_x = self.context.viewport.parent_pos.x
-        cdef float parent_start_y = self.context.viewport.parent_pos.y
-        cdef float pos_start = 0.  # resolved y offset for the current child
-        cdef int32_t i = 0
-        cdef bint changed = False
-
-        while (<uiItem>child) is not None:
-            # Read the configured position (last entry repeated for extra children)
-            if not(self._positions.empty()):
-                pos_start = self._positions[min(i, <int>self._positions.size()-1)]
-
-            # Normalise: fraction (0-1) → pixels; negative → offset from bottom edge
-            if pos_start > 0.:
-                if pos_start < 1.:
-                    pos_start = floor(pos_start * available_height)
-            elif pos_start < 0:
-                if pos_start > -1.:
-                    pos_start = floor(pos_start * available_height + available_height)
-                else:
-                    pos_start = pos_start + available_height
-            pos_start = max(0., pos_start)
-
-            imgui.SetCursorScreenPos(imgui.ImVec2(parent_start_x, parent_start_y + pos_start))
-            (<uiItem>child).draw()
-
-            # Track size changes so the parent knows to redraw next frame
-            if (<uiItem>child).state.cur.rect_size.x != (<uiItem>child).state.prev.rect_size.x or \
-               (<uiItem>child).state.cur.rect_size.y != (<uiItem>child).state.prev.rect_size.y:
-                changed = True
-
-            child = <PyObject*>(<uiItem>child).next_sibling
-            i += 1
         return changed
 
     cdef bint __draw_item_aligned(self) noexcept nogil:
@@ -1468,9 +1274,7 @@ cdef class VerticalLayout(Layout):
                 self.__apply_children_neutral()
 
         # Dispatch to the appropriate inline drawing strategy
-        if self._alignment_mode == Alignment.MANUAL:
-            children_changed = self.__draw_item_manual()
-        elif self._alignment_mode == Alignment.TOP:
+        if self._alignment_mode == Alignment.TOP:
             if self._no_wrap:
                 children_changed = self.__draw_item_top_no_wrap()
             else:

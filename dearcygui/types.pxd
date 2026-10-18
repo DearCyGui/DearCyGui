@@ -108,8 +108,7 @@ cpdef enum class Alignment:
     RIGHT=1,
     BOTTOM=1,
     CENTER=2,
-    JUSTIFIED=3,
-    MANUAL=4
+    JUSTIFIED=3
 
 # Text Marker specification
 cpdef enum class TextMarker:
