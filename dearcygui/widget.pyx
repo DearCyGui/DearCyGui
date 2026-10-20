@@ -38,6 +38,7 @@ from .core cimport baseHandler, drawingItem, uiItem, \
 from .c_types cimport unique_lock, DCGMutex, Vec2, Vec4, \
     DCGString, string_to_str, string_from_str, string_from_bytes,\
     swap_Vec2
+from .callback_values cimport uiItemCallbackNoneValue
 from .imgui_types cimport unparse_color, parse_color, Vec2ImVec2, \
     Vec4ImVec4, ImVec2Vec2, ImVec4Vec4
 from .types cimport read_point, make_MouseButtonMask, MouseButtonMask,\
@@ -3726,8 +3727,14 @@ cdef class MenuBar(uiItem):
         cdef bint activated = self.state.cur.active and not(self.state.prev.active)
         cdef int32_t i
         if activated and not(self._callbacks.empty()):
-            for i in range(<int>self._callbacks.size()):
-                self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
+            with gil:
+                for i in range(<int>self._callbacks.size()):
+                    self.context.queue_callback(
+                        <Callback>self._callbacks[i],
+                        self,
+                        self,
+                        uiItemCallbackNoneValue(None)
+                    )
 
         if not(enabled):
             imgui.PopItemFlag()

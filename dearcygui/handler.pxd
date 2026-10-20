@@ -31,14 +31,17 @@ cdef class BoolHandler(baseHandler):
     cdef SharedBool _condition
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class ActivatedHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class ActiveHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class ClickedHandler(baseHandler):
     cdef MouseButton _button
@@ -55,10 +58,12 @@ cdef class DoubleClickedHandler(baseHandler):
 cdef class DeactivatedHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class DeactivatedAfterEditHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class DraggedHandler(baseHandler):
     cdef MouseButton _button
@@ -75,83 +80,103 @@ cdef class DraggingHandler(baseHandler):
 cdef class EditedHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class FocusHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class GotFocusHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class LostFocusHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseOverHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class GotMouseOverHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class LostMouseOverHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class HoverHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class GotHoverHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class LostHoverHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MotionHandler(baseHandler):
     cdef Positioning[2] _positioning
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class ContentResizeHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class ResizeHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class ToggledOpenHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class ToggledCloseHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class OpenHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class CloseHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class RenderHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class GotRenderHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class LostRenderHandler(baseHandler):
     cdef void check_bind(self, baseItem)
     cdef bint check_state(self, baseItem) noexcept nogil
+    cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class MouseCursorHandler(baseHandler):
     cdef MouseCursor _mouse_cursor

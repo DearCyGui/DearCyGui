@@ -33,6 +33,18 @@ from .backends.backend cimport SDLViewport, platformViewport, GLContext
 cimport dearcygui.backends.time as ctime
 from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t, string_to_str,\
     set_composite_label, set_uuid_label, string_from_str, Vec2, make_Vec2
+from .callback_values cimport (
+    uiItemCallbackValue,
+    uiItemCallbackBoolValue,
+    uiItemCallbackFloatValue,
+    uiItemCallbackNoneValue,
+    uiItemCallbackStringValue,
+    TimeWatcherCallbackValue,
+    ViewportCloseCallbackValue,
+    ViewportResizeCallbackValue,
+    WindowCloseCallbackValue,
+    DragDropTargetHandlerCallbackValue
+)
 from .font cimport AutoFont
 from .imgui_types cimport parse_color, ImVec2Vec2, Vec2ImVec2, unparse_color,\
     check_Axis, make_Axis
@@ -43,6 +55,7 @@ from .types cimport Vec2, child_type,\
     get_children_types, get_item_type, is_Key, make_Key,\
     is_KeyMod, make_KeyMod, \
     is_MouseCursor, make_MouseCursor, is_MouseButton, make_MouseButton
+from .widget cimport SharedBool, SharedFloat, SharedStr
 from .wrapper cimport imgui, implot
 
 from atexit import register as _atexit_register
@@ -510,78 +523,6 @@ cdef class Context:
             return SharedGLContext.from_context(self, platform.createSharedContext(major, minor))
         finally:
             self.viewport.release_platform()  # Ensure we release the platform after creating the context
-
-    cdef void queue_callback_noarg(self, Callback callback, baseItem parent_item, baseItem target_item) noexcept nogil:
-        """
-        Queue a callback with no arguments.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        """
-        if callback is None:
-            return
-        # we release the context because we cannot guarantee
-        # this external code doesn't change the context.
-        unlock_im_context() 
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, None)
-            except Exception as e:
-                print(_format_exc())
-        lock_im_context(self.viewport)
-
-    cdef void queue_callback_arg1button(self, Callback callback, baseItem parent_item, baseItem target_item, int32_t arg1) noexcept nogil:
-        """
-        Queue a callback with one button argument.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : int
-            The first argument.
-        """
-        if callback is None:
-            return
-        unlock_im_context()
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, make_MouseButton(arg1))
-            except Exception as e:
-                print(_format_exc())
-        lock_im_context(self.viewport)
-
-    cdef void queue_callback_arg1value(self, Callback callback, baseItem parent_item, baseItem target_item, SharedValue arg1) noexcept nogil:
-        """
-        Queue a callback with one shared value argument.
-
-        Parameters:
-        callback : Callback
-            The callback to be queued.
-        parent_item : baseItem
-            The parent item.
-        target_item : baseItem
-            The target item.
-        arg1 : SharedValue
-            The first argument.
-        """
-        if callback is None:
-            return
-        unlock_im_context()
-        with gil:
-            try:
-                self._queue.submit(callback, parent_item, target_item, arg1.value)
-            except Exception as e:
-                print(_format_exc())
-        lock_im_context(self.viewport)
 
     cdef void queue_callback(self, Callback callback, baseItem sender, baseItem target, object data) noexcept:
         """
@@ -4499,17 +4440,26 @@ cdef class Viewport(baseItem):
             self._resize_callback,
             self,
             self,
-            ((<platformViewport*>self._platform).frameWidth,
-             (<platformViewport*>self._platform).frameHeight,
-             (<platformViewport*>self._platform).windowWidth,
-             (<platformViewport*>self._platform).windowHeight))
+            ViewportResizeCallbackValue(
+                context=self.context,
+                frame_width=(<platformViewport*>self._platform).frameWidth,
+                frame_height=(<platformViewport*>self._platform).frameHeight,
+                window_width=(<platformViewport*>self._platform).windowWidth,
+                window_height=(<platformViewport*>self._platform).windowHeight
+            )
+        )
 
     # The callbacks assums mutex and global imgui/imgplot contexts lock
 
     cdef void __on_close(self):
         if not(self._disable_close):
             self.context._running = False
-        self.context.queue_callback_noarg(self._close_callback, self, self)
+        self.context.queue_callback(
+            self._close_callback,
+            self,
+            self,
+            ViewportCloseCallbackValue(self.context)
+        )
 
     cdef void __on_drop(self, int32_t type, const char* data):
         """
@@ -4546,10 +4496,14 @@ cdef class Viewport(baseItem):
                     callback,
                     handler,
                     item,
-                    ("file" if self.drop_is_file_type else "text",
-                    element_list,
-                    state_copy,
-                    (mouse_x, mouse_y)))
+                    DragDropTargetHandlerCallbackValue(
+                        self.context,
+                        mouse_position=Coord(mouse_x, mouse_y),
+                        payload_data=element_list,
+                        payload_type=("file" if self.drop_is_file_type else "text"),
+                        state_copy=state_copy
+                    )
+                )
                 self.os_drop_ready = False
                 self.os_drop_pending = False
                 self.drop_data.clear()
@@ -6366,6 +6320,12 @@ cdef class SharedValue:
 UI input event handlers
 """
 
+
+cdef class baseCallbackValue:
+    """Base class for all callback values."""
+    def __init__(self, Context context):
+        pass
+
 cdef class baseHandler(baseItem):
     """
     Base class for UI input event handlers.
@@ -6460,13 +6420,13 @@ cdef class baseHandler(baseItem):
         if not(self._enabled):
             return
         if self.check_state(item):
-            self.run_callback(item)
-
-    cdef void run_callback(self, baseItem item) noexcept nogil:
-        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        with gil:
-            self.context.queue_callback(self._callback, self, item, item)
-
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    baseCallbackValue(self.context)
+                )
 
 cdef extern from * nogil:
     """
@@ -7264,8 +7224,20 @@ cdef class uiItem(baseItem):
         cdef bint action = self.draw_item()
         cdef int32_t i
         if action and not(self._callbacks.empty()):
-            for i in range(<int>self._callbacks.size()):
-                self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
+            with gil:
+                for i in range(<int>self._callbacks.size()):
+                    self.context.queue_callback(
+                        <Callback>self._callbacks[i],
+                        self,
+                        self,
+                        (
+                            uiItemCallbackBoolValue(self._value.value) if isinstance(self._value, SharedBool) else
+                            uiItemCallbackFloatValue(self._value.value) if isinstance(self._value, SharedFloat) else
+                            uiItemCallbackNoneValue(None) if self._value is None or type(self._value) is SharedValue else
+                            uiItemCallbackStringValue(self._value.value) if isinstance(self._value, SharedStr) else
+                            uiItemCallbackValue(self._value.value)
+                        )
+                    )
 
         if not(enabled):
             imgui.PopItemFlag()
@@ -7374,10 +7346,14 @@ cdef class TimeWatcher(uiItem):
                         <Callback>self._callbacks[i],
                         self,
                         self,
-                        (time_start,
-                         time_end,
-                         self.context.viewport.last_t_before_rendering,
-                         self.context.viewport.frame_count))
+                        TimeWatcherCallbackValue(
+                            context=self.context,
+                            time_start=time_start,
+                            time_end=time_end,
+                            viewport_last_t_before_rendering=self.context.viewport.last_t_before_rendering,
+                            viewport_frame_count=self.context.viewport.frame_count
+                        )
+                    )
 
 
 cdef extern from * nogil:
@@ -8540,9 +8516,13 @@ cdef class Window(uiItem):
         cdef bint closed = not(self._show) or (not(visible) and (self._modal or self._popup))
         if closed:
             self._show = False
-            self.context.queue_callback_noarg(self._on_close_callback,
-                                              self,
-                                              self)
+            with gil:
+                self.context.queue_callback(
+                    self._on_close_callback,
+                    self,
+                    self,
+                    WindowCloseCallbackValue(self.context)
+                )
         self._show_update_requested = False
 
         self.run_handlers()

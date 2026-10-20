@@ -24,9 +24,66 @@ from libcpp.cmath cimport fmax, fmin, fmod
 
 from .core cimport baseHandler, baseItem, lock_gil_friendly,\
     itemState, lock_im_context, unlock_im_context
+from .callback_values cimport (
+    CustomHandlerCallbackValue,
+    HandlerListCallbackValue,
+    ConditionalHandlerCallbackValue,
+    OtherItemHandlerCallbackValue,
+    BoolHandlerCallbackValue,
+    ActivatedHandlerCallbackValue,
+    ActiveHandlerCallbackValue,
+    ClickedHandlerCallbackValue,
+    DoubleClickedHandlerCallbackValue,
+    DeactivatedHandlerCallbackValue,
+    DeactivatedAfterEditHandlerCallbackValue,
+    DraggedHandlerCallbackValue,
+    DraggingHandlerCallbackValue,
+    EditedHandlerCallbackValue,
+    FocusedHandlerCallbackValue,
+    GotFocusHandlerCallbackValue,
+    LostFocusHandlerCallbackValue,
+    MouseOverHandlerCallbackValue,
+    GotMouseOverHandlerCallbackValue,
+    LostMouseOverHandlerCallbackValue,
+    HoverHandlerCallbackValue,
+    GotHoverHandlerCallbackValue,
+    LostHoverHandlerCallbackValue,
+    MotionHandlerCallbackValue,
+    ContentResizeHandlerCallbackValue,
+    ResizeHandlerCallbackValue,
+    ToggledOpenHandlerCallbackValue,
+    ToggledCloseHandlerCallbackValue,
+    OpenHandlerCallbackValue,
+    CloseHandlerCallbackValue,
+    RenderHandlerCallbackValue,
+    GotRenderHandlerCallbackValue,
+    LostRenderHandlerCallbackValue,
+    MouseCursorHandlerCallbackValue,
+    KeyDownHandlerCallbackValue,
+    KeyPressHandlerCallbackValue,
+    KeyReleaseHandlerCallbackValue,
+    AnyKeyPressHandlerCallbackValue,
+    AnyKeyReleaseHandlerCallbackValue,
+    AnyKeyDownHandlerCallbackValue,
+    MouseClickHandlerCallbackValue,
+    MouseDoubleClickHandlerCallbackValue,
+    MouseDownHandlerCallbackValue,
+    MouseDragHandlerCallbackValue,
+    MouseMoveHandlerCallbackValue,
+    MouseReleaseHandlerCallbackValue,
+    MouseWheelHandlerCallbackValue,
+    MouseInRectHandlerCallbackValue,
+    AnyMouseClickHandlerCallbackValue,
+    AnyMouseDoubleClickHandlerCallbackValue,
+    AnyMouseReleaseHandlerCallbackValue,
+    AnyMouseDownHandlerCallbackValue,
+    DragDropSourceHandlerCallbackValue,
+    DragDropActiveHandlerCallbackValue,
+    DragDropTargetHandlerCallbackValue
+)
 from .c_types cimport DCGMutex, unique_lock, string_to_str, string_from_str
 from .types cimport make_Positioning, read_rect, Rect,\
-    is_Key, make_Key, Positioning
+    is_Key, make_Key, Positioning, Coord, make_MouseButton
 from .widget cimport SharedBool
 from .wrapper cimport imgui
 
@@ -74,7 +131,7 @@ cdef class CustomHandler(baseHandler):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         cdef bint condition = False
-        condition = self.check_can_bind(item)
+        condition = getattr(self, "check_can_bind")(item)
         if not(condition):
             raise TypeError(f"Cannot bind handler {self} for {item}")
 
@@ -83,7 +140,7 @@ cdef class CustomHandler(baseHandler):
         unlock_im_context()
         with gil:
             try:
-                condition = self.check_status(item)
+                condition = getattr(self, "check_status")(item)
             except Exception as e:
                 _warn(f"An error occured running check_status of {self} on {item}. {_format_exc()}")
         lock_im_context(self.context.viewport)
@@ -103,17 +160,23 @@ cdef class CustomHandler(baseHandler):
         with gil:
             if self._has_run:
                 try:
-                    self.run(item)
+                    getattr(self, "run")(item)
                 except Exception as e:
                     _warn(f"An error occured running run of {self} on {item}. {_format_exc()}")
             elif self._callback is not None:
                 try:
-                    condition = self.check_status(item)
+                    condition = getattr(self, "check_status")(item)
                 except Exception as e:
                     _warn(f"An error occured running check_status of {self} on {item}. {_format_exc()}")
         lock_im_context(self.context.viewport)
         if condition:
-            self.run_callback(item)
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    CustomHandlerCallbackValue(self.context)
+                )
 
 
 cdef inline void check_bind_children(baseItem item, baseItem target):
@@ -240,7 +303,13 @@ cdef class HandlerList(baseHandler):
         run_handler_children(self, item)
         if self._callback is not None:
             if self.check_state(item):
-                self.run_callback(item)
+                with gil:
+                    self.context.queue_callback(
+                        self._callback,
+                        self,
+                        item,
+                        HandlerListCallbackValue(self.context)
+                    )
 
 
 cdef class ConditionalHandler(baseHandler):
@@ -313,7 +382,13 @@ cdef class ConditionalHandler(baseHandler):
         self.last_handler_child.unlock_and_previous_siblings()
         if self._callback is not None:
             if self.check_state(item):
-                self.run_callback(item)
+                with gil:
+                    self.context.queue_callback(
+                        self._callback,
+                        self,
+                        item,
+                        ConditionalHandlerCallbackValue(self.context)
+                    )
 
 
 cdef class OtherItemHandler(HandlerList):
@@ -367,7 +442,13 @@ cdef class OtherItemHandler(HandlerList):
         run_handler_children(self, self._target)
         if self._callback is not None:
             if self.check_state(item):
-                self.run_callback(item)
+                with gil:
+                    self.context.queue_callback(
+                        self._callback,
+                        self,
+                        item,
+                        OtherItemHandlerCallbackValue(self.context)
+                    )
 
 
 cdef class BoolHandler(baseHandler):
@@ -410,6 +491,19 @@ cdef class BoolHandler(baseHandler):
     cdef bint check_state(self, baseItem item) noexcept nogil:
         return self._condition.get()
 
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    BoolHandlerCallbackValue(self.context)
+                )
+
 cdef class ActivatedHandler(baseHandler):
     """
     Handler for when the target item turns from
@@ -421,9 +515,23 @@ cdef class ActivatedHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_active):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.active and not(state.prev.active)
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    ActivatedHandlerCallbackValue(self.context)
+                )
 
 cdef class ActiveHandler(baseHandler):
     """
@@ -437,9 +545,23 @@ cdef class ActiveHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_active):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.active
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    ActiveHandlerCallbackValue(self.context)
+                )
 
 cdef class ClickedHandler(baseHandler):
     """
@@ -483,10 +605,19 @@ cdef class ClickedHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef itemState *state = item.p_state
-        if not(self._enabled):
+        if not(self._enabled) or self._callback is None:
             return
         if state.cur.clicked[<int>self._button]:
-            self.context.queue_callback_arg1button(self._callback, self, item, <int>self._button)
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    ClickedHandlerCallbackValue(
+                        context=self.context,
+                        button=make_MouseButton(self._button)
+                    )
+                )
 
 cdef class DoubleClickedHandler(baseHandler):
     """
@@ -521,10 +652,19 @@ cdef class DoubleClickedHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef itemState *state = item.p_state
-        if not(self._enabled):
+        if not(self._enabled) or self._callback is None:
             return
         if state.cur.double_clicked[<int>self._button]:
-            self.context.queue_callback_arg1button(self._callback, self, item, <int>self._button)
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    DoubleClickedHandlerCallbackValue(
+                        context=self.context,
+                        button=make_MouseButton(self._button)
+                    )
+                )
 
 cdef class DeactivatedHandler(baseHandler):
     """
@@ -535,9 +675,23 @@ cdef class DeactivatedHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_active):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return not(state.cur.active) and state.prev.active
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    DeactivatedHandlerCallbackValue(self.context)
+                )
 
 cdef class DeactivatedAfterEditHandler(baseHandler):
     """
@@ -549,9 +703,23 @@ cdef class DeactivatedAfterEditHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_deactivated_after_edited):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.deactivated_after_edited
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    DeactivatedAfterEditHandlerCallbackValue(self.context)
+                )
 
 cdef class DraggedHandler(baseHandler):
     """
@@ -589,16 +757,22 @@ cdef class DraggedHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef itemState *state = item.p_state
-        if not(self._enabled):
+        if not(self._enabled) or self._callback is None:
             return
         cdef int32_t i = <int32_t>self._button
         if state.prev.dragging[i] and not(state.cur.dragging[i]):
             with gil:
-                self.context.queue_callback(self._callback,
-                                            self,
-                                            item,
-                                            (state.prev.drag_deltas[i].x,
-                                             state.prev.drag_deltas[i].y))
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    DraggedHandlerCallbackValue.build(
+                        self.context,
+                        self._button,
+                        <float>state.prev.drag_deltas[i].x,
+                        <float>state.prev.drag_deltas[i].y
+                    )
+                )
 
 cdef class DraggingHandler(baseHandler):
     """
@@ -639,15 +813,21 @@ cdef class DraggingHandler(baseHandler):
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef itemState *state = item.p_state
         cdef int32_t i = <int32_t>self._button
-        if not(self._enabled):
+        if not(self._enabled) or self._callback is None:
             return
         if state.cur.dragging[i]:
             with gil:
-                self.context.queue_callback(self._callback,
-                                            self,
-                                            item,
-                                            (<float>state.cur.drag_deltas[i].x,
-                                             <float>state.cur.drag_deltas[i].y))
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    DraggingHandlerCallbackValue.build(
+                        self.context,
+                        self._button,
+                        <float>state.cur.drag_deltas[i].x,
+                        <float>state.cur.drag_deltas[i].y
+                    )
+                )
 
 cdef class EditedHandler(baseHandler):
     """
@@ -660,9 +840,23 @@ cdef class EditedHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_edited):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.edited
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    EditedHandlerCallbackValue(self.context)
+                )
 
 cdef class FocusHandler(baseHandler):
     """
@@ -676,9 +870,23 @@ cdef class FocusHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_focused):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.focused
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    FocusedHandlerCallbackValue(self.context)
+                )
 
 cdef class GotFocusHandler(baseHandler):
     """
@@ -690,9 +898,23 @@ cdef class GotFocusHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_focused):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.focused and not(state.prev.focused)
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    GotFocusHandlerCallbackValue(self.context)
+                )
 
 cdef class LostFocusHandler(baseHandler):
     """
@@ -704,9 +926,23 @@ cdef class LostFocusHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_focused):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
-        return state.cur.focused and not(state.prev.focused)
+        return not(state.cur.focused) and state.prev.focused
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    LostFocusHandlerCallbackValue(self.context)
+                )
 
 cdef class MouseOverHandler(baseHandler):
     """Prefer HoverHandler unless you really need to (see below)
@@ -730,6 +966,7 @@ cdef class MouseOverHandler(baseHandler):
            not(item.p_state.cap.has_position) or \
            not(item.p_state.cap.has_rect_size):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef imgui.ImGuiIO io = imgui.GetIO()
         if not(imgui.IsMousePosValid()):
@@ -743,6 +980,19 @@ cdef class MouseOverHandler(baseHandler):
                x2 > io.MousePos.x and \
                y2 > io.MousePos.y
 
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MouseOverHandlerCallbackValue(self.context) # TODO include mouse position
+                )
+
 cdef class GotMouseOverHandler(baseHandler):
     """Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
     """
@@ -753,6 +1003,7 @@ cdef class GotMouseOverHandler(baseHandler):
            not(item.p_state.cap.has_position) or \
            not(item.p_state.cap.has_rect_size):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef imgui.ImGuiIO io = imgui.GetIO()
         if not(imgui.IsMousePosValid()):
@@ -779,6 +1030,19 @@ cdef class GotMouseOverHandler(baseHandler):
                    x2 > io.MousePosPrev.x and \
                    y2 > io.MousePosPrev.y)
 
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    GotMouseOverHandlerCallbackValue(self.context) # TODO idem
+                )
+
 cdef class LostMouseOverHandler(baseHandler):
     """Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
     """
@@ -789,6 +1053,7 @@ cdef class LostMouseOverHandler(baseHandler):
            not(item.p_state.cap.has_position) or \
            not(item.p_state.cap.has_rect_size):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef imgui.ImGuiIO io = imgui.GetIO()
         # Check the mouse was over the item
@@ -815,6 +1080,19 @@ cdef class LostMouseOverHandler(baseHandler):
                    x2 > io.MousePos.x and \
                    y2 > io.MousePos.y)
 
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    LostMouseOverHandlerCallbackValue(self.context) # TODO include mouse position
+                )
+
 cdef class HoverHandler(baseHandler):
     """
     Handler that calls the callback when
@@ -825,9 +1103,23 @@ cdef class HoverHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_hovered):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.hovered
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    HoverHandlerCallbackValue(self.context)
+                )
 
 cdef class GotHoverHandler(baseHandler):
     """
@@ -839,9 +1131,23 @@ cdef class GotHoverHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_hovered):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.hovered and not(state.prev.hovered)
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    GotHoverHandlerCallbackValue(self.context)
+                )
 
 cdef class LostHoverHandler(baseHandler):
     """
@@ -854,9 +1160,23 @@ cdef class LostHoverHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_hovered):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return not(state.cur.hovered) and state.prev.hovered
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    LostHoverHandlerCallbackValue(self.context)
+                )
 
 
 cdef class MotionHandler(baseHandler):
@@ -937,8 +1257,19 @@ cdef class MotionHandler(baseHandler):
             cur_pos.y = 0.
         return cur_pos.x != prev_pos.x or cur_pos.y != prev_pos.y
 
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MotionHandlerCallbackValue(self.context) # TODO: add previous and current positions
+                )
 
-# TODO: Add size as data to the resize callbacks
 cdef class ContentResizeHandler(baseHandler):
     """
     Handler for item containers (windows, etc)
@@ -951,10 +1282,24 @@ cdef class ContentResizeHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.has_content_region):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.content_region_size.x != state.prev.content_region_size.x or \
                state.cur.content_region_size.y != state.prev.content_region_size.y
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    ContentResizeHandlerCallbackValue(self.context) # TODO: Add prev/cur size as data to the resize callbacks
+                )
 
 cdef class ResizeHandler(baseHandler):
     """
@@ -966,10 +1311,24 @@ cdef class ResizeHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.has_rect_size):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.rect_size.x != state.prev.rect_size.x or \
                state.cur.rect_size.y != state.prev.rect_size.y
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    ResizeHandlerCallbackValue(self.context) # TODO: Add prev/cur size as data to the resize callbacks
+                )
 
 cdef class ToggledOpenHandler(baseHandler):
     """
@@ -986,9 +1345,23 @@ cdef class ToggledOpenHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_toggled):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.open and not(state.prev.open)
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    ToggledOpenHandlerCallbackValue(self.context)
+                )
 
 cdef class ToggledCloseHandler(baseHandler):
     """
@@ -1009,9 +1382,23 @@ cdef class ToggledCloseHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_toggled):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return not(state.cur.open) and state.prev.open
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    ToggledCloseHandlerCallbackValue(self.context)
+                )
 
 cdef class OpenHandler(baseHandler):
     """
@@ -1028,9 +1415,23 @@ cdef class OpenHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_toggled):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.open
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    OpenHandlerCallbackValue(self.context)
+                )
 
 cdef class CloseHandler(baseHandler):
     """
@@ -1050,9 +1451,23 @@ cdef class CloseHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL or not(item.p_state.cap.can_be_toggled):
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return not(state.cur.open)
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    CloseHandlerCallbackValue(self.context)
+                )
 
 cdef class RenderHandler(baseHandler):
     """
@@ -1071,9 +1486,23 @@ cdef class RenderHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL:
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.rendered
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    RenderHandlerCallbackValue(self.context)
+                )
 
 cdef class GotRenderHandler(baseHandler):
     """
@@ -1086,9 +1515,23 @@ cdef class GotRenderHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL:
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return state.cur.rendered and not(state.prev.rendered)
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    GotRenderHandlerCallbackValue(self.context)
+                )
 
 cdef class LostRenderHandler(baseHandler):
     """
@@ -1104,9 +1547,23 @@ cdef class LostRenderHandler(baseHandler):
         lock_gil_friendly(m, self.mutex)
         if item.p_state == NULL:
             raise TypeError(f"Cannot bind handler {self} for {item}")
+
     cdef bint check_state(self, baseItem item) noexcept nogil:
         cdef itemState *state = item.p_state
         return not(state.cur.rendered) and state.prev.rendered
+
+    cdef void run_handler(self, baseItem item) noexcept nogil:
+        cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        if not(self._enabled) or self._callback is None:
+            return
+        if self.check_state(item):
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    LostRenderHandlerCallbackValue(self.context)
+                )
 
 cdef class MouseCursorHandler(baseHandler):
     """
@@ -1155,7 +1612,13 @@ cdef class MouseCursorHandler(baseHandler):
         imgui.SetMouseCursor(<imgui.ImGuiMouseCursor>self._mouse_cursor)
         if self._callback is not None:
             if self.check_state(item):
-                self.run_callback(item)
+                with gil:
+                    self.context.queue_callback(
+                        self._callback,
+                        self,
+                        item,
+                        MouseCursorHandlerCallbackValue(self.context)
+                    )
 
 
 """
@@ -1214,7 +1677,16 @@ cdef class KeyDownHandler(baseHandler):
         if key_info.Down and self._callback is not None:
             duration = fmax(<float>0., key_info.DownDuration) # In theory cannot be < 0, but lets be safe
             with gil:
-                self.context.queue_callback(self._callback, self, item, (make_Key(self._key), duration))
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    KeyDownHandlerCallbackValue.build(
+                        self.context,
+                        self._key,
+                        duration
+                    )
+                )
             # Repeat at least a KeyRepeatRate. User can get more using wake.
             self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
 
@@ -1280,7 +1752,15 @@ cdef class KeyPressHandler(baseHandler):
             duration = fmax(<float>0., key_info.DownDuration) # In theory cannot be < 0, but lets be safe
             if imgui.IsKeyPressed(<imgui.ImGuiKey>self._key, self._repeat):
                 with gil:
-                    self.context.queue_callback(self._callback, self, item, make_Key(self._key))
+                    self.context.queue_callback(
+                        self._callback,
+                        self,
+                        item,
+                        KeyPressHandlerCallbackValue(
+                            context=self.context,
+                            key=self._key
+                        )
+                    )
             if self._repeat:
                 if duration < imgui.GetIO().KeyRepeatDelay:
                     self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatDelay - duration)
@@ -1331,18 +1811,15 @@ cdef class KeyReleaseHandler(baseHandler):
             return
         if imgui.IsKeyReleased(<imgui.ImGuiKey>self._key):
             with gil:
-                self.context.queue_callback(self._callback, self, item, make_Key(self._key))
-
-cdef inline tuple build_keys_tuple(DCGVector[int32_t] &keys_array):
-    """Builds a tuple out of a key array"""
-    cdef int i
-    cdef list keys = []
-    for i in range(<int>keys_array.size()):
-        try:
-            keys.append(make_Key(keys_array[i]))
-        except: # key not found or invalid
-            pass
-    return tuple(keys)
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    KeyReleaseHandlerCallbackValue(
+                        context=self.context,
+                        key=self._key
+                    )
+                )
 
 cdef class AnyKeyPressHandler(baseHandler):
     """
@@ -1409,7 +1886,11 @@ cdef class AnyKeyPressHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    build_keys_tuple(self._keys_vector))
+                    AnyKeyPressHandlerCallbackValue.build(
+                        self.context,
+                        self._keys_vector
+                    )
+                )
             delay = imgui.GetIO().KeyRepeatDelay
             for i in range(<int32_t>self._keys_vector.size()):
                 key_info = imgui.GetKeyData(<imgui.ImGuiKey>self._keys_vector[i])
@@ -1459,20 +1940,11 @@ cdef class AnyKeyReleaseHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    build_keys_tuple(self._keys_vector))
-
-
-cdef inline tuple build_keys_durations_tuple(DCGVector[int32_t] &keys_array,
-                                             DCGVector[float] &durations_array):
-    """Builds a tuple of tuples from keys and durations arrays"""
-    cdef int i
-    cdef list keys_durations = []
-    for i in range(<int>keys_array.size()):
-        try:
-            keys_durations.append((make_Key(keys_array[i]), durations_array[i]))
-        except: # key not found or invalid
-            pass
-    return tuple(keys_durations)
+                    AnyKeyReleaseHandlerCallbackValue.build(
+                        self.context,
+                        self._keys_vector
+                    )
+                )
 
 
 cdef class AnyKeyDownHandler(baseHandler):
@@ -1521,7 +1993,12 @@ cdef class AnyKeyDownHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    build_keys_durations_tuple(self._keys_vector, self._durations_vector))
+                    AnyKeyDownHandlerCallbackValue.build(
+                        self.context,
+                        self._keys_vector,
+                        self._durations_vector
+                    )
+                )
             # Request a refresh to continue sending frequent callbacks while keys are down, even if the user
             # doesn't call wake.
             self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
@@ -1583,8 +2060,17 @@ cdef class MouseClickHandler(baseHandler):
         if not(self._enabled) or self._callback is None:
             return
         if imgui.IsMouseClicked(<int>self._button, self._repeat):
-            self.context.queue_callback_arg1button(self._callback, self, item, <int>self._button)
-        cdef float duration = imgui.GetIO().MouseDownDuration[<int>self._button]
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MouseClickHandlerCallbackValue(
+                        context=self.context,
+                        button=make_MouseButton(self._button)
+                    )
+                )
+        cdef float duration = fmax(0., imgui.GetIO().MouseDownDuration[<int>self._button])
         if self._repeat and imgui.IsMouseDown(<int>self._button):
             duration = fmax(0., duration)
             if duration < imgui.GetIO().KeyRepeatDelay:
@@ -1633,7 +2119,16 @@ cdef class MouseDoubleClickHandler(baseHandler):
         if not(self._enabled):
             return
         if imgui.IsMouseDoubleClicked(<int>self._button):
-            self.context.queue_callback_arg1button(self._callback, self, item, <int>self._button)
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MouseDoubleClickHandlerCallbackValue(
+                        context=self.context,
+                        button=make_MouseButton(self._button)
+                    )
+                )
 
 
 cdef class MouseDownHandler(baseHandler):
@@ -1677,7 +2172,16 @@ cdef class MouseDownHandler(baseHandler):
             return
         if imgui.IsMouseDown(<int>self._button):
             with gil:
-                self.context.queue_callback(self._callback, self, item, (<int>self._button, imgui.GetIO().MouseDownDuration[<int>self._button]))
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MouseDownHandlerCallbackValue.build(
+                        self.context,
+                        self._button,
+                        fmax(<float>0., imgui.GetIO().MouseDownDuration[<int>self._button])
+                    )
+                )
             # Refresh frequently even if the user doesn't call wake(). The user can get higher frequency using wake.
             self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
 
@@ -1743,7 +2247,17 @@ cdef class MouseDragHandler(baseHandler):
         if imgui.IsMouseDragging(<int>self._button, self._threshold):
             delta = imgui.GetMouseDragDelta(<int>self._button, self._threshold)
             with gil:
-                self.context.queue_callback(self._callback, self, item, (<int>self._button, delta.x, delta.y))
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MouseDragHandlerCallbackValue.build(
+                        self.context,
+                        self._button,
+                        delta.x,
+                        delta.y
+                    )
+                )
 
 
 cdef class MouseMoveHandler(baseHandler):
@@ -1776,7 +2290,18 @@ cdef class MouseMoveHandler(baseHandler):
         if io.MousePos.x != io.MousePosPrev.x or \
            io.MousePos.y != io.MousePosPrev.y:
             with gil:
-                self.context.queue_callback(self._callback, self, item, (io.MousePos.x, io.MousePos.y))
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MouseMoveHandlerCallbackValue.build(
+                        self.context,
+                        io.MousePos.x,
+                        io.MousePos.y,
+                        io.MousePosPrev.x,
+                        io.MousePosPrev.y
+                    )
+                )
 
 
 cdef class MouseReleaseHandler(baseHandler):
@@ -1818,7 +2343,16 @@ cdef class MouseReleaseHandler(baseHandler):
         if not(self._enabled):
             return
         if imgui.IsMouseReleased(<int>self._button):
-            self.context.queue_callback_arg1button(self._callback, self, item, <int>self._button)
+            with gil:
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MouseReleaseHandlerCallbackValue(
+                        context=self.context,
+                        button=make_MouseButton(self._button)
+                    )
+                )
 
 cdef class MouseWheelHandler(baseHandler):
     """
@@ -1872,7 +2406,12 @@ cdef class MouseWheelHandler(baseHandler):
         cdef float wheel_value = io.MouseWheelH if self._horizontal else io.MouseWheel
         if abs(wheel_value) > 0.:
             with gil:
-                self.context.queue_callback(self._callback, self, item, wheel_value)
+                self.context.queue_callback(
+                    self._callback,
+                    self,
+                    item,
+                    MouseWheelHandlerCallbackValue.build(self.context, wheel_value)
+                )
 
 
 cdef class MouseInRect(baseHandler):
@@ -1934,7 +2473,15 @@ cdef class MouseInRect(baseHandler):
            self._x2 > io.MousePos.x and \
            self._y2 > io.MousePos.y:
            with gil:
-              self.context.queue_callback(self._callback, self, item, (io.MousePos.x, io.MousePos.y))
+              self.context.queue_callback(
+                self._callback,
+                self,
+                item,
+                MouseInRectHandlerCallbackValue(
+                    context=self.context,
+                    mouse_position=Coord(io.MousePos.x, io.MousePos.y)
+                )
+            )
 
 
 cdef inline tuple build_buttons_tuple(DCGVector[int32_t] &buttons_array):
@@ -1943,7 +2490,7 @@ cdef inline tuple build_buttons_tuple(DCGVector[int32_t] &buttons_array):
     cdef list buttons = []
     for i in range(<int>buttons_array.size()):
         try:
-            buttons.append(MouseButton(buttons_array[i]))
+            buttons.append(make_MouseButton(buttons_array[i]))
         except: # button not found or invalid
             pass
     return tuple(buttons)
@@ -2011,7 +2558,11 @@ cdef class AnyMouseClickHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    build_buttons_tuple(self._buttons_vector))
+                    AnyMouseClickHandlerCallbackValue(
+                        context=self.context,
+                        buttons=build_buttons_tuple(self._buttons_vector)
+                    )
+                )
 
         cdef float duration, delay
         if self._repeat:
@@ -2064,7 +2615,10 @@ cdef class AnyMouseDoubleClickHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    build_buttons_tuple(self._buttons_vector))
+                    AnyMouseDoubleClickHandlerCallbackValue(
+                        context=self.context,
+                        buttons=build_buttons_tuple(self._buttons_vector)
+                    ))
 
 
 cdef class AnyMouseReleaseHandler(baseHandler):
@@ -2101,20 +2655,11 @@ cdef class AnyMouseReleaseHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    build_buttons_tuple(self._buttons_vector))
-
-
-cdef inline tuple build_buttons_durations_tuple(DCGVector[int32_t] &buttons_array,
-                                                DCGVector[float] &durations_array):
-    """Builds a tuple of tuples from buttons and durations arrays"""
-    cdef int i
-    cdef list buttons_durations = []
-    for i in range(<int>buttons_array.size()):
-        try:
-            buttons_durations.append((MouseButton(buttons_array[i]), durations_array[i]))
-        except: # button not found or invalid
-            pass
-    return tuple(buttons_durations)
+                    AnyMouseReleaseHandlerCallbackValue(
+                        context=self.context,
+                        buttons=build_buttons_tuple(self._buttons_vector)
+                    )
+                )
 
 
 cdef class AnyMouseDownHandler(baseHandler):
@@ -2149,7 +2694,7 @@ cdef class AnyMouseDownHandler(baseHandler):
         for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
             if imgui.IsMouseDown(button):
                 self._buttons_vector.push_back(<int32_t>button)
-                self._durations_vector.push_back(io.MouseDownDuration[button])
+                self._durations_vector.push_back(fmax(<float>0., io.MouseDownDuration[button]))
                 
         if not self._buttons_vector.empty():
             with gil:
@@ -2157,7 +2702,12 @@ cdef class AnyMouseDownHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    build_buttons_durations_tuple(self._buttons_vector, self._durations_vector))
+                    AnyMouseDownHandlerCallbackValue.build(
+                        self.context,
+                        self._buttons_vector,
+                        self._durations_vector
+                    )
+                )
             # Request a refresh to continue sending frequent callbacks while buttons are down, even if the user
             # doesn't call wake.
             self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
@@ -2313,7 +2863,11 @@ cdef class DragDropSourceHandler(baseHandler):
             self._callback,
             self,
             item,
-            (state_copy, (mouse_x, mouse_y))
+            DragDropSourceHandlerCallbackValue(
+                context=self.context,
+                mouse_position=Coord(mouse_x, mouse_y),
+                state_copy=state_copy
+            )
         )
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
@@ -2489,7 +3043,11 @@ cdef class DragDropActiveHandler(baseHandler):
             self._callback,
             self,
             item,
-            (payload_type, payload_data)
+            DragDropActiveHandlerCallbackValue(
+                context=self.context,
+                payload_data=payload_data,
+                payload_type=payload_type
+            )
         )
         return 0
 
@@ -2691,7 +3249,13 @@ cdef class DragDropTargetHandler(baseHandler):
             self._callback,
             self,
             item,
-            (payload_type, payload_data, state_copy, (mouse_x, mouse_y))
+            DragDropTargetHandlerCallbackValue(
+                context=self.context,
+                mouse_position=Coord(mouse_x, mouse_y),
+                payload_data=payload_data,
+                payload_type=payload_type,
+                state_copy=state_copy
+            )
         )
         return 0
 

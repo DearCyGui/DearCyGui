@@ -105,9 +105,6 @@ cdef class Context:
     cdef object __weakref__
     ### public methods ###
     # Queue operations assume the viewport mutex is held
-    cdef void queue_callback_noarg(self, Callback, baseItem, baseItem) noexcept nogil
-    cdef void queue_callback_arg1button(self, Callback, baseItem, baseItem, int32_t) noexcept nogil
-    cdef void queue_callback_arg1value(self, Callback, baseItem, baseItem, SharedValue) noexcept nogil
     cdef void queue_callback(self, Callback, baseItem, baseItem, object) noexcept
     # lock free operations
     cpdef void push_next_parent(self, baseItem next_parent)
@@ -624,6 +621,9 @@ UI item
 A drawable item with various UI states
 """
 
+cdef class baseCallbackValue:
+    pass
+
 cdef class baseHandler(baseItem):
     cdef bint _enabled
     cdef Callback _callback
@@ -636,10 +636,6 @@ cdef class baseHandler(baseItem):
     # Checks True/False if the condition holds, and if
     # True performs an action (for instance run the callback).
     cdef void run_handler(self, baseItem) noexcept nogil
-    # Helper (implemented by baseHandler) to call the
-    # attached callback. You may want to call it yourself
-    # if you need to pass specific arguments
-    cdef void run_callback(self, baseItem) noexcept nogil
 
 cdef void update_current_mouse_states(itemState& state) noexcept nogil
 

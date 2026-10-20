@@ -9,7 +9,7 @@ cdef extern from "imgui.h" nogil:
     struct ImDrawListSharedData:
         pass
     int IMGUI_VERSION
-    long IMGUI_VERSION_NUM = 19191
+    const long IMGUI_VERSION_NUM = 19191
     int IMGUI_HAS_TABLE
     int IMGUI_API
     int IMGUI_IMPL_API
@@ -28,13 +28,13 @@ cdef extern from "imgui.h" nogil:
     const int IM_FREE(...)
     const int IM_PLACEMENT_NEW(...)
     const int IM_NEW(...)
-    unsigned long IM_UNICODE_CODEPOINT_INVALID = 0xFFFD
-    unsigned long IM_UNICODE_CODEPOINT_MAX = 0xFFFF
-    long IM_COL32_R_SHIFT = 0
-    long IM_COL32_G_SHIFT = 8
-    long IM_COL32_B_SHIFT = 16
-    long IM_COL32_A_SHIFT = 24
-    unsigned long IM_COL32_A_MASK = 0xFF000000
+    const unsigned long IM_UNICODE_CODEPOINT_INVALID = 0xFFFD
+    const unsigned long IM_UNICODE_CODEPOINT_MAX = 0xFFFF
+    const long IM_COL32_R_SHIFT = 0
+    const long IM_COL32_G_SHIFT = 8
+    const long IM_COL32_B_SHIFT = 16
+    const long IM_COL32_A_SHIFT = 24
+    const unsigned long IM_COL32_A_MASK = 0xFF000000
     const int IM_COL32(...)
     int IM_COL32_WHITE
     int IM_COL32_BLACK

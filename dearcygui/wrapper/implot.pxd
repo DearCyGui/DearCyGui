@@ -14,7 +14,7 @@ cdef extern from "implot.h" nogil:
         pass
     int IMPLOT_API
     int IMPLOT_VERSION
-    long IMPLOT_AUTO = -1
+    const long IMPLOT_AUTO = -1
     int IMPLOT_AUTO_COL
     int IMPLOT_TMP
     int IMPLOT_DEPRECATED(...)

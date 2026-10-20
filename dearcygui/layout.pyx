@@ -23,6 +23,7 @@ from libcpp.cmath cimport floor, fmax
 
 from .core cimport uiItem, Callback, lock_gil_friendly
 from .c_types cimport Vec2, make_Vec2, swap_Vec2, DCGMutex, unique_lock
+from .callback_values cimport uiItemCallbackNoneValue
 from .imgui_types cimport ImVec2Vec2, Vec2ImVec2
 from .sizing cimport resolve_size
 from .types cimport child_type
@@ -1547,8 +1548,14 @@ cdef class WindowLayout(uiItem):
         # Fire layout-change callbacks when the child configuration changed
         cdef int i
         if changed and not(self._callbacks.empty()):
-            for i in range(<int>self._callbacks.size()):
-                self.context.queue_callback_arg1value(<Callback>self._callbacks[i], self, self, self._value)
+            with gil:
+                for i in range(<int>self._callbacks.size()):
+                    self.context.queue_callback(
+                        <Callback>self._callbacks[i],
+                        self,
+                        self,
+                        uiItemCallbackNoneValue(None)
+                    )
 
         self.run_handlers()
 
