@@ -224,6 +224,14 @@ cdef class MouseInRectHandlerCallbackValue(HandlerCallbackValue):
     cdef float _mouse_x
     cdef float _mouse_y
 
+cdef class AxesResizeHandlerCallbackValue(HandlerCallbackValue):
+    cdef double _x_min
+    cdef double _x_max
+    cdef double _x_scale
+    cdef double _y_min
+    cdef double _y_max
+    cdef double _y_scale
+
 cdef class AnyMouseClickHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
     pass
 

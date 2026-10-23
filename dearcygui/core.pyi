@@ -2,71 +2,83 @@ from typing import Coroutine, TypeAlias, Any, Literal
 from enum import IntEnum
 from collections.abc import Sequence, Iterator, Callable
 from math import inf
-from typing import Protocol, Self, TypeVar, Never, Concatenate
+from typing import Protocol, Self, Never, Concatenate
 from contextlib import AbstractContextManager
 from .core import *
 
-SenderT = TypeVar('SenderT', bound='baseItem')
-TargetT = TypeVar('TargetT', bound='baseItem')
+# Callback parameters are contravariant (inferred): a callback accepting a parent
+# class (or a union containing the exact class) of the sender/value is valid.
+# Sender is the item the callback is attached to, value is the callback value
+# class matching that item.
 
 class DCGCallable0(Protocol):
     def __call__(self, /) -> Any:
         ...
 
-class DCGCallable1(Protocol[SenderT]):
+class DCGCallable1[S: baseItem = baseItem](Protocol):
     def __call__(self,
-                 sender : SenderT,
+                 sender : S,
                  /) -> Any:
         ...
 
-class DCGCallable2(Protocol[SenderT, TargetT]):
+class DCGCallable2[S: baseItem = baseItem, T: baseItem = baseItem](Protocol):
     def __call__(self,
-                 sender : SenderT,
-                 target : TargetT,
+                 sender : S,
+                 target : T,
                  /) -> Any:
         ...
 
-class DCGCallable3(Protocol[SenderT, TargetT]):
+class DCGCallable3[S: baseItem = baseItem,
+                   T: baseItem = baseItem,
+                   V: baseCallbackValue = baseCallbackValue](Protocol):
     def __call__(self,
-                 sender : SenderT,
-                 target : TargetT,
-                 value : Any,
+                 sender : S,
+                 target : T,
+                 value : V,
                  /) -> Any:
         ...
 
-class DCGCallable0Kw(Protocol):    
-    def __call__(self, /, **kwargs) -> Any:
+class DCGCallable0Kw(Protocol):
+    def __call__(self, /, **kwargs: Any) -> Any:
         ...
 
-class DCGCallable1Kw(Protocol[SenderT]):
+class DCGCallable1Kw[S: baseItem = baseItem](Protocol):
     def __call__(self,
-                 sender : SenderT,
+                 sender : S,
                  /,
                  **kwargs : Any) -> Any:
         ...
 
-class DCGCallable2Kw(Protocol[SenderT, TargetT]):
+class DCGCallable2Kw[S: baseItem = baseItem, T: baseItem = baseItem](Protocol):
     def __call__(self,
-                 sender : SenderT,
-                 target : TargetT,
+                 sender : S,
+                 target : T,
                  /,
                  **kwargs : Any) -> Any:
         ...
 
-class DCGCallable3Kw(Protocol[SenderT, TargetT]):
+class DCGCallable3Kw[S: baseItem = baseItem,
+                     T: baseItem = baseItem,
+                     V: baseCallbackValue = baseCallbackValue](Protocol):
     def __call__(self,
-                 sender : SenderT,
-                 target : TargetT,
-                 value : Any,
-                 /,  
+                 sender : S,
+                 target : T,
+                 value : V,
+                 /,
                  **kwargs : Any) -> Any:
         ...
 
 
-DCGCallable = DCGCallable0 | DCGCallable1 | DCGCallable2 | DCGCallable3 | DCGCallable0Kw | DCGCallable1Kw | DCGCallable2Kw | DCGCallable3Kw
+type DCGCallable[S: baseItem = baseItem,
+                 T: baseItem = baseItem,
+                 V: baseCallbackValue = baseCallbackValue] = (
+    DCGCallable0 | DCGCallable1[S] | DCGCallable2[S, T] | DCGCallable3[S, T, V]
+    | DCGCallable0Kw | DCGCallable1Kw[S] | DCGCallable2Kw[S, T] | DCGCallable3Kw[S, T, V]
+)
 
 
-class Callback(DCGCallable3[SenderT, TargetT]):
+class Callback[S: baseItem = baseItem, T: baseItem = baseItem,
+               V: baseCallbackValue = baseCallbackValue](DCGCallable3[S, T, V]):
     """
     Wrapper class that automatically encapsulates callbacks.
 
@@ -78,10 +90,10 @@ class Callback(DCGCallable3[SenderT, TargetT]):
 
     This class adapts callbacks with fewer parameters to the full 3-parameter form.
     """
-    def __init__(self, callback: DCGCallable) -> None:
+    def __init__(self, callback: DCGCallable[S, T, V]) -> None:
         ...
     
-    def __call__(self, sender: SenderT, target: TargetT, value: Any) -> Any:
+    def __call__(self, sender: S, target: T, value: V) -> Any:
         """
         Call the wrapped callback with appropriate number of arguments.
         
@@ -90,7 +102,7 @@ class Callback(DCGCallable3[SenderT, TargetT]):
         ...
 
     @property
-    def callback(self) -> DCGCallable:
+    def callback(self) -> DCGCallable[S, T, V]:
         """(Read-only) The original wrapped callback
         """
         ...
@@ -4086,6 +4098,13 @@ class TableRowConfigView:
         ...
 
 
+class baseCallbackValue(object):
+    """
+Base class for all callback values.
+    """
+    ...
+
+
 class baseItem(object):
     """
     Base class for all items (except shared values).
@@ -5305,7 +5324,7 @@ class uiItem(baseItem):
     All attributes are protected by mutexes to enable thread-safe access.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -5340,7 +5359,7 @@ class uiItem(baseItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -5384,7 +5403,7 @@ class uiItem(baseItem):
 
 
     @property
-    def callback(self) -> list[Callback]:
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackNoneValue]]:
         """
         Callback to invoke when the item's value changes
 
@@ -5395,12 +5414,12 @@ class uiItem(baseItem):
 
 
     @callback.setter
-    def callback(self, value : DCGCallable | None):
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None):
         ...
 
 
     @property
-    def callbacks(self) -> list[Callback]:
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackNoneValue]]:
         """
         List of callbacks to invoke when the item's value changes.
 
@@ -5413,7 +5432,7 @@ class uiItem(baseItem):
 
 
     @callbacks.setter
-    def callbacks(self, value : Sequence[DCGCallable]):
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]]):
         ...
 
 
@@ -5844,6 +5863,19 @@ class uiItem(baseItem):
         ...
 
 
+class uiItemCallbackValue(baseCallbackValue):
+    """
+Callback value for a UI item.
+    """
+    @property
+    def value(self) -> Any:
+        """Value of the UI item when the callback was triggered.
+        """
+        ...
+
+
+
+
 class baseTable(uiItem):
     """
     Base class for Table widgets.
@@ -5857,7 +5889,7 @@ class baseTable(uiItem):
     is done by the derived classes.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -5944,7 +5976,7 @@ Get a view of the specified column.
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -6625,6 +6657,58 @@ class plotElementWithLegend(plotElement):
     @no_legend.setter
     def no_legend(self, value : bool):
         ...
+
+
+class uiItemCallbackBoolValue(uiItemCallbackValue):
+    """
+Callback value for a UI item with a boolean value.
+    """
+    @property
+    def value(self) -> bool:
+        """Value of the UI item when the callback was triggered.
+        """
+        ...
+
+
+
+
+class uiItemCallbackFloatValue(uiItemCallbackValue):
+    """
+Callback value for a UI item with a float value.
+    """
+    @property
+    def value(self) -> float:
+        """Value of the UI item when the callback was triggered.
+        """
+        ...
+
+
+
+
+class uiItemCallbackNoneValue(uiItemCallbackValue):
+    """
+Callback value for a UI item with no value.
+    """
+    @property
+    def value(self) -> None:
+        """Value of the UI item when the callback was triggered.
+        """
+        ...
+
+
+
+
+class uiItemCallbackStringValue(uiItemCallbackValue):
+    """
+Callback value for a UI item with a string value.
+    """
+    @property
+    def value(self) -> str:
+        """Value of the UI item when the callback was triggered.
+        """
+        ...
+
+
 
 
 class plotElementX(plotElementWithLegend):
@@ -7714,6 +7798,13 @@ class FontTexture(baseItem):
     @texture.setter
     def texture(self, value : 'Texture' | None):
         ...
+
+
+class HandlerCallbackValue(baseCallbackValue):
+    """
+Base class for all handler callback values.
+    """
+    ...
 
 
 class Pattern(baseItem):
@@ -10301,6 +10392,48 @@ class Texture(baseItem):
         ...
 
 
+class TimeWatcherCallbackValue(baseCallbackValue):
+    """
+Callback value for a time watcher event.
+    """
+    @property
+    def time_start(self) -> int:
+        """Time the TimeWatcher is called for rendering (in nanoseconds).
+        """
+        ...
+
+
+    @property
+    def time_end(self) -> int:
+        """Time after the TimeWatcher children have finished rendering (in nanoseconds).
+        """
+        ...
+
+
+    @property
+    def viewport_last_t_before_rendering(self) -> int:
+        """Last time before rendering in the viewport (in nanoseconds).
+        
+        It corresponds to the time when viewport
+        started rendering items for this frame. It is
+        given to prevent the user from having to keep track of the
+        viewport metrics (since the callback might be called
+        after or before the viewport updated its metrics for this
+        frame or another one).
+        
+        """
+        ...
+
+
+    @property
+    def viewport_frame_count(self) -> int:
+        """Frame count of the viewport.
+        """
+        ...
+
+
+
+
 class Viewport(baseItem):
     """
     The viewport corresponds to the main item containing all the visuals.
@@ -10308,7 +10441,7 @@ class Viewport(baseItem):
     It is decorated by the operating system and can be minimized/maximized/made fullscreen.
 
     """
-    def __init__(self, context : Context, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100):
+    def __init__(self, context : Context, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, attach : Any = ..., before : Any = ..., children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : DCGCallable[Self, Self, ViewportCloseCallbackValue] | None = None, cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : DCGCallable[Self, Self, ViewportResizeCallbackValue] | None = None, retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100):
         """
         Parameters
         ----------
@@ -10358,7 +10491,7 @@ class Viewport(baseItem):
         ...
 
 
-    def configure(self, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100) -> None:
+    def configure(self, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : DCGCallable[Self, Self, ViewportCloseCallbackValue] | None = None, cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : DCGCallable[Self, Self, ViewportResizeCallbackValue] | None = None, retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -10438,7 +10571,7 @@ class Viewport(baseItem):
         ...
 
 
-    def initialize(self, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : Any = ..., cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : Any = ..., retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100) -> None:
+    def initialize(self, *, always_on_top : bool = False, always_submit_to_gpu : bool = False, children : Sequence['Window' | 'WindowLayout' | 'ViewportDrawList' | 'MenuBar'] = [], clear_color : tuple = (0.0, 0.0, 0.0, 1.0), close_callback : DCGCallable[Self, Self, ViewportCloseCallbackValue] | None = None, cursor : MouseCursor = MouseCursor.ARROW, decorated : bool = True, disable_close : bool = False, font : 'baseFont' | None = None, fullscreen : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 800, hit_test_surface : Any = ..., icon : Any = ..., keyboard_navigation : bool = False, max_height : int = 10000, max_width : int = 10000, maximized : bool = False, min_height : int = 250, min_width : int = 250, minimized : bool = False, next_sibling : 'baseItem' | None = None, parent : 'baseItem' | None = None, pixel_height : int = 800, pixel_width : int = 1280, previous_sibling : 'baseItem' | None = None, resizable : bool = True, resize_callback : DCGCallable[Self, Self, ViewportResizeCallbackValue] | None = None, retrieve_framebuffer : bool = False, scale : float = 1.0, theme : Any = ..., title : str = "DearCyGui Window", transparent : bool = False, user_data : Any = ..., visible : bool = True, vsync : bool = True, wait_for_input : bool = False, width : float | str | 'baseSizing' = 1280, x_pos : int = 100, y_pos : int = 100) -> None:
         """
         Initialize the viewport for rendering and show it.
 
@@ -10655,7 +10788,7 @@ Render one frame of the application.
 
 
     @property
-    def close_callback(self):
+    def close_callback(self) -> Callback[Self, Self, ViewportCloseCallbackValue] | None:
         """
         Callback to be issued when the viewport is closed.
 
@@ -10664,7 +10797,7 @@ Render one frame of the application.
 
 
     @close_callback.setter
-    def close_callback(self, value):
+    def close_callback(self, value : DCGCallable[Self, Self, ViewportCloseCallbackValue] | None):
         ...
 
 
@@ -11145,7 +11278,7 @@ Render one frame of the application.
 
 
     @property
-    def resize_callback(self):
+    def resize_callback(self) -> Callback[Self, Self, ViewportResizeCallbackValue] | None:
         """
         Callback to be issued when the viewport is resized.
 
@@ -11161,7 +11294,7 @@ Render one frame of the application.
 
 
     @resize_callback.setter
-    def resize_callback(self, value):
+    def resize_callback(self, value : DCGCallable[Self, Self, ViewportResizeCallbackValue] | None):
         ...
 
 
@@ -11424,6 +11557,54 @@ Render one frame of the application.
         ...
 
 
+class ViewportCloseCallbackValue(baseCallbackValue):
+    """
+Callback value for a viewport close event.
+    """
+    ...
+
+
+class ViewportResizeCallbackValue(baseCallbackValue):
+    """
+Callback value for a viewport resize event.
+    """
+    @property
+    def frame_width(self) -> int:
+        """Width of the viewport in actual pixels.
+        """
+        ...
+
+
+    @property
+    def frame_height(self) -> int:
+        """Height of the viewport in actual pixels.
+        """
+        ...
+
+
+    @property
+    def window_width(self) -> int:
+        """DPI invariant width of the viewport.
+        """
+        ...
+
+
+    @property
+    def window_height(self) -> int:
+        """DPI invariant height of the viewport.
+        """
+        ...
+
+
+
+
+class WindowCloseCallbackValue(baseCallbackValue):
+    """
+Callback value for a window close event.
+    """
+    ...
+
+
 class ActivatedHandler(baseHandler):
     """
     Handler for when the target item turns from
@@ -11431,7 +11612,7 @@ class ActivatedHandler(baseHandler):
     buttons turn active when the mouse is pressed on them.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, ActivatedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11449,7 +11630,7 @@ class ActivatedHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, ActivatedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11465,6 +11646,32 @@ class ActivatedHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, ActivatedHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, ActivatedHandlerCallbackValue] | None):
+        ...
+
+
+class ActivatedHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the ActivatedHandler.
+    """
+    ...
 
 
 class ActiveHandler(baseHandler):
@@ -11475,7 +11682,7 @@ class ActiveHandler(baseHandler):
     the mouse is released.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, ActiveHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11493,7 +11700,7 @@ class ActiveHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, ActiveHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11509,6 +11716,32 @@ class ActiveHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, ActiveHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, ActiveHandlerCallbackValue] | None):
+        ...
+
+
+class ActiveHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the ActiveHandler.
+    """
+    ...
 
 
 class AnyKeyDownHandler(baseHandler):
@@ -11524,7 +11757,7 @@ class AnyKeyDownHandler(baseHandler):
           - duration: How long the key has been held (in seconds)
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, AnyKeyDownHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11542,7 +11775,7 @@ class AnyKeyDownHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, AnyKeyDownHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11557,6 +11790,25 @@ class AnyKeyDownHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, AnyKeyDownHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, AnyKeyDownHandlerCallbackValue] | None):
         ...
 
 
@@ -11574,7 +11826,7 @@ class AnyKeyPressHandler(baseHandler):
         - data: A tuple of Key objects that were pressed this frame
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, AnyKeyPressHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11593,7 +11845,7 @@ class AnyKeyPressHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, AnyKeyPressHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11609,6 +11861,25 @@ class AnyKeyPressHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, AnyKeyPressHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, AnyKeyPressHandlerCallbackValue] | None):
         ...
 
 
@@ -11640,7 +11911,7 @@ class AnyKeyReleaseHandler(baseHandler):
         - data: A tuple of Key objects that were released this frame
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, AnyKeyReleaseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11658,7 +11929,7 @@ class AnyKeyReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, AnyKeyReleaseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11673,6 +11944,25 @@ class AnyKeyReleaseHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, AnyKeyReleaseHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, AnyKeyReleaseHandlerCallbackValue] | None):
         ...
 
 
@@ -11690,7 +11980,7 @@ class AnyMouseClickHandler(baseHandler):
         - data: A tuple of MouseButton objects that were clicked this frame
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, AnyMouseClickHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11709,7 +11999,7 @@ class AnyMouseClickHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, AnyMouseClickHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11725,6 +12015,25 @@ class AnyMouseClickHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, AnyMouseClickHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, AnyMouseClickHandlerCallbackValue] | None):
         ...
 
 
@@ -11756,7 +12065,7 @@ class AnyMouseDoubleClickHandler(baseHandler):
         - data: A tuple of MouseButton objects that were double-clicked this frame
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, AnyMouseDoubleClickHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11774,7 +12083,7 @@ class AnyMouseDoubleClickHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, AnyMouseDoubleClickHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11789,6 +12098,25 @@ class AnyMouseDoubleClickHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, AnyMouseDoubleClickHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, AnyMouseDoubleClickHandlerCallbackValue] | None):
         ...
 
 
@@ -11805,7 +12133,7 @@ class AnyMouseDownHandler(baseHandler):
           - duration: How long the button has been held (in seconds)
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, AnyMouseDownHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11823,7 +12151,7 @@ class AnyMouseDownHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, AnyMouseDownHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11838,6 +12166,25 @@ class AnyMouseDownHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, AnyMouseDownHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, AnyMouseDownHandlerCallbackValue] | None):
         ...
 
 
@@ -11852,7 +12199,7 @@ class AnyMouseReleaseHandler(baseHandler):
         - data: A tuple of MouseButton objects that were released this frame
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, AnyMouseReleaseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11870,7 +12217,7 @@ class AnyMouseReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, AnyMouseReleaseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11888,6 +12235,25 @@ class AnyMouseReleaseHandler(baseHandler):
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, AnyMouseReleaseHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, AnyMouseReleaseHandlerCallbackValue] | None):
+        ...
+
+
 class AxesResizeHandler(baseHandler):
     """
     Handler that detects changes in plot axes dimensions or view area.
@@ -11897,17 +12263,14 @@ class AxesResizeHandler(baseHandler):
     detecting when the scale of pixels within plot coordinates has changed, such
     as after zoom operations or window resizing.
 
-    The data field passed to the callback contains:
-    ((x_min, x_max, x_scale), (y_min, y_max, y_scale))
-
-    Where:
-    - x_min, x_max: Current axis limits
-    - x_scale: Scaling factor (max-min)/pixels
-    - First tuple is for X axis (default X1)
-    - Second tuple is for Y axis (default Y1)
+    The value passed to the callback is an AxesResizeHandlerCallbackValue
+    with the fields x_min, x_max, x_scale, y_min, y_max, y_scale, where:
+    - x_min, x_max (resp. y_min, y_max): Current limits of the monitored X (resp. Y) axis
+    - x_scale (resp. y_scale): Scaling factor (max-min)/pixels
+    - The monitored axes are given by the axes property (default X1, Y1)
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple = (Axis.X1, Axis.Y1), before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., axes : tuple = (Axis.X1, Axis.Y1), before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, AxesResizeHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11926,7 +12289,7 @@ class AxesResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, *, axes : tuple = (Axis.X1, Axis.Y1), callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, axes : tuple = (Axis.X1, Axis.Y1), callback : DCGCallable[Self, Any, AxesResizeHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -11963,6 +12326,73 @@ class AxesResizeHandler(baseHandler):
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, AxesResizeHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, AxesResizeHandlerCallbackValue] | None):
+        ...
+
+
+class AxesResizeHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the AxesResizeHandler.
+    """
+    @property
+    def x_min(self) -> float:
+        """Minimum of the monitored X axis.
+        """
+        ...
+
+
+    @property
+    def x_max(self) -> float:
+        """Maximum of the monitored X axis.
+        """
+        ...
+
+
+    @property
+    def x_scale(self) -> float:
+        """Size of a pixel along the monitored X axis, in plot coordinates.
+        """
+        ...
+
+
+    @property
+    def y_min(self) -> float:
+        """Minimum of the monitored Y axis.
+        """
+        ...
+
+
+    @property
+    def y_max(self) -> float:
+        """Maximum of the monitored Y axis.
+        """
+        ...
+
+
+    @property
+    def y_scale(self) -> float:
+        """Size of a pixel along the monitored Y axis, in plot coordinates.
+        """
+        ...
+
+
+
+
 class BoolHandler(baseHandler):
     """
     Handler that fits a SharedBool condition
@@ -11978,7 +12408,7 @@ class BoolHandler(baseHandler):
     when some external condition is not met.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, BoolHandlerCallbackValue] | None = None, children : list[Never] = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -11997,7 +12427,7 @@ class BoolHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, BoolHandlerCallbackValue] | None = None, children : list[Never] = [], condition : SharedBool = ..., enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -12017,6 +12447,25 @@ class BoolHandler(baseHandler):
 
 
     @property
+    def callback(self) -> list[Callback[Self, Any, BoolHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, BoolHandlerCallbackValue] | None):
+        ...
+
+
+    @property
     def condition(self) -> SharedBool:
         """
         SharedBool condition that this handler
@@ -12032,6 +12481,13 @@ class BoolHandler(baseHandler):
         ...
 
 
+class BoolHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the BoolHandler.
+    """
+    ...
+
+
 class Button(uiItem):
     """
     A clickable UI button that can trigger actions when pressed.
@@ -12042,7 +12498,7 @@ class Button(uiItem):
     is stored in a SharedBool value that tracks whether it's active.
 
     """
-    def __init__(self, context : Context, *, arrow : Any = ..., attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, arrow : Any = ..., attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12076,7 +12532,7 @@ class Button(uiItem):
         ...
 
 
-    def configure(self, *, arrow : Any = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, arrow : Any = ..., callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, repeat : bool = False, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, small : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12125,6 +12581,40 @@ class Button(uiItem):
 
     @arrow.setter
     def arrow(self, value):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -12221,7 +12711,7 @@ class Checkbox(uiItem):
     If a label is provided, it will be displayed at the right of the checkbox.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12252,7 +12742,7 @@ class Checkbox(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12278,6 +12768,40 @@ class Checkbox(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -12333,7 +12857,7 @@ class ChildWindow(uiItem):
     structured layouts.
 
     """
-    def __init__(self, context : Context, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : 'uiItem' | None = None, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, attach : Any = ..., auto_resize_x : bool = False, auto_resize_y : bool = False, before : 'uiItem' | None = None, border : bool = True, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12380,7 +12904,7 @@ class ChildWindow(uiItem):
         ...
 
 
-    def configure(self, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, always_auto_resize : bool = False, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, always_use_window_padding : bool = False, auto_resize_x : bool = False, auto_resize_y : bool = False, border : bool = True, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem' | 'MenuBar'] = [], enabled : bool = True, flattened_navigation : bool = True, font : 'baseFont' | None = None, frame_style : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, menubar : bool = False, next_sibling : 'uiItem' | None = None, no_background : bool = False, no_inputs : bool = False, no_newline : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, resizable_x : bool = False, resizable_y : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12771,7 +13295,7 @@ class ClickedHandler(baseHandler):
     it can be Text for example.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, ClickedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12790,7 +13314,7 @@ class ClickedHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, ClickedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -12827,6 +13351,25 @@ class ClickedHandler(baseHandler):
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, ClickedHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, ClickedHandlerCallbackValue] | None):
+        ...
+
+
 class CloseHandler(baseHandler):
     """
     Handler that triggers the callback when the
@@ -12841,7 +13384,7 @@ class CloseHandler(baseHandler):
     the object is show or not shown.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, CloseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -12859,7 +13402,7 @@ class CloseHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, CloseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -12875,6 +13418,32 @@ class CloseHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, CloseHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, CloseHandlerCallbackValue] | None):
+        ...
+
+
+class CloseHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the CloseHandler.
+    """
+    ...
 
 
 class CollapsingHeader(uiItem):
@@ -12895,7 +13464,7 @@ class CollapsingHeader(uiItem):
     space in complex interfaces.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leaf : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, bullet : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leaf : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12931,7 +13500,7 @@ class CollapsingHeader(uiItem):
         ...
 
 
-    def configure(self, *, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leaf : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, bullet : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leaf : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -12983,6 +13552,40 @@ class CollapsingHeader(uiItem):
 
     @bullet.setter
     def bullet(self, value : bool):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -13141,7 +13744,7 @@ class ColorButton(uiItem):
     integrate color selection into interfaces with limited space.
 
     """
-    def __init__(self, context : Context, *, alpha_preview : str = "full", attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], data_type : str = "uint8", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, alpha_preview : str = "full", attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]] = [], children : list[Never] = [], data_type : str = "uint8", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -13178,7 +13781,7 @@ class ColorButton(uiItem):
         ...
 
 
-    def configure(self, *, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], data_type : str = "uint8", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, alpha_preview : str = "full", callback : DCGCallable[Self, Self, uiItemCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]] = [], children : list[Never] = [], data_type : str = "uint8", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_border : bool = False, no_drag_drop : bool = False, no_newline : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -13232,6 +13835,40 @@ class ColorButton(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, value : str):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]]):
         ...
 
 
@@ -13387,7 +14024,7 @@ class ColorEdit(uiItem):
     drag-and-drop functionality for transferring colors between compatible widgets.
 
     """
-    def __init__(self, context : Context, *, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], hdr : bool = False, height : float | str | 'baseSizing' = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]] = [], children : list[Never] = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], hdr : bool = False, height : float | str | 'baseSizing' = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -13432,7 +14069,7 @@ class ColorEdit(uiItem):
         ...
 
 
-    def configure(self, *, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], hdr : bool = False, height : float | str | 'baseSizing' = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable[Self, Self, uiItemCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]] = [], children : list[Never] = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], hdr : bool = False, height : float | str | 'baseSizing' = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_drag_drop : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_options : bool = False, no_picker : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -13513,6 +14150,40 @@ class ColorEdit(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, value : str):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]]):
         ...
 
 
@@ -13808,7 +14479,7 @@ class ColorPicker(uiItem):
     value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, *, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, picker_mode : str = "bar", previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, alpha_bar : bool = False, alpha_preview : str = "full", attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]] = [], children : list[Never] = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, picker_mode : str = "bar", previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -13851,7 +14522,7 @@ class ColorPicker(uiItem):
         ...
 
 
-    def configure(self, *, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, picker_mode : str = "bar", previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, alpha_bar : bool = False, alpha_preview : str = "full", callback : DCGCallable[Self, Self, uiItemCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]] = [], children : list[Never] = [], data_type : str = "uint8", display_mode : str = "rgb", enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, input_mode : str = "rgb", label : str = "", next_sibling : 'uiItem' | None = None, no_alpha : bool = False, no_inputs : bool = False, no_label : bool = False, no_newline : bool = False, no_side_preview : bool = False, no_small_preview : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, picker_mode : str = "bar", previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedColor = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Color = 0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -13930,6 +14601,40 @@ class ColorPicker(uiItem):
 
     @alpha_preview.setter
     def alpha_preview(self, value : str):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]]):
         ...
 
 
@@ -14187,7 +14892,7 @@ class Combo(uiItem):
     to the currently selected item in the dropdown list.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, fit_width : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, height_mode : str = "regular", items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : 'uiItem' | 'plotElement' | None = None, popup_align_left : bool = False, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], enabled : bool = True, fit_width : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, height_mode : str = "regular", items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : 'uiItem' | 'plotElement' | None = None, popup_align_left : bool = False, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -14224,7 +14929,7 @@ class Combo(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, fit_width : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, height_mode : str = "regular", items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : 'uiItem' | 'plotElement' | None = None, popup_align_left : bool = False, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], enabled : bool = True, fit_width : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, height_mode : str = "regular", items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_arrow_button : bool = False, no_newline : bool = False, no_preview : bool = False, parent : 'uiItem' | 'plotElement' | None = None, popup_align_left : bool = False, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -14256,6 +14961,40 @@ class Combo(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackStringValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]]):
         ...
 
 
@@ -14426,7 +15165,7 @@ class ConditionalHandler(baseHandler):
         Other handlers are used purely for their state conditions.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, ConditionalHandlerCallbackValue] | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14444,7 +15183,7 @@ class ConditionalHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, ConditionalHandlerCallbackValue] | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14459,6 +15198,25 @@ class ConditionalHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, ConditionalHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, ConditionalHandlerCallbackValue] | None):
         ...
 
 
@@ -14481,6 +15239,13 @@ class ConditionalHandler(baseHandler):
         ...
 
 
+class ConditionalHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the ConditionalHandler.
+    """
+    ...
+
+
 class ContentResizeHandler(baseHandler):
     """
     Handler for item containers (windows, etc)
@@ -14489,7 +15254,7 @@ class ContentResizeHandler(baseHandler):
     area available to the children) changes size.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, ContentResizeHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14507,7 +15272,7 @@ class ContentResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, ContentResizeHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14523,6 +15288,32 @@ class ContentResizeHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, ContentResizeHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, ContentResizeHandlerCallbackValue] | None):
+        ...
+
+
+class ContentResizeHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the ContentResizeHandler.
+    """
+    ...
 
 
 class CustomHandler(baseHandler):
@@ -14553,7 +15344,7 @@ class CustomHandler(baseHandler):
         for execution in another thread.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, CustomHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14571,7 +15362,7 @@ class CustomHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, CustomHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14587,6 +15378,32 @@ class CustomHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, CustomHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, CustomHandlerCallbackValue] | None):
+        ...
+
+
+class CustomHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the CustomHandler.
+    """
+    ...
 
 
 class DeactivatedAfterEditHandler(baseHandler):
@@ -14595,7 +15412,7 @@ class DeactivatedAfterEditHandler(baseHandler):
     activation after having been edited.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, DeactivatedAfterEditHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14613,7 +15430,7 @@ class DeactivatedAfterEditHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, DeactivatedAfterEditHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14629,6 +15446,32 @@ class DeactivatedAfterEditHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, DeactivatedAfterEditHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, DeactivatedAfterEditHandlerCallbackValue] | None):
+        ...
+
+
+class DeactivatedAfterEditHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the DeactivatedAfterEditHandler.
+    """
+    ...
 
 
 class DeactivatedHandler(baseHandler):
@@ -14636,7 +15479,7 @@ class DeactivatedHandler(baseHandler):
     Handler for when an active item loses activation.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, DeactivatedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14654,7 +15497,7 @@ class DeactivatedHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, DeactivatedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14672,12 +15515,38 @@ class DeactivatedHandler(baseHandler):
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, DeactivatedHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, DeactivatedHandlerCallbackValue] | None):
+        ...
+
+
+class DeactivatedHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the DeactivatedHandler.
+    """
+    ...
+
+
 class DoubleClickedHandler(baseHandler):
     """
     Handler for when a hovered item is double clicked on.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DoubleClickedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14695,7 +15564,7 @@ class DoubleClickedHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DoubleClickedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14723,6 +15592,25 @@ class DoubleClickedHandler(baseHandler):
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, DoubleClickedHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, DoubleClickedHandlerCallbackValue] | None):
+        ...
+
+
 class DragDropActiveHandler(baseHandler):
     """
     *EXPERIMENTAL* Handler that is triggered when a drag
@@ -14747,7 +15635,7 @@ class DragDropActiveHandler(baseHandler):
             The content for other types is undefined.
 
     """
-    def __init__(self, context : Context, *, accepted_types : Sequence[Any] = [], any_target : bool = False, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, accepted_types : Sequence[Any] = [], any_target : bool = False, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, DragDropActiveHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14767,7 +15655,7 @@ class DragDropActiveHandler(baseHandler):
         ...
 
 
-    def configure(self, *, accepted_types : Sequence[Any] = [], any_target : bool = False, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, accepted_types : Sequence[Any] = [], any_target : bool = False, callback : DCGCallable[Self, Any, DragDropActiveHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14821,6 +15709,45 @@ class DragDropActiveHandler(baseHandler):
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, DragDropActiveHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, DragDropActiveHandlerCallbackValue] | None):
+        ...
+
+
+class DragDropActiveHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the DragDropActiveHandler.
+    """
+    @property
+    def payload_data(self) -> Any:
+        """Data associated with the drag-and-drop payload.
+        """
+        ...
+
+
+    @property
+    def payload_type(self) -> str:
+        """Type of the drag-and-drop payload.
+        """
+        ...
+
+
+
+
 class DragDropSourceHandler(baseHandler):
     """
     *EXPERIMENTAL* Handler for drag-and-drop source events.
@@ -14840,7 +15767,7 @@ class DragDropSourceHandler(baseHandler):
             - (mouse_x, mouse_y) the mouse position relative to the viewport.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, DragDropSourceHandlerCallbackValue] | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -14862,7 +15789,7 @@ class DragDropSourceHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, DragDropSourceHandlerCallbackValue] | None = None, children : list[Never] = [], drag_type : str = "", enabled : bool = True, immediate_expiration : bool = False, next_sibling : 'baseHandler' | None = None, no_open_on_hold : bool = False, overwrite : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -14881,6 +15808,25 @@ class DragDropSourceHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, DragDropSourceHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, DragDropSourceHandlerCallbackValue] | None):
         ...
 
 
@@ -14951,6 +15897,19 @@ class DragDropSourceHandler(baseHandler):
         ...
 
 
+class DragDropSourceHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the DragDropSourceHandler.
+    """
+    @property
+    def mouse_position(self) -> Coord:
+        """Current mouse position as a Coord object.
+        """
+        ...
+
+
+
+
 class DragDropTargetHandler(baseHandler):
     """
     *EXPERIMENTAL* Handler for drag-and-drop target events.
@@ -14992,7 +15951,7 @@ class DragDropTargetHandler(baseHandler):
         a little delayed compared to the other types.
 
     """
-    def __init__(self, context : Context, *, accepted_types : Sequence[Any] = [], attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, no_draw_default_rect : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, accepted_types : Sequence[Any] = [], attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, DragDropTargetHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, no_draw_default_rect : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15012,7 +15971,7 @@ class DragDropTargetHandler(baseHandler):
         ...
 
 
-    def configure(self, *, accepted_types : Sequence[Any] = [], callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, no_draw_default_rect : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, accepted_types : Sequence[Any] = [], callback : DCGCallable[Self, Any, DragDropTargetHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, no_draw_default_rect : bool = False, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -15050,6 +16009,25 @@ class DragDropTargetHandler(baseHandler):
 
 
     @property
+    def callback(self) -> list[Callback[Self, Any, DragDropTargetHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, DragDropTargetHandlerCallbackValue] | None):
+        ...
+
+
+    @property
     def no_draw_default_rect(self) -> bool:
         """
         If True, the default highlight rectangle will not be drawn
@@ -15067,6 +16045,40 @@ class DragDropTargetHandler(baseHandler):
         ...
 
 
+class DragDropTargetHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the DragDropTargetHandler.
+    """
+    @property
+    def mouse_position(self) -> Coord:
+        """Current mouse position as a Coord object.
+        """
+        ...
+
+
+    @property
+    def payload_data(self) -> Any:
+        """Data associated with the drag-and-drop payload.
+        """
+        ...
+
+
+    @property
+    def payload_type(self) -> str:
+        """Type of the drag-and-drop payload.
+        """
+        ...
+
+
+    @property
+    def state_copy(self) -> ItemStateCopy | None:
+        """Copy of the item state at the time of the drag-and-drop event.
+        """
+        ...
+
+
+
+
 class DraggedHandler(baseHandler):
     """
     Same as DraggingHandler, but only
@@ -15075,7 +16087,7 @@ class DraggedHandler(baseHandler):
     the dragging.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DraggedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15093,7 +16105,7 @@ class DraggedHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DraggedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -15118,6 +16130,25 @@ class DraggedHandler(baseHandler):
 
     @button.setter
     def button(self, value : MouseButton):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, DraggedHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, DraggedHandlerCallbackValue] | None):
         ...
 
 
@@ -15131,7 +16162,7 @@ class DraggingHandler(baseHandler):
     hovered anymore.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DraggingHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -15149,7 +16180,7 @@ class DraggingHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DraggingHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -15174,6 +16205,25 @@ class DraggingHandler(baseHandler):
 
     @button.setter
     def button(self, value : MouseButton):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, DraggingHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, DraggingHandlerCallbackValue] | None):
         ...
 
 
@@ -16777,7 +17827,7 @@ class DrawInWindow(uiItem):
     maintained and thus do not have a callback.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['drawingItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, frame : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, invert_y : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, button : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['drawingItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, frame : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, invert_y : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -16817,7 +17867,7 @@ class DrawInWindow(uiItem):
         ...
 
 
-    def configure(self, *, button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['drawingItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, frame : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, invert_y : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, button : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['drawingItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, frame : bool = False, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, invert_y : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_global_scaling : bool = False, no_newline : bool = False, orig_x : float = 0.0, orig_y : float = 0.0, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, relative : bool = False, scale_x : float = 1.0, scale_y : float = 1.0, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -19843,7 +20893,7 @@ class EditedHandler(baseHandler):
     triggers the callback.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, EditedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -19861,7 +20911,7 @@ class EditedHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, EditedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -19877,6 +20927,32 @@ class EditedHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, EditedHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, EditedHandlerCallbackValue] | None):
+        ...
+
+
+class EditedHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the EditedHandler.
+    """
+    ...
 
 
 class FocusHandler(baseHandler):
@@ -19921,6 +20997,13 @@ class FocusHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+class FocusedHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the FocusedHandler.
+    """
+    ...
 
 
 class Font(baseFont):
@@ -20142,7 +21225,7 @@ class GotFocusHandler(baseHandler):
     focus.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, GotFocusHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -20160,7 +21243,7 @@ class GotFocusHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, GotFocusHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -20176,6 +21259,32 @@ class GotFocusHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, GotFocusHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, GotFocusHandlerCallbackValue] | None):
+        ...
+
+
+class GotFocusHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the GotFocusHandler.
+    """
+    ...
 
 
 class GotHoverHandler(baseHandler):
@@ -20184,7 +21293,7 @@ class GotHoverHandler(baseHandler):
     the target item has just been hovered.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, GotHoverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -20202,7 +21311,7 @@ class GotHoverHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, GotHoverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -20218,6 +21327,32 @@ class GotHoverHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, GotHoverHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, GotHoverHandlerCallbackValue] | None):
+        ...
+
+
+class GotHoverHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the GotHoverHandler.
+    """
+    ...
 
 
 class GotMouseOverHandler(baseHandler):
@@ -20225,7 +21360,7 @@ class GotMouseOverHandler(baseHandler):
 Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, GotMouseOverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -20243,7 +21378,7 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, GotMouseOverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -20259,6 +21394,32 @@ Prefer GotHoverHandler unless you really need to (see MouseOverHandler)
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, GotMouseOverHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, GotMouseOverHandlerCallbackValue] | None):
+        ...
+
+
+class GotMouseOverHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the GotMouseOverHandler.
+    """
+    ...
 
 
 class GotRenderHandler(baseHandler):
@@ -20268,7 +21429,7 @@ class GotRenderHandler(baseHandler):
     non-rendered to a rendered state.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, GotRenderHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -20286,7 +21447,7 @@ class GotRenderHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, GotRenderHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -20302,6 +21463,32 @@ class GotRenderHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, GotRenderHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, GotRenderHandlerCallbackValue] | None):
+        ...
+
+
+class GotRenderHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the GotRenderHandler.
+    """
+    ...
 
 
 class HandlerList(baseHandler):
@@ -20325,7 +21512,7 @@ class HandlerList(baseHandler):
         Handlers are not checked if their parent item is not rendered.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, op : HandlerListOP = HandlerListOP.ALL, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, HandlerListCallbackValue] | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, op : HandlerListOP = HandlerListOP.ALL, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -20344,7 +21531,7 @@ class HandlerList(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, op : HandlerListOP = HandlerListOP.ALL, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, HandlerListCallbackValue] | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, op : HandlerListOP = HandlerListOP.ALL, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -20360,6 +21547,25 @@ class HandlerList(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, HandlerListCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, HandlerListCallbackValue] | None):
         ...
 
 
@@ -20399,13 +21605,20 @@ class HandlerList(baseHandler):
         ...
 
 
+class HandlerListCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the HandlerList.
+    """
+    ...
+
+
 class HoverHandler(baseHandler):
     """
     Handler that calls the callback when
     the target item is hovered.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, HoverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -20423,7 +21636,7 @@ class HoverHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, HoverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -20439,6 +21652,32 @@ class HoverHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, HoverHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, HoverHandlerCallbackValue] | None):
+        ...
+
+
+class HoverHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the HoverHandler.
+    """
+    ...
 
 
 class Image(uiItem):
@@ -20463,7 +21702,7 @@ class Image(uiItem):
     affected by FramePadding (style) and FrameRounding (style).
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., background_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], before : 'uiItem' | None = None, button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], color_multiplier : Sequence[float] = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : 'Texture' | None = None, theme : Any = ..., user_data : Any = ..., uv : Sequence[float] = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., background_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], before : 'uiItem' | None = None, button : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], color_multiplier : Sequence[float] = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : 'Texture' | None = None, theme : Any = ..., user_data : Any = ..., uv : Sequence[float] = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -20500,7 +21739,7 @@ class Image(uiItem):
         ...
 
 
-    def configure(self, *, background_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], button : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], color_multiplier : Sequence[float] = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : 'Texture' | None = None, theme : Any = ..., user_data : Any = ..., uv : Sequence[float] = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, background_color : Sequence[float] = [0.0, 0.0, 0.0, 0.0], button : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], color_multiplier : Sequence[float] = [1.0, 1.0, 1.0, 1.0], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_global_scaling : bool = False, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, texture : 'Texture' | None = None, theme : Any = ..., user_data : Any = ..., uv : Sequence[float] = [0.0, 0.0, 1.0, 1.0], value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -20676,7 +21915,7 @@ class InputText(uiItem):
     area instead of a single-line field.
 
     """
-    def __init__(self, context : Context, *, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : 'uiItem' | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : 'uiItem' | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : 'uiItem' | 'plotElement' | None = None, password : bool = False, previous_sibling : 'uiItem' | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : 'uiItem' | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : 'uiItem' | 'plotElement' | None = None, password : bool = False, previous_sibling : 'uiItem' | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -20725,7 +21964,7 @@ class InputText(uiItem):
         ...
 
 
-    def configure(self, *, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : 'uiItem' | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : 'uiItem' | 'plotElement' | None = None, password : bool = False, previous_sibling : 'uiItem' | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], ctrl_enter_for_new_line : bool = False, decimal : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hexadecimal : bool = False, hint : str = "", label : str = "", max_characters : int = 1024, multiline : bool = False, next_sibling : 'uiItem' | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_spaces : bool = False, no_undo_redo : bool = False, parent : 'uiItem' | 'plotElement' | None = None, password : bool = False, previous_sibling : 'uiItem' | None = None, readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedStr = ..., show : bool = True, tab_input : bool = False, theme : Any = ..., uppercase : bool = False, user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Configure the InputText widget with provided keyword arguments.
 
@@ -20816,6 +22055,22 @@ class InputText(uiItem):
 
 
     @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackStringValue] | None):
+        ...
+
+
+    @property
     def callback_on_enter(self) -> bool:
         """
         Triggers callback when Enter key is pressed, regardless of edit state.
@@ -20831,6 +22086,24 @@ class InputText(uiItem):
 
     @callback_on_enter.setter
     def callback_on_enter(self, value : bool):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]]):
         ...
 
 
@@ -21160,7 +22433,7 @@ class InputValue(uiItem):
     to multi-dimensional vector editing.
 
     """
-    def __init__(self, context : Context, *, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : 'uiItem' | None = None, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : 'uiItem' | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : 'uiItem' | 'plotElement' | None = None, password : bool = False, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, always_overwrite : bool = False, attach : Any = ..., auto_select_all : bool = False, before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]] = [], children : list[Never] = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : 'uiItem' | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : 'uiItem' | 'plotElement' | None = None, password : bool = False, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -21209,7 +22482,7 @@ class InputValue(uiItem):
         ...
 
 
-    def configure(self, *, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : 'uiItem' | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : 'uiItem' | 'plotElement' | None = None, password : bool = False, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, always_overwrite : bool = False, auto_select_all : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None = None, callback_on_enter : bool = False, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]] = [], children : list[Never] = [], decimal : bool = False, empty_as_zero : bool = False, empty_if_zero : bool = False, enabled : bool = True, escape_clears_all : bool = False, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hexadecimal : bool = False, label : str = "", max_value : float = inf, min_value : float = -inf, next_sibling : 'uiItem' | None = None, no_horizontal_scroll : bool = False, no_newline : bool = False, no_undo_redo : bool = False, parent : 'uiItem' | 'plotElement' | None = None, password : bool = False, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", readonly : bool = False, scaling_factor : float = 1.0, scientific : bool = False, shareable_value : SharedFloat = ..., show : bool = True, step : float = 0.1, step_fast : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -21293,6 +22566,22 @@ class InputValue(uiItem):
 
 
     @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackFloatValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None):
+        ...
+
+
+    @property
     def callback_on_enter(self) -> bool:
         """
         Triggers callback when Enter key is pressed.
@@ -21307,6 +22596,24 @@ class InputValue(uiItem):
 
     @callback_on_enter.setter
     def callback_on_enter(self, value : bool):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackFloatValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]]):
         ...
 
 
@@ -21627,7 +22934,7 @@ class KeyDownHandler(baseHandler):
         - duration: How long the key has been held down
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, KeyDownHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -21646,7 +22953,7 @@ class KeyDownHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, KeyDownHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -21666,6 +22973,25 @@ class KeyDownHandler(baseHandler):
 
 
     @property
+    def callback(self) -> list[Callback[Self, Any, KeyDownHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, KeyDownHandlerCallbackValue] | None):
+        ...
+
+
+    @property
     def key(self) -> Key:
         """
         The key that this handler is monitoring.
@@ -21677,6 +23003,19 @@ class KeyDownHandler(baseHandler):
     @key.setter
     def key(self, value : Key):
         ...
+
+
+class KeyHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for a handler with a key value.
+    """
+    @property
+    def key(self) -> Key:
+        """Key associated with the callback.
+        """
+        ...
+
+
 
 
 class KeyPressHandler(baseHandler):
@@ -21691,7 +23030,7 @@ class KeyPressHandler(baseHandler):
         - key: The key that was pressed
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, KeyPressHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -21711,7 +23050,7 @@ class KeyPressHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, KeyPressHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = True, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -21728,6 +23067,25 @@ class KeyPressHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, KeyPressHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, KeyPressHandlerCallbackValue] | None):
         ...
 
 
@@ -21773,7 +23131,7 @@ class KeyReleaseHandler(baseHandler):
         - key: The key that was released
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, KeyReleaseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -21792,7 +23150,7 @@ class KeyReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, KeyReleaseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, key : Key = Key.ENTER, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -21808,6 +23166,25 @@ class KeyReleaseHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, KeyReleaseHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, KeyReleaseHandlerCallbackValue] | None):
         ...
 
 
@@ -21929,7 +23306,7 @@ class Layout(uiItem):
     If you intend to force a specific size, use a `ChildWindow`.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -21960,7 +23337,7 @@ class Layout(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22034,7 +23411,7 @@ class ListBox(uiItem):
     the text of the selected item.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22067,7 +23444,7 @@ class ListBox(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_items_shown_when_open : int = -1, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22095,6 +23472,40 @@ class ListBox(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackStringValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]]):
         ...
 
 
@@ -22179,7 +23590,7 @@ class LostFocusHandler(baseHandler):
     focus.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, LostFocusHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -22197,7 +23608,7 @@ class LostFocusHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, LostFocusHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -22213,6 +23624,32 @@ class LostFocusHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, LostFocusHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, LostFocusHandlerCallbackValue] | None):
+        ...
+
+
+class LostFocusHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the LostFocusHandler.
+    """
+    ...
 
 
 class LostHoverHandler(baseHandler):
@@ -22222,7 +23659,7 @@ class LostHoverHandler(baseHandler):
     is not anymore.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, LostHoverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -22240,7 +23677,7 @@ class LostHoverHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, LostHoverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -22256,6 +23693,32 @@ class LostHoverHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, LostHoverHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, LostHoverHandlerCallbackValue] | None):
+        ...
+
+
+class LostHoverHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the LostHoverHandler.
+    """
+    ...
 
 
 class LostMouseOverHandler(baseHandler):
@@ -22263,7 +23726,7 @@ class LostMouseOverHandler(baseHandler):
 Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, LostMouseOverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -22281,7 +23744,7 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, LostMouseOverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -22297,6 +23760,32 @@ Prefer LostHoverHandler unless you really need to (see MouseOverHandler)
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, LostMouseOverHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, LostMouseOverHandlerCallbackValue] | None):
+        ...
+
+
+class LostMouseOverHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the LostMouseOverHandler.
+    """
+    ...
 
 
 class LostRenderHandler(baseHandler):
@@ -22309,7 +23798,7 @@ class LostRenderHandler(baseHandler):
     an item is non-rendered will trigger the handlers.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, LostRenderHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -22327,7 +23816,7 @@ class LostRenderHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, LostRenderHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -22345,6 +23834,32 @@ class LostRenderHandler(baseHandler):
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, LostRenderHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, LostRenderHandlerCallbackValue] | None):
+        ...
+
+
+class LostRenderHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the LostRenderHandler.
+    """
+    ...
+
+
 class MarkDownText(uiItem):
     """
     Markdown text component that renders formatted markdown content
@@ -22355,7 +23870,7 @@ class MarkDownText(uiItem):
     * Experimental. API and rendering results may change in future minor versions. *
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], color_code : Color | None = None, color_code_bg : Color | None = None, color_emph : Color | None = None, color_headings : Sequence[Color] | None = [None, None, None, None, None, None], color_strikethrough : Color | None = None, color_strong : Color | None = None, color_underline : Color | None = None, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], heading_scales : Sequence[float] = [2.0, 1.75, 1.5, 1.375, 1.25, 1.125], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], color_code : Color | None = None, color_code_bg : Color | None = None, color_emph : Color | None = None, color_headings : Sequence[Color] | None = [None, None, None, None, None, None], color_strikethrough : Color | None = None, color_strong : Color | None = None, color_underline : Color | None = None, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], heading_scales : Sequence[float] = [2.0, 1.75, 1.5, 1.375, 1.25, 1.125], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22394,7 +23909,7 @@ class MarkDownText(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], color_code : Color | None = None, color_code_bg : Color | None = None, color_emph : Color | None = None, color_headings : Sequence[Color] | None = [None, None, None, None, None, None], color_strikethrough : Color | None = None, color_strong : Color | None = None, color_underline : Color | None = None, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], heading_scales : Sequence[float] = [2.0, 1.75, 1.5, 1.375, 1.25, 1.125], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], color_code : Color | None = None, color_code_bg : Color | None = None, color_emph : Color | None = None, color_headings : Sequence[Color] | None = [None, None, None, None, None, None], color_strikethrough : Color | None = None, color_strong : Color | None = None, color_underline : Color | None = None, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], heading_scales : Sequence[float] = [2.0, 1.75, 1.5, 1.375, 1.25, 1.125], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22583,7 +24098,7 @@ A Menu creates a menu container within a menu bar.
     Menus must be created within a MenuBar or as a child of another Menu.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22614,7 +24129,7 @@ A Menu creates a menu container within a menu bar.
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22640,6 +24155,40 @@ A Menu creates a menu container within a menu bar.
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -22718,7 +24267,7 @@ class MenuBar(uiItem):
     window, it creates a local menu bar for that window.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'MenuBar' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'MenuBar' | None = None, no_newline : bool = False, parent : 'Viewport' | 'Window' | 'ChildWindow' | None = None, previous_sibling : 'MenuBar' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'MenuBar' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'MenuBar' | None = None, no_newline : bool = False, parent : 'Viewport' | 'Window' | 'ChildWindow' | None = None, previous_sibling : 'MenuBar' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22749,7 +24298,7 @@ class MenuBar(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'MenuBar' | None = None, no_newline : bool = False, parent : 'Viewport' | 'Window' | 'ChildWindow' | None = None, previous_sibling : 'MenuBar' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'MenuBar' | None = None, no_newline : bool = False, parent : 'Viewport' | 'Window' | 'ChildWindow' | None = None, previous_sibling : 'MenuBar' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22901,7 +24450,7 @@ class MenuItem(uiItem):
     SharedBool value.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], check : bool = False, children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22934,7 +24483,7 @@ class MenuItem(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], check : bool = False, children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], check : bool = False, children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., shortcut : str = "", show : bool = True, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -22962,6 +24511,40 @@ class MenuItem(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -23050,7 +24633,7 @@ class MotionHandler(baseHandler):
     the positioning reference (by default the parent)
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, pos_policy : tuple['Positioning', 'Positioning'] = ..., previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, MotionHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, pos_policy : tuple['Positioning', 'Positioning'] = ..., previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23069,7 +24652,7 @@ class MotionHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, pos_policy : tuple['Positioning', 'Positioning'] = ..., previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, MotionHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, pos_policy : tuple['Positioning', 'Positioning'] = ..., previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23085,6 +24668,25 @@ class MotionHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, MotionHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MotionHandlerCallbackValue] | None):
         ...
 
 
@@ -23112,6 +24714,26 @@ class MotionHandler(baseHandler):
         ...
 
 
+class MotionHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the MotionHandler.
+    """
+    ...
+
+
+class MouseButtonHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for a handler with a mouse button value.
+    """
+    @property
+    def button(self) -> MouseButton:
+        """Mouse button associated with the callback.
+        """
+        ...
+
+
+
+
 class MouseClickHandler(baseHandler):
     """
     Handler for mouse button clicks anywhere.
@@ -23124,7 +24746,7 @@ class MouseClickHandler(baseHandler):
         - button: The button that was clicked
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseClickHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23144,7 +24766,7 @@ class MouseClickHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseClickHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, repeat : bool = False, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23179,6 +24801,25 @@ class MouseClickHandler(baseHandler):
 
 
     @property
+    def callback(self) -> list[Callback[Self, Any, MouseClickHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseClickHandlerCallbackValue] | None):
+        ...
+
+
+    @property
     def repeat(self) -> bool:
         """
         Whether to trigger repeatedly while a mouse button is held down.
@@ -23204,7 +24845,7 @@ class MouseCursorHandler(baseHandler):
     combined with a HoverHandler.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], cursor : MouseCursor = MouseCursor.ARROW, enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, MouseCursorHandlerCallbackValue] | None = None, children : list[Never] = [], cursor : MouseCursor = MouseCursor.ARROW, enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23223,7 +24864,7 @@ class MouseCursorHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], cursor : MouseCursor = MouseCursor.ARROW, enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, MouseCursorHandlerCallbackValue] | None = None, children : list[Never] = [], cursor : MouseCursor = MouseCursor.ARROW, enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23239,6 +24880,25 @@ class MouseCursorHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, MouseCursorHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseCursorHandlerCallbackValue] | None):
         ...
 
 
@@ -23258,6 +24918,13 @@ class MouseCursorHandler(baseHandler):
         ...
 
 
+class MouseCursorHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the MouseCursorHandler.
+    """
+    ...
+
+
 class MouseDoubleClickHandler(baseHandler):
     """
     Handler for mouse button double-clicks anywhere.
@@ -23269,7 +24936,7 @@ class MouseDoubleClickHandler(baseHandler):
         - button: The button that was double-clicked
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseDoubleClickHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23288,7 +24955,7 @@ class MouseDoubleClickHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseDoubleClickHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23318,6 +24985,25 @@ class MouseDoubleClickHandler(baseHandler):
 
     @button.setter
     def button(self, value : MouseButton):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, MouseDoubleClickHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseDoubleClickHandlerCallbackValue] | None):
         ...
 
 
@@ -23333,7 +25019,7 @@ class MouseDownHandler(baseHandler):
         - duration: How long the button has been held
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseDownHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23352,7 +25038,7 @@ class MouseDownHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseDownHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23382,6 +25068,25 @@ class MouseDownHandler(baseHandler):
 
     @button.setter
     def button(self, value : MouseButton):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, MouseDownHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseDownHandlerCallbackValue] | None):
         ...
 
 
@@ -23400,7 +25105,7 @@ class MouseDragHandler(baseHandler):
         - delta_y: Vertical drag distance
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseDragHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23420,7 +25125,7 @@ class MouseDragHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseDragHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23451,6 +25156,25 @@ class MouseDragHandler(baseHandler):
 
     @button.setter
     def button(self, value : MouseButton):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, MouseDragHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseDragHandlerCallbackValue] | None):
         ...
 
 
@@ -23533,6 +25257,19 @@ class MouseInRect(baseHandler):
         ...
 
 
+class MouseInRectHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the MouseInRectHandler.
+    """
+    @property
+    def mouse_position(self) -> Coord:
+        """Current mouse position as a Coord object.
+        """
+        ...
+
+
+
+
 class MouseMoveHandler(baseHandler):
     """
     Handler that triggers when the mouse cursor moves.
@@ -23545,7 +25282,7 @@ class MouseMoveHandler(baseHandler):
         Position is relative to the viewport.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, MouseMoveHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23563,7 +25300,7 @@ class MouseMoveHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, MouseMoveHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23579,6 +25316,45 @@ class MouseMoveHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, MouseMoveHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseMoveHandlerCallbackValue] | None):
+        ...
+
+
+class MouseMoveHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the MouseMoveHandler.
+    """
+    @property
+    def previous_position(self) -> Coord:
+        """Previous position of the mouse cursor.
+        """
+        ...
+
+
+    @property
+    def current_position(self) -> Coord:
+        """Current position of the mouse cursor (when the callback was queued).
+        """
+        ...
+
+
 
 
 class MouseOverHandler(baseHandler):
@@ -23598,7 +25374,7 @@ Prefer HoverHandler unless you really need to (see below)
     drag & drop operations.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, MouseOverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23616,7 +25392,7 @@ Prefer HoverHandler unless you really need to (see below)
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, MouseOverHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23634,6 +25410,32 @@ Prefer HoverHandler unless you really need to (see below)
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, MouseOverHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseOverHandlerCallbackValue] | None):
+        ...
+
+
+class MouseOverHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the MouseOverHandler.
+    """
+    ...
+
+
 class MouseReleaseHandler(baseHandler):
     """
     Handler for mouse button releases.
@@ -23645,7 +25447,7 @@ class MouseReleaseHandler(baseHandler):
         - button: The button that was released
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseReleaseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23664,7 +25466,7 @@ class MouseReleaseHandler(baseHandler):
         ...
 
 
-    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseReleaseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23697,6 +25499,25 @@ class MouseReleaseHandler(baseHandler):
         ...
 
 
+    @property
+    def callback(self) -> list[Callback[Self, Any, MouseReleaseHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseReleaseHandlerCallbackValue] | None):
+        ...
+
+
 class MouseWheelHandler(baseHandler):
     """
     A handler that monitors mouse wheel scrolling events.
@@ -23713,7 +25534,7 @@ class MouseWheelHandler(baseHandler):
         Holding Shift while using vertical scroll wheel generates horizontal scroll events.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, horizontal : bool = False, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, MouseWheelHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, horizontal : bool = False, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23732,7 +25553,7 @@ class MouseWheelHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, horizontal : bool = False, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, MouseWheelHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, horizontal : bool = False, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23748,6 +25569,25 @@ class MouseWheelHandler(baseHandler):
         - show: Alias for the enabled property provided for backward compatibility.
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, MouseWheelHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, MouseWheelHandlerCallbackValue] | None):
         ...
 
 
@@ -23768,6 +25608,45 @@ class MouseWheelHandler(baseHandler):
         ...
 
 
+class MouseWheelHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the MouseWheelHandler.
+    """
+    @property
+    def wheel_value(self) -> float:
+        """Value of the mouse wheel.
+        """
+        ...
+
+
+
+
+class MultiKeyHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for a handler with multiple key values.
+    """
+    @property
+    def keys(self) -> tuple[Key, ...]:
+        """Keys associated with the callback.
+        """
+        ...
+
+
+
+
+class MultiMouseButtonHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for a handler with multiple mouse button values.
+    """
+    @property
+    def buttons(self) -> tuple[MouseButton, ...]:
+        """Mouse buttons associated with the callback.
+        """
+        ...
+
+
+
+
 class OpenHandler(baseHandler):
     """
     Handler that triggers the callback when the
@@ -23779,7 +25658,7 @@ class OpenHandler(baseHandler):
     the object is show or not shown.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, OpenHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -23797,7 +25676,7 @@ class OpenHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, OpenHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -23813,6 +25692,39 @@ class OpenHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, OpenHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, OpenHandlerCallbackValue] | None):
+        ...
+
+
+class OpenHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the OpenHandler.
+    """
+    ...
+
+
+class OtherItemHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the OtherItemHandler.
+    """
+    ...
 
 
 class Plot(uiItem):
@@ -23832,7 +25744,7 @@ class Plot(uiItem):
     and can appear in the legend.
 
     """
-    def __init__(self, context : Context, *, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['plotElement'] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = MouseButton.LEFT, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_box_select : bool = False, height : float | str | 'baseSizing' = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = MouseButton.RIGHT, mouse_location : LegendLocation = LegendLocation.SOUTHEAST, next_sibling : 'uiItem' | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = MouseButton.LEFT, pan_mod : KeyMod = KeyMod.NOMOD, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, select_button : MouseButton = MouseButton.RIGHT, select_cancel_button : MouseButton = MouseButton.LEFT, select_hmod : KeyMod = KeyMod.ALT, select_mod : KeyMod = KeyMod.NOMOD, select_vmod : KeyMod = KeyMod.SHIFT, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0, zoom_mod : KeyMod = KeyMod.NOMOD, zoom_rate : float = 0.10000000149011612):
+    def __init__(self, context : Context, *, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['plotElement'] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = MouseButton.LEFT, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_box_select : bool = False, height : float | str | 'baseSizing' = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = MouseButton.RIGHT, mouse_location : LegendLocation = LegendLocation.SOUTHEAST, next_sibling : 'uiItem' | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = MouseButton.LEFT, pan_mod : KeyMod = KeyMod.NOMOD, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, select_button : MouseButton = MouseButton.RIGHT, select_cancel_button : MouseButton = MouseButton.LEFT, select_hmod : KeyMod = KeyMod.ALT, select_mod : KeyMod = KeyMod.NOMOD, select_vmod : KeyMod = KeyMod.SHIFT, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0, zoom_mod : KeyMod = KeyMod.NOMOD, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -23894,7 +25806,7 @@ class Plot(uiItem):
         ...
 
 
-    def configure(self, *, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['plotElement'] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = MouseButton.LEFT, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_box_select : bool = False, height : float | str | 'baseSizing' = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = MouseButton.RIGHT, mouse_location : LegendLocation = LegendLocation.SOUTHEAST, next_sibling : 'uiItem' | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = MouseButton.LEFT, pan_mod : KeyMod = KeyMod.NOMOD, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, select_button : MouseButton = MouseButton.RIGHT, select_cancel_button : MouseButton = MouseButton.LEFT, select_hmod : KeyMod = KeyMod.ALT, select_mod : KeyMod = KeyMod.NOMOD, select_vmod : KeyMod = KeyMod.SHIFT, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0, zoom_mod : KeyMod = KeyMod.NOMOD, zoom_rate : float = 0.10000000149011612):
+    def configure(self, *, X1 : PlotAxisConfig = ..., X2 : PlotAxisConfig = ..., X3 : PlotAxisConfig = ..., Y1 : PlotAxisConfig = ..., Y2 : PlotAxisConfig = ..., Y3 : PlotAxisConfig = ..., callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['plotElement'] = [], crosshairs : bool = False, enabled : bool = True, equal_aspects : bool = False, fit_button : MouseButton = MouseButton.LEFT, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_box_select : bool = False, height : float | str | 'baseSizing' = 0.0, label : str = "", legend_config : PlotLegendConfig = ..., menu_button : MouseButton = MouseButton.RIGHT, mouse_location : LegendLocation = LegendLocation.SOUTHEAST, next_sibling : 'uiItem' | None = None, no_frame : bool = False, no_inputs : bool = False, no_legend : bool = False, no_menus : bool = False, no_mouse_pos : bool = False, no_newline : bool = False, no_title : bool = False, pan_button : MouseButton = MouseButton.LEFT, pan_mod : KeyMod = KeyMod.NOMOD, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, select_button : MouseButton = MouseButton.RIGHT, select_cancel_button : MouseButton = MouseButton.LEFT, select_hmod : KeyMod = KeyMod.ALT, select_mod : KeyMod = KeyMod.NOMOD, select_vmod : KeyMod = KeyMod.SHIFT, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., use_24hour_clock : bool = False, use_ISO8601 : bool = False, use_local_time : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0, zoom_mod : KeyMod = KeyMod.NOMOD, zoom_rate : float = 0.10000000149011612):
         """
         Parameters
         ----------
@@ -24731,7 +26643,7 @@ class ProgressBar(uiItem):
     inherited from uiItem.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, overlay : str = "", parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, overlay : str = "", parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -24763,7 +26675,7 @@ class ProgressBar(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, overlay : str = "", parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, overlay : str = "", parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -24790,6 +26702,40 @@ class ProgressBar(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackFloatValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackFloatValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]]):
         ...
 
 
@@ -24850,7 +26796,7 @@ class ProgressBar(uiItem):
 
 
 class RadioButton(uiItem):
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal : bool = False, items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal : bool = False, items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -24883,7 +26829,7 @@ class RadioButton(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal : bool = False, items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, horizontal : bool = False, items : Sequence[str] = [], label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -24911,6 +26857,40 @@ class RadioButton(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackStringValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]]):
         ...
 
 
@@ -24993,7 +26973,7 @@ class RenderHandler(baseHandler):
     currently closed.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, RenderHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -25011,7 +26991,7 @@ class RenderHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, RenderHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -25027,6 +27007,32 @@ class RenderHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, RenderHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, RenderHandlerCallbackValue] | None):
+        ...
+
+
+class RenderHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the RenderHandler.
+    """
+    ...
 
 
 class ResizeHandler(baseHandler):
@@ -25035,7 +27041,7 @@ class ResizeHandler(baseHandler):
     whenever the item's bounding box changes size.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, ResizeHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -25053,7 +27059,7 @@ class ResizeHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, ResizeHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -25069,6 +27075,32 @@ class ResizeHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, ResizeHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, ResizeHandlerCallbackValue] | None):
+        ...
+
+
+class ResizeHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the ResizeHandler.
+    """
+    ...
 
 
 class Selectable(uiItem):
@@ -25086,7 +27118,7 @@ class Selectable(uiItem):
     property.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], disable_popup_close : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, highlighted : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : list[Never] = [], disable_popup_close : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, highlighted : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25121,7 +27153,7 @@ class Selectable(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], disable_popup_close : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, highlighted : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callback_on_double_click : bool = False, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : list[Never] = [], disable_popup_close : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, highlighted : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, span_columns : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25155,6 +27187,22 @@ class Selectable(uiItem):
 
 
     @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
     def callback_on_double_click(self) -> bool:
         """
         Controls whether the selectable responds to double-clicks.
@@ -25170,6 +27218,24 @@ class Selectable(uiItem):
 
     @callback_on_double_click.setter
     def callback_on_double_click(self, value : bool):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -25280,7 +27346,7 @@ class Separator(uiItem):
     creating a section header. Without a label, it renders as a simple line.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25311,7 +27377,7 @@ class Separator(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25370,7 +27436,7 @@ class SimplePlot(uiItem):
     and modified through the value property inherited from uiItem.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., autoscale : bool = True, before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, histogram : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, overlay : str = "", parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., autoscale : bool = True, before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, histogram : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, overlay : str = "", parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25406,7 +27472,7 @@ class SimplePlot(uiItem):
         ...
 
 
-    def configure(self, *, autoscale : bool = True, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, histogram : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, overlay : str = "", parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, autoscale : bool = True, callback : DCGCallable[Self, Self, uiItemCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, histogram : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, overlay : str = "", parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scale_max : float = 0.0, scale_min : float = 0.0, scaling_factor : float = 1.0, shareable_value : SharedFloatVect = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25455,6 +27521,40 @@ class SimplePlot(uiItem):
 
     @autoscale.setter
     def autoscale(self, value : bool):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackValue]]):
         ...
 
 
@@ -25561,7 +27661,7 @@ class Slider(uiItem):
     different display formats.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], drag : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : 'uiItem' | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]] = [], children : list[Never] = [], drag : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : 'uiItem' | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25602,7 +27702,7 @@ class Slider(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], drag : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : 'uiItem' | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]] = [], children : list[Never] = [], drag : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, keyboard_clamped : bool = False, label : str = "", logarithmic : bool = False, max_value : float = 100.0, min_value : float = 0.0, next_sibling : 'uiItem' | None = None, no_input : bool = False, no_newline : bool = False, no_round : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : SharedFloat = ..., show : bool = True, speed : float = 1.0, theme : Any = ..., user_data : Any = ..., value : float = 0.0, vertical : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25638,6 +27738,40 @@ class Slider(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackFloatValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackFloatValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]]):
         ...
 
 
@@ -25877,7 +28011,7 @@ class Spacer(uiItem):
     of the precise requested size.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25908,7 +28042,7 @@ class Spacer(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25951,7 +28085,7 @@ class Subplots(uiItem):
     order by default, but can be changed to column-major ordering as needed.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], col_major : bool = False, col_ratios : Array = [], cols : int = 1, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, row_ratios : Array = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], col_major : bool = False, col_ratios : Array = [], cols : int = 1, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, row_ratios : Array = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -25992,7 +28126,7 @@ class Subplots(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], col_major : bool = False, col_ratios : Array = [], cols : int = 1, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, row_ratios : Array = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], col_major : bool = False, col_ratios : Array = [], cols : int = 1, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_align : bool = False, no_menus : bool = False, no_newline : bool = False, no_resize : bool = False, no_title : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, row_ratios : Array = [], rows : int = 1, scaling_factor : float = 1.0, share_legends : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -26267,7 +28401,7 @@ class Tab(uiItem):
     addition to user interaction.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'Tab' | 'TabButton' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'Tab' | 'TabButton' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -26303,7 +28437,7 @@ class Tab(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : Sequence['uiItem'] = [], closable : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -26334,6 +28468,40 @@ class Tab(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -26599,7 +28767,7 @@ class TabBar(uiItem):
     hidden until selected.
 
     """
-    def __init__(self, context : Context, *, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, allow_tab_scroll : bool = False, attach : Any = ..., autoselect_new_tabs : bool = False, before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -26639,7 +28807,7 @@ class TabBar(uiItem):
         ...
 
 
-    def configure(self, *, allow_tab_scroll : bool = False, autoselect_new_tabs : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, allow_tab_scroll : bool = False, autoselect_new_tabs : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_close_with_middle_mouse_button : bool = False, no_newline : bool = False, no_scrolling_button : bool = False, no_tab_list_popup_button : bool = False, no_tooltip : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, reorderable : bool = False, resize_to_fit : bool = False, scaling_factor : float = 1.0, selected_overline : bool = False, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -26865,7 +29033,7 @@ class TabButton(uiItem):
     using themes.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'Tab' | 'TabButton' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'Tab' | 'TabButton' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -26900,7 +29068,7 @@ class TabButton(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leading : bool = False, next_sibling : 'Tab' | 'TabButton' | None = None, no_newline : bool = False, no_reorder : bool = False, no_tooltip : bool = False, parent : 'TabBar' | None = None, previous_sibling : 'Tab' | 'TabButton' | None = None, scaling_factor : float = 1.0, shareable_value : SharedBool = ..., show : bool = True, theme : Any = ..., trailing : bool = False, user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -26930,6 +29098,40 @@ class TabButton(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -27150,7 +29352,7 @@ class Text(uiItem):
     selectable.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], color : Color = 0, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, marker : Any = ..., next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, wrap : int = -1, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], color : Color = 0, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, marker : Any = ..., next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, wrap : int = -1, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27183,7 +29385,7 @@ class Text(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], color : Color = 0, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, marker : Any = ..., next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, wrap : int = -1, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackStringValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]] = [], children : list[Never] = [], color : Color = 0, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, marker : Any = ..., next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedStr = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : str = "", width : float | str | 'baseSizing' = 0.0, wrap : int = -1, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27211,6 +29413,40 @@ class Text(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackStringValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackStringValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackStringValue]]):
         ...
 
 
@@ -27328,7 +29564,7 @@ class TextValue(uiItem):
     to control precision, alignment, and presentation.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : 'SharedValue' = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : 'SharedValue' = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27360,7 +29596,7 @@ class TextValue(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : 'SharedValue' = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]] = [], children : list[Never] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, print_format : str = "%.3f", scaling_factor : float = 1.0, shareable_value : 'SharedValue' = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : float = 0.0, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27387,6 +29623,40 @@ class TextValue(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackFloatValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackFloatValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackFloatValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackFloatValue]]):
         ...
 
 
@@ -27553,7 +29823,7 @@ class TimeWatcher(uiItem):
     GPU data, etc), not to GPU rendering time.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, TimeWatcherCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, TimeWatcherCallbackValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27584,7 +29854,7 @@ class TimeWatcher(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, TimeWatcherCallbackValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, TimeWatcherCallbackValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27610,6 +29880,40 @@ class TimeWatcher(uiItem):
         - x: Requested horizontal position of the item.
         - y: Requested vertical position of the item.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, TimeWatcherCallbackValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, TimeWatcherCallbackValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, TimeWatcherCallbackValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, TimeWatcherCallbackValue]]):
         ...
 
 
@@ -27647,7 +29951,7 @@ class ToggledCloseHandler(baseHandler):
     the object is show or not shown.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, ToggledCloseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -27665,7 +29969,7 @@ class ToggledCloseHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, ToggledCloseHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -27681,6 +29985,32 @@ class ToggledCloseHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, ToggledCloseHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, ToggledCloseHandlerCallbackValue] | None):
+        ...
+
+
+class ToggledCloseHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the ToggledCloseHandler.
+    """
+    ...
 
 
 class ToggledOpenHandler(baseHandler):
@@ -27694,7 +30024,7 @@ class ToggledOpenHandler(baseHandler):
     the object is show or not shown.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, ToggledOpenHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
         """
         Parameters
         ----------
@@ -27712,7 +30042,7 @@ class ToggledOpenHandler(baseHandler):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, ToggledOpenHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -27728,6 +30058,32 @@ class ToggledOpenHandler(baseHandler):
         - user_data: User data of any type.
         """
         ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, ToggledOpenHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, ToggledOpenHandlerCallbackValue] | None):
+        ...
+
+
+class ToggledOpenHandlerCallbackValue(HandlerCallbackValue):
+    """
+Callback value for the ToggledOpenHandler.
+    """
+    ...
 
 
 class Tooltip(uiItem):
@@ -27747,7 +30103,7 @@ class Tooltip(uiItem):
     can be customized with properties like delay time and activity-based hiding.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27782,7 +30138,7 @@ class Tooltip(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], condition_from_handler : Any = ..., delay : float = 0.0, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, hide_on_activity : bool = False, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, target : Any = ..., theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27942,7 +30298,7 @@ class TreeNode(uiItem):
     to user interaction.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leaf : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, bullet : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leaf : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -27980,7 +30336,7 @@ class TreeNode(uiItem):
         ...
 
 
-    def configure(self, *, bullet : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leaf : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, bullet : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", leaf : bool = False, next_sibling : 'uiItem' | None = None, no_newline : bool = False, open_on_arrow : bool = False, open_on_double_click : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, selectable : bool = False, shareable_value : SharedBool = ..., show : bool = True, span_full_width : bool = False, span_text_width : bool = False, theme : Any = ..., user_data : Any = ..., value : bool = False, width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -28034,6 +30390,40 @@ class TreeNode(uiItem):
 
     @bullet.setter
     def bullet(self, value : bool):
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        Callback to invoke when the item's value changes
+
+        This is an alias for the callbacks property
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Self, uiItemCallbackBoolValue] | None):
+        ...
+
+
+    @property
+    def callbacks(self) -> list[Callback[Self, Self, uiItemCallbackBoolValue]]:
+        """
+        List of callbacks to invoke when the item's value changes.
+
+        Callbacks are functions that receive three arguments: the item with the
+        callback, the item that triggered the change, and any additional data.
+        Multiple callbacks can be attached to track different value changes.
+
+        """
+        ...
+
+
+    @callbacks.setter
+    def callbacks(self, value : Sequence[DCGCallable[Self, Self, uiItemCallbackBoolValue]]):
         ...
 
 
@@ -28390,7 +30780,7 @@ class Window(uiItem):
     menu bars can be attached using menubar items.
 
     """
-    def __init__(self, context : Context, *, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : 'Window' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], collapsed : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_close_button : bool = True, height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | 'Coord' = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | 'Coord' = (100.0, 100.0), modal : bool = False, next_sibling : 'Window' | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : 'Viewport' | 'WindowLayout' | None = None, popup : bool = False, previous_sibling : 'Window' | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, attach : Any = ..., autosize : bool = False, before : 'Window' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem' | 'MenuBar'] = [], collapsed : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_close_button : bool = True, height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | 'Coord' = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | 'Coord' = (100.0, 100.0), modal : bool = False, next_sibling : 'Window' | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : DCGCallable[Self, Self, WindowCloseCallbackValue] | None = None, parent : 'Viewport' | 'WindowLayout' | None = None, popup : bool = False, previous_sibling : 'Window' | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -28447,7 +30837,7 @@ class Window(uiItem):
         ...
 
 
-    def configure(self, *, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem' | 'MenuBar'] = [], collapsed : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_close_button : bool = True, height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | 'Coord' = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | 'Coord' = (100.0, 100.0), modal : bool = False, next_sibling : 'Window' | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : Any = ..., parent : 'Viewport' | 'WindowLayout' | None = None, popup : bool = False, previous_sibling : 'Window' | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, always_show_horizontal_scrollvar : bool = False, always_show_vertical_scrollvar : bool = False, autosize : bool = False, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem' | 'MenuBar'] = [], collapsed : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], has_close_button : bool = True, height : float | str | 'baseSizing' = 0.0, horizontal_scrollbar : bool = False, label : str = "", max_size : Sequence[float] | tuple[float, float] | 'Coord' = (30000.0, 30000.0), menubar : bool = False, min_size : Sequence[float] | tuple[float, float] | 'Coord' = (100.0, 100.0), modal : bool = False, next_sibling : 'Window' | None = None, no_background : bool = False, no_bring_to_front_on_focus : bool = False, no_collapse : bool = False, no_focus_on_appearing : bool = False, no_keyboard_inputs : bool = False, no_mouse_inputs : bool = False, no_move : bool = False, no_newline : bool = False, no_open_over_existing_popup : bool = False, no_resize : bool = False, no_scroll_with_mouse : bool = False, no_scrollbar : bool = False, no_title_bar : bool = False, on_close : DCGCallable[Self, Self, WindowCloseCallbackValue] | None = None, parent : 'Viewport' | 'WindowLayout' | None = None, popup : bool = False, previous_sibling : 'Window' | None = None, primary : bool = False, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., unsaved_document : bool = False, user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -28937,7 +31327,7 @@ class Window(uiItem):
 
 
     @property
-    def on_close(self):
+    def on_close(self) -> Callback[Self, Self, WindowCloseCallbackValue] | None:
         """
         Callback that will be triggered when the window is closed.
 
@@ -28951,7 +31341,7 @@ class Window(uiItem):
 
 
     @on_close.setter
-    def on_close(self, value):
+    def on_close(self, value : DCGCallable[Self, Self, WindowCloseCallbackValue] | None):
         ...
 
 
@@ -29095,7 +31485,7 @@ class WindowLayout(uiItem):
     to have `content_area_avail` larger than `rect_size`, and `item.y2` > `item.y3`.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'Window' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['Window' | 'WindowLayout'] = [], clip : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'Window' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['Window' | 'WindowLayout'] = [], clip : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -29127,7 +31517,7 @@ class WindowLayout(uiItem):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['Window' | 'WindowLayout'] = [], clip : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['Window' | 'WindowLayout'] = [], clip : bool = False, enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'Window' | None = None, no_newline : bool = False, parent : 'Viewport' | 'WindowLayout' | None = None, previous_sibling : 'Window' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -29290,6 +31680,67 @@ class WindowLayout(uiItem):
     @previous_sibling.setter
     def previous_sibling(self, value : 'Window' | None):
         ...
+
+
+class AnyKeyDownHandlerCallbackValue(MultiKeyHandlerCallbackValue):
+    """
+Callback value for the AnyKeyDownHandler.
+    """
+    @property
+    def durations(self) -> tuple[float, ...]:
+        """Durations for which the keys have been held down.
+        """
+        ...
+
+
+
+
+class AnyKeyPressHandlerCallbackValue(MultiKeyHandlerCallbackValue):
+    """
+Callback value for the AnyKeyPressHandler.
+    """
+    ...
+
+
+class AnyKeyReleaseHandlerCallbackValue(MultiKeyHandlerCallbackValue):
+    """
+Callback value for the AnyKeyReleaseHandler.
+    """
+    ...
+
+
+class AnyMouseClickHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
+    """
+Callback value for the AnyMouseClickHandler.
+    """
+    ...
+
+
+class AnyMouseDoubleClickHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
+    """
+Callback value for the AnyMouseDoubleClickHandler.
+    """
+    ...
+
+
+class AnyMouseDownHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
+    """
+Callback value for the AnyMouseDownHandler.
+    """
+    @property
+    def durations(self) -> tuple[float, ...]:
+        """Durations for which the keys have been held down.
+        """
+        ...
+
+
+
+
+class AnyMouseReleaseHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
+    """
+Callback value for the AnyMouseReleaseHandler.
+    """
+    ...
 
 
 class AutoFont(FontMultiScales):
@@ -29521,6 +31972,46 @@ class AutoFont(FontMultiScales):
         ...
 
 
+class ClickedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the ClickedHandler.
+    """
+    ...
+
+
+class DoubleClickedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the DoubleClickedHandler.
+    """
+    ...
+
+
+class DraggedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the DraggedHandler.
+    """
+    @property
+    def drag_delta(self) -> Coord:
+        """Delta between the position when dragging stopped and the initial position.
+        """
+        ...
+
+
+
+
+class DraggingHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the DraggingHandler.
+    """
+    @property
+    def drag_delta(self) -> Coord:
+        """Delta between the position when dragging stopped and the initial position.
+        """
+        ...
+
+
+
+
 class DrawInPlot(plotElementWithLegend):
     """
     Enables drawing items inside a plot using plot coordinates.
@@ -29641,7 +32132,7 @@ class HorizontalLayout(Layout):
     children's sizing expressions.
 
     """
-    def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -29674,7 +32165,7 @@ class HorizontalLayout(Layout):
         ...
 
 
-    def configure(self, *, alignment_mode : Alignment = Alignment.LEFT, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, alignment_mode : Alignment = Alignment.LEFT, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, no_wrap : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -29746,6 +32237,80 @@ class HorizontalLayout(Layout):
         ...
 
 
+class KeyDownHandlerCallbackValue(KeyHandlerCallbackValue):
+    """
+Callback value for the KeyDownHandler.
+    """
+    @property
+    def duration(self) -> float:
+        """Duration for which the key has been held down.
+        """
+        ...
+
+
+
+
+class KeyPressHandlerCallbackValue(KeyHandlerCallbackValue):
+    """
+Callback value for the KeyPressHandler.
+    """
+    ...
+
+
+class KeyReleaseHandlerCallbackValue(KeyHandlerCallbackValue):
+    """
+Callback value for the KeyReleaseHandler.
+    """
+    ...
+
+
+class MouseClickHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the MouseClickHandler.
+    """
+    ...
+
+
+class MouseDoubleClickHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the MouseDoubleClickHandler.
+    """
+    ...
+
+
+class MouseDownHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the MouseDownHandler.
+    """
+    @property
+    def duration(self) -> float:
+        """Duration for which the button has been held down.
+        """
+        ...
+
+
+
+
+class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the MouseDragHandler.
+    """
+    @property
+    def drag_delta(self) -> Coord:
+        """Delta between the position when dragging stopped and the initial position.
+        """
+        ...
+
+
+
+
+class MouseReleaseHandlerCallbackValue(MouseButtonHandlerCallbackValue):
+    """
+Callback value for the MouseReleaseHandler.
+    """
+    ...
+
+
 class OtherItemHandler(HandlerList):
     """
     A handler that monitors states from a different item than the one it's attached to.
@@ -29762,7 +32327,7 @@ class OtherItemHandler(HandlerList):
         Callbacks still reference the attached item as target, not the monitored item.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, op : HandlerListOP = HandlerListOP.ALL, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, callback : DCGCallable[Self, Any, OtherItemHandlerCallbackValue] | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, op : HandlerListOP = HandlerListOP.ALL, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, target : Any = ..., user_data : Any = ...):
         """
         Parameters
         ----------
@@ -29782,7 +32347,7 @@ class OtherItemHandler(HandlerList):
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, op : HandlerListOP = HandlerListOP.ALL, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, target : Any = ..., user_data : Any = ...) -> None:
+    def configure(self, *, callback : DCGCallable[Self, Any, OtherItemHandlerCallbackValue] | None = None, children : Sequence['baseHandler'] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, op : HandlerListOP = HandlerListOP.ALL, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, target : Any = ..., user_data : Any = ...) -> None:
         """
         Shortcut to set multiple attributes at once.
 
@@ -29799,6 +32364,25 @@ class OtherItemHandler(HandlerList):
         - target: Target item which state will be used
         - user_data: User data of any type.
         """
+        ...
+
+
+    @property
+    def callback(self) -> list[Callback[Self, Any, OtherItemHandlerCallbackValue]]:
+        """
+        Function called when the handler's condition is met.
+
+        The callback is invoked with three arguments: the handler itself,
+        the item that triggered the callback, and optional additional data
+        specific to the handler type. The callback format is compatible with
+        the Callback class.
+
+        """
+        ...
+
+
+    @callback.setter
+    def callback(self, value : DCGCallable[Self, Any, OtherItemHandlerCallbackValue] | None):
         ...
 
 
@@ -30466,7 +33050,7 @@ Table widget with advanced display and interaction capabilities.
     and behavior can be customized through column and row configurations.
 
     """
-    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, flags : TableFlag = TableFlag.NONE, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], header : bool = False, height : float | str | 'baseSizing' = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, flags : TableFlag = TableFlag.NONE, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], header : bool = False, height : float | str | 'baseSizing' = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -30504,7 +33088,7 @@ Table widget with advanced display and interaction capabilities.
         ...
 
 
-    def configure(self, *, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, flags : TableFlag = TableFlag.NONE, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], header : bool = False, height : float | str | 'baseSizing' = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, flags : TableFlag = TableFlag.NONE, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], header : bool = False, height : float | str | 'baseSizing' = 0.0, inner_width : float = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, num_cols_frozen : int = 0, num_cols_visible : Any = ..., num_rows_frozen : int = 0, num_rows_visible : Any = ..., parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -33161,7 +35745,7 @@ class VerticalLayout(Layout):
     sizing expressions.
 
     """
-    def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def __init__(self, context : Context, *, alignment_mode : Alignment = Alignment.LEFT, attach : Any = ..., before : 'uiItem' | None = None, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------
@@ -33194,7 +35778,7 @@ class VerticalLayout(Layout):
         ...
 
 
-    def configure(self, *, alignment_mode : Alignment = Alignment.LEFT, callback : DCGCallable | None = None, callbacks : Sequence[DCGCallable] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
+    def configure(self, *, alignment_mode : Alignment = Alignment.LEFT, callback : DCGCallable[Self, Self, uiItemCallbackNoneValue] | None = None, callbacks : Sequence[DCGCallable[Self, Self, uiItemCallbackNoneValue]] = [], children : Sequence['uiItem'] = [], enabled : bool = True, font : 'baseFont' | None = None, handlers : Sequence['baseHandler'] | 'baseHandler' | None = [], height : float | str | 'baseSizing' = 0.0, label : str = "", next_sibling : 'uiItem' | None = None, no_newline : bool = False, parent : 'uiItem' | 'plotElement' | None = None, previous_sibling : 'uiItem' | None = None, scaling_factor : float = 1.0, shareable_value : SharedValue = ..., show : bool = True, theme : Any = ..., user_data : Any = ..., value : Any = ..., width : float | str | 'baseSizing' = 0.0, wrap : bool = False, x : float | str | 'baseSizing' = 0.0, y : float | str | 'baseSizing' = 0.0):
         """
         Parameters
         ----------

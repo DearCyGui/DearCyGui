@@ -325,7 +325,66 @@ hardcoded = {
 }
 
 
+# Callback properties not named callback(s) and the value class they receive
+_EXPLICIT_CALLBACK_VALUES = (
+    ("Viewport", "close_callback", "ViewportCloseCallbackValue"),
+    ("Viewport", "resize_callback", "ViewportResizeCallbackValue"),
+    ("Window", "on_close", "WindowCloseCallbackValue"),
+)
+
+# Same dispatch as the uiItem callback in core.pyx
+_SHARED_VALUE_CALLBACK_VALUES = (
+    (dcg.SharedBool, "uiItemCallbackBoolValue"),
+    (dcg.SharedFloat, "uiItemCallbackFloatValue"),
+    (dcg.SharedStr, "uiItemCallbackStringValue"),
+)
+
+
+def callback_value_typename(object_class, instance, name):
+    """Return the callback value class name received by the callbacks of
+    property `name`, or None if the property is not a typed callback."""
+    for class_name, prop_name, value_name in _EXPLICIT_CALLBACK_VALUES:
+        if name == prop_name and issubclass(object_class, getattr(dcg, class_name)):
+            return value_name
+    if name not in ("callback", "callbacks"):
+        return None
+    # <ClassName>CallbackValue for handlers, TimeWatcher, ...
+    for cls in object_class.__mro__:
+        value_class = getattr(dcg, cls.__name__ + "CallbackValue", None)
+        if value_class is not None and value_class is not dcg.uiItemCallbackValue:
+            return value_class.__name__
+    # Other uiItems: depends on the type of their SharedValue
+    if issubclass(object_class, dcg.uiItem):
+        shared = instance.shareable_value
+        if shared is None or type(shared) is dcg.SharedValue:
+            return "uiItemCallbackNoneValue"
+        for shared_class, value_name in _SHARED_VALUE_CALLBACK_VALUES:
+            if isinstance(shared, shared_class):
+                return value_name
+        return "uiItemCallbackValue"
+    return None
+
+
+def callback_target_typename(object_class):
+    """Return the type of the callback target: the sender itself, except for
+    handlers where it is the item the handler is attached to."""
+    return "Any" if issubclass(object_class, dcg.baseHandler) else "Self"
+
+
+def callback_typename(object_class, instance, name):
+    """Return the (setter/init) type hint of a typed callback property, or None."""
+    value_name = callback_value_typename(object_class, instance, name)
+    if value_name is None:
+        return None
+    if name == "callbacks":
+        return f"Sequence[DCGCallable[Self, {callback_target_typename(object_class)}, {value_name}]]"
+    return f"DCGCallable[Self, {callback_target_typename(object_class)}, {value_name}] | None"
+
+
 def typename(object_class, instance, name, value):
+    callback_type = callback_typename(object_class, instance, name)
+    if callback_type is not None:
+        return callback_type
     if name == "children":
         if issubclass(object_class, dcg.DrawInWindow) or \
            issubclass(object_class, dcg.DrawInPlot) or \
@@ -905,8 +964,12 @@ def generate_docstring_for_class(object_class, instance):
                 # replace Sequence with list
                 tname_read = tname.replace("Sequence[", "list[")
             elif property == "callbacks" or property == "callback":
-                # callbacks is always list of DCGCallable3
-                tname_read = "list[Callback]"
+                # callbacks is always list of Callback
+                value_name = callback_value_typename(object_class, instance, property)
+                tname_read = f"list[Callback[Self, {callback_target_typename(object_class)}, {value_name}]]" if value_name else "list[Callback]"
+            elif callback_value_typename(object_class, instance, property):
+                value_name = callback_value_typename(object_class, instance, property)
+                tname_read = f"Callback[Self, {callback_target_typename(object_class)}, {value_name}] | None"
             elif property.startswith("uv") and isinstance(default_value, list) and len(default_value) == 2:
                 # uv properties are always list of float
                 tname_read = "list[float]"
@@ -986,6 +1049,80 @@ def generate_docstring_for_class(object_class, instance):
 
 
 
+# Type of the properties of the callback value classes.
+_CALLBACK_VALUE_PROPERTY_TYPES = {
+    "button": "MouseButton",
+    "buttons": "tuple[MouseButton, ...]",
+    "current_position": "Coord",
+    "drag_delta": "Coord",
+    "duration": "float",
+    "durations": "tuple[float, ...]",
+    "frame_height": "int",
+    "frame_width": "int",
+    "key": "Key",
+    "keys": "tuple[Key, ...]",
+    "mouse_position": "Coord",
+    "payload_data": "Any",
+    "payload_type": "str",
+    "previous_position": "Coord",
+    "state_copy": "ItemStateCopy | None",
+    "time_end": "int",
+    "time_start": "int",
+    "viewport_frame_count": "int",
+    "viewport_last_t_before_rendering": "int",
+    "wheel_value": "float",
+    "window_height": "int",
+    "window_width": "int",
+    "x_max": "float",
+    "x_min": "float",
+    "x_scale": "float",
+    "y_max": "float",
+    "y_min": "float",
+    "y_scale": "float",
+}
+
+# The value of uiItemCallbackValue depends on the item's SharedValue type.
+# Its subclasses specialize it; the base class stays generic as it is used
+# for all the other shared value types (int, vectors, colors, ...).
+_UIITEM_CALLBACK_VALUE_TYPES = {
+    "uiItemCallbackValue": "Any",
+    "uiItemCallbackBoolValue": "bool",
+    "uiItemCallbackFloatValue": "float",
+    "uiItemCallbackNoneValue": "None",
+    "uiItemCallbackStringValue": "str",
+}
+
+
+def generate_stub_for_callback_value(object_class):
+    """Generate the stub of a callback value class (read-only properties only)."""
+    parent_name = object_class.__bases__[0].__name__
+    result = [f"class {object_class.__name__}({parent_name}):"]
+    docstring = remove_jumps_start_and_end(object_class.__doc__)
+    if docstring is not None:
+        result += [level1 + '"""', docstring, level1 + '"""']
+    members = {
+        name: member for name, member in object_class.__dict__.items()
+        if not name.startswith("_") and inspect.isdatadescriptor(member)
+    }
+    if object_class.__name__ in _UIITEM_CALLBACK_VALUE_TYPES:
+        # Subclasses only specialize the type of the inherited value
+        members.setdefault("value", dcg.uiItemCallbackValue.value)
+    for name, member in members.items():
+        if name == "value":
+            tname = _UIITEM_CALLBACK_VALUE_TYPES[object_class.__name__]
+        else:
+            tname = _CALLBACK_VALUE_PROPERTY_TYPES[name]
+        result += [level1 + "@property", f"{level1}def {name}(self) -> {tname}:"]
+        doc = remove_jumps_start_and_end(member.__doc__)
+        if doc is not None:
+            result += [level2 + '"""' + doc, level2 + '"""']
+        result += [level2 + "...", "\n"]
+    if len(result) == 1 or (docstring is not None and len(result) == 4):
+        result += [level1 + "..."]
+    result.append("\n")
+    return result
+
+
 def get_pyi_for_classes(C):
     def is_item_sub_class(name, targets):
         try:
@@ -995,7 +1132,8 @@ def get_pyi_for_classes(C):
                     return True
         except Exception:
             return False
-    parent_classes = [dcg.Context, dcg.baseItem, dcg.SharedValue, dcg.Callback]
+    parent_classes = [dcg.Context, dcg.baseItem, dcg.SharedValue, dcg.Callback,
+                      dcg.baseCallbackValue]
     dcg_items = sorted(dir(dcg))
     # remove items not starting with an upper case,
     # which are mainly for internal use, or items finishing by _
@@ -1022,6 +1160,9 @@ def get_pyi_for_classes(C):
             instance = C.viewport
         elif name == "Context":
             instance = C
+        elif issubclass(object_class, dcg.baseCallbackValue):
+            result += generate_stub_for_callback_value(object_class)
+            continue
         elif "Callback" in name:
             if name == "Callback": # custom stub for Callback
                 continue

@@ -15,7 +15,7 @@ cdef class uiItemCallbackValue(baseCallbackValue):
         """Value of the UI item when the callback was triggered."""
         return self._value
 
-# Those are empty but differ in the stubs (value type)
+# Those are empty but differ in the stubs (type of value)
 
 cdef class uiItemCallbackBoolValue(uiItemCallbackValue):
     """Callback value for a UI item with a boolean value."""
@@ -145,7 +145,6 @@ cdef class KeyHandlerCallbackValue(HandlerCallbackValue):
 
 cdef class MultiKeyHandlerCallbackValue(HandlerCallbackValue):
     """Callback value for a handler with multiple key values."""
-    cdef DCGVector[int32_t] _keys
 
     def __init__(self, Context context, keys):
         self._keys.clear()
@@ -591,6 +590,57 @@ cdef class MouseInRectHandlerCallbackValue(HandlerCallbackValue):
         coords[0] = self._mouse_x
         coords[1] = self._mouse_y
         return Coord.build(coords)
+
+cdef class AxesResizeHandlerCallbackValue(HandlerCallbackValue):
+    """Callback value for the AxesResizeHandler."""
+
+    def __init__(
+        self,
+        Context context,
+        double x_min,
+        double x_max,
+        double x_scale,
+        double y_min,
+        double y_max,
+        double y_scale
+    ):
+        self._x_min = x_min
+        self._x_max = x_max
+        self._x_scale = x_scale
+        self._y_min = y_min
+        self._y_max = y_max
+        self._y_scale = y_scale
+        HandlerCallbackValue.__init__(self, context)
+
+    @property
+    def x_min(self):
+        """Minimum of the monitored X axis."""
+        return self._x_min
+
+    @property
+    def x_max(self):
+        """Maximum of the monitored X axis."""
+        return self._x_max
+
+    @property
+    def x_scale(self):
+        """Size of a pixel along the monitored X axis, in plot coordinates."""
+        return self._x_scale
+
+    @property
+    def y_min(self):
+        """Minimum of the monitored Y axis."""
+        return self._y_min
+
+    @property
+    def y_max(self):
+        """Maximum of the monitored Y axis."""
+        return self._y_max
+
+    @property
+    def y_scale(self):
+        """Size of a pixel along the monitored Y axis, in plot coordinates."""
+        return self._y_scale
 
 cdef class AnyMouseClickHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
     """Callback value for the AnyMouseClickHandler."""

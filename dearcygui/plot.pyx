@@ -28,6 +28,7 @@ from .core cimport baseHandler, baseItem, uiItem, AxisTag, \
     draw_ui_children, baseFont, plotElement, \
     update_current_mouse_states, \
     draw_plot_element_children, itemState, ItemStateView
+from .callback_values cimport AxesResizeHandlerCallbackValue
 from .c_types cimport unique_lock, DCGMutex, DCGString, DCGVector,\
     string_to_str, string_from_str, get_object_from_1D_array_view,\
     get_object_from_2D_array_view, DCG_DOUBLE, DCG_INT32, DCG_FLOAT,\
@@ -83,14 +84,11 @@ cdef class AxesResizeHandler(baseHandler):
     detecting when the scale of pixels within plot coordinates has changed, such 
     as after zoom operations or window resizing.
     
-    The data field passed to the callback contains:
-    ((x_min, x_max, x_scale), (y_min, y_max, y_scale))
-    
-    Where:
-    - x_min, x_max: Current axis limits
-    - x_scale: Scaling factor (max-min)/pixels
-    - First tuple is for X axis (default X1)
-    - Second tuple is for Y axis (default Y1)
+    The value passed to the callback is an AxesResizeHandlerCallbackValue
+    with the fields x_min, x_max, x_scale, y_min, y_max, y_scale, where:
+    - x_min, x_max (resp. y_min, y_max): Current limits of the monitored X (resp. Y) axis
+    - x_scale (resp. y_scale): Scaling factor (max-min)/pixels
+    - The monitored axes are given by the axes property (default X1, Y1)
     """
     def __cinit__(self):
         self._axes = [implot.ImAxis_X1, implot.ImAxis_Y1]
@@ -186,12 +184,14 @@ cdef class AxesResizeHandler(baseHandler):
             self.context.queue_callback(self._callback,
                                         self,
                                         item,
-                                        ((x_min,
-                                          x_max,
-                                          x_scale),
-                                         (y_min,
-                                          y_max,
-                                          y_scale)))
+                                        AxesResizeHandlerCallbackValue(
+                                            context=self.context,
+                                            x_min=x_min,
+                                            x_max=x_max,
+                                            x_scale=x_scale,
+                                            y_min=y_min,
+                                            y_max=y_max,
+                                            y_scale=y_scale))
 
 # BaseItem that has has no parent/child nor sibling
 cdef class PlotAxisConfig(baseItem):

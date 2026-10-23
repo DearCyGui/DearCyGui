@@ -2,71 +2,83 @@ from typing import Coroutine, TypeAlias, Any, Literal
 from enum import IntEnum
 from collections.abc import Sequence, Iterator, Callable
 from math import inf
-from typing import Protocol, Self, TypeVar, Never, Concatenate
+from typing import Protocol, Self, Never, Concatenate
 from contextlib import AbstractContextManager
 from .core import *
 
-SenderT = TypeVar('SenderT', bound='baseItem')
-TargetT = TypeVar('TargetT', bound='baseItem')
+# Callback parameters are contravariant (inferred): a callback accepting a parent
+# class (or a union containing the exact class) of the sender/value is valid.
+# Sender is the item the callback is attached to, value is the callback value
+# class matching that item.
 
 class DCGCallable0(Protocol):
     def __call__(self, /) -> Any:
         ...
 
-class DCGCallable1(Protocol[SenderT]):
+class DCGCallable1[S: baseItem = baseItem](Protocol):
     def __call__(self,
-                 sender : SenderT,
+                 sender : S,
                  /) -> Any:
         ...
 
-class DCGCallable2(Protocol[SenderT, TargetT]):
+class DCGCallable2[S: baseItem = baseItem, T: baseItem = baseItem](Protocol):
     def __call__(self,
-                 sender : SenderT,
-                 target : TargetT,
+                 sender : S,
+                 target : T,
                  /) -> Any:
         ...
 
-class DCGCallable3(Protocol[SenderT, TargetT]):
+class DCGCallable3[S: baseItem = baseItem,
+                   T: baseItem = baseItem,
+                   V: baseCallbackValue = baseCallbackValue](Protocol):
     def __call__(self,
-                 sender : SenderT,
-                 target : TargetT,
-                 value : Any,
+                 sender : S,
+                 target : T,
+                 value : V,
                  /) -> Any:
         ...
 
-class DCGCallable0Kw(Protocol):    
-    def __call__(self, /, **kwargs) -> Any:
+class DCGCallable0Kw(Protocol):
+    def __call__(self, /, **kwargs: Any) -> Any:
         ...
 
-class DCGCallable1Kw(Protocol[SenderT]):
+class DCGCallable1Kw[S: baseItem = baseItem](Protocol):
     def __call__(self,
-                 sender : SenderT,
+                 sender : S,
                  /,
                  **kwargs : Any) -> Any:
         ...
 
-class DCGCallable2Kw(Protocol[SenderT, TargetT]):
+class DCGCallable2Kw[S: baseItem = baseItem, T: baseItem = baseItem](Protocol):
     def __call__(self,
-                 sender : SenderT,
-                 target : TargetT,
+                 sender : S,
+                 target : T,
                  /,
                  **kwargs : Any) -> Any:
         ...
 
-class DCGCallable3Kw(Protocol[SenderT, TargetT]):
+class DCGCallable3Kw[S: baseItem = baseItem,
+                     T: baseItem = baseItem,
+                     V: baseCallbackValue = baseCallbackValue](Protocol):
     def __call__(self,
-                 sender : SenderT,
-                 target : TargetT,
-                 value : Any,
-                 /,  
+                 sender : S,
+                 target : T,
+                 value : V,
+                 /,
                  **kwargs : Any) -> Any:
         ...
 
 
-DCGCallable = DCGCallable0 | DCGCallable1 | DCGCallable2 | DCGCallable3 | DCGCallable0Kw | DCGCallable1Kw | DCGCallable2Kw | DCGCallable3Kw
+type DCGCallable[S: baseItem = baseItem,
+                 T: baseItem = baseItem,
+                 V: baseCallbackValue = baseCallbackValue] = (
+    DCGCallable0 | DCGCallable1[S] | DCGCallable2[S, T] | DCGCallable3[S, T, V]
+    | DCGCallable0Kw | DCGCallable1Kw[S] | DCGCallable2Kw[S, T] | DCGCallable3Kw[S, T, V]
+)
 
 
-class Callback(DCGCallable3[SenderT, TargetT]):
+class Callback[S: baseItem = baseItem, T: baseItem = baseItem,
+               V: baseCallbackValue = baseCallbackValue](DCGCallable3[S, T, V]):
     """
     Wrapper class that automatically encapsulates callbacks.
 
@@ -78,10 +90,10 @@ class Callback(DCGCallable3[SenderT, TargetT]):
 
     This class adapts callbacks with fewer parameters to the full 3-parameter form.
     """
-    def __init__(self, callback: DCGCallable) -> None:
+    def __init__(self, callback: DCGCallable[S, T, V]) -> None:
         ...
     
-    def __call__(self, sender: SenderT, target: TargetT, value: Any) -> Any:
+    def __call__(self, sender: S, target: T, value: V) -> Any:
         """
         Call the wrapped callback with appropriate number of arguments.
         
@@ -90,7 +102,7 @@ class Callback(DCGCallable3[SenderT, TargetT]):
         ...
 
     @property
-    def callback(self) -> DCGCallable:
+    def callback(self) -> DCGCallable[S, T, V]:
         """(Read-only) The original wrapped callback
         """
         ...
