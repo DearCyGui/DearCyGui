@@ -7231,11 +7231,11 @@ cdef class uiItem(baseItem):
                         self,
                         self,
                         (
-                            uiItemCallbackBoolValue(self._value.value) if isinstance(self._value, SharedBool) else
-                            uiItemCallbackFloatValue(self._value.value) if isinstance(self._value, SharedFloat) else
-                            uiItemCallbackNoneValue(None) if self._value is None or type(self._value) is SharedValue else
-                            uiItemCallbackStringValue(self._value.value) if isinstance(self._value, SharedStr) else
-                            uiItemCallbackValue(self._value.value)
+                            uiItemCallbackBoolValue(self.context, self._value.value) if isinstance(self._value, SharedBool) else
+                            uiItemCallbackFloatValue(self.context, self._value.value) if isinstance(self._value, SharedFloat) else
+                            uiItemCallbackNoneValue(self.context, None) if self._value is None or type(self._value) is SharedValue else
+                            uiItemCallbackStringValue(self.context, self._value.value) if isinstance(self._value, SharedStr) else
+                            uiItemCallbackValue(self.context, self._value.value)
                         )
                     )
 
