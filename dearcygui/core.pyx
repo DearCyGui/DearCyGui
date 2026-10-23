@@ -2965,7 +2965,7 @@ def _wake_viewport_on_exit(viewport_ref: _weak_ref):
         return
     try:
         viewport.context.running = False
-    except:
+    except Exception:
         pass
     viewport.wake()
     # This should help gc finish faster
@@ -5059,7 +5059,7 @@ cdef class Callback:
             try:
                 source_item.context.running = False
                 source_item.context.viewport.wake()
-            except:
+            except Exception:
                 pass
             raise e
 

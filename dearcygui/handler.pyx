@@ -2491,7 +2491,7 @@ cdef inline tuple build_buttons_tuple(DCGVector[int32_t] &buttons_array):
     for i in range(<int>buttons_array.size()):
         try:
             buttons.append(make_MouseButton(buttons_array[i]))
-        except: # button not found or invalid
+        except Exception: # button not found or invalid
             pass
     return tuple(buttons)
 
@@ -2855,7 +2855,7 @@ cdef class DragDropSourceHandler(baseHandler):
         state_copy = None
         try:
             state_copy = item.state.snapshot()
-        except:
+        except Exception:
             pass
         cdef float mouse_x = imgui.GetIO().MousePos.x
         cdef float mouse_y = imgui.GetIO().MousePos.y
@@ -3237,7 +3237,7 @@ cdef class DragDropTargetHandler(baseHandler):
         state_copy = None
         try:
             state_copy = item.state.snapshot()
-        except:
+        except Exception:
             pass
         cdef float mouse_x = imgui.GetIO().MousePos.x
         cdef float mouse_y = imgui.GetIO().MousePos.y

@@ -1125,7 +1125,7 @@ cdef object parse_texture(src):
     try:
         if len(src) > 0 and not hasattr(src[0], "__len__"):
             src = [src]
-    except:
+    except Exception:
         pass
     # Check all items are of the same size
     try:
@@ -1192,7 +1192,7 @@ cdef object parse_texture(src):
             return value_f
     except (ValueError, RuntimeError) as e:
         raise e
-    except:
+    except Exception:
         raise ValueError(f"Invalid texture data {src}")
 
 

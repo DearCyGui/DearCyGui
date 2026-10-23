@@ -122,7 +122,7 @@ cdef object _get_font_from_cache(Context context, str font_type, dict params):
             font = cache[key]
             if font is not None:
                 return font
-    except:
+    except Exception:
         pass
 
     return None
@@ -475,7 +475,7 @@ cdef class AutoFont(FontMultiScales):
         try:
             if self._font_creation_executor is not None:
                 self._font_creation_executor.shutdown(wait=True)
-        except:
+        except Exception:
             pass
 
     def _on_new_scale(self, sender, target, float scale) -> None:
@@ -1149,7 +1149,7 @@ cdef class GlyphSet:
         cdef memoryview image_view
         try:
             image_view = memoryview(image)
-        except:
+        except Exception:
             image_view = memoryview(parse_texture(image))
             
         if len(image_view.shape) < 2:
