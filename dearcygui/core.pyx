@@ -4431,7 +4431,7 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.__check_alive()
-        return self._frame_buffer
+        return self._frame_buffer # TODO: bug with the demo with 3.14t (not refreshing well)
 
     cdef void __on_resize(self):
         cdef unique_lock[DCGMutex] m
@@ -5062,36 +5062,6 @@ cdef class Callback:
             except Exception:
                 pass
             raise e
-
-
-cdef class DPGCallback(Callback):
-    """
-    Used to run callbacks created for DPG.
-    """
-    def __call__(self, source_item, target_item, call_info):
-        try:
-            if source_item is not target_item:
-                if isinstance(call_info, tuple):
-                    call_info = tuple(list(call_info) + [target_item])
-            if self.num_args == 3:
-                return self.callback(source_item.uuid, call_info, source_item.user_data)
-            elif self.num_args == 2:
-                return self.callback(source_item.uuid, call_info)
-            elif self.num_args == 1:
-                return self.callback(source_item.uuid)
-            else:
-                return self.callback()
-        except Exception as e:
-            print(f"Callback {self.callback} raised exception {e}")
-            if self.num_args == 3:
-                print(f"Callback arguments were: {source_item.uuid} (for {source_item}), {call_info}, {source_item.user_data}")
-            if self.num_args == 2:
-                print(f"Callback arguments were: {source_item.uuid} (for {source_item}), {call_info}")
-            if self.num_args == 1:
-                print(f"Callback argument was: {source_item.uuid} (for {source_item})")
-            else:
-                print("Callback called without arguments")
-            print(_format_exc())
 
 """
 PlaceHolder parent
@@ -6325,6 +6295,12 @@ cdef class baseCallbackValue:
     """Base class for all callback values."""
     def __init__(self, Context context):
         pass
+
+    def __bool__(self):
+        raise TypeError(
+            f"{type(self).__name__} cannot be used as a boolean. "
+            "Use its fields instead."
+        )
 
 cdef class baseHandler(baseItem):
     """

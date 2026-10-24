@@ -585,15 +585,13 @@ class StyleEditor(dcg.Window):
         """
         for child in item.children:
             self._recursive_reset_values(child)
-            if isinstance(child, dcg.ColorEdit):
-                child.value = child.user_data
-                child.callbacks[0](self, child, dcg.uiItemCallbackValue(self.context, child.value))
-            if isinstance(child, dcg.Slider):
-                child.value = child.user_data
-                child.callbacks[0](self, child, dcg.uiItemCallbackValue(self.context, child.value))
-            if isinstance(child, dcg.Combo):
-                child.value = child.user_data.name
-                child.callbacks[0](self, child, dcg.uiItemCallbackValue(self.context, child.value))
+            if getattr(child, "user_data", None) is not None:
+                if isinstance(child, dcg.ColorEdit):
+                    child.value = child.user_data
+                if isinstance(child, utils.SliderN):
+                    child.value = child.user_data
+                if isinstance(child, dcg.Combo):
+                    child.value = child.user_data.name
 
     def reset_values(self) -> None:
         """Reset all theme values to their defaults.
@@ -602,6 +600,17 @@ class StyleEditor(dcg.Window):
         by triggering a recursive traversal of the style editor's widgets.
         """
         self._recursive_reset_values(self)
+
+        # Clear themes. Indeed some themes such as line color override any
+        # default colors. This not clearing does not really reset the theme properly.
+        for key, _ in self.imgui_color_theme:
+            setattr(self.imgui_color_theme, key, None)
+        for key, _ in self.implot_color_theme:
+            setattr(self.implot_color_theme, key, None)
+        for key, _ in self.imgui_style_theme:
+            setattr(self.imgui_style_theme, key, None)
+        for key, _ in self.implot_style_theme:
+            setattr(self.implot_style_theme, key, None)
 
     def export_to_text(self) -> str:
         """Convert the current theme to Python code.
@@ -748,7 +757,7 @@ class StyleEditor(dcg.Window):
                                   value=demo_colors.get_default("button_hovered"),
                                   callback=lambda s,t,d: setattr(demo_colors, "button_hovered", d.value))
                     dcg.ColorEdit(C, label="Button Active",
-                                  value=demo_colors.get_default("Button_active"),
+                                  value=demo_colors.get_default("button_active"),
                                   callback=lambda s,t,d: setattr(demo_colors, "button_active", d.value))
                     dcg.ColorEdit(C, label="Text",
                                   value=demo_colors.get_default("text"),

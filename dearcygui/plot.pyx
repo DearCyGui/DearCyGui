@@ -666,7 +666,7 @@ cdef class PlotAxisConfig(baseItem):
         constrained state, it will stretch instead of maintaining fixed 
         bounds. Useful for maintaining context while exploring limited ranges.
         """
-        cdef unique_lock[DCGMutex] m
+        cdef unique_lock[DCGMutex] m # TODO: doesn't seem to work
         lock_gil_friendly(m, self.mutex)
         return (self._flags & implot.ImPlotAxisFlags_PanStretch) != 0
 

@@ -2,7 +2,7 @@ from libc.stdint cimport int32_t, int64_t
 
 from .core cimport Context, baseCallbackValue
 from .c_types cimport DCGString, DCGVector
-from .types cimport make_Key, MouseButton, Coord, make_MouseButton
+from .types cimport is_Key, make_Key, is_MouseButton, Coord, make_MouseButton
 
 cdef class uiItemCallbackValue(baseCallbackValue):
     """Callback value for a UI item."""
@@ -134,25 +134,55 @@ cdef class HandlerCallbackValue(baseCallbackValue):
 cdef class KeyHandlerCallbackValue(HandlerCallbackValue):
     """Callback value for a handler with a key value."""
 
-    def __init__(self, Context context, int32_t key):
-        self._key = key
+    def __init__(self, Context context, key, float duration):
+        if not is_Key(key):
+            raise TypeError("key must be of type Key")
+        self._key = <int32_t>key
+        self._duration = duration
         HandlerCallbackValue.__init__(self, context)
+
+    @property
+    def duration(self):
+        """Duration for which the key has been held down."""
+        return self._duration
 
     @property
     def key(self):
         """Key associated with the callback."""
-        return self._key
+        return make_Key(self._key)
 
 cdef class MultiKeyHandlerCallbackValue(HandlerCallbackValue):
     """Callback value for a handler with multiple key values."""
 
-    def __init__(self, Context context, keys):
+    def __init__(self, Context context, keys, durations):
+        # Fill keys
         self._keys.clear()
         for key in keys:
-            if not isinstance(key, int):
-                raise TypeError("All elements in keys must be of type int")
+            if not is_Key(key):
+                raise TypeError("All elements in keys must be of type Key")
             self._keys.push_back(<int32_t>key)
+
+        # Fill durations
+        self._durations.clear()
+        for duration in durations:
+            self._durations.push_back(<float>duration)
+        
+        # Clamp if the numbers of items do not match
+        if self._durations.size() < self._keys.size():
+            self._keys.resize(self._durations.size())
+        elif self._durations.size() > self._keys.size():
+            self._durations.resize(self._keys.size())
+    
         HandlerCallbackValue.__init__(self, context)
+
+    @property
+    def durations(self):
+        """Durations for which the keys have been held down."""
+        cdef int i
+        cdef list durations = []
+        for i in range(<int>self._durations.size()):
+            durations.append(self._durations[i])
+        return tuple(durations)
 
     @property
     def keys(self):
@@ -170,7 +200,7 @@ cdef class MouseButtonHandlerCallbackValue(HandlerCallbackValue):
     """Callback value for a handler with a mouse button value."""
 
     def __init__(self, Context context, button):
-        if not isinstance(button, MouseButton):
+        if not is_MouseButton(button):
             raise TypeError("button must be of type MouseButton")
         self._button = button
         HandlerCallbackValue.__init__(self, context)
@@ -185,7 +215,7 @@ cdef class MultiMouseButtonHandlerCallbackValue(HandlerCallbackValue):
     def __init__(self, Context context, buttons):
         self._buttons.clear()
         for button in buttons:
-            if not isinstance(button, MouseButton):
+            if not is_MouseButton(button):
                 raise TypeError("All elements in buttons must be of type MouseButton")
             self._buttons.push_back(<int32_t>button)
         HandlerCallbackValue.__init__(self, context)
@@ -388,16 +418,6 @@ cdef class MouseCursorHandlerCallbackValue(HandlerCallbackValue):
 
 cdef class KeyDownHandlerCallbackValue(KeyHandlerCallbackValue):
     """Callback value for the KeyDownHandler."""
-
-    def __init__(self, Context context, int32_t key, float duration):
-        self._duration = duration
-        KeyHandlerCallbackValue.__init__(self, context, key)
-
-    @property
-    def duration(self):
-        """Duration for which the key has been held down."""
-        return self._duration
-
     @staticmethod
     cdef KeyDownHandlerCallbackValue build(Context context, int32_t key, float duration):
         cdef KeyDownHandlerCallbackValue value = KeyDownHandlerCallbackValue.__new__(KeyDownHandlerCallbackValue)
@@ -407,51 +427,42 @@ cdef class KeyDownHandlerCallbackValue(KeyHandlerCallbackValue):
 
 cdef class KeyPressHandlerCallbackValue(KeyHandlerCallbackValue):
     """Callback value for the KeyPressHandler."""
-    pass
+    @staticmethod
+    cdef KeyPressHandlerCallbackValue build(Context context, int32_t key, float duration):
+        cdef KeyPressHandlerCallbackValue value = KeyPressHandlerCallbackValue.__new__(KeyPressHandlerCallbackValue)
+        value._key = key
+        value._duration = duration
+        return value
 
 cdef class KeyReleaseHandlerCallbackValue(KeyHandlerCallbackValue):
     """Callback value for the KeyReleaseHandler."""
-    pass # TODO: cdef float _duration
+    @staticmethod
+    cdef KeyReleaseHandlerCallbackValue build(Context context, int32_t key, float duration):
+        cdef KeyReleaseHandlerCallbackValue value = KeyReleaseHandlerCallbackValue.__new__(KeyReleaseHandlerCallbackValue)
+        value._key = key
+        value._duration = duration
+        return value
 
 cdef class AnyKeyPressHandlerCallbackValue(MultiKeyHandlerCallbackValue):
     """Callback value for the AnyKeyPressHandler."""
     @staticmethod
-    cdef AnyKeyPressHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys): 
+    cdef AnyKeyPressHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys, DCGVector[float] &durations): 
         cdef AnyKeyPressHandlerCallbackValue value = AnyKeyPressHandlerCallbackValue.__new__(AnyKeyPressHandlerCallbackValue)
         value._keys = keys
+        value._durations = durations
         return value
 
 cdef class AnyKeyReleaseHandlerCallbackValue(MultiKeyHandlerCallbackValue):
     """Callback value for the AnyKeyReleaseHandler."""
     @staticmethod
-    cdef AnyKeyReleaseHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys): 
+    cdef AnyKeyReleaseHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys, DCGVector[float] &durations): 
         cdef AnyKeyReleaseHandlerCallbackValue value = AnyKeyReleaseHandlerCallbackValue.__new__(AnyKeyReleaseHandlerCallbackValue)
         value._keys = keys
+        value._durations = durations
         return value
 
 cdef class AnyKeyDownHandlerCallbackValue(MultiKeyHandlerCallbackValue):
     """Callback value for the AnyKeyDownHandler."""
-
-    def __init__(self, Context context, keys, durations):
-        self._durations.clear()
-        for duration in durations:
-            self._durations.push_back(<float>duration)
-        MultiKeyHandlerCallbackValue.__init__(self, context, keys)
-
-        # Clamp if the numbers of items do not match
-        if self._durations.size() < self._keys.size():
-            self._keys.resize(self._durations.size())
-        elif self._durations.size() > self._keys.size():
-            self._durations.resize(self._keys.size())
-
-    @property
-    def durations(self):
-        """Durations for which the keys have been held down."""
-        cdef int i
-        cdef list durations = []
-        for i in range(<int>self._durations.size()):
-            durations.append(self._durations[i])
-        return tuple(durations)
 
     @staticmethod
     cdef AnyKeyDownHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys, DCGVector[float] &durations):
@@ -472,7 +483,7 @@ cdef class MouseDownHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """Callback value for the MouseDownHandler."""
     def __init__(self, Context context, MouseButton button, float duration):
         self._duration = duration
-        MouseDownHandlerCallbackValue.__init__(self, context, button)
+        MouseButtonHandlerCallbackValue.__init__(self, context, button)
 
     @property
     def duration(self):
@@ -553,7 +564,21 @@ cdef class MouseMoveHandlerCallbackValue(HandlerCallbackValue):
 
 cdef class MouseReleaseHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """Callback value for the MouseReleaseHandler."""
-    pass # TODO float _duration
+    def __init__(self, Context context, MouseButton button, float duration):
+        self._duration = duration
+        MouseButtonHandlerCallbackValue.__init__(self, context, button)
+
+    @property
+    def duration(self):
+        """Duration for which the button has been held down."""
+        return self._duration
+
+    @staticmethod
+    cdef MouseReleaseHandlerCallbackValue build(Context context, MouseButton button, float duration):
+        cdef MouseReleaseHandlerCallbackValue value = MouseReleaseHandlerCallbackValue.__new__(MouseReleaseHandlerCallbackValue)
+        value._button = button
+        value._duration = duration
+        return value
 
 cdef class MouseWheelHandlerCallbackValue(HandlerCallbackValue):
     """Callback value for the MouseWheelHandler."""
@@ -652,7 +677,34 @@ cdef class AnyMouseDoubleClickHandlerCallbackValue(MultiMouseButtonHandlerCallba
 
 cdef class AnyMouseReleaseHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
     """Callback value for the AnyMouseReleaseHandler."""
-    pass # TODO DCGVector[float] _durations
+
+    def __init__(self, Context context, buttons, durations):
+        self._durations.clear()
+        for duration in durations:
+            self._durations.push_back(<float>duration)
+        MultiMouseButtonHandlerCallbackValue.__init__(self, context, buttons)
+
+        # Clamp if the numbers of items do not match
+        if self._durations.size() < self._buttons.size():
+            self._buttons.resize(self._durations.size())
+        elif self._durations.size() > self._buttons.size():
+            self._durations.resize(self._buttons.size())
+
+    @property
+    def durations(self):
+        """Durations for which the keys have been held down."""
+        cdef int i
+        cdef list durations = []
+        for i in range(<int>self._durations.size()):
+            durations.append(self._durations[i])
+        return tuple(durations)
+
+    @staticmethod
+    cdef AnyMouseReleaseHandlerCallbackValue build(Context context, DCGVector[int32_t] &buttons, DCGVector[float] &durations):
+        cdef AnyMouseReleaseHandlerCallbackValue value = AnyMouseReleaseHandlerCallbackValue.__new__(AnyMouseReleaseHandlerCallbackValue)
+        value._buttons = buttons
+        value._durations = durations
+        return value
 
 cdef class AnyMouseDownHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
     """Callback value for the AnyMouseDownHandler."""

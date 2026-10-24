@@ -203,11 +203,13 @@ cdef class KeyReleaseHandler(baseHandler):
 cdef class AnyKeyPressHandler(baseHandler):
     cdef bint _repeat
     cdef DCGVector[int32_t] _keys_vector
+    cdef DCGVector[float] _durations_vector
     cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
 cdef class AnyKeyReleaseHandler(baseHandler):
     cdef DCGVector[int32_t] _keys_vector
+    cdef DCGVector[float] _durations_vector
     cdef bint check_state(self, baseItem) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 
@@ -271,6 +273,7 @@ cdef class AnyMouseDoubleClickHandler(baseHandler):
 
 cdef class AnyMouseReleaseHandler(baseHandler):
     cdef DCGVector[int32_t] _buttons_vector
+    cdef DCGVector[float] _durations_vector
     cdef bint check_state(self, baseItem item) noexcept nogil
     cdef void run_handler(self, baseItem) noexcept nogil
 

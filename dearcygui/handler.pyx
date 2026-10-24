@@ -1674,19 +1674,20 @@ cdef class KeyDownHandler(baseHandler):
         if not(self._enabled) or self._callback is None:
             return
         key_info = imgui.GetKeyData(<imgui.ImGuiKey>self._key)
-        if key_info.Down and self._callback is not None:
+        if key_info.Down:
             duration = fmax(<float>0., key_info.DownDuration) # In theory cannot be < 0, but lets be safe
-            with gil:
-                self.context.queue_callback(
-                    self._callback,
-                    self,
-                    item,
-                    KeyDownHandlerCallbackValue.build(
-                        self.context,
-                        self._key,
-                        duration
+            if imgui.IsKeyDown(<imgui.ImGuiKey>self._key):
+                with gil:
+                    self.context.queue_callback(
+                        self._callback,
+                        self,
+                        item,
+                        KeyDownHandlerCallbackValue.build(
+                            self.context,
+                            self._key,
+                            duration
+                        )
                     )
-                )
             # Repeat at least a KeyRepeatRate. User can get more using wake.
             self.context.viewport.ask_refresh_after_delta(imgui.GetIO().KeyRepeatRate)
 
@@ -1748,7 +1749,7 @@ cdef class KeyPressHandler(baseHandler):
         if not(self._enabled) or self._callback is None:
             return
         key_info = imgui.GetKeyData(<imgui.ImGuiKey>self._key)
-        if key_info.Down and self._callback is not None:
+        if key_info.Down:
             duration = fmax(<float>0., key_info.DownDuration) # In theory cannot be < 0, but lets be safe
             if imgui.IsKeyPressed(<imgui.ImGuiKey>self._key, self._repeat):
                 with gil:
@@ -1756,9 +1757,10 @@ cdef class KeyPressHandler(baseHandler):
                         self._callback,
                         self,
                         item,
-                        KeyPressHandlerCallbackValue(
-                            context=self.context,
-                            key=self._key
+                        KeyPressHandlerCallbackValue.build(
+                            self.context,
+                            self._key,
+                            duration
                         )
                     )
             if self._repeat:
@@ -1806,18 +1808,23 @@ cdef class KeyReleaseHandler(baseHandler):
 
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        cdef imgui.ImGuiKeyData *key_info
         cdef int32_t i
-        if not(self._enabled):
+        cdef float duration
+        if not(self._enabled) or self._callback is None:
             return
+        key_info = imgui.GetKeyData(<imgui.ImGuiKey>self._key)
         if imgui.IsKeyReleased(<imgui.ImGuiKey>self._key):
+            duration = fmax(<float>0., key_info.DownDurationPrev) 
             with gil:
                 self.context.queue_callback(
                     self._callback,
                     self,
                     item,
-                    KeyReleaseHandlerCallbackValue(
-                        context=self.context,
-                        key=self._key
+                    KeyReleaseHandlerCallbackValue.build(
+                        self.context,
+                        self._key,
+                        duration
                     )
                 )
 
@@ -1873,10 +1880,12 @@ cdef class AnyKeyPressHandler(baseHandler):
         cdef float duration, delay
         
         # Clear previous keys and collect all pressed keys
+        self._durations_vector.clear()
         self._keys_vector.clear()
         for key in range(<int32_t>imgui.ImGuiKey_NamedKey_BEGIN, <int32_t>imgui.ImGuiKey_NamedKey_END):
             if imgui.IsKeyPressed(<imgui.ImGuiKey>key, self._repeat):
                 self._keys_vector.push_back(key)
+                self._durations_vector.push_back(fmax(<float>0., imgui.GetKeyData(<imgui.ImGuiKey>key).DownDuration))
 
         # If we found any pressed keys, convert to Python tuple and queue callback
         if not self._keys_vector.empty():
@@ -1888,7 +1897,8 @@ cdef class AnyKeyPressHandler(baseHandler):
                     item,
                     AnyKeyPressHandlerCallbackValue.build(
                         self.context,
-                        self._keys_vector
+                        self._keys_vector,
+                        self._durations_vector
                     )
                 )
             delay = imgui.GetIO().KeyRepeatDelay
@@ -1928,10 +1938,12 @@ cdef class AnyKeyReleaseHandler(baseHandler):
             
         # Clear and populate the vector with released keys
         self._keys_vector.clear()
+        self._durations_vector.clear()
         cdef int key, i
         for key in range(imgui.ImGuiKey_NamedKey_BEGIN, imgui.ImGuiKey_NamedKey_END):
             if imgui.IsKeyReleased(<imgui.ImGuiKey>key):
                 self._keys_vector.push_back(<int32_t>key)
+                self._durations_vector.push_back(fmax(<float>0., imgui.GetKeyData(<imgui.ImGuiKey>key).DownDurationPrev))
 
         # If we found any released keys, send in a single callback
         if not self._keys_vector.empty():
@@ -1942,7 +1954,8 @@ cdef class AnyKeyReleaseHandler(baseHandler):
                     item,
                     AnyKeyReleaseHandlerCallbackValue.build(
                         self.context,
-                        self._keys_vector
+                        self._keys_vector,
+                        self._durations_vector
                     )
                 )
 
@@ -1970,10 +1983,9 @@ cdef class AnyKeyDownHandler(baseHandler):
     
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
+        cdef imgui.ImGuiKeyData *key_data
         if not(self._enabled) or self._callback is None:
             return
-            
-        cdef imgui.ImGuiKeyData *key_data
         
         # Clear and populate vectors with currently held keys and durations
         self._keys_vector.clear()
@@ -1984,7 +1996,7 @@ cdef class AnyKeyDownHandler(baseHandler):
             key_data = imgui.GetKeyData(<imgui.ImGuiKey>key)
             if key_data.Down:
                 self._keys_vector.push_back(<int32_t>key)
-                self._durations_vector.push_back(key_data.DownDuration)
+                self._durations_vector.push_back(fmax(<float>0., key_data.DownDuration))
                 
         # If we found any keys being held down, send in a single callback
         if not self._keys_vector.empty():
@@ -2348,9 +2360,10 @@ cdef class MouseReleaseHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    MouseReleaseHandlerCallbackValue(
-                        context=self.context,
-                        button=make_MouseButton(self._button)
+                    MouseReleaseHandlerCallbackValue.build(
+                        self.context,
+                        self._button,
+                        fmax(<float>0., imgui.GetIO().MouseDownDurationPrev[<int>self._button])
                     )
                 )
 
@@ -2644,10 +2657,12 @@ cdef class AnyMouseReleaseHandler(baseHandler):
             return
             
         self._buttons_vector.clear()
+        self._durations_vector.clear()
         cdef int button, i
         for button in range(<int>MouseButton.LEFT, <int>MouseButton.X2 + 1):
             if imgui.IsMouseReleased(button):
                 self._buttons_vector.push_back(<int32_t>button)
+                self._durations_vector.push_back(fmax(<float>0., imgui.GetIO().MouseDownDurationPrev[button]))
 
         if not self._buttons_vector.empty():
             with gil:
@@ -2655,9 +2670,10 @@ cdef class AnyMouseReleaseHandler(baseHandler):
                     self._callback,
                     self,
                     item,
-                    AnyMouseReleaseHandlerCallbackValue(
-                        context=self.context,
-                        buttons=build_buttons_tuple(self._buttons_vector)
+                    AnyMouseReleaseHandlerCallbackValue.build(
+                        self.context,
+                        self._buttons_vector,
+                        self._durations_vector
                     )
                 )
 

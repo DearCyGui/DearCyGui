@@ -2,7 +2,7 @@ from typing import Coroutine, TypeAlias, Any, Literal
 from enum import IntEnum
 from collections.abc import Sequence, Iterator, Callable
 from math import inf
-from typing import Protocol, Self, Never, Concatenate
+from typing import Protocol, Self, Never, NoReturn, Concatenate
 from contextlib import AbstractContextManager
 from .core import *
 
@@ -4102,6 +4102,10 @@ class baseCallbackValue(object):
     """
 Base class for all callback values.
     """
+    def __bool__(self) -> NoReturn:
+        ...
+
+
     def __init__(self, context : Context) -> None:
         ...
 
@@ -6316,7 +6320,7 @@ class baseThemeColor(baseTheme):
     def __getitem__(self, key: str | int) -> Color:
         """Get a color by name or index"""
         ...
-    def __iter__(self) -> Iterator[tuple[str | int, Color]]:
+    def __iter__(self) -> Iterator[tuple[str, Color]]:
         """Iterate over (color_name, color_value) pairs in the theme"""
         ...
     def __setitem__(self, key: str | int, value: Color) -> None:
@@ -6382,7 +6386,7 @@ class baseThemeStyle(baseTheme):
     def __getitem__(self, key: str | int) -> tuple[float, float] | float | int:
         """Get a style value by name or index"""
         ...
-    def __iter__(self) -> Iterator[tuple[str | int, tuple[float, float] | float | int]]:
+    def __iter__(self) -> Iterator[tuple[str, tuple[float, float] | float | int]]:
         """Iterate over (style_name, style_value) pairs in the theme"""
         ...
     def __setitem__(self, key: str | int, value: tuple[float, float] | float | int) -> None:
@@ -7660,22 +7664,6 @@ class AxisTag(baseItem):
         ...
 
 
-class DPGCallback(Callback):
-    """
-    Used to run callbacks created for DPG.
-
-    """
-    def __init__(self, callback : DCGCallable):
-        ...
-
-
-    @property
-    def callback(self) -> list[Callback]:
-        """(Read-only) Wrapped callback
-        """
-        ...
-
-
 class FontTexture(baseItem):
     """
     Packs one or several fonts into
@@ -7846,7 +7834,7 @@ class Pattern(baseItem):
 
 
     @staticmethod
-    def checkerboard(context : Context, cell_size = 5, stripe_width = 1, upscale_factor = 64, opaque = False, **kwargs):
+    def checkerboard(context : Context, cell_size = 5, stripe_width = 1, upscale_factor = 64, opaque = False, x_mode : str = points, scale_factor : float = 1.0, screen_space : bool = False):
         """
         Creates a checkerboard pattern with white stripes borders.
 
@@ -7884,7 +7872,7 @@ class Pattern(baseItem):
 
 
     @staticmethod
-    def dash_dot(context : Context, dash_length = 10, dot_size = 2, spacing = 5, upscale_factor = 64, opaque = False, **kwargs):
+    def dash_dot(context : Context, dash_length = 10, dot_size = 2, spacing = 5, upscale_factor = 64, opaque = False, x_mode : str = points, scale_factor : float = 1.0, screen_space : bool = False):
         """
         Creates a dash-dot-dash pattern (commonly used in technical drawings).
 
@@ -7904,7 +7892,7 @@ class Pattern(baseItem):
 
 
     @staticmethod
-    def dash_dot_dot(context : Context, dash_length = 10, dot_size = 2, spacing = 5, upscale_factor = 64, opaque = False, **kwargs):
+    def dash_dot_dot(context : Context, dash_length = 10, dot_size = 2, spacing = 5, upscale_factor = 64, opaque = False, x_mode : str = points, scale_factor : float = 1.0, screen_space : bool = False):
         """
         Creates a dash-dot-dot pattern with one dash followed by two dots.
 
@@ -7924,7 +7912,7 @@ class Pattern(baseItem):
 
 
     @staticmethod
-    def dashed(context : Context, dash_length = 10, gap_length = 10, upscale_factor = 32, opaque = False, **kwargs):
+    def dashed(context : Context, dash_length = 10, gap_length = 10, upscale_factor = 32, opaque = False, x_mode : str = points, scale_factor : float = 1.0, screen_space : bool = False):
         """
         Creates a dashed line pattern.
 
@@ -7943,7 +7931,7 @@ class Pattern(baseItem):
 
 
     @staticmethod
-    def dotted(context : Context, dot_size = 2, spacing = 8, upscale_factor = 64, opaque = False, **kwargs):
+    def dotted(context : Context, dot_size = 2, spacing = 8, upscale_factor = 64, opaque = False, x_mode : str = points, scale_factor : float = 1.0, screen_space : bool = False):
         """
         Creates a dotted line pattern.
 
@@ -7962,7 +7950,7 @@ class Pattern(baseItem):
 
 
     @staticmethod
-    def double_dash(context : Context, dash_length = 10, gap_length = 5, dash_width = 2, upscale_factor = 64, opaque = False, **kwargs):
+    def double_dash(context : Context, dash_length = 10, gap_length = 5, dash_width = 2, upscale_factor = 64, opaque = False, x_mode : str = points, scale_factor : float = 1.0, screen_space : bool = False):
         """
         Creates a double-dashed line pattern with two parallel dashed lines.
 
@@ -8004,7 +7992,7 @@ class Pattern(baseItem):
 
 
     @staticmethod
-    def railroad(context : Context, track_width = 4, tie_width = 10, tie_spacing = 10, upscale_factor = 64, opaque = False, **kwargs):
+    def railroad(context : Context, track_width = 4, tie_width = 10, tie_spacing = 10, upscale_factor = 64, opaque = False, x_mode : str = points, scale_factor : float = 1.0, screen_space : bool = False):
         """
         Creates a railroad track pattern with parallel lines and perpendicular ties.
 
@@ -8023,7 +8011,7 @@ class Pattern(baseItem):
 
 
     @staticmethod
-    def solid(context : Context, **kwargs):
+    def solid(context : Context, x_mode : str = points, scale_factor : float = 1.0, screen_space : bool = False):
         """
         Creates a solid line pattern (no pattern).
 
@@ -23040,7 +23028,14 @@ class KeyHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for a handler with a key value.
     """
-    def __init__(self, context : Context, key : int) -> None:
+    def __init__(self, context : Context, key : int, duration : float) -> None:
+        ...
+
+
+    @property
+    def duration(self) -> float:
+        """Duration for which the key has been held down.
+        """
         ...
 
 
@@ -25676,7 +25671,14 @@ class MultiKeyHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for a handler with multiple key values.
     """
-    def __init__(self, context : Context, keys : Sequence[int]) -> None:
+    def __init__(self, context : Context, keys : Sequence[int], durations : Sequence[float]) -> None:
+        ...
+
+
+    @property
+    def durations(self) -> tuple[float, ...]:
+        """Durations for which the keys have been held down.
+        """
         ...
 
 
@@ -31745,17 +31747,7 @@ class AnyKeyDownHandlerCallbackValue(MultiKeyHandlerCallbackValue):
     """
 Callback value for the AnyKeyDownHandler.
     """
-    def __init__(self, context : Context, keys : Sequence[int], durations : Sequence[float]) -> None:
-        ...
-
-
-    @property
-    def durations(self) -> tuple[float, ...]:
-        """Durations for which the keys have been held down.
-        """
-        ...
-
-
+    ...
 
 
 class AnyKeyPressHandlerCallbackValue(MultiKeyHandlerCallbackValue):
@@ -31807,7 +31799,17 @@ class AnyMouseReleaseHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
     """
 Callback value for the AnyMouseReleaseHandler.
     """
-    ...
+    def __init__(self, context : Context, buttons : Sequence[MouseButton], durations : Sequence[float]) -> None:
+        ...
+
+
+    @property
+    def durations(self) -> tuple[float, ...]:
+        """Durations for which the keys have been held down.
+        """
+        ...
+
+
 
 
 class AutoFont(FontMultiScales):
@@ -32316,17 +32318,7 @@ class KeyDownHandlerCallbackValue(KeyHandlerCallbackValue):
     """
 Callback value for the KeyDownHandler.
     """
-    def __init__(self, context : Context, key : int, duration : float) -> None:
-        ...
-
-
-    @property
-    def duration(self) -> float:
-        """Duration for which the key has been held down.
-        """
-        ...
-
-
+    ...
 
 
 class KeyPressHandlerCallbackValue(KeyHandlerCallbackValue):
@@ -32395,7 +32387,17 @@ class MouseReleaseHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """
 Callback value for the MouseReleaseHandler.
     """
-    ...
+    def __init__(self, context : Context, button : MouseButton, duration : float) -> None:
+        ...
+
+
+    @property
+    def duration(self) -> float:
+        """Duration for which the button has been held down.
+        """
+        ...
+
+
 
 
 class OtherItemHandler(HandlerList):

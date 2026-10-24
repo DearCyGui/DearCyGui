@@ -719,6 +719,14 @@ cdef object _get_pattern_from_cache(Context context, str pattern_type, dict para
     if key in cache:
         pattern = cache[key]
         if pattern is not None:
+            # We must ensure the parameters of the pattern
+            # have not changed from the original parameters
+            # else we will not return the cached pattern,
+            # and a novel one will be cached
+            if pattern.x_mode != params.get("x_mode", "points") or \
+               pattern.scale_factor != params.get("scale_factor", 1.0) or \
+               pattern.screen_space != params.get("screen_space", False):
+                return None
             return pattern
     
     return None
@@ -1050,7 +1058,7 @@ cdef class Pattern(baseItem):
 
     # Factory methods for common patterns
     @staticmethod
-    def solid(context: Context, **kwargs):
+    def solid(context: Context, x_mode: str = "points", scale_factor: float = 1.0, screen_space: bool = False):
         """
         Creates a solid line pattern (no pattern).
 
@@ -1063,8 +1071,11 @@ cdef class Pattern(baseItem):
             Pattern: A solid pattern
         """
         # Create parameters dict for caching
-        cdef dict params = {}  # No specific parameters for solid
-        params.update(kwargs)
+        cdef dict params = {
+            'x_mode': x_mode,
+            'scale_factor': scale_factor,
+            'screen_space': screen_space
+        }  # No specific parameters for solid
         
         # Check if already in cache
         cached_pattern = _get_pattern_from_cache(context, "solid", params)
@@ -1072,7 +1083,7 @@ cdef class Pattern(baseItem):
             return cached_pattern
             
         # Create new pattern if not in cache
-        pattern = Pattern(context, **kwargs)
+        pattern = Pattern(context, x_mode=x_mode, scale_factor=scale_factor, screen_space=screen_space)
 
         # Create a solid white 1x1 texture using cython array with uint8
         texture = Texture(context)
@@ -1094,7 +1105,8 @@ cdef class Pattern(baseItem):
 
     @staticmethod
     def dashed(context: Context, int32_t dash_length=10, int32_t gap_length=10,
-               int32_t upscale_factor=32, bint opaque=False, **kwargs):
+               int32_t upscale_factor=32, bint opaque=False,
+               x_mode: str = "points", scale_factor: float = 1.0, screen_space: bool = False):
         """
         Creates a dashed line pattern.
 
@@ -1113,9 +1125,11 @@ cdef class Pattern(baseItem):
             'dash_length': dash_length,
             'gap_length': gap_length,
             'upscale_factor': upscale_factor,
-            'opaque': opaque
+            'opaque': opaque,
+            'x_mode': x_mode,
+            'scale_factor': scale_factor,
+            'screen_space': screen_space
         }
-        params.update(kwargs)
         
         # Check if already in cache
         cached_pattern = _get_pattern_from_cache(context, "dashed", params)
@@ -1161,7 +1175,7 @@ cdef class Pattern(baseItem):
             arr_view[0, x, 2] = 255
             arr_view[0, x, 3] = 255
 
-        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, x_mode=x_mode, scale_factor=scale_factor, screen_space=screen_space)
         
         # Store in cache
         _store_pattern_in_cache(context, "dashed", params, pattern)
@@ -1170,7 +1184,8 @@ cdef class Pattern(baseItem):
 
     @staticmethod
     def dotted(context: Context, int32_t dot_size=2, int32_t spacing=8,
-               int32_t upscale_factor=64, bint opaque=False, **kwargs):
+               int32_t upscale_factor=64, bint opaque=False,
+               x_mode: str = "points", scale_factor: float = 1.0, screen_space: bool = False):
         """
         Creates a dotted line pattern.
 
@@ -1189,9 +1204,11 @@ cdef class Pattern(baseItem):
             'dot_size': dot_size,
             'spacing': spacing,
             'upscale_factor': upscale_factor,
-            'opaque': opaque
+            'opaque': opaque,
+            'x_mode': x_mode,
+            'scale_factor': scale_factor,
+            'screen_space': screen_space
         }
-        params.update(kwargs)
         
         # Check if already in cache
         cached_pattern = _get_pattern_from_cache(context, "dotted", params)
@@ -1237,7 +1254,7 @@ cdef class Pattern(baseItem):
             arr_view[0, x, 2] = 255
             arr_view[0, x, 3] = 255
 
-        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, x_mode=x_mode, scale_factor=scale_factor, screen_space=screen_space)
         
         # Store in cache
         _store_pattern_in_cache(context, "dotted", params, pattern)
@@ -1247,7 +1264,7 @@ cdef class Pattern(baseItem):
     @staticmethod
     def dash_dot(context: Context, int32_t dash_length=10, int32_t dot_size=2,
                  int32_t spacing=5, int32_t upscale_factor=64,
-                 bint opaque=False, **kwargs):
+                 bint opaque=False, x_mode: str = "points", scale_factor: float = 1.0, screen_space: bool = False):
         """
         Creates a dash-dot-dash pattern (commonly used in technical drawings).
 
@@ -1268,9 +1285,11 @@ cdef class Pattern(baseItem):
             'dot_size': dot_size,
             'spacing': spacing,
             'upscale_factor': upscale_factor,
-            'opaque': opaque
+            'opaque': opaque,
+            'x_mode': x_mode,
+            'scale_factor': scale_factor,
+            'screen_space': screen_space
         }
-        params.update(kwargs)
         
         # Check if already in cache
         cached_pattern = _get_pattern_from_cache(context, "dash_dot", params)
@@ -1326,7 +1345,7 @@ cdef class Pattern(baseItem):
             arr_view[0, dash_length + spacing + x, 2] = 255
             arr_view[0, dash_length + spacing + x, 3] = 255
 
-        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, x_mode=x_mode, scale_factor=scale_factor, screen_space=screen_space)
 
         # Store in cache
         _store_pattern_in_cache(context, "dash_dot", params, pattern)
@@ -1336,7 +1355,7 @@ cdef class Pattern(baseItem):
     @staticmethod
     def dash_dot_dot(context: Context, int32_t dash_length=10, int32_t dot_size=2,
                      int32_t spacing=5, int32_t upscale_factor=64,
-                     bint opaque=False, **kwargs):
+                     bint opaque=False, x_mode: str = "points", scale_factor: float = 1.0, screen_space: bool = False):
         """
         Creates a dash-dot-dot pattern with one dash followed by two dots.
 
@@ -1357,9 +1376,11 @@ cdef class Pattern(baseItem):
             'dot_size': dot_size,
             'spacing': spacing,
             'upscale_factor': upscale_factor,
-            'opaque': opaque
+            'opaque': opaque,
+            'x_mode': x_mode,
+            'scale_factor': scale_factor,
+            'screen_space': screen_space
         }
-        params.update(kwargs)
         
         # Check if already in cache
         cached_pattern = _get_pattern_from_cache(context, "dash_dot_dot", params)
@@ -1422,7 +1443,7 @@ cdef class Pattern(baseItem):
             arr_view[0, dash_length + spacing + dot_size + spacing + x, 2] = 255
             arr_view[0, dash_length + spacing + dot_size + spacing + x, 3] = 255
 
-        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, x_mode=x_mode, scale_factor=scale_factor, screen_space=screen_space)
 
         # Store in cache
         _store_pattern_in_cache(context, "dash_dot_dot", params, pattern)
@@ -1432,7 +1453,7 @@ cdef class Pattern(baseItem):
     @staticmethod
     def railroad(context: Context, int32_t track_width=4, int32_t tie_width=10,
                  int32_t tie_spacing=10, upscale_factor=64,
-                 bint opaque=False, **kwargs):
+                 bint opaque=False, x_mode: str = "points", scale_factor: float = 1.0, screen_space: bool = False):
         """
         Creates a railroad track pattern with parallel lines and perpendicular ties.
 
@@ -1451,9 +1472,11 @@ cdef class Pattern(baseItem):
             'track_width': track_width,
             'tie_width': tie_width,
             'tie_spacing': tie_spacing,
-            'opaque': opaque
+            'opaque': opaque,
+            'x_mode': x_mode,
+            'scale_factor': scale_factor,
+            'screen_space': screen_space
         }
-        params.update(kwargs)
         
         # Check if already in cache
         cached_pattern = _get_pattern_from_cache(context, "railroad", params)
@@ -1518,7 +1541,7 @@ cdef class Pattern(baseItem):
                 arr_view[y, x, 2] = 255
                 arr_view[y, x, 3] = 255
 
-        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, x_mode=x_mode, scale_factor=scale_factor, screen_space=screen_space)
 
         # Store in cache
         _store_pattern_in_cache(context, "railroad", params, pattern)
@@ -1528,7 +1551,7 @@ cdef class Pattern(baseItem):
     @staticmethod
     def double_dash(context: Context, int32_t dash_length=10, int32_t gap_length=5,
                     int32_t dash_width=2, int32_t upscale_factor=64,
-                    bint opaque=False, **kwargs):
+                    bint opaque=False, x_mode: str = "points", scale_factor: float = 1.0, screen_space: bool = False):
         """
         Creates a double-dashed line pattern with two parallel dashed lines.
 
@@ -1547,9 +1570,11 @@ cdef class Pattern(baseItem):
             'gap_length': gap_length,
             'dash_width': dash_width,
             'upscale_factor': upscale_factor,
-            'opaque': opaque
+            'opaque': opaque,
+            'x_mode': x_mode,
+            'scale_factor': scale_factor,
+            'screen_space': screen_space
         }
-        params.update(kwargs)
 
         # Check if already in cache
         cached_pattern = _get_pattern_from_cache(context, "double_dash", params)
@@ -1609,7 +1634,7 @@ cdef class Pattern(baseItem):
                 arr_view[y, x, 2] = 255
                 arr_view[y, x, 3] = 255
 
-        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, x_mode=x_mode, scale_factor=scale_factor, screen_space=screen_space)
 
         # Store in cache
         _store_pattern_in_cache(context, "double_dash", params, pattern)
@@ -1618,7 +1643,8 @@ cdef class Pattern(baseItem):
 
     @staticmethod
     def checkerboard(context: Context, int32_t cell_size=5, int32_t stripe_width=1,
-                     int32_t upscale_factor=64, bint opaque=False, **kwargs):
+                     int32_t upscale_factor=64, bint opaque=False,
+                     x_mode: str = "points", scale_factor: float = 1.0, screen_space: bool = False):
         """
         Creates a checkerboard pattern with white stripes borders.
         
@@ -1636,9 +1662,11 @@ cdef class Pattern(baseItem):
             'cell_size': cell_size,
             'stripe_width': stripe_width,
             'upscale_factor': upscale_factor,
-            'opaque': opaque
+            'opaque': opaque,
+            'x_mode': x_mode,
+            'scale_factor': scale_factor,
+            'screen_space': screen_space
         }
-        params.update(kwargs)
 
         # Check if already in cache
         cached_pattern = _get_pattern_from_cache(context, "checkerboard", params)
@@ -1692,7 +1720,7 @@ cdef class Pattern(baseItem):
                     arr_view[y, x, 3] = 255 if opaque else 0
     
         # Create pattern with proper wrapping for both dimensions
-        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, **kwargs)
+        pattern = Pattern.from_array(context, arr, upscale_factor=upscale_factor, x_mode=x_mode, scale_factor=scale_factor, screen_space=screen_space)
 
         # Store in cache
         _store_pattern_in_cache(context, "checkerboard", params, pattern)

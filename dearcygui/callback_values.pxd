@@ -22,9 +22,11 @@ cdef class HandlerCallbackValue(baseCallbackValue):
     pass
 
 cdef class KeyHandlerCallbackValue(HandlerCallbackValue):
+    cdef float _duration
     cdef int32_t _key
 
 cdef class MultiKeyHandlerCallbackValue(HandlerCallbackValue):
+    cdef DCGVector[float] _durations
     cdef DCGVector[int32_t] _keys
 
 cdef class MouseButtonHandlerCallbackValue(HandlerCallbackValue):
@@ -164,26 +166,26 @@ cdef class MouseCursorHandlerCallbackValue(HandlerCallbackValue):
     pass
 
 cdef class KeyDownHandlerCallbackValue(KeyHandlerCallbackValue):
-    cdef float _duration
     @staticmethod
     cdef KeyDownHandlerCallbackValue build(Context context, int32_t key, float duration)
 
 cdef class KeyPressHandlerCallbackValue(KeyHandlerCallbackValue):
-    pass
+    @staticmethod
+    cdef KeyPressHandlerCallbackValue build(Context context, int32_t key, float duration)
 
 cdef class KeyReleaseHandlerCallbackValue(KeyHandlerCallbackValue):
-    pass # TODO: cdef float _duration
+    @staticmethod
+    cdef KeyReleaseHandlerCallbackValue build(Context context, int32_t key, float duration)
 
 cdef class AnyKeyPressHandlerCallbackValue(MultiKeyHandlerCallbackValue):
     @staticmethod
-    cdef AnyKeyPressHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys)
+    cdef AnyKeyPressHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys, DCGVector[float] &durations)
 
 cdef class AnyKeyReleaseHandlerCallbackValue(MultiKeyHandlerCallbackValue):
     @staticmethod
-    cdef AnyKeyReleaseHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys)
+    cdef AnyKeyReleaseHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys, DCGVector[float] &durations)
 
 cdef class AnyKeyDownHandlerCallbackValue(MultiKeyHandlerCallbackValue):
-    cdef DCGVector[float] _durations
     @staticmethod
     cdef AnyKeyDownHandlerCallbackValue build(Context context, DCGVector[int32_t] &keys, DCGVector[float] &durations)
 
@@ -213,7 +215,9 @@ cdef class MouseMoveHandlerCallbackValue(HandlerCallbackValue):
     cdef MouseMoveHandlerCallbackValue build(Context context, float cur_x, float cur_y, float prev_x, float prev_y)
 
 cdef class MouseReleaseHandlerCallbackValue(MouseButtonHandlerCallbackValue):
-    pass # TODO float _duration
+    cdef float _duration
+    @staticmethod
+    cdef MouseReleaseHandlerCallbackValue build(Context context, MouseButton _button, float duration)
 
 cdef class MouseWheelHandlerCallbackValue(HandlerCallbackValue):
     cdef float _wheel_value
@@ -239,7 +243,9 @@ cdef class AnyMouseDoubleClickHandlerCallbackValue(MultiMouseButtonHandlerCallba
     pass
 
 cdef class AnyMouseReleaseHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
-    pass # TODO DCGVector[float] _durations
+    cdef DCGVector[float] _durations
+    @staticmethod
+    cdef AnyMouseReleaseHandlerCallbackValue build(Context context, DCGVector[int32_t] &buttons, DCGVector[float] &durations)
 
 cdef class AnyMouseDownHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
     cdef DCGVector[float] _durations

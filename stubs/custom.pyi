@@ -2,7 +2,7 @@ from typing import Coroutine, TypeAlias, Any, Literal
 from enum import IntEnum
 from collections.abc import Sequence, Iterator, Callable
 from math import inf
-from typing import Protocol, Self, Never, Concatenate
+from typing import Protocol, Self, Never, NoReturn, Concatenate
 from contextlib import AbstractContextManager
 from .core import *
 

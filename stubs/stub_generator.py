@@ -745,7 +745,7 @@ def generate_docstring_for_class(object_class, instance):
                     continue
                 elif method.__name__ == "__iter__":
                     result.append(
-                        level1 + f"def __iter__(self) -> Iterator[tuple[str | int, Color]]:"
+                        level1 + f"def __iter__(self) -> Iterator[tuple[str, Color]]:"
                     )
                     result.append(level2 + '"""Iterate over (color_name, color_value) pairs in the theme"""')
                     result.append(level2 + "...")
@@ -767,7 +767,7 @@ def generate_docstring_for_class(object_class, instance):
                     continue
                 elif method.__name__ == "__iter__":
                     result.append(
-                        level1 + f"def __iter__(self) -> Iterator[tuple[str | int, tuple[float, float] | float | int]]:"
+                        level1 + f"def __iter__(self) -> Iterator[tuple[str, tuple[float, float] | float | int]]:"
                     )
                     result.append(level2 + '"""Iterate over (style_name, style_value) pairs in the theme"""')
                     result.append(level2 + "...")
@@ -1165,6 +1165,9 @@ def generate_stub_for_callback_value(object_class):
     if object_class.__name__ in _UIITEM_CALLBACK_VALUE_TYPES:
         # Subclasses only specialize the type of the inherited value
         members.setdefault("value", dcg.uiItemCallbackValue.value)
+    if object_class is dcg.baseCallbackValue:
+        # Callback values must not be used as raw values
+        result += [f"{level1}def __bool__(self) -> NoReturn:", level2 + "...", "\n"]
     arguments = _CALLBACK_VALUE_INITS.get(object_class.__name__)
     if arguments is not None:
         # Needed to build fake callback values in tests
