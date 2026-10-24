@@ -915,7 +915,7 @@ class BaseDraggableButton(dcg.Button):
         self.x = ref_item.x.x1 + dcg.Size.FIXED(new_pos.x) * dcg.Size.DPI() / current_dpi
         self.y = ref_item.y.y1 + dcg.Size.FIXED(new_pos.y) * dcg.Size.DPI() / current_dpi
     
-    def _on_dragging(self, handler, target, drag_deltas):
+    def _on_dragging(self, handler, target, data: dcg.DraggingHandlerCallbackValue):
         """Handle dragging event - stores position and calls callback"""
         # Get reference item
         ref_item = self._get_ref_item()
@@ -937,12 +937,12 @@ class BaseDraggableButton(dcg.Button):
             self._dragging_original_pos = cur_pos - ref_pos
 
         # Calculate new position
-        new_pos = self._dragging_original_pos + drag_deltas
+        new_pos = self._dragging_original_pos + data.drag_delta
 
         # Move to new position
         self._move_to(ref_item, new_pos)
     
-    def _on_dragged(self, handler, target, drag_deltas):
+    def _on_dragged(self, handler, target, data: dcg.DraggedHandlerCallbackValue):
         """Handle drag complete - resets tracking state"""
         self._dragging_original_pos = None
 
@@ -1097,8 +1097,8 @@ class SimplePin(dcg.DrawInWindow):
                  C: dcg.Context,
                  accepted_drops: str | Sequence[str] | None = None,
                  drag_type: str | None = None,
-                 fill_color: 'dcg.Color' | None = None,
-                 outline_color: 'dcg.Color' | None = None,
+                 fill_color: 'dcg.Color | None' = None,
+                 outline_color: 'dcg.Color | None' = None,
                  node_editor_theme: SimpleNodeEditorTheme | None = None,
                  shape: SimplePinShape | None = None,
                  type_name: str = "any",
@@ -1181,22 +1181,22 @@ class SimplePin(dcg.DrawInWindow):
         self._draw()
 
     @property
-    def fill_color(self) -> 'dcg.Color' | None:
+    def fill_color(self) -> 'dcg.Color | None':
         """Override fill color of the pin"""
         return self._fill_color
 
     @fill_color.setter
-    def fill_color(self, value: 'dcg.Color' | None) -> None:
+    def fill_color(self, value: 'dcg.Color | None') -> None:
         self._fill_color = value
         self._draw()
 
     @property
-    def outline_color(self) -> 'dcg.Color' | None:
+    def outline_color(self) -> 'dcg.Color | None':
         """Override outline color of the pin"""
         return self._outline_color
 
     @outline_color.setter
-    def outline_color(self, value: 'dcg.Color' | None) -> None:
+    def outline_color(self, value: 'dcg.Color | None') -> None:
         self._outline_color = value
         self._draw()
 
@@ -1303,11 +1303,11 @@ class SimplePin(dcg.DrawInWindow):
         """Called when the pin is no longer hovered"""
         self._draw()
 
-    def _on_drag_start(self, handler, item, data) -> None:
+    def _on_drag_start(self, handler: dcg.DragDropSourceHandler, item, data: dcg.DragDropSourceHandlerCallbackValue) -> None:
         """Called when a drag is started from this pin"""
         pass  # Can be extended in subclasses
 
-    def _on_drop_received(self, handler, item, data) -> None:
+    def _on_drop_received(self, handler: dcg.DragDropTargetHandler, item, data: dcg.DragDropTargetHandlerCallbackValue) -> None:
         """Called when a drop is received on this pin"""
         pass  # Can be extended in subclasses
 
@@ -1390,7 +1390,7 @@ class SimpleLink(BaseLink):
                  C: dcg.Context,
                  start: dcg.uiItem,
                  end: dcg.uiItem,
-                 color: 'dcg.Color' | None = None,
+                 color: 'dcg.Color | None' = None,
                  node_editor_theme: SimpleNodeEditorTheme | None = None,
                  type_name: str | None = None,
                  **kwargs) -> None:
@@ -1651,7 +1651,7 @@ class SimpleNodeTitleBar(BaseDraggableButton):
 
 
 def _simple_node_context_menu(node: 'SimpleNode') -> None:
-    def _request_deletion(node: 'SimpleNode') -> None:
+    def _request_deletion(node: 'SimpleNode'= node) -> None:
         node_editor = node.node_editor
         if node_editor is not None:
             node_editor.delete_node(node)
@@ -2120,7 +2120,7 @@ class SimpleNodeEditor(BaseNodeEditor):
         clamped_y = min(0, max(pos.y, self.state.content_region_avail.y-self._canvas.state.rect_size.y))
         return dcg.Coord(clamped_x, clamped_y)
 
-    def _on_dragging(self, handler, target, drag_deltas):
+    def _on_dragging(self, handler, target, data: dcg.DraggingHandlerCallbackValue):
         """Handle panning while dragging"""
         if self._dragging_original_pos is None:
             # Store original position relative to reference
@@ -2129,7 +2129,7 @@ class SimpleNodeEditor(BaseNodeEditor):
             self._dragging_original_pos = cur_pos - ref_pos
 
         # Calculate new position
-        new_pos = self._dragging_original_pos + drag_deltas
+        new_pos = self._dragging_original_pos + data.drag_delta
 
         # Apply clamping
         new_pos = self._clamp_canvas_position(new_pos)
@@ -2140,18 +2140,18 @@ class SimpleNodeEditor(BaseNodeEditor):
         self._canvas.x = self.x.x1 + dcg.Size.FIXED(new_pos.x)
         self._canvas.y = self.y.y1 + dcg.Size.FIXED(new_pos.y)
 
-    def _on_dragged(self, handler, target, drag_deltas):
+    def _on_dragged(self, handler, target, data: dcg.DraggedHandlerCallbackValue):
         """Handle drag complete - resets tracking state"""
         self._dragging_original_pos = None
 
-    def _on_wheel(self, handler, target, wheel_delta):
+    def _on_wheel(self, handler, target, data: dcg.MouseWheelHandlerCallbackValue):
         """Handle zooming with mouse wheel"""
         # prevent dragging and zooming at the same time
         if self._dragging_original_pos is not None:
             return
 
         current_zoom = self._canvas.scaling_factor
-        factor = math.exp(0.1 * wheel_delta)
+        factor = math.exp(0.1 * data.wheel_value)
         new_zoom = current_zoom * factor
 
         new_zoom = max(0.1, min(new_zoom, 4.0))  # Clamp zoom between 0.1x and 4x
@@ -2240,61 +2240,61 @@ class InteractiveThemeSimpleNode(SimpleNode):
                     dcg.ColorEdit(C,
                                   label="Background",
                                   value=target_theme.background_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'background_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'background_color', d.value))
                     dcg.ColorEdit(C,
                                   label="Grid",
                                   value=target_theme.grid_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'grid_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'grid_color', d.value))
                     dcg.Combo(C,
                               label="Grid Style",
                               items=[s.value for s in SimpleGridStyle],
                               value=target_theme.grid_style.value,
-                              callback=lambda s,t,d: setattr(target_theme, 'grid_style', SimpleGridStyle(d)))
+                              callback=lambda s,t,d: setattr(target_theme, 'grid_style', SimpleGridStyle(d.value)))
                     dcg.Slider(C,
                                label="Grid Spacing",
                                value=target_theme.grid_spacing,
                                min_value=16,
                                max_value=128,
                                print_format="%.0f",
-                               callback=lambda s,t,d: setattr(target_theme, 'grid_spacing', int(d)))
+                               callback=lambda s,t,d: setattr(target_theme, 'grid_spacing', int(d.value)))
                 
                 # Node tab
                 with dcg.Tab(C, label="Node"):
                     dcg.ColorEdit(C,
                                   label="Background",
                                   value=target_theme.node_background_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'node_background_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'node_background_color', d.value))
                     dcg.ColorEdit(C,
                                   label="Border",
                                   value=target_theme.node_border_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'node_border_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'node_border_color', d.value))
                     dcg.ColorEdit(C,
                                   label="Title BG",
                                   value=target_theme.node_title_bg_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_bg_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_bg_color', d.value))
                     dcg.ColorEdit(C,
                                   label="Title Text",
                                   value=target_theme.node_title_text_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_text_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_text_color', d.value))
                     dcg.ColorEdit(C,
                                   label="Title Border",
                                   value=target_theme.node_title_border_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_border_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_border_color', d.value))
                     dcg.ColorEdit(C,
                                   label="Title Hover",
                                   value=target_theme.node_title_hover_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_hover_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_hover_color', d.value))
                     dcg.ColorEdit(C,
                                   label="Title Active",
                                   value=target_theme.node_title_active_color,
-                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_active_color', d))
+                                  callback=lambda s,t,d: setattr(target_theme, 'node_title_active_color', d.value))
                     dcg.Slider(C,
                                label="Title Scale",
                                value=target_theme.node_title_scale,
                                min_value=0.5,
                                max_value=3.0,
                                print_format="%.2f",
-                               callback=lambda s,t,d: setattr(target_theme, 'node_title_scale', d))
+                               callback=lambda s,t,d: setattr(target_theme, 'node_title_scale', d.value))
                 
                 # Pin Colors tab
                 with dcg.Tab(C, label="Pin Colors"):
@@ -2303,7 +2303,7 @@ class InteractiveThemeSimpleNode(SimpleNode):
                         dcg.ColorEdit(C,
                                       label=pin_type.capitalize(),
                                       value=color,
-                                      callback=lambda s,t,d,pt=pin_type: target_theme.color_map.update({pt: d}))
+                                      callback=lambda s,t,d,pt=pin_type: target_theme.color_map.update({pt: d.value}))
                 
                 # Pin Styles tab
                 with dcg.Tab(C, label="Pin Styles"):
@@ -2329,14 +2329,14 @@ class InteractiveThemeSimpleNode(SimpleNode):
                                min_value=0.0,
                                max_value=0.5,
                                print_format="%.2f",
-                               callback=lambda s,t,d: setattr(target_theme, 'pin_border_thickness', d))
+                               callback=lambda s,t,d: setattr(target_theme, 'pin_border_thickness', d.value))
                     dcg.Slider(C,
                                label="Border Hover Thickness",
                                value=target_theme.pin_border_hover_thickness,
                                min_value=0.0,
                                max_value=0.5,
                                print_format="%.2f",
-                               callback=lambda s,t,d: setattr(target_theme, 'pin_border_hover_thickness', d))
+                               callback=lambda s,t,d: setattr(target_theme, 'pin_border_hover_thickness', d.value))
                 
                 # Link Styles tab
                 with dcg.Tab(C, label="Links"):
@@ -2354,7 +2354,7 @@ class InteractiveThemeSimpleNode(SimpleNode):
                                min_value=-10.0,
                                max_value=10.0,
                                print_format="%.1f",
-                               callback=lambda s,t,d: setattr(target_theme, 'link_thickness', d))
+                               callback=lambda s,t,d: setattr(target_theme, 'link_thickness', d.value))
         
         # Add apply button at the bottom
         with self.append_bottom:
@@ -2391,16 +2391,17 @@ class InteractiveThemeSimpleNode(SimpleNode):
                                             border=False,
                                             no_background=True)
         
-        def update_controls(sender, target, data):
+        def update_controls(sender, target, data: dcg.uiItemCallbackStringValue):
             """Update controls based on selected mode"""
             controls_container.children = []
+            value = data.value
             
-            if data == "Use Base":
+            if value == "Use Base":
                 setattr(self.target_theme, attr_name, None)
                 with controls_container:
                     dcg.Text(C, value="Using base color from pin type")
             
-            elif data == "Factor":
+            elif value == "Factor":
                 factor = current_value if isinstance(current_value, float) else 1.0
                 setattr(self.target_theme, attr_name, factor)
                 
@@ -2411,7 +2412,7 @@ class InteractiveThemeSimpleNode(SimpleNode):
                                min_value=0.0,
                                max_value=3.0,
                                print_format="%.2f",
-                               callback=lambda s,t,d: setattr(self.target_theme, attr_name, d))
+                               callback=lambda s,t,d: setattr(self.target_theme, attr_name, d.value))
             
             else:  # Custom Color
                 color = current_value if not isinstance(current_value, (float, type(None))) else (255, 255, 255, 255)
@@ -2421,11 +2422,11 @@ class InteractiveThemeSimpleNode(SimpleNode):
                     dcg.ColorEdit(C,
                                   label="Color",
                                   value=color,
-                                  callback=lambda s,t,d: setattr(self.target_theme, attr_name, d))
+                                  callback=lambda s,t,d: setattr(self.target_theme, attr_name, d.value))
         
         mode_combo.callback = update_controls
         # Initialize controls
-        update_controls(None, None, mode)
+        update_controls(None, None, dcg.uiItemCallbackStringValue(self.context, mode))
     
     def _apply_theme_changes(self):
         """Apply theme changes by forcing a redraw of the editor"""

@@ -181,13 +181,14 @@ class TimePicker(dcg.Layout):
             second = int(self._value.value % 60)
         return hour * 3600 + minute * 60 + second
         
-    def _on_hour_change(self, sender, target, value) -> None:
+    def _on_hour_change(self, sender, target, data) -> None:
         """
         Handle hour input changes.
         
         Converts 12-hour format to internal 24-hour representation
         if necessary and updates the internal time value.
         """
+        value = data.value
         hour = int(value)
         if not self._use_24hr:
             is_pm = self._am_pm.value == "PM"
@@ -200,17 +201,17 @@ class TimePicker(dcg.Layout):
         self._value.value = self._get_total_seconds(hour, minute)
         self.run_callbacks()
 
-    def _on_minute_change(self, sender, target, value) -> None: 
+    def _on_minute_change(self, sender, target, data) -> None: 
         """
         Handle minute input changes.
         
         Updates the internal time value while preserving hours and seconds.
         """
         hour = int(self._value.value // 3600)
-        self._value.value = self._get_total_seconds(hour, int(value))
+        self._value.value = self._get_total_seconds(hour, int(data.value))
         self.run_callbacks()
 
-    def _on_second_change(self, sender, target, value) -> None:
+    def _on_second_change(self, sender, target, data) -> None:
         """
         Handle second input changes.
         
@@ -219,10 +220,10 @@ class TimePicker(dcg.Layout):
         if self._show_seconds:
             hour = int(self._value.value // 3600)
             minute = int((self._value.value % 3600) // 60)
-            self._value.value = self._get_total_seconds(hour, minute, int(value))
+            self._value.value = self._get_total_seconds(hour, minute, int(data.value))
             self.run_callbacks()
 
-    def _on_ampm_change(self, sender, target, value) -> None:
+    def _on_ampm_change(self, sender, target, data) -> None:
         """
         Handle AM/PM selection changes.
         
@@ -231,7 +232,7 @@ class TimePicker(dcg.Layout):
         if not self._use_24hr:
             hour = int(self._value.value // 3600)
             cur_is_pm = hour >= 12
-            new_is_pm = value == "PM"
+            new_is_pm = data.value == "PM"
             
             if cur_is_pm != new_is_pm:
                 hour = (hour + 12) % 24
@@ -246,7 +247,7 @@ class TimePicker(dcg.Layout):
         Passes the current time as a datetime object to all callbacks.
         """
         for callback in self.callbacks:
-            callback(self, self, self.value_as_datetime)
+            callback(self, self, dcg.uiItemCallbackValue(self.context, self.value_as_datetime))
 
     @property
     def value(self) -> float:
@@ -886,7 +887,7 @@ class DatePicker(dcg.ChildWindow):
         Passes the current date as a datetime object to all callbacks.
         """
         for callback in self.callbacks:
-            callback(self, self, self.value_as_datetime)
+            callback(self, self, dcg.uiItemCallbackValue(self.context, self.value_as_datetime))
 
 class DateTimePicker(dcg.Layout):
     """
@@ -955,7 +956,7 @@ class DateTimePicker(dcg.Layout):
         else:
             self.value = datetime.now()
 
-    def _on_change(self, sender, target, value) -> None:
+    def _on_change(self) -> None:
         """
         Handle date/time changes from either picker.
         
@@ -1004,7 +1005,7 @@ class DateTimePicker(dcg.Layout):
         datetime. The callbacks receive the current datetime as a parameter.
         """
         for callback in self.callbacks:
-            callback(self, self, self.value_as_datetime)
+            callback(self, self, dcg.uiItemCallbackValue(self.context, self.value_as_datetime))
 
     @property
     def use_24hr(self) -> bool:
@@ -1173,7 +1174,7 @@ class DraggableBar(dcg.DrawInWindow):
         """Execute all registered callbacks with current position."""
         for callback in self._callbacks:
             if callback:
-                callback(self, self, self._position)
+                callback(self, self, dcg.uiItemCallbackValue(self.context, self._position))
 
     def _on_got_hover(self) -> None:
         """Called when the widget is hovered."""
@@ -1186,11 +1187,11 @@ class DraggableBar(dcg.DrawInWindow):
         self._drawing_list.show = True
         self._update_bar_appearance()
     
-    def _on_lost_hover(self, sender, target) -> None:
+    def _on_lost_hover(self) -> None:
         """Called when the widget is no longer hovered."""
         self._drawing_list.show = self._dragging_in_grab
     
-    def _on_clicked(self, sender, target, button) -> None:
+    def _on_clicked(self) -> None:
         """Check if click was in the grab area."""
         self._dragging_in_grab = self._is_in_grab_area()
         if self._dragging_in_grab:
@@ -1425,11 +1426,11 @@ class InputValueN(dcg.ChildWindow):
             x = input_field.x + input_field.width + "theme.item_inner_spacing.x"
         self._label.x = x
     
-    def _handle_input_callback(self, sender, target, value) -> None:
+    def _handle_input_callback(self) -> None:
         """Handler for individual input callbacks that forwards to parent callback"""
         # Call parent callbacks with all values
         for callback in self._callbacks:
-            callback(self, self, self.values)
+            callback(self, self, dcg.uiItemCallbackValue(self.context, self.values))
 
     @property
     def callbacks(self) -> list[dcg.Callback]:
@@ -1851,11 +1852,11 @@ class SliderN(dcg.ChildWindow):
         # Position label at the end
         self._label.x = x
     
-    def _handle_slider_callback(self, sender, target, value) -> None:
+    def _handle_slider_callback(self) -> None:
         """Handler for individual slider callbacks that forwards to parent callback"""
         # Call parent callbacks with all values
         for callback in self._callbacks:
-            callback(self, self, self.values)
+            callback(self, self, dcg.uiItemCallbackValue(self.context, self.values))
 
     @property
     def callbacks(self) -> list[dcg.Callback]:

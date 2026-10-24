@@ -162,16 +162,16 @@ class MetricsWindow(dcg.Window):
         self.start_time = self.context.viewport.metrics.last_time_before_rendering
         self.rendering_metrics = self.context.viewport.metrics
 
-    def log_times(self, watcher, target, watcher_data) -> None:
+    def log_times(self, watcher, target, watcher_data: dcg.TimeWatcherCallbackValue) -> None:
         """Record timing data from a time watcher.
         
         This method processes the timing information collected by the time watcher
         and stores it for later use in metrics calculations. It triggers metrics
         logging and plot updates based on the received data.
         """
-        start_metrics_rendering = watcher_data[0]
-        stop_metrics_rendering = watcher_data[1]
-        frame_count = watcher_data[3]
+        start_metrics_rendering = watcher_data.time_start
+        stop_metrics_rendering = watcher_data.time_end
+        frame_count = watcher_data.viewport_frame_count
         delta = stop_metrics_rendering - start_metrics_rendering
         # Perform a running average
         #self.metrics_window_rendering_time = \
@@ -343,13 +343,14 @@ class ItemInspecter(dcg.Window):
                 pass
         self.inspected_items = []
 
-    def handle_item_dragging(self, handler, item: dcg.uiItem, drag_deltas) -> None:
+    def handle_item_dragging(self, handler, item: dcg.uiItem, data: dcg.DraggingHandlerCallbackValue) -> None:
         """Process UI element dragging events.
         
         This method handles the dragging of UI elements, updating their position
         relative to their parent based on the mouse movement. It tracks the
         currently dragged item and maintains its original position for reference.
         """
+        drag_delta = data.drag_delta
         # Just to be safe. Might not be needed
         if item is not self.dragging_item and self.dragging_item is not None:
             return
@@ -357,8 +358,8 @@ class ItemInspecter(dcg.Window):
             self.dragging_item = item
             self.dragging_item_original_pos = item.state.pos_to_parent
         new_pos = [
-            self.dragging_item_original_pos[0] + drag_deltas[0], # type: ignore
-            self.dragging_item_original_pos[1] + drag_deltas[1] # type: ignore
+            self.dragging_item_original_pos[0] + drag_delta.x, # type: ignore
+            self.dragging_item_original_pos[1] + drag_delta.y # type: ignore
         ]
         item.x = f"parent.x1 + {new_pos[0]}"
         item.y = f"parent.y1 + {new_pos[1]}"
@@ -473,7 +474,7 @@ class StyleEditor(dcg.Window):
                         for color_name in imgui_color_names:
                             default_color = self.imgui_color_theme.get_default(color_name)
                             def callback_imgui_color(s, t, d, color_name=color_name) -> None:
-                                setattr(self.imgui_color_theme, color_name, d)
+                                setattr(self.imgui_color_theme, color_name, d.value)
                             dcg.ColorEdit(context,
                                           label=color_name,
                                           value=default_color,
@@ -485,7 +486,7 @@ class StyleEditor(dcg.Window):
                         for color_name in implot_color_names:
                             default_color = self.implot_color_theme.get_default(color_name)
                             def callback_implot_color(s, t, d, color_name=color_name) -> None:
-                                setattr(self.implot_color_theme, color_name, d)
+                                setattr(self.implot_color_theme, color_name, d.value)
                             dcg.ColorEdit(context,
                                           label=color_name,
                                           value=default_color,
@@ -511,12 +512,13 @@ class StyleEditor(dcg.Window):
                             else:
                                 continue # Skip unsupported types
                             def callback_imgui_style(s, t, d, style_name=style_name) -> None:
+                                v = d.value
                                 try:
-                                    if len(d) == 1:
-                                        d = d[0]
+                                    if len(v) == 1:
+                                        v = v[0]
                                 except:
                                     pass
-                                setattr(self.imgui_style_theme, style_name, d)
+                                setattr(self.imgui_style_theme, style_name, v)
                             with dcg.HorizontalLayout(context, no_wrap=True):
                                 utils.SliderN(context,
                                               print_format=print_format,
@@ -543,7 +545,8 @@ class StyleEditor(dcg.Window):
                                 print_format="%.0f"
                             elif item_type is dcg.PlotMarker:
                                 def callback_implot_style_marker(s, t, d, style_name=style_name) -> None:
-                                    setattr(self.implot_style_theme, style_name, dcg.PlotMarker[d])
+                                    v = d.value
+                                    setattr(self.implot_style_theme, style_name, dcg.PlotMarker[v])
                                 dcg.Combo(context,
                                           label=style_name,
                                           items=[name for name in dir(dcg.PlotMarker) if name[0].isupper()],
@@ -555,12 +558,13 @@ class StyleEditor(dcg.Window):
                             else:
                                 continue # Skip unsupported types
                             def callback_implot_style(s, t, d, style_name=style_name) -> None:
+                                v = d.value
                                 try:
-                                    if len(d) == 1:
-                                        d = d[0]
+                                    if len(v) == 1:
+                                        v = v[0]
                                 except:
                                     pass
-                                setattr(self.implot_style_theme, style_name, d)
+                                setattr(self.implot_style_theme, style_name, v)
                             with dcg.HorizontalLayout(context, no_wrap=True):
                                 utils.SliderN(context,
                                               print_format=print_format,
@@ -583,13 +587,13 @@ class StyleEditor(dcg.Window):
             self._recursive_reset_values(child)
             if isinstance(child, dcg.ColorEdit):
                 child.value = child.user_data
-                child.callbacks[0](self, child, child.value)
+                child.callbacks[0](self, child, dcg.uiItemCallbackValue(self.context, child.value))
             if isinstance(child, dcg.Slider):
                 child.value = child.user_data
-                child.callbacks[0](self, child, child.value)
+                child.callbacks[0](self, child, dcg.uiItemCallbackValue(self.context, child.value))
             if isinstance(child, dcg.Combo):
                 child.value = child.user_data.name
-                child.callbacks[0](self, child, child.value)
+                child.callbacks[0](self, child, dcg.uiItemCallbackValue(self.context, child.value))
 
     def reset_values(self) -> None:
         """Reset all theme values to their defaults.
@@ -739,32 +743,32 @@ class StyleEditor(dcg.Window):
                     dcg.Text(C, value="Colors:")
                     dcg.ColorEdit(C, label="Button Color",
                                   value=demo_colors.get_default("button"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "button", d))
+                                  callback=lambda s,t,d: setattr(demo_colors, "button", d.value))
                     dcg.ColorEdit(C, label="Button Hovered",
                                   value=demo_colors.get_default("button_hovered"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "button_hovered", d))
+                                  callback=lambda s,t,d: setattr(demo_colors, "button_hovered", d.value))
                     dcg.ColorEdit(C, label="Button Active",
                                   value=demo_colors.get_default("Button_active"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "button_active", d))
+                                  callback=lambda s,t,d: setattr(demo_colors, "button_active", d.value))
                     dcg.ColorEdit(C, label="Text",
                                   value=demo_colors.get_default("text"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "text", d))
+                                  callback=lambda s,t,d: setattr(demo_colors, "text", d.value))
                 
                 with dcg.VerticalLayout(C):
                     dcg.Text(C, value="Styles:")
                     with dcg.HorizontalLayout(C, no_wrap=True):
                         utils.SliderN(C,
                                       value=demo_styles.get_default("frame_padding"),
-                                      callback=lambda s,t,d: setattr(demo_styles, "frame_padding", d[:2]))
+                                      callback=lambda s,t,d: setattr(demo_styles, "frame_padding", d.value[:2]))
                         dcg.Text(C, value="Frame Padding")
                     dcg.Slider(C, label="Frame Rounding",
                                value=demo_styles.get_default("frame_rounding"),
                                min_value=0, max_value=12,
-                               callback=lambda s,t,d: setattr(demo_styles, "frame_rounding", d))
+                               callback=lambda s,t,d: setattr(demo_styles, "frame_rounding", d.value))
                     dcg.Slider(C, label="Frame Border",
                                value=demo_styles.get_default("frame_border_size"),
                                min_value=0, max_value=3,
-                               callback=lambda s,t,d: setattr(demo_styles, "frame_border_size", d))
+                               callback=lambda s,t,d: setattr(demo_styles, "frame_border_size", d.value))
             
             dcg.Separator(C)
             

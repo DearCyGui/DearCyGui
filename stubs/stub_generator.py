@@ -1,4 +1,6 @@
 import copy
+import os
+import re
 import dearcygui as dcg
 import enum
 import inspect
@@ -1093,6 +1095,62 @@ _UIITEM_CALLBACK_VALUE_TYPES = {
 }
 
 
+# Types of the __init__ arguments when they differ from the property returned
+# (arguments are more permissive than what the properties return).
+_CALLBACK_VALUE_INIT_TYPES = {
+    "button": "MouseButton",
+    "buttons": "Sequence[MouseButton]",
+    "durations": "Sequence[float]",
+    "key": "int",
+    "keys": "Sequence[int]",
+    "context": "Context",
+    "value": "Any",
+}
+
+# Cython C types appearing in the signature of the __init__ of callback values
+_CYTHON_ARGUMENT_TYPES = {
+    "int32_t": "int",
+    "int64_t": "int",
+    "float": "float",
+    "double": "float",
+    "object": "Any",
+    "Context": "Context",
+    "MouseButton": "MouseButton",
+}
+
+
+def parse_callback_value_inits():
+    """Return {class name: [(argument name, type), ...]} for the callback value
+    classes defining their own __init__ in callback_values.pyx."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "..", "dearcygui", "callback_values.pyx")
+    with open(path) as f:
+        source = f.read()
+    inits = {"baseCallbackValue": [("context", "Context")]}
+    pattern = re.compile(r"^cdef class (\w+)|^    def __init__\((.*?)\):", re.S | re.M)
+    current = None
+    for match in pattern.finditer(source):
+        if match.group(1) is not None:
+            current = match.group(1)
+            continue
+        arguments = []
+        for argument in match.group(2).split(",")[1:]: # skip self
+            words = argument.split()
+            name = words[-1]
+            if name in _CALLBACK_VALUE_INIT_TYPES:
+                tname = _CALLBACK_VALUE_INIT_TYPES[name]
+            elif len(words) > 1:
+                tname = _CYTHON_ARGUMENT_TYPES[words[0]]
+            else:
+                tname = _CALLBACK_VALUE_PROPERTY_TYPES[name]
+            arguments.append((name, tname))
+        inits[current] = arguments
+    return inits
+
+
+_CALLBACK_VALUE_INITS = parse_callback_value_inits()
+
+
 def generate_stub_for_callback_value(object_class):
     """Generate the stub of a callback value class (read-only properties only)."""
     parent_name = object_class.__bases__[0].__name__
@@ -1107,6 +1165,11 @@ def generate_stub_for_callback_value(object_class):
     if object_class.__name__ in _UIITEM_CALLBACK_VALUE_TYPES:
         # Subclasses only specialize the type of the inherited value
         members.setdefault("value", dcg.uiItemCallbackValue.value)
+    arguments = _CALLBACK_VALUE_INITS.get(object_class.__name__)
+    if arguments is not None:
+        # Needed to build fake callback values in tests
+        signature = ", ".join(f"{name} : {tname}" for name, tname in arguments)
+        result += [f"{level1}def __init__(self, {signature}) -> None:", level2 + "...", "\n"]
     for name, member in members.items():
         if name == "value":
             tname = _UIITEM_CALLBACK_VALUE_TYPES[object_class.__name__]

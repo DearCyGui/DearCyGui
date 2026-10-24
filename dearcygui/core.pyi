@@ -4102,7 +4102,10 @@ class baseCallbackValue(object):
     """
 Base class for all callback values.
     """
-    ...
+    def __init__(self, context : Context) -> None:
+        ...
+
+
 
 
 class baseItem(object):
@@ -5867,6 +5870,10 @@ class uiItemCallbackValue(baseCallbackValue):
     """
 Callback value for a UI item.
     """
+    def __init__(self, context : Context, value : Any) -> None:
+        ...
+
+
     @property
     def value(self) -> Any:
         """Value of the UI item when the callback was triggered.
@@ -10396,6 +10403,10 @@ class TimeWatcherCallbackValue(baseCallbackValue):
     """
 Callback value for a time watcher event.
     """
+    def __init__(self, context : Context, time_start : int, time_end : int, viewport_last_t_before_rendering : int, viewport_frame_count : int) -> None:
+        ...
+
+
     @property
     def time_start(self) -> int:
         """Time the TimeWatcher is called for rendering (in nanoseconds).
@@ -11568,6 +11579,10 @@ class ViewportResizeCallbackValue(baseCallbackValue):
     """
 Callback value for a viewport resize event.
     """
+    def __init__(self, context : Context, frame_width : int, frame_height : int, window_width : int, window_height : int) -> None:
+        ...
+
+
     @property
     def frame_width(self) -> int:
         """Width of the viewport in actual pixels.
@@ -12349,6 +12364,10 @@ class AxesResizeHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for the AxesResizeHandler.
     """
+    def __init__(self, context : Context, x_min : float, x_max : float, x_scale : float, y_min : float, y_max : float, y_scale : float) -> None:
+        ...
+
+
     @property
     def x_min(self) -> float:
         """Minimum of the monitored X axis.
@@ -15732,6 +15751,10 @@ class DragDropActiveHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for the DragDropActiveHandler.
     """
+    def __init__(self, context : Context, payload_data : Any, payload_type : str) -> None:
+        ...
+
+
     @property
     def payload_data(self) -> Any:
         """Data associated with the drag-and-drop payload.
@@ -15901,6 +15924,10 @@ class DragDropSourceHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for the DragDropSourceHandler.
     """
+    def __init__(self, context : Context, mouse_position : Coord, state_copy : ItemStateCopy | None) -> None:
+        ...
+
+
     @property
     def mouse_position(self) -> Coord:
         """Current mouse position as a Coord object.
@@ -16049,6 +16076,10 @@ class DragDropTargetHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for the DragDropTargetHandler.
     """
+    def __init__(self, context : Context, mouse_position : Coord, payload_data : Any, payload_type : str, state_copy : ItemStateCopy | None) -> None:
+        ...
+
+
     @property
     def mouse_position(self) -> Coord:
         """Current mouse position as a Coord object.
@@ -23009,6 +23040,10 @@ class KeyHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for a handler with a key value.
     """
+    def __init__(self, context : Context, key : int) -> None:
+        ...
+
+
     @property
     def key(self) -> Key:
         """Key associated with the callback.
@@ -24725,6 +24760,10 @@ class MouseButtonHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for a handler with a mouse button value.
     """
+    def __init__(self, context : Context, button : MouseButton) -> None:
+        ...
+
+
     @property
     def button(self) -> MouseButton:
         """Mouse button associated with the callback.
@@ -25261,6 +25300,10 @@ class MouseInRectHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for the MouseInRectHandler.
     """
+    def __init__(self, context : Context, mouse_position : Coord) -> None:
+        ...
+
+
     @property
     def mouse_position(self) -> Coord:
         """Current mouse position as a Coord object.
@@ -25341,6 +25384,10 @@ class MouseMoveHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for the MouseMoveHandler.
     """
+    def __init__(self, context : Context, previous_position : Coord, current_position : Coord) -> None:
+        ...
+
+
     @property
     def previous_position(self) -> Coord:
         """Previous position of the mouse cursor.
@@ -25612,6 +25659,10 @@ class MouseWheelHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for the MouseWheelHandler.
     """
+    def __init__(self, context : Context, wheel_value : float) -> None:
+        ...
+
+
     @property
     def wheel_value(self) -> float:
         """Value of the mouse wheel.
@@ -25625,6 +25676,10 @@ class MultiKeyHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for a handler with multiple key values.
     """
+    def __init__(self, context : Context, keys : Sequence[int]) -> None:
+        ...
+
+
     @property
     def keys(self) -> tuple[Key, ...]:
         """Keys associated with the callback.
@@ -25638,6 +25693,10 @@ class MultiMouseButtonHandlerCallbackValue(HandlerCallbackValue):
     """
 Callback value for a handler with multiple mouse button values.
     """
+    def __init__(self, context : Context, buttons : Sequence[MouseButton]) -> None:
+        ...
+
+
     @property
     def buttons(self) -> tuple[MouseButton, ...]:
         """Mouse buttons associated with the callback.
@@ -31686,6 +31745,10 @@ class AnyKeyDownHandlerCallbackValue(MultiKeyHandlerCallbackValue):
     """
 Callback value for the AnyKeyDownHandler.
     """
+    def __init__(self, context : Context, keys : Sequence[int], durations : Sequence[float]) -> None:
+        ...
+
+
     @property
     def durations(self) -> tuple[float, ...]:
         """Durations for which the keys have been held down.
@@ -31727,6 +31790,10 @@ class AnyMouseDownHandlerCallbackValue(MultiMouseButtonHandlerCallbackValue):
     """
 Callback value for the AnyMouseDownHandler.
     """
+    def __init__(self, context : Context, buttons : Sequence[MouseButton], durations : Sequence[float]) -> None:
+        ...
+
+
     @property
     def durations(self) -> tuple[float, ...]:
         """Durations for which the keys have been held down.
@@ -31990,6 +32057,10 @@ class DraggedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """
 Callback value for the DraggedHandler.
     """
+    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord) -> None:
+        ...
+
+
     @property
     def drag_delta(self) -> Coord:
         """Delta between the position when dragging stopped and the initial position.
@@ -32003,6 +32074,10 @@ class DraggingHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """
 Callback value for the DraggingHandler.
     """
+    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord) -> None:
+        ...
+
+
     @property
     def drag_delta(self) -> Coord:
         """Delta between the position when dragging stopped and the initial position.
@@ -32241,6 +32316,10 @@ class KeyDownHandlerCallbackValue(KeyHandlerCallbackValue):
     """
 Callback value for the KeyDownHandler.
     """
+    def __init__(self, context : Context, key : int, duration : float) -> None:
+        ...
+
+
     @property
     def duration(self) -> float:
         """Duration for which the key has been held down.
@@ -32282,6 +32361,10 @@ class MouseDownHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """
 Callback value for the MouseDownHandler.
     """
+    def __init__(self, context : Context, button : MouseButton, duration : float) -> None:
+        ...
+
+
     @property
     def duration(self) -> float:
         """Duration for which the button has been held down.
@@ -32295,6 +32378,10 @@ class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """
 Callback value for the MouseDragHandler.
     """
+    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord) -> None:
+        ...
+
+
     @property
     def drag_delta(self) -> Coord:
         """Delta between the position when dragging stopped and the initial position.

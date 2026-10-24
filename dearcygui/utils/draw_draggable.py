@@ -1,6 +1,31 @@
 import dearcygui as dcg
 import weakref
 
+
+class DragItemNewPositionCallbackValue(dcg.baseCallbackValue):
+    """Callback value for when a drag item has a new position (dragging/dragged)."""
+    __slots__ = {
+        "_button": "The mouse button involved in the drag event.",
+        "_position": "The new position in space of the drag item."
+    }
+    _button: dcg.MouseButton
+    _position: dcg.Coord
+    def __init__(self, context: dcg.Context, button: dcg.MouseButton, position: dcg.Coord) -> None:
+        self._button = button
+        self._position = position
+        super().__init__(context)
+
+    @property
+    def button(self) -> dcg.MouseButton:
+        """The mouse button involved in the drag event."""
+        return self._button
+
+    @property
+    def position(self) -> dcg.Coord:
+        """The new position in space of the drag item."""
+        return self._position
+
+
 class DragPoint(dcg.DrawingList):
     """A draggable point represented as a circle.
     
@@ -246,7 +271,7 @@ class DragPoint(dcg.DrawingList):
     # We use classmethods to enable sharing the handlers
 
     @classmethod
-    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:
+    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, data: dcg.DraggingHandlerCallbackValue) -> None:
         # During the dragging we might not hover anymore the button
         # Note: we must not lock our mutex before we access viewport
         # attributes
@@ -261,16 +286,24 @@ class DragPoint(dcg.DrawingList):
                 self._backup_y = self.y
                 self._was_dragging = True
             # update the coordinates
-            self.x = self._backup_x + drag_deltas[0]
-            self.y = self._backup_y + drag_deltas[1]
+            self.x = self._backup_x + data.drag_delta.x
+            self.y = self._backup_y + data.drag_delta.y
             _on_dragging = self._on_dragging
         self.context.viewport.wake() # The screen must be redrawn
         # Release our mutex before calling the callback
         if _on_dragging is not None:
-            _on_dragging(self, self, (self.x, self.y))
+            _on_dragging(
+                self,
+                self,
+                DragItemNewPositionCallbackValue(
+                    self.context,
+                    data.button,
+                    dcg.Coord(self.x, self.y)
+                )
+            )
 
     @classmethod
-    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:
+    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, data: dcg.DraggedHandlerCallbackValue) -> None:
         self: DragPoint = target.parent # type: ignore
         if self is None:
             # deleted before we could handle drag
@@ -278,15 +311,23 @@ class DragPoint(dcg.DrawingList):
         with self.mutex:
             self._was_dragging = False
             # update the coordinates
-            self.x = self._backup_x + drag_deltas[0]
-            self.y = self._backup_y + drag_deltas[1]
+            self.x = self._backup_x + data.drag_delta.x
+            self.y = self._backup_y + data.drag_delta.y
             _on_dragged = self._on_dragged
         self.context.viewport.wake() # The screen must be redrawn
         if _on_dragged is not None:
-            _on_dragged(self, self, (self.x, self.y))
+            _on_dragged(
+                self,
+                self,
+                DragItemNewPositionCallbackValue(
+                    self.context,
+                    data.button,
+                    dcg.Coord(self.x, self.y)
+                )
+            )
 
     @classmethod
-    def handler_hover(cls, _, target: dcg.DrawInvisibleButton) -> None:
+    def handler_hover(cls, _, target: dcg.DrawInvisibleButton, data: dcg.HoverHandlerCallbackValue) -> None:
         self: DragPoint = target.parent # type: ignore
         if self is None:
             # deleted before we could handle hover
@@ -294,7 +335,13 @@ class DragPoint(dcg.DrawingList):
         with self.mutex:
             _on_hover = self._on_hover
         if _on_hover is not None:
-            _on_hover(self, self, None)
+            _on_hover(
+                self,
+                self,
+                dcg.HoverHandlerCallbackValue(
+                    self.context
+                )
+            )
 
     def handler_visible_for_clamping(self, handler, plot : dcg.Plot) -> None:
         # Every time the plot is visible, we
@@ -586,7 +633,7 @@ class DragHLine(dcg.DrawingList):
 
     # Class methods for shared handlers
     @classmethod
-    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:
+    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, data: dcg.DraggingHandlerCallbackValue) -> None:
         """Handler for dragging events - only allows vertical movement."""
         self: DragHLine = target.parent # type: ignore
         if self is None:
@@ -598,15 +645,23 @@ class DragHLine(dcg.DrawingList):
                 self._backup_y = self.y
                 self._was_dragging = True
             # update the y coordinate (only vertical movement)
-            self.y = self._backup_y + drag_deltas[1]
+            self.y = self._backup_y + data.drag_delta.y
             _on_dragging = self._on_dragging
         self.context.viewport.wake()
         # Release mutex before calling callback
         if _on_dragging is not None:
-            _on_dragging(self, self, self.y)
+            _on_dragging(
+                self,
+                self,
+                DragItemNewPositionCallbackValue(
+                    self.context,
+                    button=data.button,
+                    position=dcg.Coord(x=0., y=self.y)
+                )
+            )
 
     @classmethod
-    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:
+    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, data: dcg.DraggedHandlerCallbackValue) -> None:
         """Handler for drag completion events."""
         self: DragHLine = target.parent # type: ignore
         if self is None:
@@ -615,11 +670,15 @@ class DragHLine(dcg.DrawingList):
         with self.mutex:
             self._was_dragging = False
             # update the final y coordinate
-            self.y = self._backup_y + drag_deltas[1]
+            self.y = self._backup_y + data.drag_delta.y
             _on_dragged = self._on_dragged
         self.context.viewport.wake()
         if _on_dragged is not None:
-            _on_dragged(self, self, self.y)
+            _on_dragged(self, self, DragItemNewPositionCallbackValue(
+                self.context,
+                button=data.button,
+                position=dcg.Coord(x=0., y=self.y)
+            ))
 
     @classmethod
     def handler_hover(cls, _, target: dcg.DrawInvisibleButton) -> None:
@@ -631,7 +690,11 @@ class DragHLine(dcg.DrawingList):
         with self.mutex:
             _on_hover = self._on_hover
         if _on_hover is not None:
-            _on_hover(self, self, None)
+            _on_hover(
+                self,
+                self,
+                dcg.HoverHandlerCallbackValue(self.context)
+            )
 
     def handler_visible_for_clamping(self, handler, plot: dcg.Plot) -> None:
         """Handler for clamping the line inside plot bounds."""
@@ -888,7 +951,7 @@ class DragVLine(dcg.DrawingList):
 
     # Class methods for shared handlers
     @classmethod
-    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:
+    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, data: dcg.DraggingHandlerCallbackValue) -> None:
         """Handler for dragging events - only allows horizontal movement."""
         self: DragVLine = target.parent # type: ignore
         if self is None:
@@ -900,15 +963,23 @@ class DragVLine(dcg.DrawingList):
                 self._backup_x = self.x
                 self._was_dragging = True
             # update the x coordinate (only horizontal movement)
-            self.x = self._backup_x + drag_deltas[0]
+            self.x = self._backup_x + data.drag_delta.x
             _on_dragging = self._on_dragging
         self.context.viewport.wake()
         # Release mutex before calling callback
         if _on_dragging is not None:
-            _on_dragging(self, self, self.x)
+            _on_dragging(
+                self,
+                self,
+                DragItemNewPositionCallbackValue(
+                    self.context,
+                    button=data.button,
+                    position=dcg.Coord(x=self.x, y=0.)
+                )
+            )
 
     @classmethod
-    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:
+    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, data: dcg.DraggedHandlerCallbackValue) -> None:
         """Handler for drag completion events."""
         self: DragVLine = target.parent # type: ignore
         if self is None:
@@ -917,14 +988,22 @@ class DragVLine(dcg.DrawingList):
         with self.mutex:
             self._was_dragging = False
             # update the final x coordinate
-            self.x = self._backup_x + drag_deltas[0]
+            self.x = self._backup_x + data.drag_delta.x
             _on_dragged = self._on_dragged
         self.context.viewport.wake()
         if _on_dragged is not None:
-            _on_dragged(self, self, self.x)
+            _on_dragged(
+                self,
+                self,
+                DragItemNewPositionCallbackValue(
+                    self.context,
+                    button=data.button,
+                    position=dcg.Coord(x=self.x, y=0.)
+                )
+            )
 
     @classmethod
-    def handler_hover(cls, _, target: dcg.DrawInvisibleButton) -> None:
+    def handler_hover(cls, _, target: dcg.DrawInvisibleButton, data: dcg.HoverHandlerCallbackValue) -> None:
         """Handler for hover events."""
         self: DragVLine = target.parent # type: ignore
         if self is None:
@@ -933,7 +1012,11 @@ class DragVLine(dcg.DrawingList):
         with self.mutex:
             _on_hover = self._on_hover
         if _on_hover is not None:
-            _on_hover(self, self, None)
+            _on_hover(
+                self,
+                self,
+                dcg.HoverHandlerCallbackValue(self.context)
+            )
 
     def handler_visible_for_clamping(self, handler, plot: dcg.Plot) -> None:
         """Handler for clamping the line inside plot bounds."""
@@ -983,6 +1066,29 @@ class DragVLine(dcg.DrawingList):
         # Add back our internal handler
         self._invisible.handlers = [self._handlers] + self._invisible.handlers
 
+
+class DragRectNewPositionCallbackValue(dcg.baseCallbackValue):
+    """Callback value for when a DragRect has a new position (dragging/dragged)."""
+    __slots__ = {
+        "_button": "The mouse button involved in the drag event.",
+        "_rect": "The new rectangle representing the DragRect's position and size."
+    }
+    _button: dcg.MouseButton
+    _rect: dcg.Rect
+    def __init__(self, context: dcg.Context, button: dcg.MouseButton, rect: dcg.Rect) -> None:
+        self._button = button
+        self._rect = rect
+        super().__init__(context)
+
+    @property
+    def button(self) -> dcg.MouseButton:
+        """The mouse button involved in the drag event."""
+        return self._button
+
+    @property
+    def rect(self) -> dcg.Rect:
+        """The new rectangle representing the DragRect's position and size."""
+        return self._rect
 
 class DragRect(dcg.DrawingList):
     """A draggable and resizable rectangle.
@@ -1377,7 +1483,7 @@ class DragRect(dcg.DrawingList):
 
     # Class methods for shared handlers
     @classmethod
-    def handler_hover(cls, _, target: dcg.DrawInvisibleButton) -> None:
+    def handler_hover(cls, _, target: dcg.DrawInvisibleButton, data: dcg.HoverHandlerCallbackValue) -> None:
         """Handler for hover events."""
         self: DragRect = target.parent # type: ignore
         if self is None:
@@ -1386,7 +1492,11 @@ class DragRect(dcg.DrawingList):
         with self.mutex:
             _on_hover = self._on_hover
         if _on_hover is not None:
-            _on_hover(self, self, self.rect)
+            _on_hover(
+                self,
+                self,
+                dcg.HoverHandlerCallbackValue(self.context)
+            )
 
     @classmethod
     def handler_got_hover(cls, _, target: dcg.DrawInvisibleButton) -> None:
@@ -1419,7 +1529,7 @@ class DragRect(dcg.DrawingList):
                     hint_circle.show = False  # Hide hints
 
     @classmethod
-    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:
+    def handler_dragging(cls, _, target: dcg.DrawInvisibleButton, data: dcg.DraggingHandlerCallbackValue) -> None:
         """Handler for dragging events."""
         self: DragRect = target.parent # type: ignore
         if self is None:
@@ -1439,7 +1549,7 @@ class DragRect(dcg.DrawingList):
             new_rect = dcg.Rect(self._backup_rect.x1, self._backup_rect.y1, 
                                self._backup_rect.x2, self._backup_rect.y2)
             
-            dx, dy = drag_deltas[0], drag_deltas[1]
+            dx, dy = data.drag_delta.x, data.drag_delta.y
             
             if self._drag_type == "move":
                 # Move entire rectangle
@@ -1490,10 +1600,14 @@ class DragRect(dcg.DrawingList):
         
         # Release mutex before calling callback
         if _on_dragging is not None:
-            _on_dragging(self, self, self.rect)
+            _on_dragging(
+                self,
+                self,
+                DragRectNewPositionCallbackValue(self.context, data.button, self.rect)
+            )
 
     @classmethod
-    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, drag_deltas: tuple[float, float]) -> None:
+    def handler_dragged(cls, _, target: dcg.DrawInvisibleButton, data: dcg.DraggedHandlerCallbackValue) -> None:
         """Handler for drag completion events."""
         self: DragRect = target.parent # type: ignore
         if self is None:
@@ -1508,7 +1622,11 @@ class DragRect(dcg.DrawingList):
             _on_dragged = self._on_dragged
         self.context.viewport.wake()
         if _on_dragged is not None:
-            _on_dragged(self, self, self.rect)
+            _on_dragged(
+                self,
+                self,
+                DragRectNewPositionCallbackValue(self.context, data.button, self.rect)
+            )
 
     def handler_visible_for_clamping(self, handler, plot: dcg.Plot) -> None:
         """Handler for clamping the rectangle inside plot bounds."""

@@ -442,7 +442,7 @@ cdef bool object_lower(SortingPair a, SortingPair b):
         return False
     try:
         return <object>a.second < <object>b.second
-    except:
+    except Exception:
         return False
 
 cdef bool object_higher(SortingPair a, SortingPair b):
@@ -452,7 +452,7 @@ cdef bool object_higher(SortingPair a, SortingPair b):
         return True
     try:
         return <object>a.second > <object>b.second
-    except:
+    except Exception:
         return False
 
 cdef class baseTable(uiItem):
@@ -541,7 +541,7 @@ cdef class baseTable(uiItem):
             value = int(value)
             if value < 0:
                 raise ValueError()
-        except:
+        except Exception:
             raise ValueError("num_rows_visible must be a non-negative integer or None")
         self._num_rows_visible = value
 
@@ -570,7 +570,7 @@ cdef class baseTable(uiItem):
             value = int(value)
             if value < 0:
                 raise ValueError()
-        except:
+        except Exception:
             raise ValueError("num_cols_visible must be a non-negative integer or None")
         if value > 512: # IMGUI_TABLE_MAX_COLUMNS
             raise ValueError("num_cols_visible must be <= 512")
@@ -786,7 +786,7 @@ cdef class baseTable(uiItem):
                 element.str_item = string_from_str(str(value))
                 element.ordering_value = <PyObject*>value
                 self._incref(<PyObject*>value)
-            except:
+            except Exception:
                 raise TypeError("Table values must be uiItem, TableElementConfig, or convertible to a str")
         # We lock only after in case the value was child
         # of a parent to prevent deadlock.
