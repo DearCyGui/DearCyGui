@@ -5,6 +5,7 @@ import dearcygui as dcg
 from threading import Event, Lock
 from warnings import warn
 
+# TODO V1: this deserves to have a demo
 
 def add_callbacks_to_handler(handler: dcg.baseHandler, *callbacks) -> None:
     """

@@ -17,6 +17,9 @@ from libcpp.memory cimport unique_ptr
 import pathlib
 from typing import Tuple
 
+
+#TODO V1: finish applying the python coding guidelines to this file
+
 """
 Data structure to store the tile data.
 """

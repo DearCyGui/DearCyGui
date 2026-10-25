@@ -1255,7 +1255,7 @@ cdef class MarkDownText(uiItem):
         return self._text.decode('utf8')
     
     @value.setter
-    def value(self, text): # TODO: SharedStr
+    def value(self, text): # TODO V1: Use SharedStr to store the value (needs change detection mechanism)
         """Set markdown text and mark for reparsing"""
         if not isinstance(text, str):
             raise TypeError("value must be a string")

@@ -2,6 +2,8 @@ import dearcygui as dcg
 import weakref
 
 
+#TODO V1: finish applying the python coding guidelines to this file
+
 class DragItemNewPositionCallbackValue(dcg.baseCallbackValue):
     """Callback value for when a drag item has a new position (dragging/dragged)."""
     __slots__ = {

@@ -91,7 +91,9 @@ cdef class ViewportDrawList(drawingItem):
         self.context.viewport.in_plot = False
         self.context.viewport.window_pos = make_Vec2(0., 0.)
         self.context.viewport.parent_pos = make_Vec2(0., 0.)
-        # TODO: dpi scaling
+        # TODO: The demo presents this object as a way to draw in pixel
+        # coordinates relative to the viewport (thus no dpi scaling on coordinates)
+        # What about thickness and size multipliers? Should they also ignore dpi scaling?
         self.context.viewport.shifts = [0., 0.]
         self.context.viewport.scales = [1., 1.]
         self.context.viewport.thickness_multiplier = 1.

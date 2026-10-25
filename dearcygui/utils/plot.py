@@ -2,6 +2,9 @@ import datetime
 import dearcygui as dcg
 from collections.abc import Sized
 
+
+#TODO V1: finish applying the python coding guidelines to this file
+
 class PlotCandleStick(dcg.DrawInPlot):
     """
     Adds a candle series to a plot.

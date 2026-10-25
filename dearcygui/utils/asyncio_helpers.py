@@ -7,6 +7,8 @@ import threading
 import time
 import warnings
 
+#TODO V1: finish applying the python coding guidelines to this file
+
 class _SimpleBarrier:
     """
     A simple barrier that can be set/checked only once,

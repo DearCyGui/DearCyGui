@@ -24,6 +24,8 @@ Example usage:
     # On next run, they will be restored from the config file
     ```
 """
+#TODO V1: finish applying the python coding guidelines to this file
+#TODO V1: This needs more tests and demo
 
 from atexit import register as atexit_register, unregister as atexit_unregister
 from collections.abc import Sequence, Callable

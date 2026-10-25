@@ -3,6 +3,8 @@ import dearcygui as dcg
 import dearcygui.utils as utils
 from collections import deque
 
+# TODO V1: this whole file should be updated to the python coding guidelines
+
 class ScrollingBuffer:
     """
     A scrolling buffer with a large memory backing.

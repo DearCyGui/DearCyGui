@@ -3,6 +3,9 @@ import dearcygui as dcg
 from datetime import datetime
 import typing
 
+
+#TODO V1: finish applying the python coding guidelines to this file
+
 class TemporaryTooltip(dcg.Tooltip):
     """
     A tooltip that removes itself when its showing condition is no longer met.

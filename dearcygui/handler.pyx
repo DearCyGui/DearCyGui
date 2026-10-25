@@ -438,7 +438,12 @@ cdef class OtherItemHandler(HandlerList):
         if not(self._enabled):
             return
 
-        # TODO: reintroduce that feature. Here we use item, and not self._target. Idem above
+        # TODO: an old TODO comment said:
+        # "reintroduce that feature. Here we use item, and not self._target. Idem above"
+        # Figure out what that meant... Maybe it is pointing out the weird behaviour
+        # that you can attach to OtherItemHandler handlers with an effect (run_handler)
+        # and that these will use target=self._target instead of target=item in their
+        # callbacks, but it is unsure which behaviour makes the most sense.
         run_handler_children(self, self._target)
         if self._callback is not None:
             if self.check_state(item):

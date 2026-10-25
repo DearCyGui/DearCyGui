@@ -12,6 +12,8 @@ Base classes (for advanced users who want full control):
 
 """
 
+# TODO V1: there should be a demo showcasing the usage of the node editor
+
 from collections.abc import Callable, Sequence
 import dearcygui as dcg
 from dearcygui.utils.handler import auto_cleanup_handler

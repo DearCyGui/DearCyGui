@@ -3,8 +3,6 @@
 cimport dearcygui as dcg
 import dearcygui as dcg
 
-from dearcygui.utils.draw_draggable import DragPoint # To avoid breaking compatibility with v0.1.0
-
 from dearcygui.c_types cimport unique_lock, DCGMutex
 from cpython.ref cimport PyObject
 cimport dearcygui.backends.time as ctime

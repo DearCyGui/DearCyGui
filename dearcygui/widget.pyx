@@ -168,7 +168,7 @@ cdef class DrawInvisibleButton(drawingItem):
         read_point[double](self._p2, value)
 
     @property
-    def min_side(self): # TODO: in future version, make positive dpi scaled and negative unscaled
+    def min_side(self): # TODO V1: in future version, make positive dpi scaled and negative unscaled
         """
         If the rectangle width or height after
         coordinate transform is lower than this,
@@ -387,7 +387,7 @@ cdef class DrawInvisibleButton(drawingItem):
             self.context.viewport.shifts[1] = <double>top_left.y
             self.context.viewport.scales = [<double>size.x, <double>size.y]
             self.context.viewport.in_plot = False
-            # TODO: Unsure...
+            # TODO V1: Unsure...
             self.context.viewport.thickness_multiplier = 1.
             self.context.viewport.size_multiplier = 1.
             draw_drawing_children(self, drawlist)
@@ -2936,7 +2936,7 @@ cdef class Text(uiItem):
         if self._color > 0:
             imgui.PushStyleColor(imgui.ImGuiCol_Text, self._color)
         if self._wrap == 0:
-            imgui.PushTextWrapPos(0.)
+            imgui.PushTextWrapPos(0.) # TODO: does this work inside Layouts with size ?
         elif self._wrap > 0:
             imgui.PushTextWrapPos(imgui.GetCursorPosX() + <float>self._wrap * self.context.viewport.global_scale)
             # <float>self._wrap * (self.context.viewport.global_scale if self._dpi_scaling else 1.)) # TODO dpi scaling control
@@ -5646,7 +5646,7 @@ cdef class ColorButton(uiItem):
             return "half" 
         elif (self._flags & imgui.ImGuiColorEditFlags_AlphaOpaque) != 0:
             return "none"
-        return "full" # TODO: ImGuiColorEditFlags_AlphaNoBg
+        return "full" # TODO: ImGuiColorEditFlags_AlphaNoBg. Should we use a type ?
 
     @alpha_preview.setter
     def alpha_preview(self, str value):

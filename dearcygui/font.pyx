@@ -1815,7 +1815,7 @@ cdef class FontRenderer:
             this height in pixels. The height here, refers to the
             distance between the maximum top of a character,
             and the minimum bottom of the character, when properly
-            aligned.
+            aligned (not yet supported in this implementation).
         target_size: if set, scale the characters to match the
             font 'size' by scaling the pixel size at the 'nominal'
             value (default size of the font).
