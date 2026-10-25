@@ -20,7 +20,7 @@ from libc.stdint cimport uint32_t, int32_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, memset
 
-from libcpp.cmath cimport trunc
+from libcpp.cmath cimport trunc, fmax
 from libc.math cimport INFINITY
 
 from cpython.object cimport PyObject
@@ -5444,6 +5444,31 @@ cdef class ChildWindow(uiItem):
             flags |= imgui.ImGuiWindowFlags_MenuBar
         cdef Vec2 pos_p, pos_w, parent_size_backup
         cdef Vec2 requested_size = self.get_requested_size()
+
+        # Requested size patching
+        # Child Windows interprete 0 as "fill available space".
+        # However we want to resolve this the same as "fillx", rather
+        # than relying on ImGui (which doesn't account for the content region
+        # we manage ourselves)
+        # In addition if 0 is really requested (via string positioning), the
+        # size should be zero (or close to).
+        if requested_size.x == 0:
+            if self.requested_width.is_item():
+                requested_size.x = 1. # closest we can to "no size". ImGui will round up to 4.
+            else:
+                requested_size.x = fmax(
+                    1.,
+                    self.context.viewport.parent_size.x - self.state.cur.pos_to_parent.x
+                )
+        if requested_size.y == 0:
+            if self.requested_height.is_item():
+                requested_size.y = 1.
+            else:
+                requested_size.y = fmax(
+                    1.,
+                    self.context.viewport.parent_size.y - self.state.cur.pos_to_parent.y
+                )
+
         cdef imgui.ImGuiChildFlags child_flags = self._child_flags
         # Else they have no effect
         if child_flags & imgui.ImGuiChildFlags_AutoResizeX:

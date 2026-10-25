@@ -7113,18 +7113,32 @@ cdef class uiItem(baseItem):
            self.requested_height.has_changed():
             self.context.viewport.force_present()
 
+        cdef float fillx, filly
+
         # dpi scaling for the fast case of float value
         if not self.requested_width.is_item():
             if requested_size.x > 0 and requested_size.x < 1.:
                 requested_size.x = floor(self.context.viewport.parent_size.x * requested_size.x)
             else:
                 requested_size.x *= global_scale
+                # Negative values are interpreted as "fillx-<abs(value)>"
+                # While ImGui is able to resolve that for most items, the
+                # issue is that ImGui does not handle items that restrict
+                # the content size (such as dcg.Layout). Thus we resolve
+                # it manually here.
+                if requested_size.x < 0:
+                    fillx = self.context.viewport.parent_size.x - self.state.cur.pos_to_parent.x
+                    requested_size.x = fmax(0, fillx + requested_size.x)
 
         if not self.requested_height.is_item():
             if requested_size.y > 0 and requested_size.y < 1.:
                 requested_size.y = floor(self.context.viewport.parent_size.y * requested_size.y)
             else:
                 requested_size.y *= global_scale
+                # Negative values are interpreted as "filly-<abs(value)>"
+                if requested_size.y < 0:
+                    filly = self.context.viewport.parent_size.y - self.state.cur.pos_to_parent.y
+                    requested_size.y = fmax(0, filly + requested_size.y)
 
         requested_size.x = cround(requested_size.x)
         requested_size.y = cround(requested_size.y)
