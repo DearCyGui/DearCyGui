@@ -4431,7 +4431,7 @@ cdef class Viewport(baseItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self.__check_alive()
-        return self._frame_buffer # TODO: bug with the demo with 3.14t (not refreshing well)
+        return self._frame_buffer
 
     cdef void __on_resize(self):
         cdef unique_lock[DCGMutex] m
