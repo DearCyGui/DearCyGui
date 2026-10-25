@@ -1,4 +1,4 @@
-from libc.stdint cimport uint32_t, int32_t, int64_t
+from libc.stdint cimport uint32_t, int32_t, int64_t, uint64_t
 from libcpp cimport bool
 from libcpp.atomic cimport atomic
 
@@ -779,6 +779,7 @@ Bindable elements
 cdef class baseFont(baseItem):
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
+    cdef uint64_t get_signature(self) noexcept nogil
 
 """
 Theme base class:

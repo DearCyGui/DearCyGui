@@ -1034,6 +1034,7 @@ cdef class MarkDownText(uiItem):
     cdef vector[MDProcessedBlock] _blocks  # Processed blocks for rendering, in a topological order
     cdef vector[MDProcessedBlockDetail] _block_details # Details for selected blocks needed for rendering
     cdef PyObject *_applicable_font # font used for layout, baseFont
+    cdef uint64_t _font_signature # signature of the applicable font at layout time
     cdef bint _last_is_soft_break # temporary data
 
     # Style configuration
@@ -1992,15 +1993,20 @@ cdef class MarkDownText(uiItem):
     cdef void _process(self, float available_width) noexcept nogil:
         """Process the whole document tree to compute layout"""
         cdef PyObject *applicable_font = self._get_applicable_font()
+        cdef uint64_t font_signature = 0
+        if <object>applicable_font is not None:
+            font_signature = (<baseFont>applicable_font).get_signature()
 
-        # Skip if width or font hasn't changed TODO: also on global scale change
+        # Skip if width, font (or its signature) or scale haven't changed
         if self._last_width == available_width\
            and self._applicable_font == applicable_font\
-           and self._last_global_scale == self.context.viewport.global_scale:
+           and self._last_global_scale == self.context.viewport.global_scale\
+           and self._font_signature == font_signature:
             self.state.cur.rect_size = self._rect_size
             return
 
         # Reset layout state
+        self._font_signature = font_signature
         self._lines.clear()
         self._blocks.clear()
         self._block_details.clear()

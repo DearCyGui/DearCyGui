@@ -1,4 +1,4 @@
-from libc.stdint cimport int32_t
+from libc.stdint cimport int32_t, uint64_t
 from cpython.ref cimport PyObject
 from .c_types cimport DCGVector
 from .core cimport baseItem, baseFont
@@ -20,8 +20,10 @@ cdef class FontMultiScales(baseFont):
     cdef DCGVector[PyObject*] _callbacks # type Callback
     cdef list _callbacks_backing # see handlers
     cdef DCGVector[PyObject*] _applied_fonts # type Font
+    cdef uint64_t _version # incremented when the list of fonts changes
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
+    cdef uint64_t get_signature(self) noexcept nogil
 
 cdef class AutoFont(FontMultiScales):
     cdef str _main_font_path

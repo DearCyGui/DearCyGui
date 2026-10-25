@@ -16,7 +16,7 @@
 #distutils: language=c++
 
 from libc.math cimport logf, ceil, INFINITY
-from libc.stdint cimport int32_t, uint32_t
+from libc.stdint cimport int32_t, uint32_t, uint64_t
 from libcpp cimport bool
 from libcpp.deque cimport deque
 from libcpp.vector cimport vector
@@ -280,6 +280,7 @@ cdef class FontMultiScales(baseFont):
     def fonts(self, value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
+        self._version += 1
         if value is None:
             self._fonts.clear()
             self._fonts_backing = None
@@ -412,6 +413,9 @@ cdef class FontMultiScales(baseFont):
                                                 self, 
                                                 self,
                                                 <float>global_scale)
+
+    cdef uint64_t get_signature(self) noexcept nogil:
+        return self._version
 
     cdef void pop(self) noexcept nogil:
         if not self._fonts.empty():

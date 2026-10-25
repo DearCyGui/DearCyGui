@@ -8762,6 +8762,10 @@ cdef class baseFont(baseItem):
     cdef void pop(self) noexcept nogil:
         return
 
+    cdef uint64_t get_signature(self) noexcept nogil:
+        """Value that changes whenever the metrics of the font may have changed."""
+        return 0
+
 
 cdef class baseTheme(baseItem):
     """
