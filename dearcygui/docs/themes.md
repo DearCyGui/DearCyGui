@@ -35,7 +35,7 @@ my_theme.window_rounding = None # Removing a setting from the theme
 ## The default font
 
 The default font uses the Latex Latin Modern font at size 17, scaled by the global scale.
-It combines several fonts in order to provide in a single font `bold`, *italics* and **bold-italics**.
+It combines several fonts in order to provide in a single font 𝚖𝚘𝚗𝚘𝚜𝚌𝚛𝚒𝚙𝚝, 𝑖𝑡𝑎𝑙𝑖𝑐, 𝗯𝗼𝗹𝗱 and 𝒃𝒐𝒍𝒅-𝒊𝒕𝒂𝒍𝒊𝒄.
 The advantage of combining fonts into one is to benefit from text wrapping, as it is not needed
 to issue several Text() calls. In addition combining fonts needs special centering and sizing.
 

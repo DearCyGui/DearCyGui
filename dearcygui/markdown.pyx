@@ -964,6 +964,12 @@ cdef const uint32_t codepoint_a_mono = ord("\U0001D68A")
 cdef const uint32_t codepoint_0_mono = ord("\U0001D7F6")
 cdef const uint32_t codepoint_basic_pua = ord("\U0000E000")  # See font.pyx
 
+# For copy paste
+# Bold: 𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗧𝗦𝗨𝗩𝗪𝗫𝗬𝗭 𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘁𝘀𝘂𝘃𝘄𝘅𝘆𝘇 𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗
+# Italic: 𝐴𝐵𝐶𝐷𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙 𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧
+# Bold italic: 𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁 𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛
+# Monospace: 𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉 𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣 𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗
+
 cdef bint[255] in_pua_table
 _mono_symbols = " ()[]{}<>|\\`~!@#$%^&*_-+=:;\"'?,./"
 cdef int i_pua
@@ -1502,6 +1508,9 @@ cdef class MarkDownText(uiItem):
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:
                     self._append_utf8_codepoint(result, styled_codepoint)
                     return
+            # NOTE: STRONG seems to mean "strong emphasis", and thus it never
+            # generated with TEXT_EMPH at the same time. In other words they
+            # are exclusive and the code below is never executed.
             if style_mask == <int32_t>MDTextType.MD_TEXT_STRONG | <int32_t>MDTextType.MD_TEXT_EMPH:
                 styled_codepoint = codepoint - codepoint_A + codepoint_A_bitalic
                 if imgui.GetFont().FindGlyph(styled_codepoint) != NULL:

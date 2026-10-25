@@ -67,8 +67,7 @@ some items unfortunately do not include some parts of their elements in this siz
 A negative value is used to mean a delta relative to the available size inside the parent. For instance
 a value of "-1" means "remaining size inside the parent - 1".
 
-A zero value means "default value", and depending to the item can mean fitting to the smallest size containing the content,
-or to a fixed size determined by the theme.
+A zero value means "default value", and depending to the item can mean fitting to the smallest size containing the content, or to a fixed size determined by the theme.
 
 The real pixel size obtained when the item is drawn is stored in `state.rect_size`, and changes to that value can be caught using
 the `ResizeHandler`. In some cases, it can be useful to use this handler to fit an item that is outside the bounds,
