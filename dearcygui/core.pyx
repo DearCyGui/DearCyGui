@@ -4822,12 +4822,11 @@ cdef class Viewport(baseItem):
             #imgui.GetIO().FontGlobalScale = self.viewport.dpi
             current_time_s = (<double>ctime.monotonic_ns()) * 1e-9
             if current_time_s >= self._target_refresh_time:
-                # If we are past the target time, we should present
-                # to avoid blocking the viewport.
-                (<platformViewport*>self._platform).needsRefresh.store(True)
+                # Past the target time (timer or heartbeat): present
+                # exactly one frame. No input is involved, thus no
+                # follow-up settle frame (needsRefresh) is needed.
+                (<platformViewport*>self._platform).needsPresent.store(True)
                 self._target_refresh_time = current_time_s + 5. # maximum time before next frame
-            else:
-                should_present = False
             # we do not use a unique lock to enable children to unlock
             lock_im_context(self)
             try:

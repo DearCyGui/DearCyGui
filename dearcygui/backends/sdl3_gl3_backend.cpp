@@ -1258,8 +1258,9 @@ bool SDLViewport::processEvents(int timeout_ms) {
                         ).count();
                         if (event.user.timestamp <= current_time) {
                             if (event.user.code == 0) {
-                                // User requested a full refresh
-                                needsRefresh.store(true);
+                                // User requested a single presented frame
+                                needsPresent.store(true);
+                                needsRender.store(true);
                             } else if (event.user.code == 1) {
                                 // User requested rendering
                                 needsRender.store(true);
@@ -1313,7 +1314,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 std::chrono::steady_clock::now().time_since_epoch()
             ).count();
         if (current_time >= time_requested_refresh) {
-            needsRefresh.store(true);
+            needsPresent.store(true);
             needsRender.store(true);
             time_requested_refresh = UINT64_MAX;
             time_requested_rendering = UINT64_MAX;
@@ -1323,7 +1324,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
         }
     }
 
-    bool need_refresh = needsRefresh.load();
+    bool need_refresh = needsRefresh.load() || needsPresent.load();
     bool need_redraw = needsRender.load();
 
     if (need_refresh) {
@@ -1429,7 +1430,8 @@ bool SDLViewport::renderFrame(bool can_skip_presenting) {
     can_skip_presenting &= !prevNeedsRefresh;
 
     // If draw() requested to present, we shouldn't skip presenting
-    can_skip_presenting &= !needsPresent.load();
+    // exchange avoids losing a request made concurrently by another thread
+    can_skip_presenting &= !needsPresent.exchange(false);
 
     // The frame just after an activity might trigger some visual changes
     prevNeedsRefresh = does_needs_refresh;
@@ -1449,8 +1451,6 @@ bool SDLViewport::renderFrame(bool can_skip_presenting) {
         ImGui::EndFrame();
         return false;
     }
-
-    needsPresent.store(false);
 
     preparePresentFrame(); 
     return true;
