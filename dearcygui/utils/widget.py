@@ -14,6 +14,7 @@ class TemporaryTooltip(dcg.Tooltip):
     deletes itself from the widget hierarchy when the condition becomes false.
     The tooltip uses a LostRenderHandler to detect when it should be removed.
     """
+    __slots__ = {}
     def __init__(self,
                  context : dcg.Context,
                  **kwargs) -> None:
@@ -45,36 +46,75 @@ class TimePicker(dcg.Layout):
     The picker can be configured to use 12-hour or 24-hour time formats,
     and seconds display can be optionally hidden for a simpler interface.
     """
-    def __init__(self, context, *, value=None, use_24hr=False, show_seconds=True, **kwargs) -> None:
+    __slots__ = {
+        "_am_pm": "Widget for selecting AM/PM",
+        "_am_pm_separator": "Text separator between hours and AM/PM",
+        "_ampm_colors": "Theme colors for AM/PM selection",
+        "_container_colors": "Theme colors for the container",
+        "_container_style": "Theme style for the container",
+        "_hours": "Widget for selecting hours",
+        "_input_colors": "Theme colors for input fields",
+        "_minutes": "Widget for selecting minutes",
+        "_seconds": "Widget for selecting seconds",
+        "_seconds_separator": "Text separator between minutes and seconds",
+        "_separator_colors": "Theme colors for separators",
+        "_show_seconds": "Boolean indicating if seconds should be displayed",
+        "_use_24hr": "Boolean indicating if 24-hour format is used",
+        "_value": "SharedFloat storing the total seconds of the selected time",
+    }
+    def __init__(
+        self,
+        context: dcg.Context,
+        *,
+        value: datetime | float | None = None,
+        use_24hr: bool = False,
+        show_seconds: bool = True,
+        **kwargs
+    ) -> None:
+        """
+        Initialize a TimePicker widget.
+
+        Args:
+            context: The DearCyGui context.
+            value: Initial time value as a datetime object or total seconds (defaults to current time)
+            use_24hr: Whether to use 24-hour format.
+            show_seconds: Whether to display seconds.
+            kwargs: Additional keyword arguments for the base Layout class.
+        """
         super().__init__(context, **kwargs)
 
         # Default to current time if no value provided
         if value is None:
             value = datetime.now()
+
+        # Convert to total seconds if a datetime object is provided
         if isinstance(value, datetime):
             total_seconds = value.hour * 3600 + value.minute * 60 + value.second
         else:
             total_seconds = float(value)
-            
+
+        # Store the total seconds in a SharedFloat to behave like other uiItems
         self._value = dcg.SharedFloat(context, total_seconds)
+
+        # Store configurable flags
         self._use_24hr = use_24hr
         self._show_seconds = show_seconds
 
-        # Apply consistent styling
-        self.border = True
-        self.no_scrollbar = True
-        self.no_scroll_with_mouse = True
+        # Initialize theme and styling for the widget container
         with dcg.ThemeList(self.context) as self.theme:
-            self._container_style = dcg.ThemeStyleImGui(self.context, 
-                                frame_rounding=4.0,
-                                child_rounding=4.0,
-                                frame_padding=(6, 3),
-                                item_spacing=(4, 4))
+            self._container_style = dcg.ThemeStyleImGui(
+                self.context, 
+                frame_rounding=4.0,
+                child_rounding=4.0,
+                frame_padding=(6, 3),
+                item_spacing=(4, 4)
+            )
             self._container_colors = dcg.ThemeColorImGui(self.context)
         self._input_colors = dcg.ThemeColorImGui(context)
         self._separator_colors = dcg.ThemeColorImGui(context)
         self._ampm_colors = dcg.ThemeColorImGui(context)
 
+        # Catch current theme/style updates when the widget becomes visible
         self.handlers += [
             dcg.GotRenderHandler(context, callback=self._update_theme_style)
         ]
@@ -82,42 +122,63 @@ class TimePicker(dcg.Layout):
 
         with dcg.HorizontalLayout(context, parent=self):
             # Hours spinner
-            self._hours = dcg.InputValue(context, print_format="%.0f", 
-                                  min_value=0,
-                                  max_value=23 if use_24hr else 12,
-                                  value=self._get_display_hour(),
-                                  width=100, step=1, step_fast=5,
-                                  callback=self._on_hour_change)
+            self._hours = dcg.InputValue(
+                context,
+                print_format="%.0f", 
+                min_value=0,
+                max_value=23 if use_24hr else 12,
+                value=self._get_display_hour(),
+                width=100,
+                step=1,
+                step_fast=5,
+                callback=self._on_hour_change
+            )
             self._hours.theme = self._input_colors
 
             # Minutes spinner 
-            dcg.Text(context, value=":", width=10, theme = self._separator_colors)
-            self._minutes = dcg.InputValue(context, print_format="%.0f",
-                                    min_value=0, max_value=59,
-                                    value=int((total_seconds % 3600) // 60),
-                                    width=100, step=1, step_fast=5,
-                                    callback=self._on_minute_change)
+            dcg.Text(context, value=":", width=10, theme=self._separator_colors)
+            self._minutes = dcg.InputValue(
+                context,
+                print_format="%.0f",
+                min_value=0,
+                max_value=59,
+                value=int((total_seconds % 3600) // 60),
+                width=100,
+                step=1,
+                step_fast=5,
+                callback=self._on_minute_change
+            )
             self._minutes.theme = self._input_colors
             
             # Optional seconds spinner
-            if show_seconds:
-                dcg.Text(context, value=":", width=10, theme = self._separator_colors)
-                self._seconds = dcg.InputValue(context, print_format="%.0f",
-                                        min_value=0, max_value=59, 
-                                        value=int(total_seconds % 60),
-                                        width=100, step=1, step_fast=5,
-                                        callback=self._on_second_change)
-                self._seconds.theme = self._input_colors
+            self._seconds_separator = dcg.Text(
+                context, value=":", width=10, theme=self._separator_colors, show=show_seconds
+            )
+            self._seconds = dcg.InputValue(
+                context,
+                print_format="%.0f",
+                min_value=0,
+                max_value=59, 
+                value=int(total_seconds % 60),
+                width=100,
+                step=1,
+                step_fast=5,
+                callback=self._on_second_change,
+                show=show_seconds
+            )
+            self._seconds.theme = self._input_colors
             
             # AM/PM selector for 12-hour format
-            if not use_24hr:
-                dcg.Text(context, value=" ", width=10)
-                self._am_pm = dcg.RadioButton(context,
-                                        items=["AM", "PM"],
-                                        value="PM" if (total_seconds // 3600) >= 12 else "AM",
-                                        horizontal=True,
-                                        callback=self._on_ampm_change)
-                self._am_pm.theme = self._ampm_colors
+            self._am_pm_separator = dcg.Text(context, value=" ", width=10, show=not use_24hr)
+            self._am_pm = dcg.RadioButton(
+                context,
+                items=["AM", "PM"],
+                value="PM" if (total_seconds // 3600) >= 12 else "AM",
+                horizontal=True,
+                callback=self._on_ampm_change,
+                show=not use_24hr
+            )
+            self._am_pm.theme = self._ampm_colors
 
     def _update_theme_style(self) -> None:
         """Update all theme objects based on current theme settings"""
@@ -129,13 +190,8 @@ class TimePicker(dcg.Layout):
         frame_bg_hovered = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg_hovered"))
         frame_bg_active = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "frame_bg_active"))
         child_bg = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "child_bg"))
+        accent_color = typing.cast(int, dcg.resolve_theme(parent, dcg.ThemeColorImGui, "check_mark"))
 
-        # Get accent color for highlights
-        accent_color = dcg.resolve_theme(parent, dcg.ThemeColorImGui, "check_mark")
-        accent_color = dcg.color_as_floats(accent_color)
-        if sum(accent_color[:3]) < 0.1:  # Fallback if too dark
-            accent_color = (0.4, 0.5, 0.8, 0.7)
-            
         # Update container theme
         self._container_colors.text = text_color
         self._container_colors.child_bg = child_bg
@@ -145,19 +201,34 @@ class TimePicker(dcg.Layout):
         self._input_colors.frame_bg = frame_bg
         self._input_colors.frame_bg_hovered = frame_bg_hovered
         self._input_colors.frame_bg_active = frame_bg_active
+
+        # Convert all colors to 0..1 floats
         text_color = dcg.color_as_floats(text_color)
         frame_bg = dcg.color_as_floats(frame_bg)
         frame_bg_hovered = dcg.color_as_floats(frame_bg_hovered)
         frame_bg_active = dcg.color_as_floats(frame_bg_active)
+        accent_color = dcg.color_as_floats(accent_color)
         
         # Update separator color - make it slightly accent-colored
-        self._separator_colors.text = tuple(0.3 * text_color[i] + 0.7 * accent_color[i] 
-                                           for i in range(3)) + (text_color[3],)
+        if sum(accent_color[:3]) < 0.1:  # Fallback if too dark
+            accent_color = (0.4, 0.5, 0.8, 0.7)
+        self._separator_colors.text = tuple(
+            0.3 * text_color[i] + 0.7 * accent_color[i] 
+            for i in range(3)
+        ) + (text_color[3],)
         
         # Update AM/PM selector theme
-        self._ampm_colors.frame_bg = tuple(c * 0.95 for c in frame_bg[:3]) + (frame_bg[3],)
-        self._ampm_colors.frame_bg_hovered = tuple(min(1.0, c * 1.05) for c in frame_bg_hovered[:3]) + (frame_bg_hovered[3],)
-        self._ampm_colors.frame_bg_active = tuple(c * 0.9 for c in frame_bg_active[:3]) + (frame_bg_active[3],)
+        self._ampm_colors.frame_bg = tuple(
+            c * 0.95 for c in frame_bg[:3]
+        ) + (frame_bg[3],)
+        self._ampm_colors.frame_bg_hovered = tuple(
+            min(1.0, c * 1.05)
+            for c in frame_bg_hovered[:3]
+        ) + (frame_bg_hovered[3],)
+        self._ampm_colors.frame_bg_active = tuple(
+            c * 0.9
+            for c in frame_bg_active[:3]
+        ) + (frame_bg_active[3],)
         self._ampm_colors.text = text_color
 
     def _get_display_hour(self) -> int:
@@ -168,11 +239,10 @@ class TimePicker(dcg.Layout):
         ensuring proper display in the selected time format.
         """
         hour = int(self._value.value // 3600)
-        if not self._use_24hr:
-            hour = hour % 12
-            if hour == 0:
-                hour = 12
-        return hour
+        if self._use_24hr:
+            return hour % 24
+        else:
+            return (hour - 1) % 12 + 1 # display 0 as 12 in 12-hour format
 
     def _get_total_seconds(self, hour: int, minute: int, second: int | None = None) -> int:
         """
@@ -184,7 +254,7 @@ class TimePicker(dcg.Layout):
             second = int(self._value.value % 60)
         return hour * 3600 + minute * 60 + second
         
-    def _on_hour_change(self, sender, target, data) -> None:
+    def _on_hour_change(self, sender, target, data: dcg.uiItemCallbackFloatValue) -> None:
         """
         Handle hour input changes.
         
@@ -193,18 +263,21 @@ class TimePicker(dcg.Layout):
         """
         value = data.value
         hour = int(value)
+
+        # Deduce the correct hour in 24-hour format if using 12-hour clock
         if not self._use_24hr:
             is_pm = self._am_pm.value == "PM"
             if hour == 12:
                 hour = 0 if not is_pm else 12
             elif is_pm:
                 hour += 12
-        
+
+        # Update internal time, preserving minutes and seconds
         minute = int((self._value.value % 3600) // 60)
         self._value.value = self._get_total_seconds(hour, minute)
-        self.run_callbacks()
+        self._run_callbacks()
 
-    def _on_minute_change(self, sender, target, data) -> None: 
+    def _on_minute_change(self, sender, target, data: dcg.uiItemCallbackFloatValue) -> None: 
         """
         Handle minute input changes.
         
@@ -212,9 +285,9 @@ class TimePicker(dcg.Layout):
         """
         hour = int(self._value.value // 3600)
         self._value.value = self._get_total_seconds(hour, int(data.value))
-        self.run_callbacks()
+        self._run_callbacks()
 
-    def _on_second_change(self, sender, target, data) -> None:
+    def _on_second_change(self, sender, target, data: dcg.uiItemCallbackFloatValue) -> None:
         """
         Handle second input changes.
         
@@ -224,26 +297,31 @@ class TimePicker(dcg.Layout):
             hour = int(self._value.value // 3600)
             minute = int((self._value.value % 3600) // 60)
             self._value.value = self._get_total_seconds(hour, minute, int(data.value))
-            self.run_callbacks()
+            self._run_callbacks()
 
-    def _on_ampm_change(self, sender, target, data) -> None:
+    def _on_ampm_change(self, sender, target, data: dcg.uiItemCallbackStringValue) -> None:
         """
         Handle AM/PM selection changes.
         
         Adjusts the internal 24-hour representation based on AM/PM selection.
         """
-        if not self._use_24hr:
-            hour = int(self._value.value // 3600)
-            cur_is_pm = hour >= 12
-            new_is_pm = data.value == "PM"
-            
-            if cur_is_pm != new_is_pm:
-                hour = (hour + 12) % 24
-                minute = int((self._value.value % 3600) // 60)
-                self._value.value = self._get_total_seconds(hour, minute)
-                self.run_callbacks()
+        # Shouldn't occur if using 24-hour format
+        if self._use_24hr:
+            return
 
-    def run_callbacks(self) -> None:
+        # Determine current and new AM/PM status
+        hour = int(self._value.value // 3600)
+        cur_is_pm = hour >= 12
+        new_is_pm = data.value == "PM"
+
+        # Only adjust the hour if the AM/PM status has changed
+        if cur_is_pm != new_is_pm:
+            hour = (hour + 12) % 24
+            minute = int((self._value.value % 3600) // 60)
+            self._value.value = self._get_total_seconds(hour, minute)
+            self._run_callbacks()
+
+    def _run_callbacks(self) -> None:
         """
         Execute all registered callbacks with the current time value.
         
@@ -265,10 +343,11 @@ class TimePicker(dcg.Layout):
     @value.setter 
     def value(self, value: float | datetime) -> None:
         """Set current time in seconds"""
+        # Convert datetime to total seconds
         if isinstance(value, datetime):
             value = value.hour * 3600 + value.minute * 60 + value.second
         self._value.value = float(value)
-        
+
         # Update UI controls
         self._hours.value = self._get_display_hour()
         self._minutes.value = int((self._value.value % 3600) // 60)
@@ -276,6 +355,9 @@ class TimePicker(dcg.Layout):
             self._seconds.value = int(self._value.value % 60)
         if not self._use_24hr:
             self._am_pm.value = "PM" if (self._value.value // 3600) >= 12 else "AM"
+
+        # Note: like all other UI items, we do not call callbacks when the value
+        # property is set programmatically; callbacks are only triggered by user interaction.
 
     @property
     def value_as_datetime(self) -> datetime:
@@ -296,6 +378,7 @@ class TimePicker(dcg.Layout):
         """Set current time from datetime"""
         if not isinstance(value, datetime):
             raise ValueError("Value must be a datetime object")
+        # Use the value setter to update the internal time and UI
         self.value = value
 
     @property
@@ -317,8 +400,8 @@ class TimePicker(dcg.Layout):
             self._hours.max_value = 23 if value else 12
             self._hours.value = self._get_display_hour()
             # Show/hide AM/PM
-            if hasattr(self, '_am_pm'):
-                self._am_pm.show = not value
+            self._am_pm.show = not value
+            self._am_pm_separator.show = not value
 
     @property 
     def show_seconds(self) -> bool:
@@ -335,8 +418,8 @@ class TimePicker(dcg.Layout):
         """Set whether to show seconds"""
         if value != self._show_seconds:
             self._show_seconds = value
-            if hasattr(self, '_seconds'):
-                self._seconds.show = value
+            self._seconds.show = value
+            self._seconds_separator.show = value
 
 class DatePicker(dcg.ChildWindow):
     """
