@@ -1,104 +1,188 @@
+"""Plot helpers: candlestick series built from draw items."""
+
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, field
 import datetime
+from typing import Final
+
 import dearcygui as dcg
-from collections.abc import Sized
+
+_DEFAULT_BULL_COLOR: Final[tuple[int, int, int, int]] = (0, 255, 113, 255)
+_DEFAULT_BEAR_COLOR: Final[tuple[int, int, int, int]] = (218, 13, 79, 255)
 
 
-#TODO V1: finish applying the python coding guidelines to this file
+def _default_time_formatter(timestamp: float) -> str:
+    """Format a unix timestamp as a local date and time string."""
+    return datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
-class PlotCandleStick(dcg.DrawInPlot):
-    """
-    Adds a candle series to a plot.
 
-    See the source code for how to make
-    a custom version with more interactions.
+@dataclass(frozen=True, kw_only=True)
+class CandleData:
+    """Immutable OHLC data for a candlestick series.
 
     Args:
-        dates (np.ndarray): x-axis values
-        opens (np.ndarray): open values
-        closes (np.ndarray): close values 
-        lows (np.ndarray): low values
-        highs (np.ndarray): high values
-        bull_color (color, optional): color of the candlestick when the close is lower than the open
-        bear_color (color, optional): color of the candlestick when the close is higher than the open
-        weight (float, optional): Candle width as a percentage of the distance between two dates
-        tooltip (bool, optional): whether to show a tooltip on hover
-        time_formatter (callback, optional): callback that takes a date and returns a string
+        dates: x-axis values (np.ndarray expected).
+        opens: open values.
+        closes: close values.
+        lows: low values.
+        highs: high values.
+
+    Raises:
+        ValueError: If the sequences do not all have the same length.
     """
-    def __init__(self,
-                 context : dcg.Context,
-                 no_legend=False,
-                 dates: Sized = [],
-                 opens: Sized = [],
-                 closes: Sized = [],
-                 lows: Sized = [],
-                 highs: Sized = [],
-                 bull_color=(0, 255, 113, 255),
-                 bear_color=(218, 13, 79, 255),
-                 weight=0.25,
-                 tooltip=True,
-                 time_formatter=None,
-                 **kwargs) -> None:
-        super().__init__(context, **kwargs)
-        # For DrawInPlot, default no_legend is True
-        # Thus the override.
-        self.no_legend = no_legend
-        if len(dates) != len(opens) or len(dates) != len(closes) or len(dates) != len(lows) or len(dates) != len(highs):
+
+    dates: Sequence[float] = ()
+    opens: Sequence[float] = ()
+    closes: Sequence[float] = ()
+    lows: Sequence[float] = ()
+    highs: Sequence[float] = ()
+
+    def __post_init__(self) -> None:
+        """Validate that all series have the same length."""
+        size = len(self.dates)
+        if any(len(s) != size for s in (self.opens, self.closes, self.lows, self.highs)):
             raise ValueError("dates, opens, closes, lows, highs must be of same length")
-        # Same to local variables
-        self._dates = dates
-        self._opens = opens
-        self._closes = closes
-        self._lows = lows
-        self._highs = highs
 
-        self._bull_color = dcg.color_as_int(bull_color)
-        self._bear_color = dcg.color_as_int(bear_color)
-        self._weight = float(weight)
-        self._tooltip = tooltip
 
-        self._time_formatter = time_formatter
-        if time_formatter is None:
-            # use datetime:
-            self._time_formatter = lambda x: datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
+@dataclass(frozen=True, kw_only=True)
+class CandleStyle:
+    """Immutable appearance and behaviour settings of a candlestick series.
+
+    Args:
+        bull_color: Color of the candle when the close is higher than the open.
+        bear_color: Color of the candle when the close is lower than the open.
+        weight: Candle width as a fraction of the distance between two dates.
+        tooltip: Whether to show a tooltip on hover.
+        time_formatter: Callback converting a date to a string.
+    """
+
+    bull_color: dcg.Color = _DEFAULT_BULL_COLOR
+    bear_color: dcg.Color = _DEFAULT_BEAR_COLOR
+    weight: float = 0.25
+    tooltip: bool = True
+    time_formatter: Callable[[float], str] = field(default=_default_time_formatter)
+
+
+class PlotCandleStick(dcg.DrawInPlot):
+    """Add a candle series to a plot.
+
+    See the source code for how to make a custom version with more interactions.
+
+    This class is not thread-safe.
+
+    Args:
+        context: The DearCyGui context.
+        data: OHLC data to display.
+        style: Appearance settings. Defaults to CandleStyle().
+        no_legend: Hide the item from the legend (DrawInPlot defaults to True,
+            hence the override).
+    """
+
+    __slots__ = {
+        "_bear_color": "Packed color used when open > close",
+        "_bull_color": "Packed color used when open <= close",
+        "_data": "OHLC data displayed",
+        "_time_formatter": "Callback converting a date to a string",
+        "_tooltip": "Whether hovering a candle shows a tooltip",
+        "_weight": "Candle width as a fraction of the date spacing",
+    }
+
+    _bear_color: int
+    _bull_color: int
+    _data: CandleData
+    _time_formatter: Callable[[float], str]
+    _tooltip: bool
+    _weight: float
+
+    def __init__(
+        self,
+        context: dcg.Context,
+        data: CandleData | None = None,
+        style: CandleStyle | None = None,
+        *,
+        no_legend: bool = False,
+        **kwargs,
+    ) -> None:
+        """Initialize the series and build its draw items."""
+        super().__init__(context, **kwargs)
+
+        # Resolve defaults
+        data = CandleData() if data is None else data
+        style = CandleStyle() if style is None else style
+
+        # DrawInPlot defaults no_legend to True, so override it
+        self.no_legend = no_legend
+
+        # Store state
+        self._data = data
+        self._bull_color = dcg.color_as_int(style.bull_color)
+        self._bear_color = dcg.color_as_int(style.bear_color)
+        self._weight = float(style.weight)
+        self._tooltip = style.tooltip
+        self._time_formatter = style.time_formatter
 
         self.render()
 
-
     def render(self) -> None:
-        count = self._dates.shape[0]
-        width_percent = self._weight
-        half_width = ((self._dates[1] - self._dates[0]) * width_percent) if count > 1 else width_percent
+        """Rebuild the draw items (candles and invisible hover buttons)."""
+        data = self._data
+        count = len(data.dates)
+
+        # Compute candle half width
+        if count > 1:
+            half_width = (data.dates[1] - data.dates[0]) * self._weight
+        else:
+            half_width = self._weight
+
+        # Rebuild children
         self.children = []
-        buttons = []
+        buttons: list[dcg.DrawInvisibleButton] = []
         with self:
             for i in range(count):
-                open_pos = (self._dates[i] - half_width, self._opens[i])
-                close_pos = (self._dates[i] + half_width, self._closes[i])
-                low_pos = (self._dates[i], self._lows[i])
-                high_pos = (self._dates[i], self._highs[i])
-                color = self._bear_color if self._opens[i] > self._closes[i] else self._bull_color
-                dcg.DrawLine(self.context, p1=low_pos, p2=high_pos, color=color, thickness=0.2*half_width)
+                date = data.dates[i]
+                open_pos = (date - half_width, data.opens[i])
+                close_pos = (date + half_width, data.closes[i])
+                low_pos = (date, data.lows[i])
+                high_pos = (date, data.highs[i])
+                bearish = data.opens[i] > data.closes[i]
+                color = self._bear_color if bearish else self._bull_color
+                dcg.DrawLine(self.context, p1=low_pos, p2=high_pos, color=color,
+                             thickness=0.2 * half_width)
                 dcg.DrawRect(self.context, pmin=open_pos, pmax=close_pos, color=0, fill=color)
                 buttons.append(
-                    dcg.DrawInvisibleButton(self.context, button=0,
-                                            p1=(open_pos[0], low_pos[1]),
-                                            p2=(close_pos[0], high_pos[1]),
-                                            user_data=(self._dates[i], self._opens[i],
-                                                       self._closes[i], self._lows[i],
-                                                       self._highs[i]))
+                    dcg.DrawInvisibleButton(
+                        self.context,
+                        button=dcg.MouseButtonMask.LEFT,
+                        p1=(open_pos[0], low_pos[1]),
+                        p2=(close_pos[0], high_pos[1]),
+                        user_data=(date, data.opens[i], data.closes[i],
+                                   data.lows[i], data.highs[i]),
+                    )
                 )
+
+        # Attach the shared hover handler; add more handlers here for clicks, etc.
         tooltip_handler = dcg.GotHoverHandler(self.context, callback=self._tooltip_handler)
-        # Here add your handlers to the buttons to react to clicks, etc
         for button in buttons:
             button.handlers = [tooltip_handler]
 
-    def _tooltip_handler(self, sender, target):
-        data = target.user_data
-        if self._tooltip:
-            with dcg.utils.TemporaryTooltip(self.context, target=target,
-                                            parent=self.parent.parent):
-                dcg.Text(self.context, value=f"Date: {self._time_formatter(data[0])}")
-                dcg.Text(self.context, value=f"Open: {data[1]}")
-                dcg.Text(self.context, value=f"Close: {data[2]}")
-                dcg.Text(self.context, value=f"Low: {data[3]}")
-                dcg.Text(self.context, value=f"High: {data[4]}")
+    def _tooltip_handler(self, sender: dcg.baseItem, target: dcg.DrawInvisibleButton) -> None:
+        """Show a tooltip describing the hovered candle."""
+        if not self._tooltip:
+            return
+
+        # Retrieve the parent to which the tooltip should be attached
+        plot = self.parent
+        if plot is None:
+            return
+        plot_parent = plot.parent
+        if plot_parent is None:
+            return
+
+        # Build the tooltip content
+        date, open_, close, low, high = target.user_data
+        with dcg.utils.TemporaryTooltip(self.context, target=target, parent=plot_parent):
+            dcg.Text(self.context, value=f"Date: {self._time_formatter(date)}")
+            dcg.Text(self.context, value=f"Open: {open_}")
+            dcg.Text(self.context, value=f"Close: {close}")
+            dcg.Text(self.context, value=f"Low: {low}")
+            dcg.Text(self.context, value=f"High: {high}")
