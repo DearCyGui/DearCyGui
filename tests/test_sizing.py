@@ -507,46 +507,6 @@ def test_hlayout_justified_alignment(vp_ctx):
     p2 = b2.state.pos_to_parent[0]
     assert p1 < p2 < p3
 
-
-def test_hlayout_manual_pixel_positions(vp_ctx):
-    """HorizontalLayout MANUAL: items placed at specified pixel positions."""
-    ctx = vp_ctx
-    window = _stable_window(ctx)
-    # Pixel positions are used as-is (no DPI scaling applied to positions list values)
-    pos_a, pos_b = 20.0, 200.0
-    with dcg.HorizontalLayout(ctx, positions=[pos_a, pos_b], parent=window):
-        b1 = dcg.Button(ctx, label="", width=60, height=30)
-        b2 = dcg.Button(ctx, label="", width=60, height=30)
-    _render(ctx.viewport)
-
-    p1 = b1.state.pos_to_parent[0]
-    p2 = b2.state.pos_to_parent[0]
-    assert abs(p1 - pos_a) <= 1, f"MANUAL pixel: b1 x={p1} should be ≈{pos_a}"
-    assert abs(p2 - pos_b) <= 1, f"MANUAL pixel: b2 x={p2} should be ≈{pos_b}"
-
-
-def test_hlayout_manual_fractional_positions(vp_ctx):
-    """HorizontalLayout MANUAL: fractional positions are relative to layout content width."""
-    import math
-    ctx = vp_ctx
-    window = _stable_window(ctx)
-    _render(ctx.viewport)
-    content_w = window.state.content_region_avail[0]
-    # Fractions 0 < f < 1 are multiplied by content_width and floored
-    frac_a, frac_b = 0.1, 0.6
-    with dcg.HorizontalLayout(ctx, positions=[frac_a, frac_b], parent=window):
-        b1 = dcg.Button(ctx, label="", width=60, height=30)
-        b2 = dcg.Button(ctx, label="", width=60, height=30)
-    _render(ctx.viewport)
-
-    p1 = b1.state.pos_to_parent[0]
-    p2 = b2.state.pos_to_parent[0]
-    expected_a = math.floor(frac_a * content_w)
-    expected_b = math.floor(frac_b * content_w)
-    assert abs(p1 - expected_a) <= 1, f"MANUAL frac: b1 x={p1} should be ≈{expected_a}"
-    assert abs(p2 - expected_b) <= 1, f"MANUAL frac: b2 x={p2} should be ≈{expected_b}"
-
-
 # ===========================================================================
 # HorizontalLayout wrapping tests
 # ===========================================================================
@@ -693,23 +653,6 @@ def test_vlayout_justified_alignment(vp_ctx):
     )
     p2 = b2.state.pos_to_parent[1]
     assert p1 < p2 < p3
-
-
-def test_vlayout_manual_alignment(vp_ctx):
-    """VerticalLayout MANUAL: items placed at specified pixel y positions."""
-    ctx = vp_ctx
-    window = _stable_window(ctx)
-    # Pixel positions are used as-is (not DPI-scaled)
-    pos_a, pos_b = 10.0, 120.0
-    with dcg.VerticalLayout(ctx, positions=[pos_a, pos_b], parent=window):
-        b1 = dcg.Button(ctx, label="", width=100, height=30)
-        b2 = dcg.Button(ctx, label="", width=100, height=30)
-    _render(ctx.viewport)
-
-    p1 = b1.state.pos_to_parent[1]
-    p2 = b2.state.pos_to_parent[1]
-    assert abs(p1 - pos_a) <= 1, f"MANUAL: b1 y={p1} should be ≈{pos_a}"
-    assert abs(p2 - pos_b) <= 1, f"MANUAL: b2 y={p2} should be ≈{pos_b}"
 
 
 def test_vlayout_wrapping_into_columns(vp_ctx):

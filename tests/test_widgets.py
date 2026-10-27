@@ -329,8 +329,10 @@ def test_input_text_basic():
 def test_child_window_basic():
     """Test basic ChildWindow functionality"""
     ctx = dcg.Context()
-    child = dcg.ChildWindow(ctx, label="Test Child")
-    assert child.label == "Test Child"
+    child = dcg.ChildWindow(ctx)
+    # setting label is disallowed on ChildWindow
+    with pytest.raises(AttributeError):
+        child.label = "Test Child"
     assert child.border
     child.border = False
     assert not child.border
