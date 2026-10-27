@@ -1,7 +1,9 @@
+import calendar
 import colorsys
-import dearcygui as dcg
 from datetime import datetime
 import typing
+
+import dearcygui as dcg
 
 
 #TODO V1: finish applying the python coding guidelines to this file
@@ -60,7 +62,7 @@ class TimePicker(dcg.Layout):
         "_separator_colors": "Theme colors for separators",
         "_show_seconds": "Boolean indicating if seconds should be displayed",
         "_use_24hr": "Boolean indicating if 24-hour format is used",
-        "_value": "SharedFloat storing the total seconds of the selected time",
+        "_value": "Total seconds of the selected time",
     }
     def __init__(
         self,
@@ -93,8 +95,8 @@ class TimePicker(dcg.Layout):
         else:
             total_seconds = float(value)
 
-        # Store the total seconds in a SharedFloat to behave like other uiItems
-        self._value = dcg.SharedFloat(context, total_seconds)
+        # Store the total seconds in value
+        self._value = total_seconds
 
         # Store configurable flags
         self._use_24hr = use_24hr
@@ -114,24 +116,17 @@ class TimePicker(dcg.Layout):
         self._separator_colors = dcg.ThemeColorImGui(context)
         self._ampm_colors = dcg.ThemeColorImGui(context)
 
-        # Catch current theme/style updates when the widget becomes visible
-        self.handlers += [
-            dcg.GotRenderHandler(context, callback=self._update_theme_style)
-        ]
-
-
         with dcg.HorizontalLayout(context, parent=self):
             # Hours spinner
             self._hours = dcg.InputValue(
                 context,
                 print_format="%.0f", 
-                min_value=0,
+                min_value=0 if use_24hr else 1,
                 max_value=23 if use_24hr else 12,
                 value=self._get_display_hour(),
                 width=100,
                 step=1,
-                step_fast=5,
-                callback=self._on_hour_change
+                step_fast=5
             )
             self._hours.theme = self._input_colors
 
@@ -145,8 +140,7 @@ class TimePicker(dcg.Layout):
                 value=int((total_seconds % 3600) // 60),
                 width=100,
                 step=1,
-                step_fast=5,
-                callback=self._on_minute_change
+                step_fast=5
             )
             self._minutes.theme = self._input_colors
             
@@ -163,7 +157,6 @@ class TimePicker(dcg.Layout):
                 width=100,
                 step=1,
                 step_fast=5,
-                callback=self._on_second_change,
                 show=show_seconds
             )
             self._seconds.theme = self._input_colors
@@ -175,10 +168,20 @@ class TimePicker(dcg.Layout):
                 items=["AM", "PM"],
                 value="PM" if (total_seconds // 3600) >= 12 else "AM",
                 horizontal=True,
-                callback=self._on_ampm_change,
                 show=not use_24hr
             )
             self._am_pm.theme = self._ampm_colors
+
+        # Connect callbacks
+        self._hours.callback = self._on_hour_change
+        self._minutes.callback = self._on_minute_change
+        self._seconds.callback = self._on_second_change
+        self._am_pm.callback = self._on_ampm_change
+
+        # Catch current theme/style updates when the widget becomes visible
+        self.handlers += [
+            dcg.GotRenderHandler(context, callback=self._update_theme_style)
+        ]
 
     def _update_theme_style(self) -> None:
         """Update all theme objects based on current theme settings"""
@@ -238,7 +241,7 @@ class TimePicker(dcg.Layout):
         Handles the conversion between 24-hour and 12-hour formats,
         ensuring proper display in the selected time format.
         """
-        hour = int(self._value.value // 3600)
+        hour = int(self._value // 3600)
         if self._use_24hr:
             return hour % 24
         else:
@@ -251,7 +254,7 @@ class TimePicker(dcg.Layout):
         If seconds are not provided, the current seconds value is used.
         """
         if second is None:
-            second = int(self._value.value % 60)
+            second = int(self._value % 60)
         return hour * 3600 + minute * 60 + second
         
     def _on_hour_change(self, sender, target, data: dcg.uiItemCallbackFloatValue) -> None:
@@ -273,8 +276,8 @@ class TimePicker(dcg.Layout):
                 hour += 12
 
         # Update internal time, preserving minutes and seconds
-        minute = int((self._value.value % 3600) // 60)
-        self._value.value = self._get_total_seconds(hour, minute)
+        minute = int((self._value % 3600) // 60)
+        self._value = self._get_total_seconds(hour, minute)
         self._run_callbacks()
 
     def _on_minute_change(self, sender, target, data: dcg.uiItemCallbackFloatValue) -> None: 
@@ -283,8 +286,8 @@ class TimePicker(dcg.Layout):
         
         Updates the internal time value while preserving hours and seconds.
         """
-        hour = int(self._value.value // 3600)
-        self._value.value = self._get_total_seconds(hour, int(data.value))
+        hour = int(self._value // 3600)
+        self._value = self._get_total_seconds(hour, int(data.value))
         self._run_callbacks()
 
     def _on_second_change(self, sender, target, data: dcg.uiItemCallbackFloatValue) -> None:
@@ -294,9 +297,9 @@ class TimePicker(dcg.Layout):
         Updates the internal time value while preserving hours and minutes.
         """
         if self._show_seconds:
-            hour = int(self._value.value // 3600)
-            minute = int((self._value.value % 3600) // 60)
-            self._value.value = self._get_total_seconds(hour, minute, int(data.value))
+            hour = int(self._value // 3600)
+            minute = int((self._value % 3600) // 60)
+            self._value = self._get_total_seconds(hour, minute, int(data.value))
             self._run_callbacks()
 
     def _on_ampm_change(self, sender, target, data: dcg.uiItemCallbackStringValue) -> None:
@@ -310,15 +313,15 @@ class TimePicker(dcg.Layout):
             return
 
         # Determine current and new AM/PM status
-        hour = int(self._value.value // 3600)
+        hour = int(self._value // 3600)
         cur_is_pm = hour >= 12
         new_is_pm = data.value == "PM"
 
         # Only adjust the hour if the AM/PM status has changed
         if cur_is_pm != new_is_pm:
             hour = (hour + 12) % 24
-            minute = int((self._value.value % 3600) // 60)
-            self._value.value = self._get_total_seconds(hour, minute)
+            minute = int((self._value % 3600) // 60)
+            self._value = self._get_total_seconds(hour, minute)
             self._run_callbacks()
 
     def _run_callbacks(self) -> None:
@@ -331,6 +334,16 @@ class TimePicker(dcg.Layout):
             callback(self, self, dcg.uiItemCallbackValue(self.context, self.value_as_datetime))
 
     @property
+    def shareable_value(self) -> typing.NoReturn:
+        # Implementing shareable_value would require checking if the shareable value
+        # has updated in a render handler, which further complicates the code.
+        raise NotImplementedError("TimePicker does not support shareable_value")
+
+    @shareable_value.setter
+    def shareable_value(self, value) -> None:
+        raise NotImplementedError("TimePicker does not support shareable_value")
+
+    @property
     def value(self) -> float:
         """
         Current time value represented as seconds since midnight.
@@ -338,7 +351,7 @@ class TimePicker(dcg.Layout):
         This is the raw internal representation that can be used for 
         calculations or for sharing the time value between components.
         """
-        return self._value.value
+        return self._value
 
     @value.setter 
     def value(self, value: float | datetime) -> None:
@@ -346,15 +359,15 @@ class TimePicker(dcg.Layout):
         # Convert datetime to total seconds
         if isinstance(value, datetime):
             value = value.hour * 3600 + value.minute * 60 + value.second
-        self._value.value = float(value)
+        self._value = float(value)
 
         # Update UI controls
         self._hours.value = self._get_display_hour()
-        self._minutes.value = int((self._value.value % 3600) // 60)
+        self._minutes.value = int((self._value % 3600) // 60)
         if self._show_seconds:
-            self._seconds.value = int(self._value.value % 60)
+            self._seconds.value = int(self._value % 60)
         if not self._use_24hr:
-            self._am_pm.value = "PM" if (self._value.value // 3600) >= 12 else "AM"
+            self._am_pm.value = "PM" if (self._value // 3600) >= 12 else "AM"
 
         # Note: like all other UI items, we do not call callbacks when the value
         # property is set programmatically; callbacks are only triggered by user interaction.
@@ -367,7 +380,7 @@ class TimePicker(dcg.Layout):
         Returns a datetime object representing the currently selected time,
         using today's date with the selected time components.
         """
-        total_secs = int(self._value.value)
+        total_secs = int(self._value)
         hours = total_secs // 3600
         minutes = (total_secs % 3600) // 60
         seconds = total_secs % 60
@@ -397,8 +410,10 @@ class TimePicker(dcg.Layout):
         if value != self._use_24hr:
             self._use_24hr = value
             # Update hour display & limits
+            self._hours.min_value = 0 if value else 1
             self._hours.max_value = 23 if value else 12
             self._hours.value = self._get_display_hour()
+            self._am_pm.value = "PM" if int(self._value // 3600) >= 12 else "AM"
             # Show/hide AM/PM
             self._am_pm.show = not value
             self._am_pm_separator.show = not value
@@ -432,22 +447,22 @@ class DatePicker(dcg.ChildWindow):
     max_date parameters.
     """
     
-    MONTH_NAMES = [
+    MONTH_NAMES = (
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
-    ]
+    )
     
-    MONTH_ABBREV = [
+    MONTH_ABBREV = (
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ]
+    )
     
-    WEEKDAY_ABBREV = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+    WEEKDAY_ABBREV = ("Su", "Mo", "Tu", "We", "Th", "Fr", "Sa")
 
     def __init__(self, context, *, value=None, min_date=None, max_date=None, **kwargs):
         super().__init__(context, **kwargs)
         
-        self._value = dcg.SharedFloat(context, 0)
+        self._value = 0.
         self._view_level = 0  # 0=days, 1=months, 2=years
         
         # Set default value to current date if none provided
@@ -459,9 +474,17 @@ class DatePicker(dcg.ChildWindow):
         # Set min/max dates
         self._min_date = datetime(1970, 1, 1) if min_date is None else min_date
         self._max_date = datetime(2999, 12, 31) if max_date is None else max_date
+        if not isinstance(self._min_date, datetime):
+            raise ValueError("min_date must be a datetime object")
+        if not isinstance(self._max_date, datetime):
+            raise ValueError("max_date must be a datetime object")
+        if self._min_date.date() > self._max_date.date():
+            raise ValueError("min_date must not be after max_date")
+        if not (self._min_date.date() <= value.date() <= self._max_date.date()):
+            raise ValueError("Date must be between min_date and max_date")
         
         # Initial setup
-        self._value.value = value.timestamp()
+        self._value = value.timestamp()
         self._current_month = value.month - 1
         self._current_year = value.year
         self._current_year_block = value.year - (value.year % 20)
@@ -471,12 +494,13 @@ class DatePicker(dcg.ChildWindow):
         self.auto_resize_y = True
         self.no_scrollbar = True
         self.no_scroll_with_mouse = True
-        self._container_style = \
-            dcg.ThemeStyleImGui(context, 
-                                frame_rounding=4.0,
-                                frame_padding=(6, 3),
-                                child_rounding=4.0,
-                                item_spacing=(8, 4))
+        self._container_style = dcg.ThemeStyleImGui(
+            context,
+            frame_rounding=4.0,
+            frame_padding=(6, 3),
+            child_rounding=4.0,
+            item_spacing=(8, 4)
+        )
         self._container_colors = dcg.ThemeColorImGui(context)
         self.theme = dcg.ThemeList(context)
         self._container_style.parent = self.theme
@@ -497,33 +521,34 @@ class DatePicker(dcg.ChildWindow):
         self._today_day_colors = dcg.ThemeColorImGui(context)
         self._disabled_day_colors = dcg.ThemeColorImGui(context)
 
-        # Add handler to update themes when rendered
-        self.handlers += [
-            dcg.GotRenderHandler(context, callback=self._update_theme_style)
-        ]
-
         with self:
             # Header row with navigation
             with dcg.HorizontalLayout(context):
                 # Left button - styling for a cleaner arrow
-                self._left_btn = dcg.Button(context, label="<", width=30,
-                                          callback=self._on_prev_click)
+                self._left_btn = dcg.Button(context, label="<", width=30)
                 self._left_btn.theme = self._nav_button_colors
                 
                 # Center label/button with more professional styling
-                self._header_btn = dcg.Button(context, 
-                                            label=self._get_header_text(),
-                                            callback=self._on_header_click)
+                self._header_btn = dcg.Button(context, label=self._get_header_text())
                 self._header_btn.theme = self._header_button_colors
                 
                 # Right button
-                self._right_btn = dcg.Button(context, label=">", width=30,
-                                           callback=self._on_next_click)
+                self._right_btn = dcg.Button(context, label=">", width=30)
                 self._right_btn.theme = self._nav_button_colors
-            
+
             # Calendar grid
             self._grid = dcg.Layout(context)
             self._update_grid()
+
+        # Connect navigation callbacks
+        self._left_btn.callback = self._on_prev_click
+        self._right_btn.callback = self._on_next_click
+        self._header_btn.callback = self._on_header_click
+
+        # Add handler to update themes when rendered
+        self.handlers += [
+            dcg.GotRenderHandler(context, callback=self._update_theme_style)
+        ]
 
     def _update_theme_style(self) -> None:
         """Update all theme objects based on current theme settings"""
@@ -598,9 +623,8 @@ class DatePicker(dcg.ChildWindow):
         # Disabled day theme
         self._disabled_day_colors.text = text_color[:3] + (0.5,)  # Dimmed text
         
-        # Update grid to apply new themes if it exists
-        if hasattr(self, '_grid') and self._grid:
-            self._update_grid()
+        # Update grid to apply new themes
+        self._update_grid()
 
     def _get_header_text(self) -> str:
         """
@@ -639,10 +663,13 @@ class DatePicker(dcg.ChildWindow):
     def _build_day_grid(self) -> None:
         """Build the day view calendar grid."""
         # Create a table for better layout
-        table = dcg.Table(self.context, parent=self._grid, 
-                          flags=dcg.TableFlag.SIZING_STRETCH_SAME | 
-                                dcg.TableFlag.NO_HOST_EXTEND_X,
-                          header=False)
+        table = dcg.Table(
+            self.context,
+            parent=self._grid,
+            flags=dcg.TableFlag.SIZING_STRETCH_SAME |
+                  dcg.TableFlag.NO_HOST_EXTEND_X,
+            header=False
+        )
         
         # Add weekday headers with themed styling
         with table.next_row:
@@ -650,27 +677,21 @@ class DatePicker(dcg.ChildWindow):
                 header_cell = dcg.Text(self.context, value=day)
                 header_cell.theme = self._weekday_header_colors
         
-        # Calculate first day of month
-        first_day = datetime(self._current_year, self._current_month + 1, 1)
-        days_in_month = (datetime(self._current_year + (self._current_month == 11),
-                                ((self._current_month + 1) % 12) + 1, 1) -
-                        datetime(self._current_year, self._current_month + 1, 1)).days
-        
-        # Get previous month info for padding
-        if self._current_month == 0:
-            prev_month_days = (datetime(self._current_year - 1, 12, 1) -
-                             datetime(self._current_year - 1, 11, 1)).days
-        else:
-            prev_month_days = (datetime(self._current_year, self._current_month + 1, 1) -
-                             datetime(self._current_year, self._current_month, 1)).days
+        # Calculate the month shape in Sunday-first calendar order.
+        month = self._current_month + 1
+        first_weekday, days_in_month = calendar.monthrange(self._current_year, month)
+        start_weekday = (first_weekday + 1) % 7
+        prev_year, prev_month = (
+            (self._current_year - 1, 12) if month == 1
+            else (self._current_year, month - 1)
+        )
+        prev_month_days = calendar.monthrange(prev_year, prev_month)[1]
 
         # Today's date for highlighting
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
         # Build calendar grid
         day = 1
-        start_weekday = first_day.weekday()
-        
         # Create weeks (6 rows max in a month view)
         for week in range(6):
             with table.next_row:
@@ -678,32 +699,38 @@ class DatePicker(dcg.ChildWindow):
                     if week == 0 and weekday < start_weekday:
                         # Previous month padding
                         pad_day = prev_month_days - start_weekday + weekday + 1
-                        btn = dcg.Button(self.context, 
-                                      label=str(pad_day), 
-                                      enabled=False,
-                                      width=-1)
+                        btn = dcg.Button(
+                            self.context,
+                            label=str(pad_day),
+                            enabled=False,
+                            width="fillx"
+                        )
                         # Use theme colors for disabled days
                         btn.theme = self._disabled_day_colors
                     elif day > days_in_month:
                         # Next month padding
                         next_day = day - days_in_month
-                        btn = dcg.Button(self.context, 
-                                      label=str(next_day), 
-                                      enabled=False,
-                                      width=-1)
+                        btn = dcg.Button(
+                            self.context,
+                            label=str(next_day),
+                            enabled=False,
+                            width="fillx"
+                        )
                         # Use theme colors for disabled days
                         btn.theme = self._disabled_day_colors
                         day += 1
                     else:
                         # Current month
                         date = datetime(self._current_year, self._current_month + 1, day)
-                        enabled = self._min_date <= date <= self._max_date
+                        enabled = self._min_date.date() <= date.date() <= self._max_date.date()
                         
-                        btn = dcg.Button(self.context, 
-                                      label=str(day),
-                                      enabled=enabled,
-                                      callback=self._on_day_select,
-                                      width=-1)
+                        btn = dcg.Button(
+                            self.context,
+                            label=str(day),
+                            enabled=enabled,
+                            callback=self._on_day_select,
+                            width="fillx"
+                        )
                         
                         # Apply appropriate theme based on day state
                         is_selected = date.date() == self.value_as_datetime.date()
@@ -738,22 +765,30 @@ class DatePicker(dcg.ChildWindow):
             with table.next_row:
                 for col in range(4):
                     date = datetime(self._current_year, month + 1, 1)
-                    enabled = (self._min_date.year < self._current_year or 
-                             (self._min_date.year == self._current_year and 
-                              self._min_date.month <= month + 1))
-                    enabled &= (self._max_date.year > self._current_year or
-                              (self._max_date.year == self._current_year and
-                               self._max_date.month >= month + 1))
+                    enabled = (
+                        self._min_date.year < self._current_year or
+                        (self._min_date.year == self._current_year and
+                        self._min_date.month <= month + 1)
+                    )
+                    enabled &= (
+                        self._max_date.year > self._current_year or
+                        (self._max_date.year == self._current_year and
+                        self._max_date.month >= month + 1)
+                    )
                     
-                    btn = dcg.Button(self.context,
-                                   label=self.MONTH_ABBREV[month],
-                                   enabled=enabled,
-                                   callback=self._on_month_select,
-                                   width=-1)
+                    btn = dcg.Button(
+                        self.context,
+                        label=self.MONTH_ABBREV[month],
+                        enabled=enabled,
+                        callback=self._on_month_select,
+                        width="fillx"
+                    )
                     
                     # Apply appropriate theme
-                    is_selected = (month == selected_date.month - 1 and 
-                                 self._current_year == selected_date.year)
+                    is_selected = (
+                        month == selected_date.month - 1 and
+                        self._current_year == selected_date.year
+                    )
                     
                     if is_selected:
                         btn.theme = self._selected_day_colors
@@ -764,10 +799,13 @@ class DatePicker(dcg.ChildWindow):
 
     def _build_year_grid(self) -> None:
         """Build the year selection grid."""
-        table = dcg.Table(self.context, parent=self._grid,
-                        flags=dcg.TableFlag.SIZING_STRETCH_SAME | 
-                              dcg.TableFlag.NO_HOST_EXTEND_X,
-                        header=False)
+        table = dcg.Table(
+            self.context,
+            parent=self._grid,
+            flags=dcg.TableFlag.SIZING_STRETCH_SAME |
+                  dcg.TableFlag.NO_HOST_EXTEND_X,
+            header=False
+        )
         
         # Current selected year for highlighting
         selected_date = self.value_as_datetime
@@ -777,13 +815,15 @@ class DatePicker(dcg.ChildWindow):
         for row in range(5):
             with table.next_row:
                 for col in range(4):
-                    if year <= 2999:
+                    if 1 <= year <= 9999:
                         enabled = self._min_date.year <= year <= self._max_date.year
-                        btn = dcg.Button(self.context,
-                                       label=str(year),
-                                       enabled=enabled,
-                                       callback=self._on_year_select,
-                                       width=-1)
+                        btn = dcg.Button(
+                            self.context,
+                            label=str(year),
+                            enabled=enabled,
+                            callback=self._on_year_select,
+                            width="fillx"
+                        )
                         
                         # Apply appropriate theme
                         is_selected = year == selected_date.year
@@ -803,13 +843,19 @@ class DatePicker(dcg.ChildWindow):
         """
         if self._view_level == 0:  # Day view
             if self._current_month == 0:
-                self._current_month = 11
-                self._current_year -= 1
+                year, month = self._current_year - 1, 11
             else:
-                self._current_month -= 1
+                year, month = self._current_year, self._current_month - 1
+            if (year, month + 1) < (self._min_date.year, self._min_date.month):
+                return
+            self._current_year, self._current_month = year, month
         elif self._view_level == 1:  # Month view
+            if self._current_year <= self._min_date.year:
+                return
             self._current_year -= 1
         else:  # Year view
+            if self._current_year_block <= self._min_date.year - self._min_date.year % 20:
+                return
             self._current_year_block -= 20
         self._update_grid()
         
@@ -822,13 +868,19 @@ class DatePicker(dcg.ChildWindow):
         """
         if self._view_level == 0:  # Day view
             if self._current_month == 11:
-                self._current_month = 0
-                self._current_year += 1
+                year, month = self._current_year + 1, 0
             else:
-                self._current_month += 1
+                year, month = self._current_year, self._current_month + 1
+            if (year, month + 1) > (self._max_date.year, self._max_date.month):
+                return
+            self._current_year, self._current_month = year, month
         elif self._view_level == 1:  # Month view
+            if self._current_year >= self._max_date.year:
+                return
             self._current_year += 1
         else:  # Year view
+            if self._current_year_block >= self._max_date.year - self._max_date.year % 20:
+                return
             self._current_year_block += 20
         self._update_grid()
         
@@ -890,10 +942,10 @@ class DatePicker(dcg.ChildWindow):
         """
         if not isinstance(value, datetime):
             raise ValueError("Value must be a datetime object")
-        if not (self._min_date <= value <= self._max_date):
+        if not (self._min_date.date() <= value.date() <= self._max_date.date()):
             raise ValueError("Date must be between min_date and max_date")
             
-        self._value.value = value.timestamp()
+        self._value = value.timestamp()
         self._current_month = value.month - 1
         self._current_year = value.year
         self._current_year_block = value.year - (value.year % 20)
@@ -913,12 +965,14 @@ class DatePicker(dcg.ChildWindow):
         """Set the minimum selectable date"""
         if not isinstance(value, datetime):
             raise ValueError("min_date must be a datetime object")
+        if value.date() > self._max_date.date():
+            raise ValueError("min_date must not be after max_date")
         self._min_date = value
         
         # Make sure current value is still valid
         current_date = self.value_as_datetime
-        if current_date < self._min_date:
-            self._value.value = self._min_date.timestamp()
+        if current_date.date() < self._min_date.date():
+            self._set_value(datetime.combine(self._min_date.date(), current_date.time()))
         
         # Update the calendar view
         self._update_grid()
@@ -937,15 +991,27 @@ class DatePicker(dcg.ChildWindow):
         """Set the maximum selectable date"""
         if not isinstance(value, datetime):
             raise ValueError("max_date must be a datetime object")
+        if value.date() < self._min_date.date():
+            raise ValueError("max_date must not be before min_date")
         self._max_date = value
         
         # Make sure current value is still valid
         current_date = self.value_as_datetime
-        if current_date > self._max_date:
-            self._value.value = self._max_date.timestamp()
+        if current_date.date() > self._max_date.date():
+            self._set_value(datetime.combine(self._max_date.date(), current_date.time()))
         
         # Update the calendar view
         self._update_grid()
+
+    @property
+    def shareable_value(self) -> typing.NoReturn:
+        # Implementing shareable_value would require checking if the shareable value
+        # has updated in a render handler, which further complicates the code.
+        raise NotImplementedError("DatePicker does not support shareable_value")
+
+    @shareable_value.setter
+    def shareable_value(self, value) -> None:
+        raise NotImplementedError("DatePicker does not support shareable_value")
 
     @property
     def value(self) -> float: # type: ignore
@@ -955,7 +1021,13 @@ class DatePicker(dcg.ChildWindow):
         This is the raw internal representation that can be used for calculations
         or for sharing the date value between components.
         """
-        return self._value.value
+        return self._value
+
+    @value.setter
+    def value(self, value: float | datetime) -> None:
+        """Set the selected date from a datetime or Unix timestamp."""
+        selected = value if isinstance(value, datetime) else datetime.fromtimestamp(value)
+        self._set_value(selected)
 
     @property
     def value_as_datetime(self) -> datetime:
@@ -964,7 +1036,7 @@ class DatePicker(dcg.ChildWindow):
         
         Provides a convenient datetime interface for date manipulation.
         """
-        return datetime.fromtimestamp(self._value.value)
+        return datetime.fromtimestamp(self._value)
 
     def run_callbacks(self) -> None:
         """
@@ -974,6 +1046,7 @@ class DatePicker(dcg.ChildWindow):
         """
         for callback in self.callbacks:
             callback(self, self, dcg.uiItemCallbackValue(self.context, self.value_as_datetime))
+
 
 class DateTimePicker(dcg.Layout):
     """
@@ -999,50 +1072,61 @@ class DateTimePicker(dcg.Layout):
                  **kwargs) -> None:
         super().__init__(context, **kwargs)
         
-        # Initialize shared value
-        self._value = dcg.SharedFloat(context, 0)
+        # Default to current time if no value provided
+        if value is None:
+            value = datetime.now()
+
+        # Normalize the input to local wall-clock time for both picker components.
+        if isinstance(value, datetime):
+            self._value = value.timestamp()
+        else:
+            self._value = float(value)
+        initial_datetime = datetime.fromtimestamp(self._value)
         
         # Create date and time pickers
         if layout == "compact":
             with dcg.HorizontalLayout(context, parent=self):
-                self._date_picker = DatePicker(context,
-                                             min_date=min_date,
-                                             max_date=max_date,
-                                             shareable_value=self._value,
-                                             callbacks=[self._on_change],
-                                             width=250)
+                self._date_picker = DatePicker(
+                    context,
+                    min_date=min_date,
+                    max_date=max_date,
+                    callbacks=[self._on_change],
+                    value=initial_datetime,
+                    width=250
+                )
                 dcg.Text(context, value=" @ ", width=20)
-                self._time_picker = TimePicker(context,
-                                             use_24hr=use_24hr,
-                                             show_seconds=show_seconds,
-                                             shareable_value=self._value,
-                                             callbacks=[self._on_change],
-                                             width=250)
+                self._time_picker = TimePicker(
+                    context,
+                    use_24hr=use_24hr,
+                    show_seconds=show_seconds,
+                    callbacks=[self._on_change],
+                    value=initial_datetime,
+                    width=250
+                )
         else:
             # Create layout container
             container = (dcg.HorizontalLayout if layout == "horizontal" 
                        else dcg.VerticalLayout)(context, parent=self)
             
             with container:
-                self._date_picker = DatePicker(context,
-                                             min_date=min_date,
-                                             max_date=max_date, 
-                                             shareable_value=self._value,
-                                             callbacks=[self._on_change])
+                self._date_picker = DatePicker(
+                    context,
+                    min_date=min_date,
+                    max_date=max_date,
+                    callbacks=[self._on_change],
+                    value=initial_datetime
+                )
 
-                self._time_picker = TimePicker(context,
-                                             use_24hr=use_24hr,
-                                             show_seconds=show_seconds,
-                                             shareable_value=self._value,
-                                             callbacks=[self._on_change])
+                self._time_picker = TimePicker(
+                    context,
+                    use_24hr=use_24hr,
+                    show_seconds=show_seconds,
+                    callbacks=[self._on_change],
+                    value=initial_datetime
+                )
 
-        # Set initial value 
-        if value is not None:
-            self.value = value
-        else:
-            self.value = datetime.now()
 
-    def _on_change(self) -> None:
+    def _on_change(self, sender) -> None:
         """
         Handle date/time changes from either picker.
         
@@ -1050,6 +1134,15 @@ class DateTimePicker(dcg.Layout):
         changes its value. It synchronizes the overall combined value and propagates
         the change by running registered callbacks.
         """
+        # Extract the updated value
+        if isinstance(sender, DatePicker):
+            date = sender.value_as_datetime.date()
+            self._value = datetime.combine(date, self.value_as_datetime.time()).timestamp()
+        elif isinstance(sender, TimePicker):
+            time = sender.value_as_datetime.time()
+            self._value = datetime.combine(self.value_as_datetime.date(), time).timestamp()
+
+        # Propagate the change to registered callbacks
         self.run_callbacks()
 
     @property
@@ -1061,11 +1154,15 @@ class DateTimePicker(dcg.Layout):
         since the Unix epoch (January 1, 1970). This format allows for easy sharing
         between components and precise time calculations.
         """
-        return self._value.value
+        return self._value
     
     @value.setter
     def value(self, value) -> None:
-        self._value.value = value.timestamp() if isinstance(value, datetime) else float(value)
+        timestamp = value.timestamp() if isinstance(value, datetime) else float(value)
+        selected = datetime.fromtimestamp(timestamp)
+        self._date_picker.value = timestamp
+        self._time_picker.value = selected
+        self._value = timestamp
 
     @property
     def value_as_datetime(self) -> datetime:
@@ -1075,7 +1172,7 @@ class DateTimePicker(dcg.Layout):
         This provides a convenient datetime interface for the selected date and time,
         allowing for easy integration with Python's datetime functionality.
         """
-        return datetime.fromtimestamp(self._value.value)
+        return datetime.fromtimestamp(self._value)
     
     @value_as_datetime.setter
     def value_as_datetime(self, value) -> None:
