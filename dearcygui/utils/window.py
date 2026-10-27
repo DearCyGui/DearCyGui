@@ -5,38 +5,87 @@ from collections import deque
 
 # TODO V1: this whole file should be updated to the python coding guidelines
 
+
 class ScrollingBuffer:
-    """
-    A scrolling buffer with a large memory backing.
-    Does copy only when the memory backing is full.
-    """
-    def __init__(self,
-                 scrolling_size=2000, 
-                 max_size=1000000):
-        self.data = array('d', [0.0] * max_size)
-        assert(2 * scrolling_size < max_size)
-        self.size = 0
-        self.scrolling_size = scrolling_size
-        self.max_size = max_size
+    """A scrolling buffer with a large memory backing.
 
-    def push(self, value):
-        if self.size >= self.max_size:
-            # We reached the end of the buffer.
-            # Restart from the beginning
-            self.data[:self.scrolling_size] = self.data[-self.scrolling_size:]
-            self.size = self.scrolling_size
-        self.data[self.size] = value
-        self.size += 1
+    Data is copied only when the memory backing is full.
 
-    def get(self, requested_size=None):
+    This class is not thread-safe.
+    """
+
+    __slots__ = {
+        "_data": "Memory backing of the buffer",
+        "_max_size": "Capacity of the memory backing",
+        "_scrolling_size": "Number of most recent values exposed by get()",
+        "_size": "Number of values currently stored in the backing",
+    }
+
+    _data: array
+    _max_size: int
+    _scrolling_size: int
+    _size: int
+
+    def __init__(self, *, scrolling_size: int = 2000, max_size: int = 1000000) -> None:
+        """Allocate the memory backing of the buffer.
+
+        Args:
+            scrolling_size: Number of most recent values exposed by `get`.
+            max_size: Capacity of the memory backing.
+
+        Raises:
+            ValueError: If *scrolling_size* is not positive or *max_size* is
+                not greater than twice *scrolling_size*.
+        """
+
+        # Validate the sizes
+        if scrolling_size <= 0 or max_size <= 2 * scrolling_size:
+            raise ValueError(
+                f"max_size ({max_size}) must be greater than twice scrolling_size "
+                f"({scrolling_size}), which must be positive"
+            )
+
+        # Allocate the backing
+        self._data = array("d", [0.0] * max_size)
+        self._max_size = max_size
+        self._scrolling_size = scrolling_size
+        self._size = 0
+
+    def get(self, requested_size: int | None = None) -> array:
+        """Return the most recent values.
+
+        Args:
+            requested_size: Maximum number of values to return. Capped to
+                the scrolling size. Defaults to the scrolling size.
+
+        Returns:
+            The most recent values, oldest first.
+        """
+
         if requested_size is None:
-            requested_size = self.scrolling_size
+            requested_size = self._scrolling_size
         else:
-            requested_size = min(self.scrolling_size, requested_size)
-        start = max(0, self.size-requested_size)
-        return self.data[start:self.size]
+            requested_size = min(self._scrolling_size, requested_size)
+        start = max(0, self._size - requested_size)
+        return self._data[start : self._size]
 
-text_hints = {
+    def push(self, value: float) -> None:
+        """Append a value, discarding the oldest ones when the backing is full.
+
+        Args:
+            value: The value to append.
+        """
+
+        # Restart from the beginning when the end of the backing is reached
+        if self._size >= self._max_size:
+            self._data[: self._scrolling_size] = self._data[-self._scrolling_size :]
+            self._size = self._scrolling_size
+
+        # Store the value
+        self._data[self._size] = value
+        self._size += 1
+
+_TEXT_HINTS = {
     "Low FPS": "In this region the application may appear to have stutter, not be smooth",
     "30+ FPS": "Application will appear smooth, but it's not ideal",
     "60+ FPS": "Application will appear smooth",
@@ -52,148 +101,156 @@ text_hints = {
 class MetricsWindow(dcg.Window):
     def __init__(self, context : dcg.Context, width=0, height=0, *args, **kwargs):
         super().__init__(context, width=width, height=height, *args, **kwargs)
-        c = context
         # At this step the window is created
 
         # Create the data reserve
-        self.data = {
+        self._data = {
             "Frame": ScrollingBuffer(),
             "Events": ScrollingBuffer(),
             "Rendering(other)": ScrollingBuffer(),
             "Rendering(this)": ScrollingBuffer(),
             "Presentation": ScrollingBuffer()
         }
-        self.times = ScrollingBuffer()
-        self.self_metrics = deque(maxlen=10)
-        self.metrics : deque[dcg.ViewportMetrics] = deque(maxlen=10)
-        self.plots = {}
+        self._times = ScrollingBuffer()
+        self._self_metrics = deque(maxlen=10)
+        self._metrics : deque[dcg.ViewportMetrics] = deque(maxlen=10)
+        self._plots = {}
 
-        self.low_framerate_theme = dcg.ThemeColorImPlot(c)
-        self.medium_framerate_theme = dcg.ThemeColorImPlot(c)
-        self.high_framerate_theme = dcg.ThemeColorImPlot(c)
-        self.low_framerate_theme.frame_bg = (1., 0., 0., 0.3)
-        self.medium_framerate_theme.frame_bg = (1., 1., 0., 0.3)
-        self.high_framerate_theme.frame_bg = (0., 0., 0., 0.)
-        self.low_framerate_theme.plot_bg = (0., 0., 0., 1.)
-        self.medium_framerate_theme.plot_bg = (0., 0., 0., 1.)
-        self.high_framerate_theme.plot_bg = (0., 0., 0., 1.)
-        self.low_framerate_theme.plot_border = (0., 0., 0., 0.)
-        self.medium_framerate_theme.plot_border = (0., 0., 0., 0.)
-        self.high_framerate_theme.plot_border = (0., 0., 0., 0.)
+        # Initialize metrics tracking variables
+        self._metrics_window_rendering_time = 0
+        self._start_time = self.context.viewport.metrics.last_time_before_rendering
+        self._rendering_metrics = self.context.viewport.metrics
 
-        with dcg.TabBar(c, label="Main Tabbar", parent=self):
-            with dcg.Tab(c, label="General"):
-                dcg.Text(c, value="DearCyGui Version: 0.1.0")
-                self.text1 = dcg.Text(c)
-                self.text2 = dcg.Text(c)
-                self.text3 = dcg.Text(c)
-                self.history = dcg.Slider(context, value=10., min_value=1., max_value=30., label="History", print_format="%.1f s")
-                self.main_plot = dcg.Plot(c, height=200)
-                self.main_plot.Y1.auto_fit = True
-                self.main_plot.Y1.restrict_fit_to_range = True
-                with self.main_plot:
-                    self.history_bounds = array('d', [0.0, 0.0])
-                    self.history_bounds[0] = 0
-                    self.history_bounds[1] = 10.
-                    dcg.PlotShadedLine(c,
-                                       label='60+ FPS',
-                                       X=self.history_bounds,
-                                       Y1=[0., 0.],
-                                       Y2=[16., 16.],
-                                       theme=dcg.ThemeColorImPlot(c, fill=(0., 1., 0., 0.1)),
-                                       ignore_fit=True)
-                    dcg.PlotShadedLine(c,
-                                       label='30+ FPS',
-                                       X=self.history_bounds,
-                                       Y1=[16., 16.],
-                                       Y2=[32., 32.],
-                                       theme=dcg.ThemeColorImPlot(c, fill=(1., 1., 0., 0.1)),
-                                       ignore_fit=True)
-                    dcg.PlotShadedLine(c,
-                                       label='Low FPS',
-                                       X=self.history_bounds,
-                                       Y1=[32., 32.],
-                                       Y2=[64., 64.],
-                                       theme=dcg.ThemeColorImPlot(c, fill=(1., 0., 0., 0.1)),
-                                       ignore_fit=True)
-                    for key in ["Frame", "Presentation"]:
-                        self.plots[key] = dcg.PlotLine(c,
-                                                       label=key)
-                self.secondary_plot = dcg.Plot(c,
-                                               theme=dcg.ThemeColorImPlot(c, plot_border=0))
-                self.secondary_plot.Y1.auto_fit = True
-                self.secondary_plot.Y1.restrict_fit_to_range = True
-                with self.secondary_plot:
-                    for key in self.data.keys():
-                        if key in ["Frame", "Presentation"]:
-                            continue
-                        self.plots[key] = dcg.PlotLine(c,
-                                                       label=key)
+        # Initialize the UI with a 4 line text fields, a slider history and a main plot
+        with self:
+            self._stat_text = dcg.Text(context, value=f"DearCyGui Version: {dcg.__version__}\n\n\n\n")
+            self._history = dcg.Slider(
+                context,
+                value=10.,
+                min_value=1.,
+                max_value=30.,
+                label="History",
+                print_format="%.1f s"
+            )
+            self._main_plot = dcg.Plot(context, height=200)
+            self._main_plot.Y1.auto_fit = True
+            self._main_plot.Y1.restrict_fit_to_range = True
 
-        # Add Legend tooltips
-        # Contrary to DPG, they are not children of the elements, but children of the window.
-        for plot_element in self.main_plot.children + self.secondary_plot.children:
+        # In the main plot (rolling history for fps for frame/presentation),
+        # attach fps threshold regions 
+        with self._main_plot:
+            self._history_bounds = array('d', [0.0, 0.0])
+            self._history_bounds[0] = 0
+            self._history_bounds[1] = 10.
+            dcg.PlotShadedLine(
+                context,
+                label='60+ FPS',
+                X=self._history_bounds,
+                Y1=[0., 0.],
+                Y2=[16., 16.],
+                theme=dcg.ThemeColorImPlot(context, fill=(0., 1., 0., 0.1)),
+                ignore_fit=True
+            )
+            dcg.PlotShadedLine(
+                context,
+                label='30+ FPS',
+                X=self._history_bounds,
+                Y1=[16., 16.],
+                Y2=[32., 32.],
+                theme=dcg.ThemeColorImPlot(context, fill=(1., 1., 0., 0.1)),
+                ignore_fit=True
+            )
+            dcg.PlotShadedLine(
+                context,
+                label='Low FPS',
+                X=self._history_bounds,
+                Y1=[32., 32.],
+                Y2=[64., 64.],
+                theme=dcg.ThemeColorImPlot(context, fill=(1., 0., 0., 0.1)),
+                ignore_fit=True
+            )
+
+            # Add individual plot lines for "Frame" and "Presentation" metrics
+            for key in ["Frame", "Presentation"]:
+                self._plots[key] = dcg.PlotLine(
+                    context,
+                    label=key
+                )
+
+        # Attach below the main plot a secondary plot for other metrics
+        with self:
+            self._secondary_plot = dcg.Plot(
+                context,
+                theme=dcg.ThemeColorImPlot(context, plot_border=0)
+            )
+            self._secondary_plot.Y1.auto_fit = True
+            self._secondary_plot.Y1.restrict_fit_to_range = True
+        with self._secondary_plot:
+            for key in self._data.keys():
+                if key in ["Frame", "Presentation"]:
+                    continue
+                self._plots[key] = dcg.PlotLine(
+                    context,
+                    label=key
+                )
+
+        # Add Legend tooltips to both plots
+        for plot_element in self._main_plot.children + self._secondary_plot.children:
             key = plot_element.label
-            if key in text_hints.keys():
-                with dcg.Tooltip(c, target=plot_element, parent=self):
-                    dcg.Text(c, value=text_hints[key])
+            if key in _TEXT_HINTS.keys():
+                with dcg.Tooltip(context, target=plot_element, parent=self):
+                    dcg.Text(context, value=_TEXT_HINTS[key])
+
         # Add axis tooltips
-        with dcg.Tooltip(c, target=self.main_plot.X1, parent=self):
-            dcg.Text(c, value=text_hints["X"])
-        with dcg.Tooltip(c, target=self.main_plot.Y1, parent=self):
-            dcg.Text(c, value=text_hints["Y"])
-        with dcg.Tooltip(c, target=self.secondary_plot.X1, parent=self):
-            dcg.Text(c, value=text_hints["X"])
-        with dcg.Tooltip(c, target=self.secondary_plot.Y1, parent=self):
-            dcg.Text(c, value=text_hints["Y"])
+        with dcg.Tooltip(context, target=self._main_plot.X1, parent=self):
+            dcg.Text(context, value=_TEXT_HINTS["X"])
+        with dcg.Tooltip(context, target=self._main_plot.Y1, parent=self):
+            dcg.Text(context, value=_TEXT_HINTS["Y"])
+        with dcg.Tooltip(context, target=self._secondary_plot.X1, parent=self):
+            dcg.Text(context, value=_TEXT_HINTS["X"])
+        with dcg.Tooltip(context, target=self._secondary_plot.Y1, parent=self):
+            dcg.Text(context, value=_TEXT_HINTS["Y"])
         
-        # Attach a TimeWatch Instance to measure the time
+        # Wrap all UI inside the MetricsWindow (except the menubar)
+        # Inside a TimeWatch instance to measure the time
         # spent rendering this item's children. We do
         # not measure the window itself, but it should
         # be small.
-        children = self.children
-        tw = dcg.TimeWatcher(context, parent=self, callback=self.log_times)
-        # Move the ui children to TimeWatcher
+        children = list(self.children)
+        tw = dcg.TimeWatcher(context, parent=self, callback=self._log_times)
+        # Move the ui children to TimeWatcher, except the menubar
         for child in children:
             try:
                 assert not isinstance(child, dcg.MenuBar)
                 child.parent = tw
             except TypeError:
                 pass
-        self.metrics_window_rendering_time = 0
-        self.start_time = self.context.viewport.metrics.last_time_before_rendering
-        self.rendering_metrics = self.context.viewport.metrics
 
-    def log_times(self, watcher, target, watcher_data: dcg.TimeWatcherCallbackValue) -> None:
+    def _log_times(self, watcher, target, watcher_data: dcg.TimeWatcherCallbackValue) -> None:
         """Record timing data from a time watcher.
         
         This method processes the timing information collected by the time watcher
         and stores it for later use in metrics calculations. It triggers metrics
         logging and plot updates based on the received data.
         """
-        start_metrics_rendering = watcher_data.time_start
-        stop_metrics_rendering = watcher_data.time_end
-        frame_count = watcher_data.viewport_frame_count
-        delta = stop_metrics_rendering - start_metrics_rendering
-        # Perform a running average
-        #self.metrics_window_rendering_time = \
-        #    0.9 * self.metrics_window_rendering_time + \
-        #    0.1 * delta
-        #self.metrics_window_rendering_time = delta * 1e-9
-        self.self_metrics.append((frame_count, delta * 1e-9, watcher_data))
-        self.log_metrics()
-        self.update_plot(frame_count)
+        # Measure the time to render the window UI
+        delta =  watcher_data.time_end - watcher_data.time_start
 
-    def log_metrics(self) -> None:
-        """Record viewport metrics for performance tracking.
-        
-        This method captures the current viewport metrics and stores them in the
-        metrics queue for later processing. It handles potential timing 
-        differences between when metrics are recorded and when they're processed.
-        """
-        self.metrics.append(self.context.viewport.metrics)
+        # Record the metrics
+        self._self_metrics.append((
+            watcher_data.viewport_frame_count,
+            delta * 1e-9 # convert nanoseconds to seconds
+        ))
 
-    def update_plot(self, frame_count) -> None:
+        # Retrieve viewport metrics and log them
+        # NOTE: retrieving metrics will lock the viewport and thus block
+        # during parts of rendering.
+        self._metrics.append(self.context.viewport.metrics)
+
+        # Update the plots with the latest metrics data
+        self._update_plot(watcher_data.viewport_frame_count)
+
+    def _update_plot(self, frame_count: int) -> None:
         """Update visualization plots with the latest metrics data.
         
         This method processes collected metrics data, updates the various 
@@ -203,67 +260,122 @@ class MetricsWindow(dcg.Window):
         """
         treated_metrics = []
         treated_self_metrics = []
+
         # Treat frames where we have received both infos
-        for rendering_metrics in self.metrics:
-            for self_metric in self.self_metrics:
-                (frame_count, metrics_window_rendering_time, t_check) = self_metric
+        for rendering_metrics in self._metrics:
+
+            # Iterate over self metrics to find a matching frame count
+            # Note the length of self metrics is <= 10
+            for self_metric in self._self_metrics:
+                (frame_count, metrics_window_rendering_time) = self_metric
                 if frame_count == rendering_metrics.frame_count:
                     break
+
+            # Skip this rendering_metrics if no matching self_metric is found
             else:
                 continue
+
+            # At this point, we have a matching self_metric for the current rendering_metrics
+            # Append the matched metrics to the treated lists for later removal
             treated_metrics.append(rendering_metrics)
             treated_self_metrics.append(self_metric)
-            self.data["Frame"].push(1e3 * rendering_metrics.delta_whole_frame)
-            self.data["Events"].push(1e3 * rendering_metrics.delta_event_handling)
-            self.data["Rendering(other)"].push(1e3 * (rendering_metrics.delta_rendering - metrics_window_rendering_time))
-            self.data["Rendering(this)"].push(1e3 * metrics_window_rendering_time)
-            self.data["Presentation"].push(1e3 * rendering_metrics.delta_presenting)
+
+            # Push the relevant metrics to the corresponding data deques
+            # TODO: this means we may in theory push in a different
+            # order than the presentation order...
+            self._data["Frame"].push(1e3 * rendering_metrics.delta_whole_frame)
+            self._data["Events"].push(1e3 * rendering_metrics.delta_event_handling)
+            self._data["Rendering(other)"].push(1e3 * (rendering_metrics.delta_rendering - metrics_window_rendering_time))
+            self._data["Rendering(this)"].push(1e3 * metrics_window_rendering_time)
+            self._data["Presentation"].push(1e3 * rendering_metrics.delta_presenting)
+
+        # Skip updating if there is no new data to process
+        if not treated_metrics:
+            return
+
         # Remove treated data
         for rendering_metrics in treated_metrics:
             try:
-                self.metrics.remove(rendering_metrics)
+                self._metrics.remove(rendering_metrics)
             except ValueError:
                 # Removed by deque length limit
                 pass
         for self_metric in treated_self_metrics:
             try:
-                self.self_metrics.remove(self_metric)
+                self._self_metrics.remove(self_metric)
             except ValueError:
                 # Removed by deque length limit
                 pass
-        # Update the plots
+
+        # Retrieve the viewport metrics
         rendering_metrics = self.context.viewport.metrics
         rendered_vertices = rendering_metrics.rendered_vertices
         rendered_indices = rendering_metrics.rendered_indices
         rendered_windows = rendering_metrics.rendered_windows
         active_windows = rendering_metrics.active_windows
         current_time = rendering_metrics.last_time_before_rendering
-        self.times.push(current_time - self.start_time)
-        time_average = sum(self.data["Frame"].get()[-60:]) / 60
-        fps_average = 1e3 / (max(1e-20, time_average))
-        if fps_average < 29:
-            self.main_plot.theme = self.low_framerate_theme
-        elif fps_average < 59:
-            self.main_plot.theme = self.medium_framerate_theme
-        else:
-            self.main_plot.theme = self.high_framerate_theme
 
-        self.text1.value = "Application average %.3f ms/frame (%.1f FPS)" % (time_average, fps_average)
-        self.text2.value = "%d vertices, %d indices (%d triangles)" % (rendered_vertices, rendered_indices, rendered_indices//3)
-        self.text3.value = "%d active windows (%d visible)" % (active_windows, rendered_windows)
-        DT1 = current_time - self.start_time
-        DT0 = current_time - self.start_time - self.history.value
-        self.history_bounds[1] = DT1
-        self.history_bounds[0] = DT0
-        self.main_plot.X1.min = DT0 # TODO: do that in a thread to avoid waking
-        self.main_plot.X1.max = DT1
-        self.secondary_plot.X1.min = DT0
-        self.secondary_plot.X1.max = DT1
+        # Push the current time to the times deque
+        self._times.push(current_time - self._start_time)
+
+        # Compute the average frame time and FPS over the last 60 frames
+        time_average = sum(self._data["Frame"].get()[-60:]) / 60
+        fps_average = 1e3 / (max(1e-20, time_average))
+
+        # Define the themes for the three framerate regions
+        low_framerate_theme = dcg.ThemeColorImPlot(
+            self.context,
+            frame_bg=(1., 0., 0., 0.3),
+            plot_bg=(0., 0., 0., 1.),
+            plot_border=(0., 0., 0., 0.)
+        )
+        medium_framerate_theme = dcg.ThemeColorImPlot(
+            self.context,
+            frame_bg=(1., 1., 0., 0.3),
+            plot_bg=(0., 0., 0., 1.),
+            plot_border=(0., 0., 0., 0.)
+        )
+        high_framerate_theme = dcg.ThemeColorImPlot(
+            self.context,
+            frame_bg=(0., 0., 0., 0.),
+            plot_bg=(0., 0., 0., 1.),
+            plot_border=(0., 0., 0., 0.)
+        )
+
+        # Select the theme based on the average FPS
+        if fps_average < 29:
+            self._main_plot.theme = low_framerate_theme
+        elif fps_average < 59:
+            self._main_plot.theme = medium_framerate_theme
+        else:
+            self._main_plot.theme = high_framerate_theme
+
+        # Update the text fields with the current metrics
+        self._stat_text.value = \
+           f"DearCyGui Version: {dcg.__version__}\n" \
+           f"Application average {time_average:.3f} ms/frame ({fps_average:.1f} FPS)\n" \
+           f"{rendered_vertices} vertices, {rendered_indices} indices ({rendered_indices//3} triangles)\n" \
+           f"{active_windows} active windows ({rendered_windows} visible)"
+
+        # Update the history bounds and plot ranges based on the current time
+        DT1 = current_time - self._start_time
+        DT0 = current_time - self._start_time - self._history.value
+        self._history_bounds[1] = DT1
+        self._history_bounds[0] = DT0
+        self._main_plot.X1.min = DT0
+        self._main_plot.X1.max = DT1
+        self._secondary_plot.X1.min = DT0
+        self._secondary_plot.X1.max = DT1
 
         # This is actually no copy
-        for key in self.plots.keys():
-            self.plots[key].X = self.times.get()
-            self.plots[key].Y = self.data[key].get()
+        for key in self._plots.keys():
+            self._plots[key].X = self._times.get()
+            self._plots[key].Y = self._data[key].get()
+
+        # Mark that the plot content has updated and in case of viewport
+        # refreshes, GPU submission should be done
+        # Also ensure we update once every 10 seconds
+        self.context.viewport.wake(delay=10, full_refresh=True)
 
 def get_children_recursive(item: dcg.baseItem) -> list[dcg.baseItem]:
     """Recursively collect all children of an item.
