@@ -377,7 +377,7 @@ class MetricsWindow(dcg.Window):
         # Also ensure we update once every 10 seconds
         self.context.viewport.wake(delay=10, full_refresh=True)
 
-def get_children_recursive(item: dcg.baseItem) -> list[dcg.baseItem]:
+def _get_children_recursive(item: dcg.baseItem) -> list[dcg.baseItem]:
     """Recursively collect all children of an item.
     
     This function traverses the item hierarchy and returns a flat list containing
@@ -386,41 +386,60 @@ def get_children_recursive(item: dcg.baseItem) -> list[dcg.baseItem]:
     result = [item]
     children = item.children
     for c in children:
-        result += get_children_recursive(c)
+        result += _get_children_recursive(c)
     return result
 
 class ItemInspecter(dcg.Window):
-    def __init__(self, context : dcg.Context, width=0, height=0, *args, **kwargs):
-        super().__init__(context, width=width, height=height, *args, **kwargs)
-        self.inspected_items = []
-        C = context
+    """Inspector window for examining and interacting with items.
+
+    This window allows users to hover over items to inspect them and
+    provides functionality to drag items while holding the Alt key.
+    """
+    __slots__ = {
+        "_dragging_item": "Currently dragged item",
+        "_dragging_item_original_state": "Original state of the dragged item",
+        "_inspected_items": "List of currently inspected items",
+        "_item_handler": "Handler list for managing item events"
+    }
+
+    _dragging_item: dcg.baseItem | None
+    _dragging_item_original_state: dcg.ItemStateCopy | None
+    _inspected_items: list[dcg.baseItem]
+    _item_handler: dcg.HandlerList
+
+    def __init__(self, context : dcg.Context, autosize=True, *args, **kwargs):
+        super().__init__(context, autosize=autosize, *args, **kwargs)
+        # Initialize dragging state and item handler
+        self._dragging_item = None
+        self._dragging_item_original_state = None
+        self._inspected_items = []
+        self._item_handler = dcg.HandlerList(context)
+
+        # Create the main layout for the inspector window
         with self:
-            with dcg.HorizontalLayout(C, alignment_mode=dcg.Alignment.LEFT):
-                dcg.Button(C, label="Install handlers", callback=self.setup_handlers)
-                dcg.Button(C, label="Remove handlers", callback=self.remove_handlers)
-            with dcg.HorizontalLayout(C, alignment_mode=dcg.Alignment.CENTER):
-                with dcg.VerticalLayout(C):
-                    dcg.Text(C, wrap=0).value = \
+            with dcg.HorizontalLayout(context, alignment_mode=dcg.Alignment.LEFT, no_wrap=True):
+                dcg.Button(context, label="Install handlers", callback=self.setup_handlers)
+                dcg.Button(context, label="Remove handlers", callback=self.remove_handlers)
+            with dcg.HorizontalLayout(context, alignment_mode=dcg.Alignment.CENTER):
+                with dcg.VerticalLayout(context):
+                    dcg.Text(context, wrap=0).value = \
                     "Help: Hover an item to inspect it. Alt+right click to move it."
 
-        self.item_handler = dcg.HandlerList(C)
-        with self.item_handler:
-            dcg.GotHoverHandler(C, callback=self.handle_item_hovered)
+        # Create the item handler for managing inspection events
+        with self._item_handler:
+            dcg.GotHoverHandler(context, callback=self.handle_item_hovered)
             # If an item is hovered and the Alt key is pressed,
             # handle dragging an item.
-            with dcg.ConditionalHandler(C):
-                dcg.DraggingHandler(C, button=dcg.MouseButton.RIGHT, callback=self.handle_item_dragging)
-                dcg.KeyDownHandler(C, key=dcg.Key.LEFTALT)
-            dcg.DraggedHandler(C, button=dcg.MouseButton.RIGHT, callback=self.handle_item_dragged)
+            with dcg.ConditionalHandler(context):
+                dcg.DraggingHandler(context, button=dcg.MouseButton.RIGHT, callback=self.handle_item_dragging)
+                dcg.KeyDownHandler(context, key=dcg.Key.LEFTALT)
+            dcg.DraggedHandler(context, button=dcg.MouseButton.RIGHT, callback=self.handle_item_dragged)
             # If a compatible item is hovered and the ALT key is set,
             # change the cursor to show we can drag
-            with dcg.ConditionalHandler(C):
-                dcg.MouseCursorHandler(C, cursor=dcg.MouseCursor.HAND)
-                dcg.HoverHandler(C)
-                dcg.KeyDownHandler(C, key=dcg.Key.LEFTALT)
-
-        self.dragging_item = None
-        self.dragging_item_original_pos = None
+            with dcg.ConditionalHandler(context):
+                dcg.MouseCursorHandler(context, cursor=dcg.MouseCursor.HAND)
+                dcg.HoverHandler(context)
+                dcg.KeyDownHandler(context, key=dcg.Key.LEFTALT)
 
     def setup_handlers(self) -> None:
         """Install inspection handlers on all UI elements.
@@ -429,14 +448,19 @@ class ItemInspecter(dcg.Window):
         enabling them to be inspected and manipulated through the inspector
         interface. It cleans up any previously installed handlers first.
         """
-        if len(self.inspected_items) > 0:
-            # Uninstall previous handlers first
+        # Uninstall previous handlers first
+        if len(self._inspected_items) > 0:
             self.remove_handlers()
-        children_list = get_children_recursive(self.context.viewport)
-        self.inspected_items += children_list
+
+        # Get all children of the viewport recursively
+        children_list = _get_children_recursive(self.context.viewport)
+
+        # Add the retrieved children to the list of inspected items
+        self._inspected_items += children_list
         for c in children_list:
             try:
-                c.handlers += [self.item_handler] # type: ignore
+                with c.mutex:
+                    c.handlers += [self._item_handler] # type: ignore
             except Exception:
                 # Pass incompatible items
                 pass
@@ -448,14 +472,15 @@ class ItemInspecter(dcg.Window):
         all tracked UI elements, effectively disabling the inspection 
         functionality.
         """
-        for item in self.inspected_items:
+        for item in self._inspected_items:
             try:
-                handlers = item.handlers
-                handlers = [h for h in handlers if h is not self.item_handler]
-                item.handlers = handlers
+                with item.mutex:
+                    handlers = item.handlers
+                    handlers = [h for h in handlers if h is not self._item_handler]
+                    item.handlers = handlers
             except AttributeError:
                 pass
-        self.inspected_items = []
+        self._inspected_items = []
 
     def handle_item_dragging(self, handler, item: dcg.uiItem, data: dcg.DraggingHandlerCallbackValue) -> None:
         """Process UI element dragging events.
@@ -464,27 +489,41 @@ class ItemInspecter(dcg.Window):
         relative to their parent based on the mouse movement. It tracks the
         currently dragged item and maintains its original position for reference.
         """
-        drag_delta = data.drag_delta
         # Just to be safe. Might not be needed
-        if item is not self.dragging_item and self.dragging_item is not None:
+        if item is not self._dragging_item and self._dragging_item is not None:
             return
-        if self.dragging_item is None:
-            self.dragging_item = item
-            self.dragging_item_original_pos = item.state.pos_to_parent
-        new_pos = [
-            self.dragging_item_original_pos[0] + drag_delta.x, # type: ignore
-            self.dragging_item_original_pos[1] + drag_delta.y # type: ignore
-        ]
-        item.x = f"parent.x1 + {new_pos[0]}"
-        item.y = f"parent.y1 + {new_pos[1]}"
 
-    def handle_item_dragged(self, handler, item) -> None:
+        # If we were not dragging, start dragging the current item
+        if self._dragging_item is None:
+            self._dragging_item = item
+            self._dragging_item_original_state = item.state.snapshot()
+
+        # Calculate the new position based on the original position and drag delta
+        assert self._dragging_item_original_state is not None
+        new_pos = self._dragging_item_original_state.pos_to_viewport + data.drag_delta
+
+        # Display the item at the new position
+        item.x = dcg.Size.FIXED(new_pos.x)
+        item.y = dcg.Size.FIXED(new_pos.y)
+
+    def handle_item_dragged(self, handler, item: dcg.uiItem) -> None:
         """Handle the completion of a UI element drag operation.
         
         This method is called when a drag operation ends, cleaning up the 
         dragging state and preparing for potential future drag operations.
         """
-        self.dragging_item = None
+        # For safety
+        if self._dragging_item is None or item is not self._dragging_item:
+            return
+
+        # Place the item relative to its parent without changing its current position
+        assert self._dragging_item_original_state is not None
+        item.x = dcg.Size.PARENT_X1() + dcg.Size.FIXED(item.state.pos_to_parent.x)
+        item.y = dcg.Size.PARENT_Y1() + dcg.Size.FIXED(item.state.pos_to_parent.y)
+
+        # Reset dragging state
+        self._dragging_item = None
+        self._dragging_item_original_state = None
 
     def handle_item_hovered(self, handler, item):
         """Display detailed information about a hovered UI element.
@@ -494,25 +533,39 @@ class ItemInspecter(dcg.Window):
         to highlight customized properties, and presents this information in
         an organized two-column layout.
         """
+        # Retrieve all visible states of the item for inspection
         item_states = dir(item)
         C = self.context
-        # Attach the tooltip to our window.
-        # This is to not perturb the item states
-        # and child tree.
+
+        # Create a default instance of the item for comparison
         try:
             default_item = item.__class__(C, attach=False)
         except:
             default_item = None
+
+        # Ignore some specific states that are not relevant for display
         ignore_list = [
             "shareable_value",
         ]
+
+        # Create a tooltip for the hovered item
+        # Attach the tooltip to our window.
+        # This is to not perturb the item states
+        # and child tree.
         with utils.TemporaryTooltip(C, target=item, parent=self):
             dcg.Text(C).value = f"{item}:"
             dcg.Spacer(C, width="theme.indent_spacing.x - theme.item_spacing.x", no_newline=True)
+
+            # On the left side display the names
             left = dcg.VerticalLayout(C,
                 theme=dcg.ThemeStyleImGui(C, item_spacing=(40., -3.)),
-                no_newline=True)
+                no_newline=True
+            )
+
+            # On the right side display the corresponding values
             right = dcg.VerticalLayout(C, theme=left.theme)
+
+            # Display each state and its value, ignoring defaults and irrelevant states
             for state in item_states:
                 if state[0] == "_":
                     continue
@@ -523,7 +576,7 @@ class ItemInspecter(dcg.Window):
                         continue
                     if state == "handlers":
                         # remove ourselves
-                        value = [v for v in value if v is not self.item_handler]
+                        value = [v for v in value if v is not self._item_handler]
                     try:
                         if value == getattr(default_item, state):
                             # ignore non defaults
