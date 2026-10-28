@@ -3,8 +3,6 @@ import dearcygui as dcg
 import dearcygui.utils as utils
 from collections import deque
 
-# TODO V1: this whole file should be updated to the python coding guidelines
-
 
 class ScrollingBuffer:
     """A scrolling buffer with a large memory backing.
@@ -99,6 +97,31 @@ _TEXT_HINTS = {
 }
 
 class MetricsWindow(dcg.Window):
+    __slots__ = {
+        "_data": "dict mapping metric names to ScrollingBuffer instances",
+        "_history": "Slider widget for history duration",
+        "_history_bounds": "Array of len 2 storing the bounds of the history slider",
+        "_main_plot": "Main plot widget for displaying metrics",
+        "_metrics": "deque storing viewport metrics",
+        "_plots": "dict mapping plot names to plot instances",
+        "_secondary_plot": "Secondary plot widget for additional metrics",
+        "_self_metrics": "deque storing self metrics",
+        "_start_time": "Start time for metrics tracking",
+        "_stat_text": "Text widget displaying application version and stats",
+        "_times": "ScrollingBuffer instance for time tracking"
+    }
+    _data: dict[str, ScrollingBuffer]
+    _history: dcg.Slider
+    _history_bounds: array
+    _main_plot: dcg.Plot
+    _metrics: deque[dcg.ViewportMetrics]
+    _plots: dict[str, dcg.PlotLine]
+    _secondary_plot: dcg.Plot
+    _self_metrics: deque[tuple[int, float]]
+    _start_time: float
+    _stat_text: dcg.Text
+    _times: ScrollingBuffer
+
     def __init__(self, context : dcg.Context, width=0, height=0, *args, **kwargs):
         super().__init__(context, width=width, height=height, *args, **kwargs)
         # At this step the window is created
@@ -113,13 +136,11 @@ class MetricsWindow(dcg.Window):
         }
         self._times = ScrollingBuffer()
         self._self_metrics = deque(maxlen=10)
-        self._metrics : deque[dcg.ViewportMetrics] = deque(maxlen=10)
+        self._metrics = deque(maxlen=10)
         self._plots = {}
 
         # Initialize metrics tracking variables
-        self._metrics_window_rendering_time = 0
         self._start_time = self.context.viewport.metrics.last_time_before_rendering
-        self._rendering_metrics = self.context.viewport.metrics
 
         # Initialize the UI with a 4 line text fields, a slider history and a main plot
         with self:
@@ -475,9 +496,9 @@ class ItemInspecter(dcg.Window):
         for item in self._inspected_items:
             try:
                 with item.mutex:
-                    handlers = item.handlers
+                    handlers = item.handlers # type: ignore
                     handlers = [h for h in handlers if h is not self._item_handler]
-                    item.handlers = handlers
+                    item.handlers = handlers # type: ignore
             except AttributeError:
                 pass
         self._inspected_items = []
@@ -594,162 +615,251 @@ class ItemInspecter(dcg.Window):
                 with right:
                     dcg.Text(C, value=str(value))
 
-def _is_style_element(class_obj, name: str) -> bool:
-    """
-    Returns True if name is a valid theme element
-    """
+def _is_style_element(class_obj: type[dcg.baseTheme], name: str) -> bool:
+    """Return whether *name* identifies a valid theme element."""
     try:
-        class_obj.get_default(name) # type: ignore
+        class_obj.get_default(name)
         return True
     except KeyError:
         return False
 
-class StyleEditor(dcg.Window):
-    """A visual tool to edit the global style of the application.
-    
-    This window provides interactive controls for customizing colors, sizes,
-    spacing and other visual aspects of the UI. It allows real-time preview
-    of changes and provides options to apply, reset or export the theme.
-    """
-    def __init__(self, context : dcg.Context, **kwargs) -> None:
-        super().__init__(context, **kwargs)
-        self.current_theme = context.viewport.theme
-        self.main_theme = dcg.ThemeList(self.context)
-        self.imgui_color_theme = dcg.ThemeColorImGui(self.context, parent=self.main_theme)
-        self.imgui_style_theme = dcg.ThemeStyleImGui(self.context, parent=self.main_theme)
-        self.implot_color_theme = dcg.ThemeColorImPlot(self.context, parent=self.main_theme)
-        self.implot_style_theme = dcg.ThemeStyleImPlot(self.context, parent=self.main_theme)
 
+class StyleEditor(dcg.Window):
+    """Provide controls for editing, previewing, and exporting application themes.
+
+    The editor exposes controls for ImGui and ImPlot colors and styles. Changes
+    are composed in ``main_theme`` and can be applied, canceled, reset, or exported.
+    """
+
+    __slots__ = {
+        "_current_theme": "Theme active when the editor was created",
+        "_export_button": "Button used to export the current theme",
+        "_filter_defaults": "Checkbox controlling default-value filtering",
+        "_imgui_color_theme": "ImGui color theme being edited",
+        "_imgui_style_theme": "ImGui style theme being edited",
+        "_implot_color_theme": "ImPlot color theme being edited",
+        "_implot_style_theme": "ImPlot style theme being edited",
+        "_main_theme": "Theme list containing all edited themes",
+    }
+
+    _current_theme: dcg.baseTheme | None
+    _export_button: dcg.Button
+    _filter_defaults: dcg.Checkbox
+    _imgui_color_theme: dcg.ThemeColorImGui
+    _imgui_style_theme: dcg.ThemeStyleImGui
+    _implot_color_theme: dcg.ThemeColorImPlot
+    _implot_style_theme: dcg.ThemeStyleImPlot
+    _main_theme: dcg.ThemeList
+
+    def __init__(self, context: dcg.Context, **kwargs) -> None:
+        """Create a theme editor for *context*.
+
+        Args:
+            context: Context that owns the editor and its widgets.
+            **kwargs: Additional window configuration.
+        """
+        super().__init__(context, **kwargs)
+
+        # Create theme state
+        self._current_theme = context.viewport.theme
+        self._main_theme = dcg.ThemeList(self.context)
+        self._imgui_color_theme = dcg.ThemeColorImGui(self.context, parent=self._main_theme)
+        self._imgui_style_theme = dcg.ThemeStyleImGui(self.context, parent=self._main_theme)
+        self._implot_color_theme = dcg.ThemeColorImPlot(self.context, parent=self._main_theme)
+        self._implot_style_theme = dcg.ThemeStyleImPlot(self.context, parent=self._main_theme)
+
+        # Create editor controls
         with dcg.HorizontalLayout(context, parent=self, alignment_mode=dcg.Alignment.CENTER):
             dcg.Button(context, label="Reset", callback=self.reset_values)
-            dcg.Button(context, label="Apply", callback=lambda: context.viewport.configure(theme=self.main_theme))
-            dcg.Button(context, label="Cancel", callback=lambda: context.viewport.configure(theme=self.current_theme))
-            self.export_button = dcg.Button(context, label="Export", callback=self.export_to_clipboard)
+            dcg.Button(
+                context,
+                label="Apply",
+                callback=lambda: context.viewport.configure(theme=self._main_theme),
+            )
+            dcg.Button(
+                context,
+                label="Cancel",
+                callback=lambda: context.viewport.configure(theme=self._current_theme),
+            )
+            self._export_button = dcg.Button(
+                context,
+                label="Export",
+                callback=self.export_to_clipboard,
+            )
             with dcg.Tooltip(context):
-                dcg.Text(context, value = "Export the current theme to the clipboard")
-            self.filter_defaults = dcg.Checkbox(context, label="Filter defaults", value=True)
+                dcg.Text(context, value="Export the current theme to the clipboard")
+            self._filter_defaults = dcg.Checkbox(context, label="Filter defaults", value=True)
             with dcg.Tooltip(context):
                 dcg.Text(context, value="Include only non-default values in the export")
-                dcg.Text(context, value="Generates shorter code, but may be affected if defaults change")
-            dcg.Button(context, label="Help", callback=lambda: self.launch_help_window())
+                dcg.Text(
+                    context,
+                    value="Generates shorter code, but may be affected if defaults change",
+                )
+            dcg.Button(context, label="Help", callback=self.launch_help_window)
 
+        # Create color and style controls
         with dcg.TabBar(context, label="Style Editor", parent=self):
             with dcg.Tab(context, label="Colors"):
                 with dcg.TabBar(context, label="Category"):
                     with dcg.Tab(context, label="ImGui"):
-                        imgui_color_names = [name for name in dir(self.imgui_color_theme) if _is_style_element(dcg.ThemeColorImGui, name)]
+                        imgui_color_names = [
+                            name
+                            for name in dir(self._imgui_color_theme)
+                            if _is_style_element(dcg.ThemeColorImGui, name)
+                        ]
                         for color_name in imgui_color_names:
-                            default_color = self.imgui_color_theme.get_default(color_name)
-                            def callback_imgui_color(s, t, d, color_name=color_name) -> None:
-                                setattr(self.imgui_color_theme, color_name, d.value)
-                            dcg.ColorEdit(context,
-                                          label=color_name,
-                                          value=default_color,
-                                          user_data=default_color, # for Reset
-                                          callback=callback_imgui_color
-                                          )
+                            default_color = self._imgui_color_theme.get_default(color_name)
+
+                            def callback_imgui_color(
+                                source: dcg.baseItem,
+                                target: dcg.baseItem,
+                                data: dcg.uiItemCallbackValue,
+                                color_name: str = color_name,
+                            ) -> None:
+                                setattr(self._imgui_color_theme, color_name, data.value)
+
+                            dcg.ColorEdit(
+                                context,
+                                label=color_name,
+                                value=default_color,
+                                user_data=default_color,
+                                callback=callback_imgui_color,
+                            )
                     with dcg.Tab(context, label="ImPlot"):
-                        implot_color_names = [name for name in dir(self.implot_color_theme) if _is_style_element(dcg.ThemeColorImPlot, name)]
+                        implot_color_names = [
+                            name
+                            for name in dir(self._implot_color_theme)
+                            if _is_style_element(dcg.ThemeColorImPlot, name)
+                        ]
                         for color_name in implot_color_names:
-                            default_color = self.implot_color_theme.get_default(color_name)
-                            def callback_implot_color(s, t, d, color_name=color_name) -> None:
-                                setattr(self.implot_color_theme, color_name, d.value)
-                            dcg.ColorEdit(context,
-                                          label=color_name,
-                                          value=default_color,
-                                          user_data=default_color, # for Reset
-                                          callback=callback_implot_color
-                                          )
+                            default_color = self._implot_color_theme.get_default(color_name)
+
+                            def callback_implot_color(
+                                source: dcg.baseItem,
+                                target: dcg.baseItem,
+                                data: dcg.uiItemCallbackValue,
+                                color_name: str = color_name,
+                            ) -> None:
+                                setattr(self._implot_color_theme, color_name, data.value)
+
+                            dcg.ColorEdit(
+                                context,
+                                label=color_name,
+                                value=default_color,
+                                user_data=default_color,
+                                callback=callback_implot_color,
+                            )
             with dcg.Tab(context, label="Styles"):
                 with dcg.TabBar(context, label="Category"):
                     with dcg.Tab(context, label="ImGui"):
-                        imgui_style_names = [name for name in dir(self.imgui_style_theme) if _is_style_element(dcg.ThemeStyleImGui, name)]
+                        imgui_style_names = [
+                            name
+                            for name in dir(self._imgui_style_theme)
+                            if _is_style_element(dcg.ThemeStyleImGui, name)
+                        ]
                         for style_name in imgui_style_names:
-                            default_style = self.imgui_style_theme.get_default(style_name)
+                            default_style = self._imgui_style_theme.get_default(style_name)
                             item_type = type(default_style)
                             if item_type is tuple:
                                 item_type = type(default_style[0])
-                                size = 2
-                            else:
-                                size = 1
                             if item_type is float:
-                                print_format="%.2f"
+                                print_format = "%.2f"
                             elif item_type is int:
-                                print_format="%.0f"
+                                print_format = "%.0f"
                             else:
-                                continue # Skip unsupported types
-                            def callback_imgui_style(s, t, d, style_name=style_name) -> None:
-                                v = d.value
-                                try:
-                                    if len(v) == 1:
-                                        v = v[0]
-                                except:
-                                    pass
-                                setattr(self.imgui_style_theme, style_name, v)
+                                continue
+
+                            def callback_imgui_style(
+                                source: dcg.baseItem,
+                                target: dcg.baseItem,
+                                data: dcg.uiItemCallbackValue,
+                                style_name: str = style_name,
+                            ) -> None:
+                                value = data.value
+                                if isinstance(value, list) and len(value) == 1:
+                                    value = value[0]
+                                setattr(self._imgui_style_theme, style_name, value)
+
                             with dcg.HorizontalLayout(context, no_wrap=True):
-                                utils.SliderN(context,
-                                              print_format=print_format,
-                                              label="",
-                                              logarithmic=True,
-                                              value=default_style,
-                                              user_data=default_style, # for Reset
-                                              callback=callback_imgui_style
-                                              )
+                                utils.SliderN(
+                                    context,
+                                    print_format=print_format,
+                                    label="",
+                                    logarithmic=True,
+                                    value=default_style,
+                                    user_data=default_style,
+                                    callback=callback_imgui_style,
+                                )
                                 dcg.Text(context, value=style_name)
                     with dcg.Tab(context, label="ImPlot"):
-                        implot_style_names = [name for name in dir(self.implot_style_theme) if _is_style_element(dcg.ThemeStyleImPlot, name)]
+                        implot_style_names = [
+                            name
+                            for name in dir(self._implot_style_theme)
+                            if _is_style_element(dcg.ThemeStyleImPlot, name)
+                        ]
                         for style_name in implot_style_names:
-                            default_style = self.implot_style_theme.get_default(style_name)
+                            default_style = self._implot_style_theme.get_default(style_name)
                             item_type = type(default_style)
                             if item_type is tuple:
                                 item_type = type(default_style[0])
-                                size = 2
-                            else:
-                                size = 1
                             if item_type is float:
-                                print_format="%.2f"
+                                print_format = "%.2f"
                             elif item_type is int:
-                                print_format="%.0f"
+                                print_format = "%.0f"
                             elif item_type is dcg.PlotMarker:
-                                def callback_implot_style_marker(s, t, d, style_name=style_name) -> None:
-                                    v = d.value
-                                    setattr(self.implot_style_theme, style_name, dcg.PlotMarker[v])
-                                dcg.Combo(context,
-                                          label=style_name,
-                                          items=[name for name in dir(dcg.PlotMarker) if name[0].isupper()],
-                                          value=default_style.name,
-                                          user_data=default_style, # for Reset
-                                          callback=callback_implot_style_marker
-                                          )
+                                def callback_implot_style_marker(
+                                    source: dcg.baseItem,
+                                    target: dcg.baseItem,
+                                    data: dcg.uiItemCallbackValue,
+                                    style_name: str = style_name,
+                                ) -> None:
+                                    setattr(
+                                        self._implot_style_theme,
+                                        style_name,
+                                        dcg.PlotMarker[data.value],
+                                    )
+
+                                dcg.Combo(
+                                    context,
+                                    label=style_name,
+                                    items=[
+                                        name
+                                        for name in dir(dcg.PlotMarker)
+                                        if name[0].isupper()
+                                    ],
+                                    value=default_style.name,
+                                    user_data=default_style,
+                                    callback=callback_implot_style_marker,
+                                )
                                 continue
                             else:
-                                continue # Skip unsupported types
-                            def callback_implot_style(s, t, d, style_name=style_name) -> None:
-                                v = d.value
-                                try:
-                                    if len(v) == 1:
-                                        v = v[0]
-                                except:
-                                    pass
-                                setattr(self.implot_style_theme, style_name, v)
+                                continue
+
+                            def callback_implot_style(
+                                source: dcg.baseItem,
+                                target: dcg.baseItem,
+                                data: dcg.uiItemCallbackValue,
+                                style_name: str = style_name,
+                            ) -> None:
+                                value = data.value
+                                if isinstance(value, list) and len(value) == 1:
+                                    value = value[0]
+                                setattr(self._implot_style_theme, style_name, value)
+
                             with dcg.HorizontalLayout(context, no_wrap=True):
-                                utils.SliderN(context,
-                                              print_format=print_format,
-                                              logarithmic=True,
-                                              label="",
-                                              value=default_style,
-                                              user_data=default_style, # for Reset
-                                              callback=callback_implot_style
-                                              )
+                                utils.SliderN(
+                                    context,
+                                    print_format=print_format,
+                                    logarithmic=True,
+                                    label="",
+                                    value=default_style,
+                                    user_data=default_style,
+                                    callback=callback_implot_style,
+                                )
                                 dcg.Text(context, value=style_name)
 
-    def _recursive_reset_values(self, item) -> None:
-        """Recursively reset all theme values to their defaults.
-        
-        This internal method traverses the widget hierarchy and resets all
-        color and style values to their default states, ensuring all controls
-        reflect these reset values.
-        """
+    def _recursive_reset_values(self, item: dcg.baseItem) -> None:
+        """Reset each descendant control to its stored default value."""
         for child in item.children:
             self._recursive_reset_values(child)
             if getattr(child, "user_data", None) is not None:
@@ -761,204 +871,285 @@ class StyleEditor(dcg.Window):
                     child.value = child.user_data.name
 
     def reset_values(self) -> None:
-        """Reset all theme values to their defaults.
-        
-        This method resets all color and style values to their default states
-        by triggering a recursive traversal of the style editor's widgets.
-        """
+        """Reset all theme values and controls to their defaults."""
         self._recursive_reset_values(self)
 
-        # Clear themes. Indeed some themes such as line color override any
-        # default colors. This not clearing does not really reset the theme properly.
-        for key, _ in self.imgui_color_theme:
-            setattr(self.imgui_color_theme, key, None)
-        for key, _ in self.implot_color_theme:
-            setattr(self.implot_color_theme, key, None)
-        for key, _ in self.imgui_style_theme:
-            setattr(self.imgui_style_theme, key, None)
-        for key, _ in self.implot_style_theme:
-            setattr(self.implot_style_theme, key, None)
+        # Clear theme overrides that can otherwise mask default values
+        for key, _ in self._imgui_color_theme:
+            setattr(self._imgui_color_theme, key, None)
+        for key, _ in self._implot_color_theme:
+            setattr(self._implot_color_theme, key, None)
+        for key, _ in self._imgui_style_theme:
+            setattr(self._imgui_style_theme, key, None)
+        for key, _ in self._implot_style_theme:
+            setattr(self._implot_style_theme, key, None)
 
     def export_to_text(self) -> str:
-        """Convert the current theme to Python code.
-        
-        This method generates Python code that recreates the current theme
-        configuration. It can optionally filter out default values to produce
-        more concise code.
-        """
-        non_default_imgui_colors = {}
-        non_default_imgui_styles = {}
-        non_default_implot_colors = {}
-        non_default_implot_styles = {}
-        should_filter = self.filter_defaults.value
+        """Return Python code that recreates the current theme."""
+        non_default_imgui_colors: dict[str, object] = {}
+        non_default_imgui_styles: dict[str, object] = {}
+        non_default_implot_colors: dict[str, object] = {}
+        non_default_implot_styles: dict[str, object] = {}
+        should_filter = self._filter_defaults.value
 
+        # Collect changed values or all values, depending on the filter setting
         if should_filter:
-            for (name, value) in self.imgui_color_theme:
-                if value != self.imgui_color_theme.get_default(name):
+            for name, value in self._imgui_color_theme:
+                if value != self._imgui_color_theme.get_default(name):
                     non_default_imgui_colors[name] = dcg.color_as_floats(value)
-            for (name, value) in self.imgui_style_theme or not(should_filter):
-                if value != self.imgui_style_theme.get_default(name):
+            for name, value in self._imgui_style_theme or ():
+                if value != self._imgui_style_theme.get_default(name):
                     non_default_imgui_styles[name] = value
-            for (name, value) in self.implot_color_theme:
-                if value != self.implot_color_theme.get_default(name):
+            for name, value in self._implot_color_theme:
+                if value != self._implot_color_theme.get_default(name):
                     non_default_implot_colors[name] = dcg.color_as_floats(value)
-            for (name, value) in self.implot_style_theme:
-                if value != self.implot_style_theme.get_default(name):
+            for name, value in self._implot_style_theme:
+                if value != self._implot_style_theme.get_default(name):
                     non_default_implot_styles[name] = value
         else:
-            imgui_color_names = [name for name in dir(self.imgui_color_theme) if name[0].isupper()]
+            imgui_color_names = [
+                name for name in dir(self._imgui_color_theme) if name[0].isupper()
+            ]
             for name in imgui_color_names:
-                value = getattr(self.imgui_color_theme, name, None)
+                value = getattr(self._imgui_color_theme, name, None)
                 if value is None:
-                    value = self.imgui_color_theme.get_default(name)
+                    value = self._imgui_color_theme.get_default(name)
                 non_default_imgui_colors[name] = dcg.color_as_floats(value)
-            imgui_style_names = [name for name in dir(self.imgui_style_theme) if name[0].isupper()]
+            imgui_style_names = [
+                name for name in dir(self._imgui_style_theme) if name[0].isupper()
+            ]
             for name in imgui_style_names:
-                value = getattr(self.imgui_style_theme, name, None)
+                value = getattr(self._imgui_style_theme, name, None)
                 if value is None:
-                    value = self.imgui_style_theme.get_default(name)
+                    value = self._imgui_style_theme.get_default(name)
                 non_default_imgui_styles[name] = value
-            implot_color_names = [name for name in dir(self.implot_color_theme) if name[0].isupper()]
+            implot_color_names = [
+                name for name in dir(self._implot_color_theme) if name[0].isupper()
+            ]
             for name in implot_color_names:
-                value = getattr(self.implot_color_theme, name, None)
+                value = getattr(self._implot_color_theme, name, None)
                 if value is None:
-                    value = self.implot_color_theme.get_default(name)
+                    value = self._implot_color_theme.get_default(name)
                 non_default_implot_colors[name] = dcg.color_as_floats(value)
-            implot_style_names = [name for name in dir(self.implot_style_theme) if name[0].isupper()]
+            implot_style_names = [
+                name for name in dir(self._implot_style_theme) if name[0].isupper()
+            ]
             for name in implot_style_names:
-                value = getattr(self.implot_style_theme, name, None)
+                value = getattr(self._implot_style_theme, name, None)
                 if value is None:
-                    value = self.implot_style_theme.get_default(name)
+                    value = self._implot_style_theme.get_default(name)
                 non_default_implot_styles[name] = value
 
+        # Format theme constructors
         imgui_color_str = ""
-        if len(non_default_imgui_colors) > 0:
-            string_setters = [f"{name}={value}" for (name, value) in non_default_imgui_colors.items()]
-            imgui_color_str = "    dcg.ThemeColorImGui(context,\n        " + ",\n        ".join(string_setters) + ")"
+        if non_default_imgui_colors:
+            string_setters = [
+                f"{name}={value}" for name, value in non_default_imgui_colors.items()
+            ]
+            imgui_color_str = (
+                "    dcg.ThemeColorImGui(context,\n        "
+                + ",\n        ".join(string_setters)
+                + ")"
+            )
         imgui_style_str = ""
-        if len(non_default_imgui_styles) > 0:
-            string_setters = [f"{name}={value}" for (name, value) in non_default_imgui_styles.items()]
-            imgui_style_str = "    dcg.ThemeStyleImGui(context,\n        " + ",\n        ".join(string_setters) + ")"
+        if non_default_imgui_styles:
+            string_setters = [
+                f"{name}={value}" for name, value in non_default_imgui_styles.items()
+            ]
+            imgui_style_str = (
+                "    dcg.ThemeStyleImGui(context,\n        "
+                + ",\n        ".join(string_setters)
+                + ")"
+            )
         implot_color_str = ""
-        if len(non_default_implot_colors) > 0:
-            string_setters = [f"{name}={value}" for (name, value) in non_default_implot_colors.items()]
-            implot_color_str = "    dcg.ThemeColorImPlot(context,\n        " + ",\n        ".join(string_setters) + ")"
+        if non_default_implot_colors:
+            string_setters = [
+                f"{name}={value}" for name, value in non_default_implot_colors.items()
+            ]
+            implot_color_str = (
+                "    dcg.ThemeColorImPlot(context,\n        "
+                + ",\n        ".join(string_setters)
+                + ")"
+            )
         implot_style_str = ""
-        if len(non_default_implot_styles) > 0:
-            string_setters = [f"{name}={value}" for (name, value) in non_default_implot_styles.items()]
-            implot_style_str = "    dcg.ThemeStyleImPlot(context,\n        " + ",\n        ".join(string_setters) + ")"
+        if non_default_implot_styles:
+            string_setters = [
+                f"{name}={value}" for name, value in non_default_implot_styles.items()
+            ]
+            implot_style_str = (
+                "    dcg.ThemeStyleImPlot(context,\n        "
+                + ",\n        ".join(string_setters)
+                + ")"
+            )
 
-        # no theme
-        if sum([len(non_default_imgui_colors) > 0,
-                len(non_default_imgui_styles) > 0,
-                len(non_default_implot_colors) > 0,
-                len(non_default_implot_styles) > 0]) == 0:
+        # Return the empty or single-theme result directly
+        active_theme_count = sum(
+            bool(values)
+            for values in (
+                non_default_imgui_colors,
+                non_default_imgui_styles,
+                non_default_implot_colors,
+                non_default_implot_styles,
+            )
+        )
+        if active_theme_count == 0:
             return "theme = None"
 
-        if sum([len(non_default_imgui_colors) > 0,
-                len(non_default_imgui_styles) > 0,
-                len(non_default_implot_colors) > 0,
-                len(non_default_implot_styles) > 0]) == 1:
-            return "theme = \\\n" +\
-                imgui_color_str + imgui_style_str + \
-                implot_color_str + implot_style_str
+        theme_strings = (
+            imgui_color_str,
+            imgui_style_str,
+            implot_color_str,
+            implot_style_str,
+        )
+        if active_theme_count == 1:
+            return "theme = \\\n" + "".join(theme_strings)
 
+        # Combine multiple theme constructors into a theme list
         full_text = ""
-        if len(non_default_imgui_colors) > 0:
-            full_text += "theme_imgui_color = \\\n" + imgui_color_str + "\n"
-        if len(non_default_imgui_styles) > 0:
-            full_text += "theme_imgui_style = \\\n" + imgui_style_str + "\n"
-        if len(non_default_implot_colors) > 0:
-            full_text += "theme_implot_color = \\\n" + implot_color_str + "\n"
-        if len(non_default_implot_styles) > 0:
-            full_text += "theme_implot_style = \\\n" + implot_style_str + "\n"
+        if non_default_imgui_colors:
+            full_text += f"theme_imgui_color = \\\n{imgui_color_str}\n"
+        if non_default_imgui_styles:
+            full_text += f"theme_imgui_style = \\\n{imgui_style_str}\n"
+        if non_default_implot_colors:
+            full_text += f"theme_implot_color = \\\n{implot_color_str}\n"
+        if non_default_implot_styles:
+            full_text += f"theme_implot_style = \\\n{implot_style_str}\n"
 
-        # combine in a theme list
         full_text += "theme = dcg.ThemeList(context)\ntheme.children = [\n"
-        if len(non_default_imgui_colors) > 0:
+        if non_default_imgui_colors:
             full_text += "    theme_imgui_color,\n"
-        if len(non_default_imgui_styles) > 0:
+        if non_default_imgui_styles:
             full_text += "    theme_imgui_style,\n"
-        if len(non_default_implot_colors) > 0:
+        if non_default_implot_colors:
             full_text += "    theme_implot_color,\n"
-        if len(non_default_implot_styles) > 0:
+        if non_default_implot_styles:
             full_text += "    theme_implot_style,\n"
         full_text += "]\n"
         return full_text
 
     def export_to_clipboard(self) -> None:
-        """Copy the current theme as Python code to the clipboard.
-        
-        This method generates Python code for the current theme and places it
-        in the system clipboard, allowing for easy pasting into other files.
-        """
+        """Copy the current theme as Python code to the clipboard."""
         self.context.clipboard = self.export_to_text()
-        with dcg.utils.TemporaryTooltip(self.context, target=self.export_button, parent=self):
+        with dcg.utils.TemporaryTooltip(self.context, target=self._export_button, parent=self):
             dcg.Text(self.context, value="Theme copied to clipboard")
 
     def launch_help_window(self) -> None:
-        """Display a help window with information about theming.
-        
-        This method creates a modal window explaining theme concepts and 
-        providing interactive examples to demonstrate how different theme 
-        properties affect the appearance of UI elements.
-        """
-        C = self.context
-        with dcg.Window(C, label="Theme Editor Help", autosize=True, modal=True):
-            dcg.Text(C, value="Theme colors and styles allow customizing the appearance of UI elements.")
-            dcg.Separator(C)
-            
+        """Open a modal help window with a live theme preview."""
+        context = self.context
+        with dcg.Window(context, label="Theme Editor Help", autosize=True, modal=True):
+            dcg.Text(
+                context,
+                value="Theme colors and styles allow customizing the appearance of UI elements.",
+            )
+            dcg.Separator(context)
+
             # Create a demo button with its own theme
-            demo_theme = dcg.ThemeList(C)
-            demo_colors = dcg.ThemeColorImGui(C, parent=demo_theme)
-            demo_styles = dcg.ThemeStyleImGui(C, parent=demo_theme)
+            demo_theme = dcg.ThemeList(context)
+            demo_colors = dcg.ThemeColorImGui(context, parent=demo_theme)
+            demo_styles = dcg.ThemeStyleImGui(context, parent=demo_theme)
 
             # Create controls for the most relevant button properties
-            with dcg.HorizontalLayout(C):
-                with dcg.VerticalLayout(C):
-                    dcg.Text(C, value="Colors:")
-                    dcg.ColorEdit(C, label="Button Color",
-                                  value=demo_colors.get_default("button"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "button", d.value))
-                    dcg.ColorEdit(C, label="Button Hovered",
-                                  value=demo_colors.get_default("button_hovered"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "button_hovered", d.value))
-                    dcg.ColorEdit(C, label="Button Active",
-                                  value=demo_colors.get_default("button_active"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "button_active", d.value))
-                    dcg.ColorEdit(C, label="Text",
-                                  value=demo_colors.get_default("text"),
-                                  callback=lambda s,t,d: setattr(demo_colors, "text", d.value))
-                
-                with dcg.VerticalLayout(C):
-                    dcg.Text(C, value="Styles:")
-                    with dcg.HorizontalLayout(C, no_wrap=True):
-                        utils.SliderN(C,
-                                      value=demo_styles.get_default("frame_padding"),
-                                      callback=lambda s,t,d: setattr(demo_styles, "frame_padding", d.value[:2]))
-                        dcg.Text(C, value="Frame Padding")
-                    dcg.Slider(C, label="Frame Rounding",
-                               value=demo_styles.get_default("frame_rounding"),
-                               min_value=0, max_value=12,
-                               callback=lambda s,t,d: setattr(demo_styles, "frame_rounding", d.value))
-                    dcg.Slider(C, label="Frame Border",
-                               value=demo_styles.get_default("frame_border_size"),
-                               min_value=0, max_value=3,
-                               callback=lambda s,t,d: setattr(demo_styles, "frame_border_size", d.value))
-            
-            dcg.Separator(C)
-            
-            # Display the demo button with applied theme
-            dcg.Text(C, value="Live Preview:")
-            dcg.Button(C, x="parent.x1 + theme.item_spacing.x", label="Demo Button", theme=demo_theme)
-            
-            dcg.Separator(C)
-            
-            # Add descriptions
-            with dcg.VerticalLayout(C):
-                dcg.Text(C, value="Key Concepts:")
-                dcg.Text(C, marker="bullet", value="Colors control the visual appearance like button colors and text")
-                dcg.Text(C, marker="bullet", value="Styles control sizing, spacing, borders and other layout properties")
-                dcg.Text(C, marker="bullet", value="Themes can be applied to individual items or entire windows")
-                dcg.Text(C, marker="bullet", value="Child items inherit parent themes unless overridden")
+            with dcg.HorizontalLayout(context):
+                with dcg.VerticalLayout(context):
+                    dcg.Text(context, value="Colors:")
+                    dcg.ColorEdit(
+                        context,
+                        label="Button Color",
+                        value=demo_colors.get_default("button"),
+                        callback=lambda source, target, data: setattr(
+                            demo_colors, "button", data.value
+                        ),
+                    )
+                    dcg.ColorEdit(
+                        context,
+                        label="Button Hovered",
+                        value=demo_colors.get_default("button_hovered"),
+                        callback=lambda source, target, data: setattr(
+                            demo_colors, "button_hovered", data.value
+                        ),
+                    )
+                    dcg.ColorEdit(
+                        context,
+                        label="Button Active",
+                        value=demo_colors.get_default("button_active"),
+                        callback=lambda source, target, data: setattr(
+                            demo_colors, "button_active", data.value
+                        ),
+                    )
+                    dcg.ColorEdit(
+                        context,
+                        label="Text",
+                        value=demo_colors.get_default("text"),
+                        callback=lambda source, target, data: setattr(
+                            demo_colors, "text", data.value
+                        ),
+                    )
 
+                with dcg.VerticalLayout(context):
+                    dcg.Text(context, value="Styles:")
+                    with dcg.HorizontalLayout(context, no_wrap=True):
+                        utils.SliderN(
+                            context,
+                            value=demo_styles.get_default("frame_padding"),
+                            callback=lambda source, target, data: setattr(
+                                demo_styles, "frame_padding", data.value[:2]
+                            ),
+                        )
+                        dcg.Text(context, value="Frame Padding")
+                    dcg.Slider(
+                        context,
+                        label="Frame Rounding",
+                        value=demo_styles.get_default("frame_rounding"),
+                        min_value=0,
+                        max_value=12,
+                        callback=lambda source, target, data: setattr(
+                            demo_styles, "frame_rounding", data.value
+                        ),
+                    )
+                    dcg.Slider(
+                        context,
+                        label="Frame Border",
+                        value=demo_styles.get_default("frame_border_size"),
+                        min_value=0,
+                        max_value=3,
+                        callback=lambda source, target, data: setattr(
+                            demo_styles, "frame_border_size", data.value
+                        ),
+                    )
+
+            dcg.Separator(context)
+
+            # Display the demo button with applied theme
+            dcg.Text(context, value="Live Preview:")
+            dcg.Button(
+                context,
+                x="parent.x1 + theme.item_spacing.x",
+                label="Demo Button",
+                theme=demo_theme,
+            )
+
+            dcg.Separator(context)
+
+            # Add descriptions
+            with dcg.VerticalLayout(context):
+                dcg.Text(context, value="Key Concepts:")
+                dcg.Text(
+                    context,
+                    marker="bullet",
+                    value="Colors control the visual appearance like button colors and text",
+                )
+                dcg.Text(
+                    context,
+                    marker="bullet",
+                    value="Styles control sizing, spacing, borders and other layout properties",
+                )
+                dcg.Text(
+                    context,
+                    marker="bullet",
+                    value="Themes can be applied to individual items or entire windows",
+                )
+                dcg.Text(
+                    context,
+                    marker="bullet",
+                    value="Child items inherit parent themes unless overridden",
+                )

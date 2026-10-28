@@ -16,6 +16,14 @@ from dearcygui.utils.handler import (
     future_from_handlers,
     generator_from_handlers,
 )
+from dearcygui.utils.window import (
+    ItemInspecter,
+    MetricsWindow,
+    ScrollingBuffer,
+    StyleEditor,
+    _get_children_recursive as get_children_recursive,
+)
+
 from dearcygui.utils.widget import DatePicker, DateTimePicker, TimePicker
 
 
@@ -229,3 +237,74 @@ def test_date_picker_value_setter_accepts_timestamp(ctx: dcg.Context) -> None:
     picker.value = value.timestamp()
 
     assert picker.value_as_datetime == value
+
+# window.py
+
+def test_scrolling_buffer_returns_requested_recent_values() -> None:
+    """Return no more than the requested number of recent values."""
+    buffer = ScrollingBuffer(scrolling_size=3, max_size=8)
+    buffer.push(1.0)
+    buffer.push(2.0)
+    buffer.push(3.0)
+
+    assert list(buffer.get()) == [1.0, 2.0, 3.0]
+    assert list(buffer.get(2)) == [2.0, 3.0]
+    assert list(buffer.get(5)) == [1.0, 2.0, 3.0]
+
+
+def test_scrolling_buffer_discards_old_values_at_capacity() -> None:
+    """Retain the newest values after rotating a full backing store."""
+    buffer = ScrollingBuffer(scrolling_size=2, max_size=5)
+
+    for value in range(7):
+        buffer.push(float(value))
+
+    assert list(buffer.get()) == [5.0, 6.0]
+
+
+@pytest.mark.parametrize(
+    ("scrolling_size", "max_size"),
+    [(0, 5), (2, 0), (2, 4)],
+)
+def test_scrolling_buffer_rejects_invalid_sizes(
+    scrolling_size: int,
+    max_size: int,
+) -> None:
+    """Reject capacities that cannot hold the configured scroll window."""
+    with pytest.raises(ValueError, match="max_size"):
+        ScrollingBuffer(scrolling_size=scrolling_size, max_size=max_size)
+
+
+def test_get_children_recursive_uses_depth_first_order(ctx: dcg.Context) -> None:
+    """Return the root and nested items in depth-first order."""
+    root = dcg.Window(ctx)
+    with root:
+        child = dcg.HorizontalLayout(ctx)
+        with child:
+            grandchild = dcg.Text(ctx, value="nested")
+
+    assert get_children_recursive(root) == [root, child, grandchild]
+
+
+def test_item_inspector_removes_installed_handlers(ctx: dcg.Context) -> None:
+    """Install and remove inspection handlers on viewport items."""
+    root = dcg.Window(ctx)
+    item = dcg.Button(ctx, parent=root)
+    inspector = ItemInspecter(ctx)
+
+    inspector.setup_handlers()
+    assert inspector._item_handler in item.handlers
+
+    inspector.remove_handlers()
+
+    assert inspector._item_handler not in item.handlers
+    assert inspector._inspected_items == []
+
+
+def test_style_editor_resets_and_exports_default_theme(ctx: dcg.Context) -> None:
+    """Reset style controls and produce a valid empty-theme export."""
+    editor = StyleEditor(ctx)
+
+    editor.reset_values()
+
+    assert editor.export_to_text() == "theme = None"
