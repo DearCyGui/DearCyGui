@@ -93,14 +93,40 @@ cdef class DeactivatedAfterEditHandlerCallbackValue(HandlerCallbackValue):
 cdef class DraggedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     cdef float _drag_delta_x
     cdef float _drag_delta_y
+    cdef float _click_pos_x
+    cdef float _click_pos_y
+    cdef float _mouse_pos_x
+    cdef float _mouse_pos_y
     @staticmethod
-    cdef DraggedHandlerCallbackValue build(Context context, MouseButton _button, float drag_delta_x, float drag_delta_y)
+    cdef DraggedHandlerCallbackValue build(
+        Context context,
+        MouseButton _button,
+        float drag_delta_x,
+        float drag_delta_y,
+        float click_pos_x,
+        float click_pos_y,
+        float mouse_pos_x,
+        float mouse_pos_y
+    )
 
 cdef class DraggingHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     cdef float _drag_delta_x
     cdef float _drag_delta_y
+    cdef float _click_pos_x
+    cdef float _click_pos_y
+    cdef float _mouse_pos_x
+    cdef float _mouse_pos_y
     @staticmethod
-    cdef DraggingHandlerCallbackValue build(Context context, MouseButton _button, float drag_delta_x, float drag_delta_y)
+    cdef DraggingHandlerCallbackValue build(
+        Context context,
+        MouseButton _button,
+        float drag_delta_x,
+        float drag_delta_y,
+        float click_pos_x,
+        float click_pos_y,
+        float mouse_pos_x,
+        float mouse_pos_y
+    )
 
 cdef class EditedHandlerCallbackValue(HandlerCallbackValue):
     pass
@@ -203,8 +229,23 @@ cdef class MouseDownHandlerCallbackValue(MouseButtonHandlerCallbackValue):
 cdef class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     cdef float _delta_x
     cdef float _delta_y
+    cdef float _click_pos_x
+    cdef float _click_pos_y
+    cdef float _mouse_pos_x
+    cdef float _mouse_pos_y
+    cdef bint _is_down
     @staticmethod
-    cdef MouseDragHandlerCallbackValue build(Context context, MouseButton _button, float delta_x, float delta_y)
+    cdef MouseDragHandlerCallbackValue build(
+        Context context,
+        MouseButton _button,
+        float delta_x,
+        float delta_y,
+        float click_pos_x,
+        float click_pos_y,
+        float mouse_pos_x,
+        float mouse_pos_y,
+        bint is_down
+    )
 
 cdef class MouseMoveHandlerCallbackValue(HandlerCallbackValue):
     cdef float _cur_x

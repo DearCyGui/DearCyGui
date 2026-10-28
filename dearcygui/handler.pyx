@@ -728,15 +728,19 @@ cdef class DeactivatedAfterEditHandler(baseHandler):
 
 cdef class DraggedHandler(baseHandler):
     """
-    Same as DraggingHandler, but only
-    triggers the callback when the dragging
-    has ended, instead of every frame during
-    the dragging.
+    Handler for click + dragging mouse motion + release
+
+    The handler will only trigger when the dragging has ended,
+    not during the drag itself. see DraggingHandler for handling
+    continuous dragging events and further drag-related interactions.
     """
     def __cinit__(self):
         self._button = MouseButton.LEFT
     @property
     def button(self):
+        """
+        The mouse button that triggers the drag.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._button
@@ -762,6 +766,7 @@ cdef class DraggedHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef itemState *state = item.p_state
+        cdef imgui.ImGuiIO io = imgui.GetIO()
         if not(self._enabled) or self._callback is None:
             return
         cdef int32_t i = <int32_t>self._button
@@ -775,23 +780,43 @@ cdef class DraggedHandler(baseHandler):
                         self.context,
                         self._button,
                         <float>state.prev.drag_deltas[i].x,
-                        <float>state.prev.drag_deltas[i].y
+                        <float>state.prev.drag_deltas[i].y,
+                        <float>io.MouseClickedPos[i].x,
+                        <float>io.MouseClickedPos[i].y,
+                        <float>io.MousePos.x,
+                        <float>io.MousePos.y
                     )
                 )
 
 cdef class DraggingHandler(baseHandler):
     """
-    Handler to catch when the item is hovered
-    and the mouse is dragging (click + motion) ?
-    Note that if the item is not a button configured
-    to catch the target button, it will not be
-    considered being dragged as soon as it is not
-    hovered anymore.
+    Handler for click + dragging mouse motion (not release)
+
+    This handler triggers when the user clicks over the target
+    UI element then drags the mouse.
+    
+    Note this handler only activates while the mouse is being dragged.
+    When the mouse is released, this handler does not trigger.
+    Instead DraggedHandler will fire on mouse release.
+
+    The button to trigger the drag can be set using the `button` property.
+    It does not have to be a button the item is supposed
+    to react to (e.g. left button). However in this case the
+    drag will be considered stopped if the mouse no longer hovers
+    the item. This can be workaround by ensuring the item
+    follows the mouse cursor during the drag operation.
+
+    See DragDropSourceHandler for an alternative approach for
+    dragging UI items.
     """
     def __cinit__(self):
         self._button = MouseButton.LEFT
+
     @property
     def button(self):
+        """
+        The mouse button that triggers the drag.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._button
@@ -817,6 +842,7 @@ cdef class DraggingHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef itemState *state = item.p_state
+        cdef imgui.ImGuiIO io = imgui.GetIO()
         cdef int32_t i = <int32_t>self._button
         if not(self._enabled) or self._callback is None:
             return
@@ -830,7 +856,11 @@ cdef class DraggingHandler(baseHandler):
                         self.context,
                         self._button,
                         <float>state.cur.drag_deltas[i].x,
-                        <float>state.cur.drag_deltas[i].y
+                        <float>state.cur.drag_deltas[i].y,
+                        <float>io.MouseClickedPos[i].x,
+                        <float>io.MouseClickedPos[i].y,
+                        <float>io.MousePos.x,
+                        <float>io.MousePos.y
                     )
                 )
 
@@ -2259,6 +2289,7 @@ cdef class MouseDragHandler(baseHandler):
     cdef void run_handler(self, baseItem item) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
         cdef imgui.ImVec2 delta
+        cdef imgui.ImGuiIO io = imgui.GetIO()
         if not(self._enabled) or self._callback is None:
             return
         if imgui.IsMouseDragging(<int>self._button, self._threshold):
@@ -2272,7 +2303,12 @@ cdef class MouseDragHandler(baseHandler):
                         self.context,
                         self._button,
                         delta.x,
-                        delta.y
+                        delta.y,
+                        <float>io.MouseClickedPos[<int>self._button].x,
+                        <float>io.MouseClickedPos[<int>self._button].y,
+                        <float>io.MousePos.x,
+                        <float>io.MousePos.y,
+                        imgui.isMouseDown(<int>self._button)
                     )
                 )
 

@@ -16100,10 +16100,11 @@ Callback value for the DragDropTargetHandler.
 
 class DraggedHandler(baseHandler):
     """
-    Same as DraggingHandler, but only
-    triggers the callback when the dragging
-    has ended, instead of every frame during
-    the dragging.
+    Handler for click + dragging mouse motion + release
+
+    The handler will only trigger when the dragging has ended,
+    not during the drag itself. see DraggingHandler for handling
+    continuous dragging events and further drag-related interactions.
 
     """
     def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DraggedHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
@@ -16112,6 +16113,7 @@ class DraggedHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The mouse button that triggers the drag.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -16130,6 +16132,7 @@ class DraggedHandler(baseHandler):
 
         Parameters
         ----------
+        - button: The mouse button that triggers the drag.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -16144,6 +16147,10 @@ class DraggedHandler(baseHandler):
 
     @property
     def button(self) -> MouseButton:
+        """
+        The mouse button that triggers the drag.
+
+        """
         ...
 
 
@@ -16173,12 +16180,24 @@ class DraggedHandler(baseHandler):
 
 class DraggingHandler(baseHandler):
     """
-    Handler to catch when the item is hovered
-    and the mouse is dragging (click + motion) ?
-    Note that if the item is not a button configured
-    to catch the target button, it will not be
-    considered being dragged as soon as it is not
-    hovered anymore.
+    Handler for click + dragging mouse motion (not release)
+
+    This handler triggers when the user clicks over the target
+    UI element then drags the mouse.
+
+    Note this handler only activates while the mouse is being dragged.
+    When the mouse is released, this handler does not trigger.
+    Instead DraggedHandler will fire on mouse release.
+
+    The button to trigger the drag can be set using the `button` property.
+    It does not have to be a button the item is supposed
+    to react to (e.g. left button). However in this case the
+    drag will be considered stopped if the mouse no longer hovers
+    the item. This can be workaround by ensuring the item
+    follows the mouse cursor during the drag operation.
+
+    See DragDropSourceHandler for an alternative approach for
+    dragging UI items.
 
     """
     def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DraggingHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
@@ -16187,6 +16206,7 @@ class DraggingHandler(baseHandler):
         ----------
         - attach: Whether to attach the item to a parent. Default is None (auto)
         - before: Attach the item just before the target item. Default is None (disabled)
+        - button: The mouse button that triggers the drag.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -16205,6 +16225,7 @@ class DraggingHandler(baseHandler):
 
         Parameters
         ----------
+        - button: The mouse button that triggers the drag.
         - callback: Function called when the handler's condition is met.
         - children: List of all the children of the item, from first rendered, to last rendered.
         - enabled: Controls whether the handler is active and processing events.
@@ -16219,6 +16240,10 @@ class DraggingHandler(baseHandler):
 
     @property
     def button(self) -> MouseButton:
+        """
+        The mouse button that triggers the drag.
+
+        """
         ...
 
 
@@ -32070,6 +32095,20 @@ Callback value for the DraggedHandler.
         ...
 
 
+    @property
+    def click_position(self) -> Coord:
+        """Position where the click occurred.
+        """
+        ...
+
+
+    @property
+    def mouse_position(self) -> Coord:
+        """Current mouse position.
+        """
+        ...
+
+
 
 
 class DraggingHandlerCallbackValue(MouseButtonHandlerCallbackValue):
@@ -32083,6 +32122,20 @@ Callback value for the DraggingHandler.
     @property
     def drag_delta(self) -> Coord:
         """Delta between the position when dragging stopped and the initial position.
+        """
+        ...
+
+
+    @property
+    def click_position(self) -> Coord:
+        """Position where the click occurred.
+        """
+        ...
+
+
+    @property
+    def mouse_position(self) -> Coord:
+        """Current mouse position.
         """
         ...
 
@@ -32377,6 +32430,27 @@ Callback value for the MouseDragHandler.
     @property
     def drag_delta(self) -> Coord:
         """Delta between the position when dragging stopped and the initial position.
+        """
+        ...
+
+
+    @property
+    def click_position(self) -> Coord:
+        """Position where the click occurred.
+        """
+        ...
+
+
+    @property
+    def mouse_position(self) -> Coord:
+        """Current mouse position.
+        """
+        ...
+
+
+    @property
+    def is_released(self) -> bool:
+        """Whether the mouse button just released (end of the drag operation).
         """
         ...
 

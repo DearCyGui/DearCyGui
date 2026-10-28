@@ -297,12 +297,41 @@ cdef class DraggedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
         delta[1] = self._drag_delta_y
         return Coord.build(delta)
 
+    @property
+    def click_position(self):
+        """Position where the click occurred."""
+        cdef double[2] pos
+        pos[0] = self._click_pos_x
+        pos[1] = self._click_pos_y
+        return Coord.build(pos)
+
+    @property
+    def mouse_position(self):
+        """Current mouse position."""
+        cdef double[2] pos
+        pos[0] = self._mouse_pos_x
+        pos[1] = self._mouse_pos_y
+        return Coord.build(pos)
+
     @staticmethod
-    cdef DraggedHandlerCallbackValue build(Context context, MouseButton button, float drag_delta_x, float drag_delta_y):
+    cdef DraggedHandlerCallbackValue build(
+        Context context,
+        MouseButton button,
+        float drag_delta_x,
+        float drag_delta_y,
+        float click_pos_x,
+        float click_pos_y,
+        float mouse_pos_x,
+        float mouse_pos_y
+    ):
         cdef DraggedHandlerCallbackValue value = DraggedHandlerCallbackValue.__new__(DraggedHandlerCallbackValue)
         value._button = button
         value._drag_delta_x = drag_delta_x
         value._drag_delta_y = drag_delta_y
+        value._click_pos_x = click_pos_x
+        value._click_pos_y = click_pos_y
+        value._mouse_pos_x = mouse_pos_x
+        value._mouse_pos_y = mouse_pos_y
         return value
 
 cdef class DraggingHandlerCallbackValue(MouseButtonHandlerCallbackValue):
@@ -324,12 +353,41 @@ cdef class DraggingHandlerCallbackValue(MouseButtonHandlerCallbackValue):
         delta[1] = self._drag_delta_y
         return Coord.build(delta)
 
+    @property
+    def click_position(self):
+        """Position where the click occurred."""
+        cdef double[2] pos
+        pos[0] = self._click_pos_x
+        pos[1] = self._click_pos_y
+        return Coord.build(pos)
+
+    @property
+    def mouse_position(self):
+        """Current mouse position."""
+        cdef double[2] pos
+        pos[0] = self._mouse_pos_x
+        pos[1] = self._mouse_pos_y
+        return Coord.build(pos)
+
     @staticmethod
-    cdef DraggingHandlerCallbackValue build(Context context, MouseButton button, float drag_delta_x, float drag_delta_y):
+    cdef DraggingHandlerCallbackValue build(
+        Context context,
+        MouseButton button,
+        float drag_delta_x,
+        float drag_delta_y,
+        float click_pos_x,
+        float click_pos_y,
+        float mouse_pos_x,
+        float mouse_pos_y
+    ):
         cdef DraggingHandlerCallbackValue value = DraggingHandlerCallbackValue.__new__(DraggingHandlerCallbackValue)
         value._button = button
         value._drag_delta_x = drag_delta_x
         value._drag_delta_y = drag_delta_y
+        value._click_pos_x = click_pos_x
+        value._click_pos_y = click_pos_y
+        value._mouse_pos_x = mouse_pos_x
+        value._mouse_pos_y = mouse_pos_y
         return value
 
 cdef class EditedHandlerCallbackValue(HandlerCallbackValue):
@@ -516,12 +574,47 @@ cdef class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
         delta[1] = self._delta_y
         return Coord.build(delta)
 
+    @property
+    def click_position(self):
+        """Position where the click occurred."""
+        cdef double[2] pos
+        pos[0] = self._click_pos_x
+        pos[1] = self._click_pos_y
+        return Coord.build(pos)
+
+    @property
+    def mouse_position(self):
+        """Current mouse position."""
+        cdef double[2] pos
+        pos[0] = self._mouse_pos_x
+        pos[1] = self._mouse_pos_y
+        return Coord.build(pos)
+
+    @property
+    def is_released(self):
+        """Whether the mouse button just released (end of the drag operation)."""
+        return not self._is_down
+
     @staticmethod
-    cdef MouseDragHandlerCallbackValue build(Context context, MouseButton button, float delta_x, float delta_y):
+    cdef MouseDragHandlerCallbackValue build(
+        Context context,
+        MouseButton button,
+        float delta_x,
+        float delta_y,
+        float click_pos_x,
+        float click_pos_y,
+        float mouse_pos_x,
+        float mouse_pos_y,
+        bint is_down):
         cdef MouseDragHandlerCallbackValue value = MouseDragHandlerCallbackValue.__new__(MouseDragHandlerCallbackValue)
         value._button = button
         value._delta_x = delta_x
         value._delta_y = delta_y
+        value._click_pos_x = click_pos_x
+        value._click_pos_y = click_pos_y
+        value._mouse_pos_x = mouse_pos_x
+        value._mouse_pos_y = mouse_pos_y
+        value._is_down = is_down
         return value
 
 cdef class MouseMoveHandlerCallbackValue(HandlerCallbackValue):
