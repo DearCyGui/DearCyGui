@@ -7,6 +7,7 @@ from dearcygui.c_types cimport unique_lock, DCGMutex
 from dearcygui.imgui cimport draw_image_quad, t_draw_image_quad
 from libc.stdint cimport int32_t, int64_t
 from libcpp.cmath cimport round as cround
+from libc.math cimport floor as cfloor, ceil as cceil
 from libcpp.map cimport map as cpp_map, pair
 from libcpp.set cimport set as cpp_set
 from libcpp.vector cimport vector
@@ -15,10 +16,10 @@ from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 from libcpp.memory cimport unique_ptr
 
 import pathlib
+import sys
+import traceback
+from xml.etree import ElementTree
 from typing import Tuple
-
-
-#TODO V1: finish applying the python coding guidelines to this file
 
 """
 Data structure to store the tile data.
@@ -274,41 +275,155 @@ cdef class DrawTiledImage(dcg.drawingItem):
 
 
 
-class SVGRenderer:
+cdef int32_t _MAX_TEXTURE_SIZE = 16384
+
+
+cdef inline double _remap(double v, double lo, double hi) noexcept nogil:
+    """Map v from the [lo, hi] range to [0, 1]"""
+    return (v - lo) / (hi - lo)
+
+
+cdef tuple _clamp_window(int32_t start, int32_t stop, int32_t limit):
+    """Return a non-empty [start, stop) window of at most _MAX_TEXTURE_SIZE within [0, limit]"""
+    if stop <= start:
+        stop = min(limit, start + 1)
+        start = stop - 1
+    if stop - start > _MAX_TEXTURE_SIZE:
+        start = max(0, min(start, limit - _MAX_TEXTURE_SIZE))
+        stop = start + _MAX_TEXTURE_SIZE
+    return (start, stop)
+
+
+def _parse_viewbox_size(data: bytes) -> tuple[float, float]:
+    """Return the (width, height) of the root viewBox, or (0, 0) if absent."""
+    try:
+        root = ElementTree.fromstring(data)
+        values = [float(v) for v in root.get('viewBox', '').replace(',', ' ').split()]
+    except (ElementTree.ParseError, ValueError):
+        return (0., 0.)
+    if len(values) != 4:
+        return (0., 0.)
+    return (values[2], values[3])
+
+
+cdef class SVGRenderer:
     """
     Base class for SVG renderers.
     """
+    # Texture the SVG is rendered to (set by allocate_texture)
+    cdef public object texture
 
-    def __init__(self, svg_path: str):
+    def __init__(self, svg_path=None, *, svg_data=None):
         pass
 
     @property
     def content_bounds(self) -> Tuple[float, float, float, float]:
-        """Get the SVG content bounds (x, y, width, height)"""
-        return (0, 0, 0, 0)
+        """Get the SVG content bounds (x, y, width, height). Must be overridden."""
+        raise NotImplementedError
 
-    def get_fit_scale(self, target_width: float, target_height: float) -> float:
-        """Calculate scale factor to fit SVG in target dimensions while preserving aspect ratio"""
-        return 1.0, 1.0
+    def get_fit_scale(self,
+                      target_width: float,
+                      target_height: float,
+                      preserve_ratio: bool = True) -> Tuple[float, float]:
+        """Calculate (scalex, scaley) to fit SVG in target dimensions"""
+        _, _, content_w, content_h = self.content_bounds
+        if content_w <= 0 or content_h <= 0:
+            return (1.0, 1.0)
+        scale_x = target_width / content_w
+        scale_y = target_height / content_h
+        if preserve_ratio:
+            scale_x = min(scale_x, scale_y)
+            scale_y = scale_x
+        return (scale_x, scale_y)
 
-    def get_centered_translation(self, target_width: float, target_height: float, scalex: float, scaley: float) -> Tuple[float, float]:
+    def get_centered_translation(self,
+                                 target_width: float,
+                                 target_height: float,
+                                 scalex: float,
+                                 scaley: float) -> Tuple[float, float]:
         """Calculate translation to center SVG in target dimensions at given scale"""
-        return (0, 0)
+        content_x, content_y, content_w, content_h = self.content_bounds
+        if scalex == 0 or scaley == 0:
+            return (0, 0)
+        tx = (target_width / scalex - content_w) / 2 - content_x
+        ty = (target_height / scaley - content_h) / 2 - content_y
+        return (tx, ty)
 
-    def allocate_texture(self, C: dcg.Context, width: int, height: int, allow_gpu: bool = False):
-        """Allocate a texture for rendering the SVG content"""
+    def release(self) -> None:
+        """Release the resources held by the renderer"""
         pass
+
+    def allocate_texture(self, C: dcg.Context, width: int, height: int, allow_gpu: bool = False) -> None:
+        """Allocate self.texture (RGBA, straight alpha) for rendering. Must be overridden."""
+        raise NotImplementedError
 
     def render(self,
                scalex: float,
                scaley: float,
                tx: float,
-               ty: float):
-        """Render the SVG content to the texture at given scale and position"""
-        pass
+               ty: float) -> None:
+        """Render the SVG content to the texture at given scale and position. Must be overridden."""
+        raise NotImplementedError
 
 
-class SkiaSVGRenderer(SVGRenderer):
+_MODE_CPU = 0 # skia raster surface, pixels uploaded with set_value
+_MODE_GPU_BLIT = 1 # skia GPU surface, converted to the texture on the GPU
+_MODE_GPU_READBACK = 2 # skia GPU surface, pixels read back and uploaded
+
+_BLIT_VERTEX_SHADER = """
+#version 330 core
+void main() {
+    // Fullscreen triangle generated from the vertex index
+    vec2 pos = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+    gl_Position = vec4(pos * 2.0 - 1.0, 0.0, 1.0);
+}
+"""
+
+_BLIT_FRAGMENT_SHADER = """
+#version 330 core
+uniform sampler2D src;
+out vec4 color;
+void main() {
+    // skia renders premultiplied alpha, ImGui expects straight alpha
+    vec4 c = texelFetch(src, ivec2(gl_FragCoord.xy), 0);
+    color = c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec4(0.0);
+}
+"""
+
+
+class _UnpremultiplyBlit:
+    """Copy a premultiplied RGBA GL texture to another one as straight alpha.
+
+    Both textures must be owned by the GL context wrapped by the
+    moderngl context, which must be current when calling the methods.
+    """
+
+    def __init__(self, moderngl, ctx, src_gl_id: int, dst_gl_id: int,
+                 width: int, height: int) -> None:
+        self._moderngl = moderngl
+        self._ctx = ctx
+        self._src = ctx.external_texture(src_gl_id, (width, height), 4, 0, "f1")
+        self._dst = ctx.external_texture(dst_gl_id, (width, height), 4, 0, "f1")
+        self._dst_fbo = ctx.framebuffer(color_attachments=[self._dst])
+        self._program = ctx.program(vertex_shader=_BLIT_VERTEX_SHADER,
+                                    fragment_shader=_BLIT_FRAGMENT_SHADER)
+        self._program['src'] = 0
+        self._vao = ctx.vertex_array(self._program, [])
+
+    def blit(self) -> None:
+        """Run the conversion."""
+        self._dst_fbo.use()
+        self._ctx.disable(self._moderngl.BLEND | self._moderngl.DEPTH_TEST)
+        self._src.use(0)
+        self._vao.render(self._moderngl.TRIANGLES, vertices=3)
+
+    def release(self) -> None:
+        """Free the GL objects (the wrapped textures are not deleted)."""
+        for obj in (self._vao, self._program, self._dst_fbo, self._dst, self._src):
+            obj.release()
+
+
+cdef class SkiaSVGRenderer(SVGRenderer):
     """
     A SVG renderer using Skia for rendering,
     with optional GPU acceleration.
@@ -319,140 +434,163 @@ class SkiaSVGRenderer(SVGRenderer):
 
     Skia is pretty fast. By default the GPU is not used,
     but it can be enabled by setting allow_gpu=True.
-
     GPU rendering is not always faster, it depends on
     the complexity of the SVG content and the target.
-    The GPU backend might require moderngl.
+
+    With the GPU, skia renders into its own texture, which then
+    has to be transferred to the DearCyGui texture. If moderngl
+    is available the transfer is done on the GPU, else the pixels
+    are read back to the CPU. If the GPU cannot be initialized,
+    the renderer falls back to the CPU.
     """
-    def __init__(self, svg_path : str):
+    cdef object skia
+    cdef object moderngl
+    cdef object svg_dom
+    cdef object original_size
+    cdef object info # skia ImageInfo of the surface
+    cdef object matrix # skia Matrix reused at every render
+    cdef object surface
+    cdef int _mode
+    # Requested allocation
+    cdef int32_t _width
+    cdef int32_t _height
+    cdef bint _gpu_requested
+    cdef bint _gpu_failed # do not retry after a GPU failure
+    # GPU state
+    cdef object gl_context
+    cdef object gr_context
+    cdef object backend_texture
+    cdef object moderngl_context
+    cdef object blitter
+
+    def __init__(self, svg_path=None, *, svg_data=None):
+        """Load the SVG from a file path, or from svg_data (str or bytes)."""
         try:
             import skia
         except ImportError:
-            raise ImportError("Skia is required for this renderer")
+            raise ImportError("skia-python is required for this renderer")
         try:
             import moderngl
         except ImportError:
             moderngl = None # moderngl is optional
+        if (svg_path is None) == (svg_data is None):
+            raise ValueError("Exactly one of svg_path and svg_data must be provided")
         self.skia = skia
         self.moderngl = moderngl
-        svg_path = str(pathlib.Path(svg_path).resolve())
-        skia_stream = skia.Stream.MakeFromFile(svg_path)
-        self.svg_dom = skia.SVGDOM.MakeFromStream(skia_stream)
+        self._mode = _MODE_CPU
+
+        # Retrieve the raw SVG content
+        if svg_data is None:
+            data = pathlib.Path(svg_path).read_bytes()
+        elif isinstance(svg_data, str):
+            data = svg_data.encode('utf-8')
+        else:
+            data = bytes(svg_data)
+
+        self.svg_dom = skia.SVGDOM.MakeFromStream(skia.MemoryStream.MakeCopy(data))
         if not(self.svg_dom):
             raise ValueError("Failed to load SVG")
-        self.original_size = self.svg_dom.containerSize()
-        #root_svg = self.svg_dom.getRoot()
-        #self.original_bounds = root_svg.objectBoundingBox()
+
+        # Without width/height, skia reports an empty size: use the viewBox
+        size = self.svg_dom.containerSize()
+        if size.width() <= 0 or size.height() <= 0:
+            size = skia.Size(*_parse_viewbox_size(data))
+            if size.width() <= 0 or size.height() <= 0:
+                raise ValueError("The SVG has no width/height nor valid viewBox")
+            self.svg_dom.setContainerSize(size)
+        self.original_size = size
 
     @property
     def content_bounds(self) -> Tuple[float, float, float, float]:
-        """Get the SVG content bounds (x, y, width, height)"""
         if not self.svg_dom:
             return (0, 0, 0, 0)
-        #bounds = self.original_bounds
-        #return (bounds.x(), bounds.y(), bounds.width(), bounds.height())
         return (0, 0, self.original_size.width(), self.original_size.height())
-
-    def get_fit_scale(self,
-                      float target_width,
-                      float target_height,
-                      bint preserve_ratio = True) -> float:
-        """Calculate scale factor to fit SVG in target dimensions while preserving aspect ratio"""
-        if not self.svg_dom:
-            return 1.0
-        content_x, content_y, content_w, content_h = self.content_bounds
-        if content_w == 0 or content_h == 0:
-            return 1.0
-        scale_x = target_width / content_w
-        scale_y = target_height / content_h
-        if preserve_ratio:
-            scale_x = min(scale_x, scale_y)
-            scale_y = scale_x
-        return scale_x, scale_y
-    
-    def get_centered_translation(self,
-                                 target_width: float,
-                                 target_height: float, 
-                                 scalex: float,
-                                 scaley: float) -> Tuple[float, float]:
-        """Calculate translation to center SVG in target dimensions at given scale"""
-        if not self.svg_dom:
-            return (0, 0)
-        content_x, content_y, content_w, content_h = self.content_bounds
-        
-        # Calculate centered position
-        tx = (target_width / scalex - content_w) / 2 - content_x
-        ty = (target_height / scaley - content_h) / 2 - content_y
-        return (tx, ty)
 
     def allocate_texture(self, C : dcg.Context,
                          int32_t width, int32_t height,
                          bint allow_gpu = False) -> None:
-        """Allocate a texture for rendering the SVG content"""
-        skia = self.skia
-        # GPU Context setup
+        # Keep the current resources if they already match the request
+        if self.surface is not None and \
+           self._width == width and \
+           self._height == height and \
+           self._gpu_requested == allow_gpu:
+            return
+
+        # Free the resources of the previous allocation
+        self._release_surface()
+
+        # Allocate the texture
         self.texture = dcg.Texture(C)
         self.texture.allocate(width=width, height=height, uint8=True, num_chans=4)
-        # Reinit old data
-        self.backend_texture = None
-        self.surface = None
-        self.imported_texture = None
-        self.context = None
-        self.moderngl_dst_texture = None
-        self.moderngl_src_texture = None
-        self.moderngl_src_fbo = None
-        self.moderngl_dst_fbo = None
+        self._width = width
+        self._height = height
+        self._gpu_requested = allow_gpu
+        self.info = self.skia.ImageInfo.Make(width, height,
+                                             self.skia.kRGBA_8888_ColorType,
+                                             self.skia.kPremul_AlphaType)
+        # The matrix passed to render() does the scaling
+        self.svg_dom.setContainerSize(self.original_size)
+
+        # Create the surface, on the GPU if possible
+        if allow_gpu and not(self._gpu_failed):
+            try:
+                self._init_gpu_surface(C)
+                return
+            except Exception:
+                traceback.print_exc()
+                self._gpu_failed = True
+                self._release_surface()
+        self._init_cpu_surface()
+
+    def release(self) -> None:
+        self._release_surface()
         self.moderngl_context = None
         self.gl_context = None
+        self.texture = None
 
-        self._container_width = width
-        self._container_height = height
-        if self.svg_dom:
-            self.svg_dom.setContainerSize((width, height))
+    def render(self, float scalex, float scaley, float tx, float ty) -> None:
+        """Render the SVG content to the texture at given scale and position"""
+        if not self.svg_dom or not self.surface:
+            return None
 
-        if allow_gpu:
-            self.gl_context = C.create_new_shared_gl_context(4,3)
-            self.gl_context.make_current()
-            self.context = skia.GrDirectContext.MakeGL()
-            self.moderngl_context = None
-        self.info = skia.ImageInfo.MakeN32Premul(width, height)
-        self.cpu_rendering = False
-        self.gpu_blit = False
-        
-        if self.context:
-            # Create GPU surface
+        if self._mode == _MODE_CPU:
+            self._draw_svg(scalex, scaley, tx, ty)
+            pixels = self._read_pixels()
+        else:
+            pixels = self._render_gpu(scalex, scaley, tx, ty)
 
-            self.imported_texture = skia.GrBackendTexture(
-                width, height,
-                skia.GrMipmapped.kNo,
-                skia.GrGLTextureInfo(
-                    target=3553, #GL_TEXTURE_2D,
-                    id=self.texture.texture_id,
-                    format=skia.GrGLFormat.kRGBA8
-                )
-            )
+        # The GL context is released by now
+        if pixels is not None:
+            self.texture.set_value(pixels)
 
-            # I haven't made it work yet, not sure why
-            self.surface = skia.Surface.MakeFromBackendTexture(
-                self.context,
-                self.imported_texture,
-                skia.kTopLeft_GrSurfaceOrigin,
-                0,
-                skia.ColorType.kRGBA_8888_ColorType,
-                skia.ColorSpace.MakeSRGB(),
-                None
-            )
+    def _init_cpu_surface(self) -> None:
+        """Create a raster surface with explicit RGBA layout."""
+        self._mode = _MODE_CPU
+        self.surface = self.skia.Surface.MakeRaster(self.info)
+        if self.surface is None:
+            raise ValueError("Failed to create the CPU surface")
+        self.matrix = self.skia.Matrix()
 
-        if self.context and self.surface is None:
-            # Fallback to GPU texture not imported
-            # Create a GPU surface using a rendertarget texture
-            self.backend_texture = self.context.createBackendTexture(
-                width, height, skia.kRGBA_8888_ColorType,
+    def _init_gpu_surface(self, C : dcg.Context) -> None:
+        """Create a skia GPU surface and the means to transfer it.
+
+        Raises if the GPU cannot be used. The caller must then call
+        _release_surface.
+        """
+        skia = self.skia
+        if self.gl_context is None:
+            # 3.3 core is the minimum for skia and moderngl, and macOS caps at 4.1
+            self.gl_context = C.create_new_shared_gl_context(3, 3)
+        self.gl_context.make_current()
+        try:
+            # Surface rendering to a skia owned texture
+            self.gr_context = self._make_gr_context()
+            self.backend_texture = self.gr_context.createBackendTexture(
+                self._width, self._height, skia.kRGBA_8888_ColorType,
                 skia.GrMipmapped.kNo, skia.GrRenderable.kYes
             )
-            GrGLTextureInfo = skia.GrGLTextureInfo()
             self.surface = skia.Surface.MakeFromBackendTexture(
-                self.context,
+                self.gr_context,
                 self.backend_texture,
                 skia.kTopLeft_GrSurfaceOrigin,
                 0,
@@ -460,77 +598,130 @@ class SkiaSVGRenderer(SVGRenderer):
                 skia.ColorSpace.MakeSRGB(),
                 None
             )
+            if self.surface is None:
+                raise RuntimeError("Failed to create the GPU surface")
+            self.matrix = skia.Matrix()
 
-            if self.surface is not None and self.moderngl:
-                GrGLTextureInfo = skia.GrGLTextureInfo()
-                assert(self.backend_texture.getGLTextureInfo(GrGLTextureInfo))
-                self.gpu_blit = True
-                self.moderngl_context = self.moderngl.create_context()
-                self.moderngl_dst_texture = \
-                    self.moderngl_context.external_texture(
-                        self.texture.texture_id,
-                        (self.texture.width, self.texture.height),
-                        4, 0, "f1")
-                self.moderngl_src_texture = \
-                    self.moderngl_context.external_texture(
-                        GrGLTextureInfo.fID,
-                        (width, height),
-                        4, 0, "f1")
-                self.moderngl_src_fbo = self.moderngl_context.framebuffer(
-                    color_attachments=[self.moderngl_src_texture],
-                    depth_attachment=None
-                )
-                self.moderngl_dst_fbo = self.moderngl_context.framebuffer(
-                    color_attachments=[self.moderngl_dst_texture],
-                    depth_attachment=None
-                )
-
-        if self.surface is None:
-            self.surface = skia.Surface(width, height)
-            self.cpu_rendering = True
-
-        if self.surface is None:
-            raise ValueError("Failed to create surface")
-        
-        # SVG DOM
-        self.matrix = skia.Matrix()
-        if self.gl_context:
+            # GPU conversion if possible, else pixels will be read back
+            if self.moderngl is None:
+                self._mode = _MODE_GPU_READBACK
+            else:
+                self.blitter = self._make_blitter()
+                self._mode = _MODE_GPU_BLIT
+        finally:
             self.gl_context.release()
-    
-    def render(self, float scalex, float scaley, float tx, float ty) -> None:
-        """Render the SVG content to the texture at given scale and position"""
+
+    def _make_gr_context(self):
+        """Create the skia GL context. Raises if no GL interface works.
+
+        The default native interface only looks at GLX, which fails when
+        the context was created with EGL (e.g. Wayland), so try EGL too.
+        """
         skia = self.skia
-        if not self.svg_dom or not self.surface:
-            return None
-        if self.gl_context:
+        context = skia.GrDirectContext.MakeGL()
+        if context is not None:
+            return context
+        # EGL/GLX interfaces only exist in the Linux builds of skia-python
+        if sys.platform.startswith("linux"):
+            for name in ("MakeEGL", "MakeGLX"):
+                maker = getattr(skia.GrGLInterface, name, None)
+                gl_interface = maker() if maker is not None else None
+                if gl_interface is not None:
+                    context = skia.GrDirectContext.MakeGL(gl_interface)
+                    if context is not None:
+                        return context
+        raise RuntimeError("Failed to create the skia GL context (no usable GL interface)")
+
+    def _make_moderngl_context(self):
+        """Wrap the current GL context with moderngl.
+
+        The default detection only supports GLX. With EGL (e.g. Wayland)
+        the context must be attached with the egl backend instead.
+        """
+        try:
+            return self.moderngl.create_context()
+        except Exception:
+            # WGL (Windows) and CGL (macOS) detection is reliable: only
+            # Linux can have EGL contexts
+            if not sys.platform.startswith("linux"):
+                raise
+            return self.moderngl.create_context(backend='egl', share=True)
+
+    def _make_blitter(self):
+        """Create the GPU conversion from the skia texture to self.texture."""
+        info = self.skia.GrGLTextureInfo()
+        if not self.backend_texture.getGLTextureInfo(info):
+            raise RuntimeError("Failed to retrieve the GL texture info")
+        if self.moderngl_context is None:
+            self.moderngl_context = self._make_moderngl_context()
+        return _UnpremultiplyBlit(self.moderngl, self.moderngl_context,
+                                  info.fID, self.texture.texture_id,
+                                  self._width, self._height)
+
+    def _release_surface(self) -> None:
+        """Free the surface and the GPU objects of the current allocation."""
+        if self.gl_context is not None:
             self.gl_context.make_current()
-        if not(self.cpu_rendering) and not(self.gpu_blit):
-            self.texture.gl_begin_write()
-        # Clear and setup transform
+        try:
+            # moderngl objects reference the skia texture: free them first
+            if self.blitter is not None:
+                self.blitter.release()
+            self.surface = None
+            if self.gr_context is not None:
+                if self.backend_texture is not None:
+                    self.gr_context.deleteBackendTexture(self.backend_texture)
+                self.gr_context.releaseResourcesAndAbandonContext()
+        finally:
+            if self.gl_context is not None:
+                self.gl_context.release()
+        self.blitter = None
+        self.backend_texture = None
+        self.gr_context = None
+        self._mode = _MODE_CPU
+
+    def _draw_svg(self, float scalex, float scaley, float tx, float ty) -> None:
+        """Draw the SVG on the (cleared) skia surface."""
         canvas = self.surface.getCanvas()
-        canvas.clear(skia.Color4f(1.0, 1.0, 1.0, 0.0))
-        
-        # Set transform
+        canvas.clear(self.skia.ColorTRANSPARENT)
         self.matrix.setScale(scalex, scaley)
         self.matrix.preTranslate(tx, ty)
         canvas.setMatrix(self.matrix)
-        # Render SVG
         self.svg_dom.render(canvas)
-        if not(self.cpu_rendering):
-            self.context.flush()
-            # If using GPU but not imported texture, we need to copy
-            if self.gpu_blit:
+
+    def _render_gpu(self, float scalex, float scaley, float tx, float ty):
+        """Render on the GPU.
+
+        Returns the pixels to upload, or None if the texture was already
+        written on the GPU.
+        """
+        pixels = None
+        self.gl_context.make_current()
+        try:
+            self._draw_svg(scalex, scaley, tx, ty)
+            self.gr_context.flush()
+            if self._mode == _MODE_GPU_BLIT:
                 self.texture.gl_begin_write()
-                self.moderngl_context.copy_framebuffer(self.moderngl_dst_fbo, self.moderngl_src_fbo)
-            self.texture.gl_end_write()
-            if self.gl_context:
-                self.gl_context.release()
-        else:
-            # Upload to the texture
-            image = self.surface.makeImageSnapshot()
-            if self.gl_context:
-                self.gl_context.release()
-            self.texture.set_value(image)
+                try:
+                    self.blitter.blit()
+                finally:
+                    self.texture.gl_end_write()
+                # moderngl changed the GL state behind skia's back
+                self.gr_context.resetContext()
+            else:
+                pixels = self._read_pixels()
+        finally:
+            self.gl_context.release()
+        return pixels
+
+    def _read_pixels(self):
+        """Read the surface back as straight alpha RGBA.
+
+        ImGui blends with straight alpha while skia renders premultiplied.
+        """
+        image = self.surface.makeImageSnapshot()
+        return image.toarray(colorType=self.skia.kRGBA_8888_ColorType,
+                             alphaType=self.skia.kUnpremul_AlphaType)
+
 
 cdef class DrawSVG(dcg.drawingItem):
     """
@@ -546,9 +737,8 @@ cdef class DrawSVG(dcg.drawingItem):
     cdef double[2] _pmax
     cdef object _renderer
     cdef dcg.Texture _texture
-    # size of the texture
-    cdef int32_t _texture_width
-    cdef int32_t _texture_height
+    # False until a texture has been rendered for the current renderer
+    cdef bint _has_texture
     # size of the rendered area which the texture contains a crop of
     cdef int32_t _rendered_ref_width
     cdef int32_t _rendered_ref_height
@@ -557,6 +747,7 @@ cdef class DrawSVG(dcg.drawingItem):
     cdef double _texture_u1
     cdef double _texture_v0
     cdef double _texture_v1
+    cdef bint _allow_gpu
     cdef bint _preserve_ratio
     cdef bint _no_fill_area
     cdef bint _no_centering
@@ -564,12 +755,12 @@ cdef class DrawSVG(dcg.drawingItem):
     def __cinit__(self):
         self._pmin = [0., 0.]
         self._pmax = [1., 1.]
-        self._texture_width = 0
-        self._texture_height = 0
+        self._has_texture = False
         self._texture_u0 = 0
         self._texture_u1 = 1.
         self._texture_v0 = 0
         self._texture_v1 = 1.
+        self._allow_gpu = False
         self._preserve_ratio = True
         self._no_fill_area = False
         self._no_centering = False
@@ -578,6 +769,46 @@ cdef class DrawSVG(dcg.drawingItem):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def __dealloc__(self):
+        self._release_renderer()
+
+    cdef void _release_renderer(self) noexcept:
+        """Release the current renderer resources (mutex held or object dying)"""
+        if self._renderer is None:
+            return
+        try:
+            self._renderer.release()
+        except Exception:
+            traceback.print_exc()
+
+    cdef void _set_renderer(self, object renderer, object path) noexcept:
+        """Replace the renderer and force a re-render. Mutex must be held."""
+        self._release_renderer()
+        self._svg_path = path
+        self._renderer = renderer
+        self._has_texture = False
+
+    @property
+    def renderer(self):
+        """
+        Renderer (SVGRenderer instance) used to rasterize the SVG.
+
+        Setting it allows to use a custom renderer. The item takes
+        ownership of the renderer and calls its release() method when
+        it is replaced or when the item is destroyed.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._renderer
+
+    @renderer.setter
+    def renderer(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value is not None and not isinstance(value, SVGRenderer):
+            raise TypeError("renderer must be an SVGRenderer instance")
+        self._set_renderer(value, None)
+
     @property
     def svg_path(self):
         """
@@ -585,22 +816,54 @@ cdef class DrawSVG(dcg.drawingItem):
 
         This path identifies the SVG file loaded by the renderer. Setting this
         property will create a new renderer instance with the provided file.
+        None if the content was not set from a file.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-        return str(self._svg_path, encoding='utf-8')
+        return self._svg_path
 
     @svg_path.setter
     def svg_path(self, str value):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
-    
-        # Store path and create renderer
-        self._svg_path = value
-        self._renderer = SkiaSVGRenderer(value)
 
-        # Force texture reallocation and re-rendering on next draw    
-        self._texture_width = 0
+        # Create the new renderer first, so that a failure keeps the old state
+        self._set_renderer(SkiaSVGRenderer(value), value)
+
+    @property
+    def svg_data(self):
+        """
+        Write-only: SVG content (str or bytes) to display.
+
+        Setting this property creates a new renderer from the content.
+        """
+        raise AttributeError("svg_data is write-only")
+
+    @svg_data.setter
+    def svg_data(self, value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        self._set_renderer(SkiaSVGRenderer(svg_data=value), None)
+
+    @property
+    def allow_gpu(self):
+        """
+        Whether to try GPU rendering of the SVG (default False).
+
+        Falls back to CPU rendering if the GPU backend cannot be
+        initialized. GPU rendering is not always faster.
+        """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        return self._allow_gpu
+
+    @allow_gpu.setter
+    def allow_gpu(self, bint value):
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
+        if value != self._allow_gpu:
+            self._allow_gpu = value
+            self._has_texture = False
 
     @property
     def pmin(self):
@@ -656,11 +919,16 @@ cdef class DrawSVG(dcg.drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._preserve_ratio = not(value)
+        self._has_texture = False
 
-    ''' Hidden as should be reworked
     @property
     def no_fill_area(self):
-        """Whether to avoid scaling up the SVG to fill the area"""
+        """
+        Whether to map SVG units to coordinate units instead of fitting.
+
+        When True, one SVG unit spans one unit of the coordinate space
+        (the SVG is not scaled to fill [pmin, pmax]). Default is False.
+        """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         return self._no_fill_area
@@ -670,7 +938,7 @@ cdef class DrawSVG(dcg.drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_fill_area = value
-    '''
+        self._has_texture = False
 
     @property
     def no_centering(self):
@@ -689,6 +957,82 @@ cdef class DrawSVG(dcg.drawingItem):
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
         self._no_centering = value
+        self._has_texture = False
+
+    cdef bint _update_texture(self,
+                              double fu0, double fu1,
+                              double fv0, double fv1,
+                              double full_width, double full_height,
+                              double unit_scalex, double unit_scaley) noexcept:
+        """Render the SVG to a texture covering the visible area (+ margin).
+
+        (fu0, fv0)-(fu1, fv1) is the visible area relative to the full area.
+        Must be called with the GIL and the item mutex held.
+        Returns False on failure, after disabling the renderer.
+        """
+        cdef int32_t ref_w = max(1, <int>cround(full_width))
+        cdef int32_t ref_h = max(1, <int>cround(full_height))
+        cdef int32_t start_x, start_y, stop_x, stop_y
+        cdef double margin_x = 0.1 * (fu1 - fu0) * ref_w
+        cdef double margin_y = 0.1 * (fv1 - fv0) * ref_h
+
+        # Pixel aligned window (with a 10% margin to reduce reallocations)
+        start_x = <int>cfloor(max(0., fu0 * ref_w - margin_x))
+        start_y = <int>cfloor(max(0., fv0 * ref_h - margin_y))
+        stop_x = <int>cceil(min(<double>ref_w, fu1 * ref_w + margin_x))
+        stop_y = <int>cceil(min(<double>ref_h, fv1 * ref_h + margin_y))
+        start_x, stop_x = _clamp_window(start_x, stop_x, ref_w)
+        start_y, stop_y = _clamp_window(start_y, stop_y, ref_h)
+
+        try:
+            self._renderer.allocate_texture(self.context,
+                                            stop_x - start_x,
+                                            stop_y - start_y,
+                                            self._allow_gpu)
+
+            # Scale and translation for the full area
+            if self._no_fill_area:
+                scalex = unit_scalex
+                scaley = unit_scaley
+                if self._preserve_ratio:
+                    scalex = min(scalex, scaley)
+                    scaley = scalex
+            else:
+                scalex, scaley = self._renderer.get_fit_scale(ref_w, ref_h,
+                                                              self._preserve_ratio)
+            if self._no_centering:
+                tx = 0.
+                ty = 0.
+            else:
+                tx, ty = self._renderer.get_centered_translation(ref_w, ref_h,
+                                                                 scalex, scaley)
+
+            # Shift to the window origin
+            tx -= start_x / scalex
+            ty -= start_y / scaley
+
+            self._renderer.render(scalex, scaley, tx, ty)
+            new_texture = self._renderer.texture
+            if new_texture is None:
+                raise ValueError("The renderer did not provide a texture")
+        except Exception:
+            # Do not retry (and spam) at every frame
+            traceback.print_exc()
+            self._release_renderer()
+            self._renderer = None
+            self._has_texture = False
+            return False
+
+        # Commit the state only once the rendering succeeded
+        self._texture = new_texture
+        self._has_texture = True
+        self._rendered_ref_width = ref_w
+        self._rendered_ref_height = ref_h
+        self._texture_u0 = <double>start_x / ref_w
+        self._texture_u1 = <double>stop_x / ref_w
+        self._texture_v0 = <double>start_y / ref_h
+        self._texture_v1 = <double>stop_y / ref_h
+        return True
 
     cdef void draw(self, void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
@@ -746,104 +1090,46 @@ cdef class DrawSVG(dcg.drawingItem):
         if w <= 0.5 or h <= 0.5:
             return
 
-        # Calculate UV coordinates if the texture covered the full area
-        cdef double u0 = start_x / full_width, v0 = start_y / full_height
-        cdef double u1 = stop_x / full_width, v1 = stop_y / full_height
-        if self._texture_width != 0:
-            # In practice the texture might only cover a subsection
-            # of relative coordinates (self._texture_u0, self._texture_v0) to (self._texture_u1, self._texture_v1)
-            u0 = (u0 - self._texture_u0) / (self._texture_u1 - self._texture_u0)
-            u1 = (u1 - self._texture_u0) / (self._texture_u1 - self._texture_u0)
-            v0 = (v0 - self._texture_v0) / (self._texture_v1 - self._texture_v0)
-            v1 = (v1 - self._texture_v0) / (self._texture_v1 - self._texture_v0)
-
-        # Round to integers
-        cdef int32_t width = <int>cround(w)
-        cdef int32_t height = <int>cround(h)
-        cdef double scalex, scaley
-
+        # Position of the visible area relative to the full area (0-1)
+        cdef double fu0 = start_x / full_width, fv0 = start_y / full_height
+        cdef double fu1 = stop_x / full_width, fv1 = stop_y / full_height
 
         # Check if we need to reallocate texture
         # Only reallocate if:
         # 1. We don't have texture yet
         # 2. required content is outside of current texture
         # 3. New required resolution is larger than 1.2 * that of current texture
-        # 4. New required size is much smaller (less than 50%) to save memory and prevent aliasing
+        # 4. New required size is much smaller (less than 50%) in one dimension
+        #    to save memory and prevent aliasing
         cdef double epsilon = 1e-6 # for rounding imprecision
-        cdef bint need_realloc = self._texture_width == 0 or \
-                                u0 < -epsilon or \
-                                u1 > 1. + epsilon or \
-                                v0 < -epsilon or \
-                                v1 > 1. + epsilon or \
+        cdef bint need_realloc = not(self._has_texture) or \
+                                fu0 < self._texture_u0 - epsilon or \
+                                fu1 > self._texture_u1 + epsilon or \
+                                fv0 < self._texture_v0 - epsilon or \
+                                fv1 > self._texture_v1 + epsilon or \
                                 full_width > 1.2 * self._rendered_ref_width or \
                                 full_height > 1.2 * self._rendered_ref_height or \
-                                (full_width < self._rendered_ref_width / 2 and \
-                                 full_height < self._rendered_ref_height / 2)
+                                full_width < self._rendered_ref_width / 2 or \
+                                full_height < self._rendered_ref_height / 2
 
-        cdef double rendered_start_x, rendered_start_y
-        cdef double rendered_stop_x, rendered_stop_y
+        cdef bint success
+        cdef double unit_scalex, unit_scaley
         if need_realloc:
+            # Pixels per coordinate unit (used by no_fill_area)
+            unit_scalex = abs(full_width / (pmax[0] - pmin[0]))
+            unit_scaley = abs(full_height / (pmax[1] - pmin[1]))
             with gil:
-                full_width = cround(full_width)
-                full_height = cround(full_height)
-                # Add 20% margin to reduce recreation frequency
-                rendered_start_x = max(0, start_x - 0.1 * width)
-                rendered_start_y = max(0, start_y - 0.1 * height)
-                rendered_stop_x = min(full_width, stop_x + 0.1 * width)
-                rendered_stop_y = min(full_height, stop_y + 0.1 * height)
-                self._texture_width = <int>(rendered_stop_x - rendered_start_x)
-                self._texture_height = <int>(rendered_stop_y - rendered_start_y)
-                self._rendered_ref_width = <int>full_width
-                self._rendered_ref_height = <int>full_height
-                self._renderer.allocate_texture(self.context,
-                                                self._texture_width,
-                                                self._texture_height)
-                # Calculate scale and translation for full area
-                
-                # If no_fill_area is set scale only by pixel size
-                if self._no_fill_area:
-                    scalex = abs((screen_pmax[0] - screen_pmin[0]) / (pmax[0] - pmin[0]))
-                    scaley = abs((screen_pmax[1] - screen_pmin[1]) / (pmax[1] - pmin[1]))
-                    if self._preserve_ratio:
-                        scalex = min(scalex, scaley)
-                        scaley = scalex
-                else:
-                    scalex, scaley = \
-                        self._renderer.get_fit_scale(self._rendered_ref_width,
-                                                     self._rendered_ref_height,
-                                                     self._preserve_ratio)
+                success = self._update_texture(fu0, fu1, fv0, fv1,
+                                               full_width, full_height,
+                                               unit_scalex, unit_scaley)
+            if not(success):
+                return
 
-                if self._no_centering:
-                    # Align to top-left
-                    tx = 0
-                    ty = 0
-                else:
-                    # Center the SVG
-                    tx, ty = \
-                        self._renderer.get_centered_translation(self._rendered_ref_width,
-                                                                self._rendered_ref_height,
-                                                                scalex,
-                                                                scaley)
-
-                # Apply shift in full area coordinate
-                tx -= rendered_start_x / scalex    
-                ty -= rendered_start_y / scaley
-
-                self._renderer.render(scalex, scaley, tx, ty)
-                self._texture = self._renderer.texture
-                self._texture_u0 = rendered_start_x / full_width
-                self._texture_u1 = rendered_stop_x / full_width
-                self._texture_v0 = rendered_start_y / full_height
-                self._texture_v1 = rendered_stop_y / full_height
-                u0 = start_x / full_width
-                v0 = start_y / full_height
-                u1 = stop_x / full_width
-                v1 = stop_y / full_height
-                u0 = (u0 - self._texture_u0) / (self._texture_u1 - self._texture_u0)
-                u1 = (u1 - self._texture_u0) / (self._texture_u1 - self._texture_u0)
-                v0 = (v0 - self._texture_v0) / (self._texture_v1 - self._texture_v0)
-                v1 = (v1 - self._texture_v0) / (self._texture_v1 - self._texture_v0)
-                
+        # UV coordinates: the texture covers only a subsection of the full area
+        cdef double u0 = _remap(fu0, self._texture_u0, self._texture_u1)
+        cdef double u1 = _remap(fu1, self._texture_u0, self._texture_u1)
+        cdef double v0 = _remap(fv0, self._texture_v0, self._texture_v1)
+        cdef double v1 = _remap(fv1, self._texture_v0, self._texture_v1)
 
         # Draw texture mapped to coordinate bounds
         if flip_x:
