@@ -1,4 +1,5 @@
 import calendar
+from cmath import rect
 import colorsys
 from datetime import datetime
 import typing
@@ -1252,6 +1253,16 @@ class DraggableBar(dcg.DrawInWindow):
         position (float): Initial position (0.0-1.0) along parent
         callback: Function to call when position changes
     """
+    __slots__ = {
+        "_vertical": "Orientation of the bar (True for vertical, False for horizontal)",
+        "_position": "Current position of the bar (0.0-1.0)",
+        "_dragging_in_grab": "Whether the bar is currently being dragged in the grab region",
+        "_callbacks": "List of callback functions to call when position changes",
+        "_drawing_list": "Drawing list for the bar",
+        "_grab_rounding": "Rounding of the grab area",
+        "_grab_radius": "Radius of the grab area",
+        "_drag_start_position": "Bar position at the start of dragging"
+    }
     
     def __init__(self, context, *, vertical=True, position=0.5, 
                  callback=None, **kwargs) -> None:
@@ -1266,10 +1277,10 @@ class DraggableBar(dcg.DrawInWindow):
         # Configure positioning based on orientation
         if vertical:
             kwargs.setdefault("width", "theme.grab_min_size + theme.separator_text_border_size")
-            kwargs.setdefault("x", f"parent.x1 + {position} * parent.width")
+            kwargs.setdefault("x", f"parent.x1 + {position} * (parent.x2 - parent.x1 - self.width)")
         else:
             kwargs.setdefault("height", "theme.grab_min_size + theme.separator_text_border_size")
-            kwargs.setdefault("y", f"parent.y1 + {position} * parent.height")
+            kwargs.setdefault("y", f"parent.y1 + {position} * (parent.y2 - parent.y1 - self.height)")
 
         super().__init__(context, **kwargs)
 
@@ -1286,9 +1297,7 @@ class DraggableBar(dcg.DrawInWindow):
         self._grab_rounding = 0.
         self._grab_radius = 0.
 
-        # Drag tracking: mouse position and bar position at click time
-        self._drag_start_mouse_x = 0.
-        self._drag_start_mouse_y = 0.
+        # Drag tracking: bar position at click time
         self._drag_start_position = position
 
         # Set up handlers
@@ -1296,12 +1305,8 @@ class DraggableBar(dcg.DrawInWindow):
             # Handle hover state
             dcg.GotHoverHandler(context, callback=self._on_got_hover),
             dcg.LostHoverHandler(context, callback=self._on_lost_hover),
-            # Check if click is in grab area
-            dcg.ClickedHandler(context, callback=self._on_clicked),
             # Handle dragging
-            dcg.DraggingHandler(context, callback=self._on_dragging),
-            # Reset state when dragging ends
-            dcg.DraggedHandler(context, callback=self._on_dragged)
+            dcg.MouseDragHandler(context, callback=self._on_mouse_drag),
         ]
 
         # Add conditional handler for cursor change when in grab area
@@ -1319,13 +1324,13 @@ class DraggableBar(dcg.DrawInWindow):
                 """Check if mouse is in the grab area."""
                 return item._is_in_grab_area()
 
+        # If rendered, check grab area
         with dcg.ConditionalHandler(context) as handler:
-            # We use an double conditional handler to avoid
-            # running InGrabAreaHandler on every frame
+            # If in grab area, change the cursor accordingly
             with dcg.ConditionalHandler(context):
                 dcg.MouseCursorHandler(context, cursor=cursor)
                 InGrabAreaHandler(context)
-            dcg.HoverHandler(context)
+            dcg.RenderHandler(context)
         self.handlers += [handler]
     
     @property
@@ -1345,9 +1350,9 @@ class DraggableBar(dcg.DrawInWindow):
             
             # Update position formula
             if self._vertical:
-                self.x = f"parent.x1 + {self._position} * parent.width"
+                self.x = f"parent.x1 + {self._position} * (parent.x2 - parent.x1 - self.width)"
             else:
-                self.y = f"parent.y1 + {self._position} * parent.height"
+                self.y = f"parent.y1 + {self._position} * (parent.y2 - parent.y1 - self.height)"
             self.context.viewport.wake(delay=0.033) # redraw in max 30 FPS
             
             # Call any registered callbacks
@@ -1374,20 +1379,34 @@ class DraggableBar(dcg.DrawInWindow):
         """Called when the widget is no longer hovered."""
         self._drawing_list.show = self._dragging_in_grab
     
-    def _on_clicked(self) -> None:
-        """Check if click was in the grab area."""
-        self._dragging_in_grab = self._is_in_grab_area()
-        if self._dragging_in_grab:
-            mouse_pos = self.context.get_mouse_position()
-            self._drag_start_mouse_x = mouse_pos[0]
-            self._drag_start_mouse_y = mouse_pos[1]
-            self._drag_start_position = self._position
-    
-    def _on_dragging(self):
+    def _on_mouse_drag(self, sender, target, data: dcg.MouseDragHandlerCallbackValue):
         """Update position when dragging in grab area."""
-        # Only update position if we started dragging in the grab area
-        if not self._dragging_in_grab:
+    
+        # If not dragging, check if the click was in the grab area.
+        # We include the check for the current mouse position as well
+        # as if the dragging started this should be true. This should
+        # filter the case where some other event moves the position
+        # of the bar to the original position.
+        if (
+            not self._dragging_in_grab 
+            and not (
+                self._grab_area_check(data.click_position)
+                and abs(data.click_position.x - data.mouse_position.x) < 2 * self._grab_radius
+                and abs(data.click_position.y - data.mouse_position.y) < 2 * self._grab_radius
+            )
+        ):
             return
+
+        # Store the initial position when dragging starts
+        if not self._dragging_in_grab:
+            self._drag_start_position = self.position
+
+        self._dragging_in_grab = True
+
+        # Reset dragging state when dragging ends.
+        if data.is_released:
+            self._dragging_in_grab = False
+            self._drawing_list.show = self.state.hovered
 
         # Get parent dimensions
         parent = self.parent
@@ -1395,51 +1414,62 @@ class DraggableBar(dcg.DrawInWindow):
             return
         assert isinstance(parent, dcg.uiItem), "DraggableBar cannot be in a plot"
         parent_size = parent.state.rect_size
-        parent_width = parent_size.x
-        parent_height = parent_size.y
-        mouse_pos = self.context.get_mouse_position()
+        self_size = self.state.rect_size
+        available_size = parent_size - self_size
+        mouse_pos = data.mouse_position
 
         # Update position based on orientation.
         # Use a delta from the initial click position so the bar tracks the mouse
         # without teleporting regardless of where within the bar the user clicked.
-        if self._vertical and parent_width > 0:
-            new_position = self._drag_start_position + (mouse_pos.x - self._drag_start_mouse_x) / parent_width
-        elif not self._vertical and parent_height > 0:
-            new_position = self._drag_start_position + (mouse_pos.y - self._drag_start_mouse_y) / parent_height
+        if self._vertical and available_size.x > 0:
+            new_position = (
+                self._drag_start_position
+                + (mouse_pos.x - data.click_position.x) / available_size.x
+            )
+        elif not self._vertical and available_size.y > 0:
+            new_position = (
+                self._drag_start_position
+                + (mouse_pos.y - data.click_position.y) / available_size.y
+            )
         else:
             return
 
         # Update position (will clamp to 0-1 range)
         self.position = new_position
-    
-    def _on_dragged(self) -> None:
-        """Reset dragging state when dragging ends."""
-        self._dragging_in_grab = False
-        self._drawing_list.show = self.state.hovered
+
+    def _grab_area_check(self, mouse_pos: dcg.Coord) -> bool:
+        """Check if the given mouse position is within the grab area."""
+        widget_half_size = 0.5 * self.state.rect_size
+        widget_center = self.state.pos_to_viewport + widget_half_size
+        
+        # Calculate relative mouse position within widget
+        rel = mouse_pos - widget_center
+
+        # Check if in grab area based on orientation
+        if self._vertical:
+            # Vertical bar: check horizontal position within grab width
+            return (
+                abs(rel.x) < self._grab_radius
+                and -widget_half_size.y - self._grab_rounding <= rel.y <= widget_half_size.y + self._grab_rounding
+            )
+        else:
+            # Horizontal bar: check vertical position within grab height
+            return (
+                abs(rel.y) < self._grab_radius
+                and -widget_half_size.x - self._grab_rounding <= rel.x <= widget_half_size.x + self._grab_rounding
+            )
     
     def _is_in_grab_area(self) -> bool:
         """Check if mouse is within the grab area of the bar."""
         if self._dragging_in_grab:
             return True
-        # Get mouse position and widget bounds
-        mouse_pos = self.context.get_mouse_position()
-            
-        widget_pos = self.state.pos_to_viewport
-        widget_size = self.state.rect_size
-        
-        # Calculate relative mouse position within widget
-        rel_x = mouse_pos[0] - widget_pos.x
-        rel_y = mouse_pos[1] - widget_pos.y
 
-        # Check if in grab area based on orientation
-        if self._vertical:
-            # Vertical bar: check horizontal position within grab width
-            return (abs(rel_x - 0.5 * widget_size.x) < self._grab_radius and 
-                    self._grab_rounding <= rel_y <= widget_size.y - self._grab_rounding)
-        else:
-            # Horizontal bar: check vertical position within grab height
-            return (abs(rel_y - 0.5 * widget_size.y) < self._grab_radius and 
-                    self._grab_rounding <= rel_x <= widget_size.x - self._grab_rounding)
+        # Get mouse position and widget bounds
+        try:
+            mouse_pos = self.context.get_mouse_position()
+            return self._grab_area_check(mouse_pos)
+        except Exception:
+            return False
 
     def _update_bar_appearance(self) -> None:
         """Update the visual appearance of the bar."""
@@ -1448,11 +1478,8 @@ class DraggableBar(dcg.DrawInWindow):
         
         # Get widget size
         size = self.state.rect_size
-        width = size.x
-        height = size.y
         thickness = typing.cast(float, dcg.resolve_theme(self, dcg.ThemeStyleImGui, "separator_text_border_size"))
-        center_x = width / 2.
-        center_y = height / 2.
+        center = size / 2.
 
         # Resolve theme colors
         border_color = typing.cast(int, dcg.resolve_theme(self, dcg.ThemeColorImGui, "separator_hovered"))
@@ -1463,34 +1490,44 @@ class DraggableBar(dcg.DrawInWindow):
             if self._vertical:
                 # Vertical bar
                 # Shadow
-                dcg.DrawRect(self.context, 
-                             pmin=(center_x-0.5*thickness-1, 0), 
-                             pmax=(center_x+0.5*thickness+1, height-1), 
-                             color=0, 
-                             fill=shadow_color)
+                dcg.DrawRect(
+                    self.context,
+                    pmin=(center.x-0.5*thickness-1, 0), 
+                    pmax=(center.x+0.5*thickness+1, size.y-1), 
+                    color=0, 
+                    fill=shadow_color
+                )
                 
                 # Main bar
-                dcg.DrawLine(self.context,
-                             p1=(center_x, 0), 
-                             p2=(center_x, height-1),
-                             color=border_color,
-                             thickness=thickness)
+                dcg.DrawLine(
+                    self.context,
+                    p1=(center.x, 0), 
+                    p2=(center.x, size.y-1),
+                    color=border_color,
+                    thickness=thickness
+                )
             else:
                 # Horizontal bar
                 # Shadow
-                dcg.DrawRect(self.context, 
-                             pmin=(0, center_y-0.5*thickness-1), 
-                             pmax=(width-1, center_y+0.5*thickness+1), 
-                             color=0, 
-                             fill=shadow_color)
+                dcg.DrawRect(
+                    self.context, 
+                    pmin=(0, center.y-0.5*thickness-1), 
+                    pmax=(size.x-1, center.y+0.5*thickness+1), 
+                    color=0, 
+                    fill=shadow_color
+                )
 
                 # Main bar
-                dcg.DrawLine(self.context,
-                             p1=(0, center_y), 
-                             p2=(width-1, center_y),
-                             color=border_color,
-                             thickness=thickness)
-        self.context.viewport.wake(delay=0.033) # redraw in max 30 FPS
+                dcg.DrawLine(
+                    self.context,
+                    p1=(0, center.y), 
+                    p2=(size.x-1, center.y),
+                    color=border_color,
+                    thickness=thickness
+                )
+
+        # redraw in max 30 FPS
+        self.context.viewport.wake(delay=0.033)
 
 
 class InputValueN(dcg.ChildWindow):
@@ -1505,12 +1542,12 @@ class InputValueN(dcg.ChildWindow):
     The label is only displayed on the rightmost input field.
     """
     __properties = [
-            'step', 'step_fast', 'min_value', 'max_value', 'print_format',
-            'decimal', 'hexadecimal', 'scientific', 'callback_on_enter',
-            'escape_clears_all', 'readonly', 'password', 'always_overwrite',
-            'auto_select_all', 'empty_as_zero', 'empty_if_zero',
-            'no_horizontal_scroll', 'no_undo_redo'
-        ]
+        'step', 'step_fast', 'min_value', 'max_value', 'print_format',
+        'decimal', 'hexadecimal', 'scientific', 'callback_on_enter',
+        'escape_clears_all', 'readonly', 'password', 'always_overwrite',
+        'auto_select_all', 'empty_as_zero', 'empty_if_zero',
+        'no_horizontal_scroll', 'no_undo_redo'
+    ]
     
     def __init__(self, context, *, values=None, shareable_values=None, **kwargs):
         # Configure visuals

@@ -1,3 +1,7 @@
+"""
+This file defines a metrics window, an item inspector and a style editor.
+"""
+
 from array import array
 import dearcygui as dcg
 import dearcygui.utils as utils

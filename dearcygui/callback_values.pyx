@@ -281,12 +281,25 @@ cdef class DeactivatedAfterEditHandlerCallbackValue(HandlerCallbackValue):
 cdef class DraggedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """Callback value for the DraggedHandler."""
 
-    def __init__(self, Context context, MouseButton button, drag_delta):
+    def __init__(
+        self,
+        Context context,
+        MouseButton button,
+        drag_delta,
+        click_position
+    ):
         if isinstance(drag_delta, Coord):
             self._drag_delta_x = getattr(drag_delta, "x")
             self._drag_delta_y = getattr(drag_delta, "y")
         else:
             raise TypeError("drag_delta must be of type Coord")
+        if isinstance(click_position, Coord):
+            self._click_pos_x = getattr(click_position, "x")
+            self._click_pos_y = getattr(click_position, "y")
+        else:
+            raise TypeError("click_position must be of type Coord")
+        self._mouse_pos_x = self._click_pos_x + self._drag_delta_x
+        self._mouse_pos_y = self._click_pos_y + self._drag_delta_y
         MouseButtonHandlerCallbackValue.__init__(self, context, button)
     
     @property
@@ -337,12 +350,25 @@ cdef class DraggedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
 cdef class DraggingHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """Callback value for the DraggingHandler."""
 
-    def __init__(self, Context context, MouseButton button, drag_delta):
+    def __init__(
+        self,
+        Context context,
+        MouseButton button,
+        drag_delta,
+        click_position
+    ):
         if isinstance(drag_delta, Coord):
             self._drag_delta_x = getattr(drag_delta, "x")
             self._drag_delta_y = getattr(drag_delta, "y")
         else:
             raise TypeError("drag_delta must be of type Coord")
+        if isinstance(click_position, Coord):
+            self._click_pos_x = getattr(click_position, "x")
+            self._click_pos_y = getattr(click_position, "y")
+        else:
+            raise TypeError("click_position must be of type Coord")
+        self._mouse_pos_x = self._click_pos_x + self._drag_delta_x
+        self._mouse_pos_y = self._click_pos_y + self._drag_delta_y
         MouseButtonHandlerCallbackValue.__init__(self, context, button)
 
     @property
@@ -558,12 +584,28 @@ cdef class MouseDownHandlerCallbackValue(MouseButtonHandlerCallbackValue):
 cdef class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """Callback value for the MouseDragHandler."""
 
-    def __init__(self, Context context, MouseButton button, drag_delta):
+    def __init__(
+        self,
+        Context context,
+        MouseButton button,
+        drag_delta,
+        click_position,
+        is_released: bool
+    ):
         if isinstance(drag_delta, Coord):
             self._delta_x = getattr(drag_delta, "x")
             self._delta_y = getattr(drag_delta, "y")
         else:
             raise TypeError("drag_delta must be of type Coord")
+        if isinstance(click_position, Coord):
+            self._click_pos_x = getattr(click_position, "x")
+            self._click_pos_y = getattr(click_position, "y")
+        else:
+            raise TypeError("click_position must be of type Coord")
+
+        self._is_released = is_released
+        self._mouse_pos_x = self._click_pos_x + self._delta_x
+        self._mouse_pos_y = self._click_pos_y + self._delta_y
         MouseButtonHandlerCallbackValue.__init__(self, context, button)
 
     @property
@@ -593,7 +635,7 @@ cdef class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     @property
     def is_released(self):
         """Whether the mouse button just released (end of the drag operation)."""
-        return not self._is_down
+        return self._is_released
 
     @staticmethod
     cdef MouseDragHandlerCallbackValue build(
@@ -605,7 +647,7 @@ cdef class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
         float click_pos_y,
         float mouse_pos_x,
         float mouse_pos_y,
-        bint is_down):
+        bint is_released):
         cdef MouseDragHandlerCallbackValue value = MouseDragHandlerCallbackValue.__new__(MouseDragHandlerCallbackValue)
         value._button = button
         value._delta_x = delta_x
@@ -614,7 +656,7 @@ cdef class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
         value._click_pos_y = click_pos_y
         value._mouse_pos_x = mouse_pos_x
         value._mouse_pos_y = mouse_pos_y
-        value._is_down = is_down
+        value._is_released = is_released
         return value
 
 cdef class MouseMoveHandlerCallbackValue(HandlerCallbackValue):

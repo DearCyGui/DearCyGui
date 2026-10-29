@@ -2242,10 +2242,12 @@ cdef class MouseDragHandler(baseHandler):
         threshold (float): Movement threshold to trigger drag.
                          Negative means use default.
 
-    Callback receives:
-        - button: The button used for dragging
-        - delta_x: Horizontal drag distance
-        - delta_y: Vertical drag distance
+    NOTE: the handler callback will always receive a single event
+    with data.is_released set to True when a drag ends. It corresponds to
+    the moment the mouse button is released.
+    NOTE2: The state of the handler (in handler conditions) is True
+    while the drag is ongoing, but not when it has ended (unlike for the
+    callback, the frame of the mouse release is not taken into account).
     """
     def __cinit__(self):
         self._button = MouseButton.LEFT
@@ -2292,7 +2294,10 @@ cdef class MouseDragHandler(baseHandler):
         cdef imgui.ImGuiIO io = imgui.GetIO()
         if not(self._enabled) or self._callback is None:
             return
-        if imgui.IsMouseDragging(<int>self._button, self._threshold):
+        if (
+            imgui.IsMouseDragging(<int>self._button, self._threshold)
+            or (imgui.IsMouseReleased(<int>self._button) and imgui.IsMouseDragPastThreshold(<int>self._button, self._threshold))
+        ):
             delta = imgui.GetMouseDragDelta(<int>self._button, self._threshold)
             with gil:
                 self.context.queue_callback(
@@ -2308,7 +2313,7 @@ cdef class MouseDragHandler(baseHandler):
                         <float>io.MouseClickedPos[<int>self._button].y,
                         <float>io.MousePos.x,
                         <float>io.MousePos.y,
-                        imgui.isMouseDown(<int>self._button)
+                        imgui.IsMouseReleased(<int>self._button)
                     )
                 )
 
