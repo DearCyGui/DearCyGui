@@ -460,6 +460,29 @@ class DatePicker(dcg.ChildWindow):
     
     WEEKDAY_ABBREV = ("Su", "Mo", "Tu", "We", "Th", "Fr", "Sa")
 
+    __slots__ = {
+        "_container_colors": "Theme colors for the container",
+        "_container_style": "Theme style for the container",
+        "_current_month": "Displayed month (0-11)",
+        "_current_year": "Displayed year",
+        "_current_year_block": "First year of the displayed 20-year block",
+        "_day_button_colors": "Theme colors for day buttons",
+        "_disabled_day_colors": "Theme colors for disabled days",
+        "_grid": "Layout holding the calendar grid",
+        "_header_btn": "Header button used to change the view level",
+        "_header_button_colors": "Theme colors for the header button",
+        "_left_btn": "Previous button",
+        "_max_date": "Maximum selectable date",
+        "_min_date": "Minimum selectable date",
+        "_nav_button_colors": "Theme colors for navigation buttons",
+        "_right_btn": "Next button",
+        "_selected_day_colors": "Theme colors for the selected day",
+        "_today_day_colors": "Theme colors for the current day",
+        "_value": "Selected date as a timestamp",
+        "_view_level": "Current view (0=days, 1=months, 2=years)",
+        "_weekday_header_colors": "Theme colors for the weekday header",
+    }
+
     def __init__(self, context, *, value=None, min_date=None, max_date=None, **kwargs):
         super().__init__(context, **kwargs)
         
@@ -1063,6 +1086,12 @@ class DateTimePicker(dcg.Layout):
     seconds display.
     """
 
+    __slots__ = {
+        "_date_picker": "Embedded DatePicker",
+        "_time_picker": "Embedded TimePicker",
+        "_value": "Selected date and time as a timestamp",
+    }
+
     def __init__(self, context, *, 
                  value=None,
                  min_date=None,
@@ -1254,14 +1283,14 @@ class DraggableBar(dcg.DrawInWindow):
         callback: Function to call when position changes
     """
     __slots__ = {
-        "_vertical": "Orientation of the bar (True for vertical, False for horizontal)",
-        "_position": "Current position of the bar (0.0-1.0)",
-        "_dragging_in_grab": "Whether the bar is currently being dragged in the grab region",
         "_callbacks": "List of callback functions to call when position changes",
+        "_dragging_in_grab": "Whether the bar is currently being dragged in the grab region",
+        "_drag_start_position": "Bar position at the start of dragging",
         "_drawing_list": "Drawing list for the bar",
-        "_grab_rounding": "Rounding of the grab area",
         "_grab_radius": "Radius of the grab area",
-        "_drag_start_position": "Bar position at the start of dragging"
+        "_grab_rounding": "Rounding of the grab area",
+        "_position": "Current position of the bar (0.0-1.0)",
+        "_vertical": "Orientation of the bar (True for vertical, False for horizontal)",
     }
     
     def __init__(self, context, *, vertical=True, position=0.5, 
@@ -1548,6 +1577,18 @@ class InputValueN(dcg.ChildWindow):
         'auto_select_all', 'empty_as_zero', 'empty_if_zero',
         'no_horizontal_scroll', 'no_undo_redo'
     ]
+    __slots__ = {
+        "_callbacks": "Callbacks called when values change",
+        "_inputs": "Contained InputValue items",
+        "_label": "Text item displaying the label",
+        "_reference_input": "Detached InputValue holding the shared properties",
+        "_shareable_values": "Shared values linked to the inputs",
+    }
+
+    _inputs: list[dcg.InputValue]
+    _label: dcg.Text
+    _reference_input: dcg.InputValue
+    _shareable_values: list[dcg.SharedFloat] | None
     
     def __init__(self, context, *, values=None, shareable_values=None, **kwargs):
         # Configure visuals
@@ -1966,6 +2007,18 @@ class SliderN(dcg.ChildWindow):
         'keyboard_clamped', 'drag', 'logarithmic', 'min_value', 'max_value',
         'no_input', 'print_format', 'no_round', 'speed', 'vertical'
     ]
+    __slots__ = {
+        "_callbacks": "Callbacks called when values change",
+        "_label": "Text item displaying the label",
+        "_reference_slider": "Detached Slider holding the shared properties",
+        "_shareable_values": "Shared values linked to the sliders",
+        "_sliders": "Contained Slider items",
+    }
+
+    _label: dcg.Text
+    _reference_slider: dcg.Slider
+    _shareable_values: list[dcg.SharedFloat] | None
+    _sliders: list[dcg.Slider]
     
     def __init__(self, context, *, values=None, shareable_values=None, **kwargs):
         # Configure visuals
