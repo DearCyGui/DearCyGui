@@ -367,7 +367,7 @@ cdef class DrawingScale(drawingItem):
 
         Default is (1., 1.).
 
-        Note unless no_parent_scale is True, the 
+        Note unless no_parent_scaling is True, the
         parent scales also apply.
         """
         cdef unique_lock[DCGMutex] m
@@ -424,8 +424,16 @@ cdef class DrawingScale(drawingItem):
     @property
     def no_global_scaling(self):
         """
-        Disables the global scale when no_parent_scaling is True, including
-        for negative screen-space radii and thicknesses.
+        Disable global scaling of negative screen-space radii and thicknesses.
+
+        When no_parent_scaling is False, the parent coordinate transform is
+        preserved, including any global scaling in that transform. Plot
+        thickness styling is inherited without its global scale factor.
+        When no_parent_scaling is True, global scaling is also disabled for
+        the new coordinate transform.
+
+        When False, inherit the parent's screen-size policy unless
+        no_parent_scaling is True, which resets it to use global scaling.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -444,7 +452,7 @@ cdef class DrawingScale(drawingItem):
         if self.last_drawings_child is None:
             return
 
-        # save states
+        # Save states
         cdef float global_scale = self.context.viewport.global_scale
         cdef double[2] cur_scales = self.context.viewport.scales
         cdef double[2] cur_shifts = self.context.viewport.shifts
@@ -453,6 +461,7 @@ cdef class DrawingScale(drawingItem):
         cdef float cur_thickness_style = self.context.viewport.thickness_style_scale
         cdef bint cur_screen_uses_global = self.context.viewport.screen_size_uses_global_scale
 
+        # Move shift according to the position of the new origin
         cdef float[2] p
         if self._no_parent_scale:
             self.context.viewport.coordinate_to_screen(p, self._shifts)
@@ -463,25 +472,40 @@ cdef class DrawingScale(drawingItem):
             self.context.viewport.shifts[0] = self.context.viewport.shifts[0] + cur_scales[0] * self._shifts[0]
             self.context.viewport.shifts[1] = self.context.viewport.shifts[1] + cur_scales[1] * self._shifts[1]
 
+        # no_parent_scale: reset all scale transforms
         if self._no_parent_scale:
-            self.context.viewport.screen_size_uses_global_scale = not self._no_global_scale
-            self.context.viewport.thickness_style_scale = 1.
+            # Reset previous scaling transform
             self.context.viewport.scales = self._scales
+            self.context.viewport.in_plot = False
+
+            # Reset thickness style scale to default
+            self.context.viewport.thickness_style_scale = 1.
+
+            # Unless requested not to, scale by the global scale factor
+            # This mimicks the behaviour of DrawInWindow
             if not(self._no_global_scale):
                 self.context.viewport.scales[0] = self.context.viewport.scales[0] * global_scale
                 self.context.viewport.scales[1] = self.context.viewport.scales[1] * global_scale
+            self.context.viewport.screen_size_uses_global_scale = not self._no_global_scale
+
+            # Reset coordinate size scale according to the new scales
             self.context.viewport.coordinate_size_scale = self.context.viewport.scales[0]
-            # Disable using plot transform
-            self.context.viewport.in_plot = False
+
+        # Keep current scale and compose with it
         else:
             self.context.viewport.scales[0] = cur_scales[0] * self._scales[0]
             self.context.viewport.scales[1] = cur_scales[1] * self._scales[1]
             self.context.viewport.coordinate_size_scale *= self._scales[0]
 
-        # draw children
+            # NOTE: we make the choice that no_global_scale cannot reenable
+            # the global scale once it has been disabled
+            if self._no_global_scale:
+                self.context.viewport.screen_size_uses_global_scale = False
+
+        # Draw children
         draw_drawing_children(self, drawlist)
 
-        # restore states
+        # Restore states
         #self.context.viewport.global_scale = global_scale
         self.context.viewport.scales = cur_scales
         self.context.viewport.shifts = cur_shifts

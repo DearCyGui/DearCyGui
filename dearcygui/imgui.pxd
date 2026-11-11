@@ -30,18 +30,17 @@ coordinate_size_scale (float):
     coordinate-to-screen transform's DPI scaling.
 
 thickness_style_scale (float):
-    Dimensionless stroke style factor. In plots, this is the effective
-    ImPlot line weight divided by global_scale; elsewhere it is 1.
+    Dimensionless screen-space stroke style factor. In plots, this is the
+    effective ImPlot line weight divided by global_scale; elsewhere it is 1.
 
 screen_size_uses_global_scale (bool):
     Whether negative radii and thicknesses use global_scale, rather than 1,
     as their screen-space size scale.
 
-For positive sizes, multiply radii by coordinate_size_scale and thicknesses
-by coordinate_size_scale * thickness_style_scale. For negative sizes, use
-their absolute values and multiply radii by the screen-space size scale and
-thicknesses by that scale * thickness_style_scale. The draw helpers do not
-apply these transforms automatically.
+For positive sizes, multiply radii and thicknesses by coordinate_size_scale.
+For negative sizes, use their absolute values and multiply radii by the
+screen-space size scale and thicknesses by that scale * thickness_style_scale.
+The draw helpers do not apply these transforms automatically.
 
 window_pos (Vec2):
     Position of parent window in viewport screen coordinates.
@@ -457,9 +456,10 @@ cdef inline float get_scaled_thickness(Context context, float thickness) noexcep
     """
     if thickness > 0:
         thickness *= context.viewport.coordinate_size_scale
-    elif context.viewport.screen_size_uses_global_scale:
-        thickness *= context.viewport.global_scale
-    thickness *= context.viewport.thickness_style_scale
+    else:
+        if context.viewport.screen_size_uses_global_scale:
+            thickness *= context.viewport.global_scale
+        thickness *= context.viewport.thickness_style_scale
     return abs(thickness)
 
 cdef inline float get_scaled_radius(Context context, float radius) noexcept nogil:

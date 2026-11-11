@@ -424,8 +424,8 @@ def test_plot_line_width_matches_drawing_style(
 
     The red PlotLine uses the effective line weight in pixels regardless of
     axis zoom. The green DrawLine uses twice that weight for negative thickness
-    or twice its DPI-normalized value times the X coordinate scale for positive
-    thickness. A marker independently measures that coordinate scale.
+    or twice the X coordinate scale for positive thickness, regardless of style.
+    A marker independently measures that coordinate scale.
     """
     # Apply one shared plot style to both the series and the drawing.
     context.viewport.scale = case.dpi
@@ -469,7 +469,7 @@ def test_plot_line_width_matches_drawing_style(
     green = (pixels[:, :, 0] < 80) & (pixels[:, :, 1] > 180) & (pixels[:, :, 2] < 80)
     green_width = np.count_nonzero(np.any(green, axis=1 if orientation == "horizontal" else 0))
     if case.thickness > 0:
-        expected = case.thickness * marker.state.rect_size.x / 2 * line_weight / case.dpi
+        expected = case.thickness * marker.state.rect_size.x / 2
     else:
         expected = -case.thickness * line_weight
     assert green_width == pytest.approx(expected, abs=2)
@@ -546,14 +546,15 @@ def test_plot_line_item_theme_does_not_change_sibling_strokes(
 @pytest.mark.parametrize("dpi", (1.0, 2.0))
 @pytest.mark.parametrize("no_scaling", (False, True))
 @pytest.mark.parametrize("button_child", (False, True))
-def test_plot_line_weight_affects_thickness_without_extra_dpi(
+def test_plot_line_weight_affects_only_negative_thickness(
     context: dcg.Context, *, dpi: float, no_scaling: bool, button_child: bool
 ) -> None:
-    """Check that the pixel line weight is normalized for positive thickness.
+    """Check that line weight affects negative, but not positive, thickness.
 
     Compare a positive red stroke to a one-unit marker and a negative green
-    stroke to the effective pixel line weight. With no_scaling, the theme's
-    line weight stays at 3 pixels rather than becoming 3 times DPI.
+    stroke to the effective pixel line weight. Change the theme after rendering:
+    the red width must stay the same while the green width follows the new
+    weight. With no_scaling, the line weight remains in physical pixels.
     """
     context.viewport.scale = dpi
     window = dcg.Window(context, width=450, height=350)
@@ -587,9 +588,18 @@ def test_plot_line_weight_affects_thickness_without_extra_dpi(
     assert marker.state.visible
     _, top, _, bottom = _red_bounds(pixels)
     line_weight = 3 if no_scaling else 3 * dpi
-    assert bottom - top == pytest.approx(marker.state.rect_size.x * 0.05 * line_weight / dpi, abs=2)
+    assert bottom - top == pytest.approx(marker.state.rect_size.x * 0.05, abs=2)
     green = (pixels[:, :, 0] < 80) & (pixels[:, :, 1] > 180) & (pixels[:, :, 2] < 80)
     assert np.count_nonzero(np.any(green, axis=1)) == pytest.approx(4 * line_weight, abs=2)
+
+    # Changing the theme affects the screen-space stroke but not coordinate sizing.
+    theme.line_weight = 5
+    pixels = _render_pixels(context)
+    _, new_top, _, new_bottom = _red_bounds(pixels)
+    assert new_bottom - new_top == bottom - top
+    green = (pixels[:, :, 0] < 80) & (pixels[:, :, 1] > 180) & (pixels[:, :, 2] < 80)
+    new_line_weight = 5 if no_scaling else 5 * dpi
+    assert np.count_nonzero(np.any(green, axis=1)) == pytest.approx(4 * new_line_weight, abs=2)
 
 
 @pytest.mark.parametrize("no_global_scaling", (False, True))
@@ -621,7 +631,7 @@ def test_thickness_scaling_reset_uses_own_dpi_policy(
 def test_thickness_scaling_reset_restores_plot_style(
     context: dcg.Context, *, no_global_scaling: bool, no_scaling: bool
 ) -> None:
-    """Check that a reset restores the plot style for both signs of thickness.
+    """Check that a reset restores the plot style for negative thickness.
 
     Compare a positive red stroke with a coordinate marker and a negative blue
     stroke with the plot's DPI-scaled line weight after a reset has rendered.
@@ -658,7 +668,7 @@ def test_thickness_scaling_reset_restores_plot_style(
     _, top, _, bottom = _red_bounds(pixels)
     assert marker.state.visible
     line_weight = 3 if no_scaling else 6
-    assert bottom - top == pytest.approx(line_weight / 2 * marker.state.rect_size.x, abs=2)
+    assert bottom - top == pytest.approx(marker.state.rect_size.x, abs=2)
     green = (pixels[:, :, 0] < 80) & (pixels[:, :, 1] > 180) & (pixels[:, :, 2] < 80)
     assert np.count_nonzero(np.any(green, axis=1)) == pytest.approx(
         4 if no_global_scaling else 8, abs=2
@@ -845,3 +855,351 @@ def test_invisible_button_thickness_respects_window_dpi_policy(
         4 if no_global_scaling else 8
     )
     assert bottom - top == pytest.approx(expected, abs=1.5)
+
+
+@pytest.mark.parametrize("case", _CASES)
+def test_circle_positive_outline_outer_edge_tracks_radius_and_thickness(
+    context: dcg.Context, case: _DrawingCase
+) -> None:
+    """Compare the circle outline's outer edge with the coordinate-space formula.
+
+    An independent invisible marker measures r + t/2 coordinate units from
+    the circle center. The outline should end there, within rasterization error.
+    """
+    parent = _drawing_parent(context, case)
+    marker = dcg.DrawInvisibleButton(
+        context, parent=parent, p1=(30, 30), p2=(36, 36), no_input=True
+    )
+    dcg.DrawCircle(
+        context, parent=parent, center=(30, 30), radius=4, thickness=4,
+        color=(255, 0, 0, 255), fill=(0, 0, 0, 0), segments=128,
+    )
+    left, _, right, _ = _red_bounds(_render_pixels(context))
+    assert marker.state.visible
+    center = marker.state.pos_to_viewport.x
+    distance = marker.state.rect_size.x
+    assert left == pytest.approx(center - distance, abs=2)
+    assert right == pytest.approx(center + distance, abs=2)
+
+
+@pytest.mark.parametrize("dpi", (1.0, 2.0))
+@pytest.mark.parametrize("no_scaling", (False, True))
+def test_circle_positive_outline_in_plot_ignores_line_weight(
+    context: dcg.Context, *, dpi: float, no_scaling: bool
+) -> None:
+    """Check that plot line weight does not change a positive circle outline.
+
+    Compare the visible outer edge with an independent marker measuring
+    r + t/2 coordinate units, then change the theme weight and compare again.
+    """
+    context.viewport.scale = dpi
+    window = dcg.Window(context, width=450, height=350)
+    plot = dcg.Plot(context, parent=window, width=360, height=260)
+    for axis in (plot.X1, plot.Y1):
+        axis.no_initial_fit = True
+        axis.min = 0
+        axis.max = 100
+    theme = dcg.ThemeStyleImPlot(context, line_weight=3, no_scaling=no_scaling)
+    drawing = dcg.DrawInPlot(context, parent=plot, theme=theme)
+    marker = dcg.DrawInvisibleButton(
+        context, parent=drawing, p1=(50, 50), p2=(56, 56), no_input=True
+    )
+    dcg.DrawCircle(
+        context, parent=drawing, center=(50, 50), radius=4, thickness=4,
+        color=(255, 0, 0, 255), fill=(0, 0, 0, 0), segments=128,
+    )
+    left, _, right, _ = _red_bounds(_render_pixels(context))
+    assert marker.state.visible
+    center = marker.state.pos_to_viewport.x
+    distance = marker.state.rect_size.x
+    assert left == pytest.approx(center - distance, abs=2)
+    assert right == pytest.approx(center + distance, abs=2)
+    theme.line_weight = 5
+    new_left, _, new_right, _ = _red_bounds(_render_pixels(context))
+    assert (new_left, new_right) == (left, right)
+
+
+@pytest.mark.parametrize("dpi", (1.0, 2.0))
+@pytest.mark.parametrize("primitive", ("circle", "line"))
+def test_positive_size_uses_x_scale_with_unequal_axes(
+    context: dcg.Context, *, dpi: float, primitive: str
+) -> None:
+    """Check that positive radius and thickness use X rather than Y scaling.
+
+    Use a 2:1 transform and compare the red primitive with a marker whose
+    independently transformed X width and Y height differ by a factor of two.
+    """
+    context.viewport.scale = dpi
+    window = dcg.Window(context, width=450, height=350)
+    drawing = dcg.DrawInWindow(context, parent=window, width=360, height=260)
+    parent = dcg.DrawingScale(context, parent=drawing, scales=(2, 1))
+    marker = dcg.DrawInvisibleButton(
+        context, parent=parent, p1=(30, 30), p2=(34, 34), no_input=True
+    )
+    if primitive == "circle":
+        dcg.DrawCircle(
+            context, parent=parent, center=(30, 30), radius=4,
+            color=(0, 0, 0, 0), fill=(255, 0, 0, 255), segments=128,
+        )
+    else:
+        dcg.DrawLine(
+            context, parent=parent, p1=(30, 30), p2=(60, 30),
+            color=(255, 0, 0, 255), thickness=4,
+        )
+    left, top, right, bottom = _red_bounds(_render_pixels(context))
+    assert marker.state.visible
+    assert marker.state.rect_size.x == pytest.approx(2 * marker.state.rect_size.y, abs=0.1)
+    observed = (right - left) / 2 if primitive == "circle" else bottom - top
+    assert observed == pytest.approx(marker.state.rect_size.x, abs=2)
+
+
+@pytest.mark.parametrize("dpi", (1.0, 2.0))
+@pytest.mark.parametrize("size", (12.0, -12.0, 0.0))
+def test_draw_text_size_responds_to_zoom_by_sign(
+    context: dcg.Context, *, dpi: float, size: float
+) -> None:
+    """Compare the same rendered glyph before and after coordinate zoom.
+
+    Positive DrawText sizes double with X zoom; negative sizes and size zero
+    remain unchanged. The latter uses the current font size, not zero pixels.
+    """
+    context.viewport.scale = dpi
+    window = dcg.Window(context, width=450, height=350)
+    drawing = dcg.DrawInWindow(context, parent=window, width=360, height=260)
+    scale = dcg.DrawingScale(context, parent=drawing, scales=(1, 1))
+    dcg.DrawText(context, parent=scale, pos=(20, 20), text="MMMM", size=size,
+                 color=(255, 0, 0, 255))
+    _, top, _, bottom = _red_bounds(_render_pixels(context))
+    initial_height = bottom - top
+    scale.scales = (2, 2)
+    _, top, _, bottom = _red_bounds(_render_pixels(context))
+    factor = 2 if size > 0 else 1
+    assert bottom - top == pytest.approx(factor * initial_height, abs=2)
+
+
+@pytest.mark.parametrize("dpi", (1.0, 2.0))
+@pytest.mark.parametrize("no_global_scaling", (False, True))
+def test_draw_text_coordinate_and_screen_sizes_render_equivalently(
+    context: dcg.Context, *, dpi: float, no_global_scaling: bool
+) -> None:
+    """Compare glyphs with equivalent coordinate-space and screen-space sizes.
+
+    A 2x X zoom makes size 12 equivalent to screen size -24. The whole glyph
+    bounds should agree both with and without the global-scale opt-out.
+    """
+    context.viewport.scale = dpi
+    window = dcg.Window(context, width=450, height=350)
+    drawing = dcg.DrawInWindow(
+        context, parent=window, width=360, height=260, no_global_scaling=no_global_scaling
+    )
+    scale = dcg.DrawingScale(context, parent=drawing, scales=(2, 1))
+    text = dcg.DrawText(
+        context, parent=scale, pos=(20, 20), text="MMMM", size=12,
+        color=(255, 0, 0, 255),
+    )
+    coordinate_bounds = _red_bounds(_render_pixels(context))
+    text.size = -24
+    assert _red_bounds(_render_pixels(context)) == coordinate_bounds
+
+
+@pytest.mark.parametrize("viewport_scale", (1.0, 2.0))
+@pytest.mark.parametrize("size", (4.0, -4.0))
+def test_window_scaling_factor_changes_drawing_size(
+    context: dcg.Context, *, viewport_scale: float, size: float
+) -> None:
+    """Check that a UI item's scaling factor contributes to drawing sizes.
+
+    Measure a stroke before and after doubling its window's scaling factor.
+    Both coordinate and screen-space strokes should double in pixel width.
+    """
+    context.viewport.scale = viewport_scale
+    window = dcg.Window(context, width=450, height=350, scaling_factor=1)
+    drawing = dcg.DrawInWindow(context, parent=window, width=300, height=200)
+    dcg.DrawLine(context, parent=drawing, p1=(20, 30), p2=(100, 30),
+                 thickness=size, color=(255, 0, 0, 255))
+    _, top, _, bottom = _red_bounds(_render_pixels(context))
+    initial_height = bottom - top
+    window.scaling_factor = 2
+    _, top, _, bottom = _red_bounds(_render_pixels(context))
+    assert bottom - top == pytest.approx(2 * initial_height, abs=2)
+
+
+@pytest.mark.parametrize("theme_on_plot", (False, True))
+@pytest.mark.parametrize("no_scaling", (False, True))
+def test_plot_line_weight_inherited_from_scaled_ui_parent(
+    context: dcg.Context, *, theme_on_plot: bool, no_scaling: bool
+) -> None:
+    """Measure theme scaling at the UI scope where the plot theme is pushed.
+
+    The window scales by 2 and its child plot by 1.5. A theme on the window
+    uses scale 2, whereas one on the plot uses scale 3. An unscaled theme uses
+    physical pixels in either scope. A negative DrawLine uses that pixel weight.
+    """
+    theme = dcg.ThemeStyleImPlot(context, line_weight=4, no_scaling=no_scaling)
+    window = dcg.Window(
+        context, width=450, height=350, scaling_factor=2,
+        theme=None if theme_on_plot else theme,
+    )
+    plot = dcg.Plot(
+        context, parent=window, width=300, height=200, scaling_factor=1.5,
+        theme=theme if theme_on_plot else None,
+    )
+    for axis in (plot.X1, plot.Y1):
+        axis.no_initial_fit = True
+        axis.min = 0
+        axis.max = 100
+    drawing = dcg.DrawInPlot(context, parent=plot)
+    dcg.DrawLine(context, parent=drawing, p1=(20, 50), p2=(80, 50),
+                 thickness=-2, color=(255, 0, 0, 255))
+    _, top, _, bottom = _red_bounds(_render_pixels(context))
+    theme_scale = 1 if no_scaling else (3 if theme_on_plot else 2)
+    assert bottom - top == pytest.approx(2 * 4 * theme_scale, abs=2)
+
+
+@pytest.mark.parametrize("no_global_scaling", (False, True))
+@pytest.mark.parametrize("no_scaling", (False, True))
+def test_negative_thickness_in_plot_scaling_reset_ignores_plot_style(
+    context: dcg.Context, *, no_global_scaling: bool, no_scaling: bool
+) -> None:
+    """Measure a negative stroke inside a reset under a custom plot theme.
+
+    The reset discards the parent plot's line weight and uses its own DPI
+    policy. Compare the red stroke inside the reset with a green sibling that
+    retains the plot's effective line weight.
+    """
+    context.viewport.scale = 2
+    window = dcg.Window(context, width=450, height=350)
+    plot = dcg.Plot(context, parent=window, width=360, height=260)
+    for axis in (plot.X1, plot.Y1):
+        axis.no_initial_fit = True
+        axis.min = 0
+        axis.max = 100
+    theme = dcg.ThemeStyleImPlot(context, line_weight=3, no_scaling=no_scaling)
+    drawing = dcg.DrawInPlot(context, parent=plot, theme=theme)
+    reset = dcg.DrawingScale(
+        context, parent=drawing, origin=(30, 30), no_parent_scaling=True,
+        no_global_scaling=no_global_scaling,
+    )
+    dcg.DrawLine(context, parent=reset, p1=(0, 0), p2=(30, 0),
+                 thickness=-4, color=(255, 0, 0, 255))
+    dcg.DrawLine(context, parent=drawing, p1=(20, 70), p2=(70, 70),
+                 thickness=-2, color=(0, 255, 0, 255))
+    pixels = _render_pixels(context)
+    _, top, _, bottom = _red_bounds(pixels)
+    assert bottom - top == pytest.approx(4 if no_global_scaling else 8, abs=1)
+    green = (pixels[:, :, 0] < 80) & (pixels[:, :, 1] > 180) & (pixels[:, :, 2] < 80)
+    assert np.count_nonzero(np.any(green, axis=1)) == pytest.approx(
+        6 if no_scaling else 12, abs=1
+    )
+
+
+@pytest.mark.parametrize("parent_opt_out", (False, True))
+@pytest.mark.parametrize("child_opt_out", (False, True))
+def test_drawing_scale_inherit_can_disable_global_scaling(
+    context: dcg.Context, *, parent_opt_out: bool, child_opt_out: bool
+) -> None:
+    """Check that an inheriting DrawingScale can opt out of global scaling.
+
+    At DPI 2, measure a negative stroke under all combinations of the parent
+    and child opt-out. Either opt-out makes the stroke use physical pixels.
+    """
+    context.viewport.scale = 2
+    window = dcg.Window(context, width=450, height=350)
+    drawing = dcg.DrawInWindow(
+        context, parent=window, width=360, height=260, no_global_scaling=parent_opt_out
+    )
+    scale = dcg.DrawingScale(
+        context, parent=drawing, scales=(2, 2), no_global_scaling=child_opt_out
+    )
+    dcg.DrawLine(
+        context, parent=scale, p1=(20, 30), p2=(60, 30),
+        thickness=-4, color=(255, 0, 0, 255),
+    )
+    _, top, _, bottom = _red_bounds(_render_pixels(context))
+    assert bottom - top == pytest.approx(4 if parent_opt_out or child_opt_out else 8, abs=1)
+
+
+@pytest.mark.parametrize("dpi", (1.0, 2.0))
+@pytest.mark.parametrize("no_scaling", (False, True))
+def test_plot_drawing_scale_opt_out_preserves_transform_and_style(
+    context: dcg.Context, *, dpi: float, no_scaling: bool
+) -> None:
+    """Check plot scale opt-out affects only inherited screen-space sizes.
+
+    Compare transformed positive sizes to a coordinate marker. A negative
+    stroke keeps the plot's normalized style, while a sibling outside the
+    scale still uses the plot's full pixel line weight.
+    """
+    context.viewport.scale = dpi
+    window = dcg.Window(context, width=450, height=350)
+    plot = dcg.Plot(context, parent=window, width=360, height=260)
+    for axis in (plot.X1, plot.Y1):
+        axis.no_initial_fit = True
+        axis.min = 0
+        axis.max = 100
+    theme = dcg.ThemeStyleImPlot(context, line_weight=4, no_scaling=no_scaling)
+    drawing = dcg.DrawInPlot(context, parent=plot, theme=theme)
+    scale = dcg.DrawingScale(
+        context, parent=drawing, origin=(10, 10), scales=(2, 2), no_global_scaling=True
+    )
+    marker = dcg.DrawInvisibleButton(
+        context, parent=scale, p1=(10, 10), p2=(12, 12), no_input=True
+    )
+    reference = dcg.DrawInvisibleButton(
+        context, parent=drawing, p1=(30, 30), p2=(34, 34), no_input=True
+    )
+    dcg.DrawLine(
+        context, parent=scale, p1=(10, 10), p2=(30, 10),
+        color=(255, 0, 0, 255), thickness=2,
+    )
+    dcg.DrawLine(
+        context, parent=scale, p1=(10, 20), p2=(30, 20),
+        color=(0, 255, 0, 255), thickness=-2,
+    )
+    dcg.DrawLine(
+        context, parent=drawing, p1=(30, 70), p2=(70, 70),
+        color=(0, 0, 255, 255), thickness=-2,
+    )
+    pixels = _render_pixels(context)
+    assert marker.state.visible and reference.state.visible
+    assert tuple(marker.state.pos_to_viewport) == pytest.approx(
+        tuple(reference.state.pos_to_viewport), abs=0.1
+    )
+    assert tuple(marker.state.rect_size) == pytest.approx(
+        tuple(reference.state.rect_size), abs=0.1
+    )
+    _, top, _, bottom = _red_bounds(pixels)
+    assert bottom - top == pytest.approx(marker.state.rect_size.x, abs=2)
+    green = (pixels[:, :, 0] < 80) & (pixels[:, :, 1] > 180) & (pixels[:, :, 2] < 80)
+    blue = (pixels[:, :, 0] < 80) & (pixels[:, :, 1] < 80) & (pixels[:, :, 2] > 180)
+    line_weight = 4 if no_scaling else 4 * dpi
+    assert np.count_nonzero(np.any(green, axis=1)) == pytest.approx(2 * line_weight / dpi, abs=1)
+    assert np.count_nonzero(np.any(blue, axis=1)) == pytest.approx(2 * line_weight, abs=1)
+
+
+@pytest.mark.parametrize("dpi", (1.0, 2.0))
+def test_drawing_scale_opt_out_negative_radius_does_not_affect_sibling(
+    context: dcg.Context, *, dpi: float
+) -> None:
+    """Check negative radii use pixels inside an opt-out and DPI outside it.
+
+    Measure a red circle inside the scale and a separate green circle after
+    it to verify that the parent's screen-size policy is restored.
+    """
+    context.viewport.scale = dpi
+    window = dcg.Window(context, width=450, height=350)
+    drawing = dcg.DrawInWindow(context, parent=window, width=360, height=260)
+    scale = dcg.DrawingScale(context, parent=drawing, no_global_scaling=True)
+    dcg.DrawCircle(
+        context, parent=scale, center=(60, 60), radius=-8, segments=128,
+        color=(0, 0, 0, 0), fill=(255, 0, 0, 255),
+    )
+    dcg.DrawCircle(
+        context, parent=drawing, center=(120, 60), radius=-8, segments=128,
+        color=(0, 0, 0, 0), fill=(0, 255, 0, 255),
+    )
+    pixels = _render_pixels(context)
+    left, _, right, _ = _red_bounds(pixels)
+    green = (pixels[:, :, 0] < 80) & (pixels[:, :, 1] > 180) & (pixels[:, :, 2] < 80)
+    assert right - left == pytest.approx(16, abs=2)
+    assert np.count_nonzero(np.any(green, axis=0)) == pytest.approx(16 * dpi, abs=2)

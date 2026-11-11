@@ -363,7 +363,7 @@ cdef class Viewport(baseItem):
     cdef bint in_plot # Current rendering occurs withing a plot
     cdef bint plot_fit # Current plot is fitting the axes to the data
     cdef float coordinate_size_scale # X-derived coordinate size to screen size
-    cdef float thickness_style_scale # dimensionless style factor for stroke thickness
+    cdef float thickness_style_scale # dimensionless style factor for screen-space thickness
     cdef bint screen_size_uses_global_scale # apply global scale to screen-space sizes
     cdef bint[6] enabled_axes # <int>implot.ImAxis_COUNT. Enabled plot axes.
     # Temporary scratch space to be accessed during rendering

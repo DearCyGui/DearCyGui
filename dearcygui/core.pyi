@@ -18043,9 +18043,8 @@ class DrawInWindow(uiItem):
         one pixel on the screen, rather than to one scaled pixel (scaled
         to be dpi invariant).
 
-        In additions, outline thickness in screen space (items with negative
-        thickness) will not be scaled when this setting is set. Unlike the
-        previous statement, this also applies when relative is set to True.
+        Screen-space thicknesses and radii (negative values) will not be
+        DPI-scaled when this setting is set, including when relative is True.
 
         """
         ...
@@ -20815,7 +20814,7 @@ class DrawingScale(drawingItem):
         - before: Attach the item just before the target item. Default is None (disabled)
         - children: List of all the children of the item, from first rendered, to last rendered.
         - next_sibling: Child of the parent rendered just after this item.
-        - no_global_scaling: Disables the global scale when no_parent_scaling is True.
+        - no_global_scaling: Disable global scaling of negative screen-space radii and thicknesses.
         - no_parent_scaling: Resets any previous scaling to screen space.
         - origin: Position in coordinate space of the new origin for the children.
         - parent: Parent of the item in the rendering tree.
@@ -20835,7 +20834,7 @@ class DrawingScale(drawingItem):
         ----------
         - children: List of all the children of the item, from first rendered, to last rendered.
         - next_sibling: Child of the parent rendered just after this item.
-        - no_global_scaling: Disables the global scale when no_parent_scaling is True.
+        - no_global_scaling: Disable global scaling of negative screen-space radii and thicknesses.
         - no_parent_scaling: Resets any previous scaling to screen space.
         - origin: Position in coordinate space of the new origin for the children.
         - parent: Parent of the item in the rendering tree.
@@ -20869,7 +20868,16 @@ class DrawingScale(drawingItem):
     @property
     def no_global_scaling(self) -> bool:
         """
-        Disables the global scale when no_parent_scaling is True.
+        Disable global scaling of negative screen-space radii and thicknesses.
+
+        When no_parent_scaling is False, the parent coordinate transform is
+        preserved, including any global scaling in that transform. Plot
+        thickness styling is inherited without its global scale factor.
+        When no_parent_scaling is True, global scaling is also disabled for
+        the new coordinate transform.
+
+        When False, inherit the parent's screen-size policy unless
+        no_parent_scaling is True, which resets it to use global scaling.
 
         """
         ...
@@ -20924,7 +20932,7 @@ class DrawingScale(drawingItem):
 
         Default is (1., 1.).
 
-        Note unless no_parent_scale is True, the
+        Note unless no_parent_scaling is True, the
         parent scales also apply.
 
         """
