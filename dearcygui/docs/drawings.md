@@ -21,8 +21,11 @@ All color arguments in **DearCyGui** accept three formats:
 
 **DearCyGui** provides respectively `color_as_int`, `color_as_ints` and `color_as_floats` to produce these three representations. These functions take as input any of these three formats. When reading a color attribute of an item, the first format is used, thus these helpers can help convert the format to what you need.
 
-Most Draw* items accept a `thickness` attribute. This thickness is automatically scaled by the global scale and the plot scale (in inside `Plot`).
-Similarly the `radius` attribute of `DrawCircle` is scaled. To prevent this scaling and have a `thickness` or `radius` in pixels, pass a negative value.
+Most Draw* items accept a `thickness` attribute. Positive thicknesses and radii scale with the drawing coordinate system, including any DPI scaling already present in the coordinate-to-screen transform. Negative thicknesses and radii are screen-space sizes: they ignore coordinate zoom but normally scale with DPI. `DrawInWindow(no_global_scaling=True)` also disables DPI scaling for negative thicknesses and radii, including in relative mode. `DrawingScale(no_parent_scaling=True, no_global_scaling=True)` similarly resets them to unscaled screen pixels. `ViewportDrawList` uses physical pixels by default.
+
+Positive radii and thicknesses use a single size scale derived from the X axis, even when the X and Y coordinate scales differ.
+
+Plot line-weight styling affects thickness but not radius. For positive thicknesses, the effective ImPlot line weight in pixels is divided by the global DPI scale to obtain a dimensionless style factor. For negative thicknesses, the effective line weight is applied directly. A plot theme with `no_scaling=True` keeps its line weight in physical pixels, so its dimensionless effect on positive thickness changes with DPI.
 
 # Coordinate system
 

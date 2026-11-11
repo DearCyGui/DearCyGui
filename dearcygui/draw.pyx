@@ -91,13 +91,11 @@ cdef class ViewportDrawList(drawingItem):
         self.context.viewport.in_plot = False
         self.context.viewport.window_pos = make_Vec2(0., 0.)
         self.context.viewport.parent_pos = make_Vec2(0., 0.)
-        # TODO: The demo presents this object as a way to draw in pixel
-        # coordinates relative to the viewport (thus no dpi scaling on coordinates)
-        # What about thickness and size multipliers? Should they also ignore dpi scaling?
         self.context.viewport.shifts = [0., 0.]
         self.context.viewport.scales = [1., 1.]
-        self.context.viewport.thickness_multiplier = 1.
-        self.context.viewport.size_multiplier = 1.
+        self.context.viewport.coordinate_size_scale = 1.
+        self.context.viewport.thickness_style_scale = 1.
+        self.context.viewport.screen_size_uses_global_scale = False
 
         cdef void* internal_drawlist = \
             imgui.GetForegroundDrawList() if self._front else \
@@ -426,7 +424,8 @@ cdef class DrawingScale(drawingItem):
     @property
     def no_global_scaling(self):
         """
-        Disables the global scale when no_parent_scaling is True.
+        Disables the global scale when no_parent_scaling is True, including
+        for negative screen-space radii and thicknesses.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -450,8 +449,9 @@ cdef class DrawingScale(drawingItem):
         cdef double[2] cur_scales = self.context.viewport.scales
         cdef double[2] cur_shifts = self.context.viewport.shifts
         cdef bint cur_in_plot = self.context.viewport.in_plot
-        cdef float cur_size_mul = self.context.viewport.size_multiplier
-        cdef float cur_thick_mul = self.context.viewport.thickness_multiplier
+        cdef float cur_size_scale = self.context.viewport.coordinate_size_scale
+        cdef float cur_thickness_style = self.context.viewport.thickness_style_scale
+        cdef bint cur_screen_uses_global = self.context.viewport.screen_size_uses_global_scale
 
         cdef float[2] p
         if self._no_parent_scale:
@@ -464,20 +464,19 @@ cdef class DrawingScale(drawingItem):
             self.context.viewport.shifts[1] = self.context.viewport.shifts[1] + cur_scales[1] * self._shifts[1]
 
         if self._no_parent_scale:
+            self.context.viewport.screen_size_uses_global_scale = not self._no_global_scale
+            self.context.viewport.thickness_style_scale = 1.
             self.context.viewport.scales = self._scales
             if not(self._no_global_scale):
                 self.context.viewport.scales[0] = self.context.viewport.scales[0] * global_scale
                 self.context.viewport.scales[1] = self.context.viewport.scales[1] * global_scale
-                self.context.viewport.thickness_multiplier = global_scale
-            else:
-                self.context.viewport.thickness_multiplier = 1.
-            self.context.viewport.size_multiplier = self.context.viewport.scales[0]
+            self.context.viewport.coordinate_size_scale = self.context.viewport.scales[0]
             # Disable using plot transform
             self.context.viewport.in_plot = False
         else:
             self.context.viewport.scales[0] = cur_scales[0] * self._scales[0]
             self.context.viewport.scales[1] = cur_scales[1] * self._scales[1]
-            self.context.viewport.size_multiplier = self.context.viewport.size_multiplier * self._scales[0]
+            self.context.viewport.coordinate_size_scale *= self._scales[0]
 
         # draw children
         draw_drawing_children(self, drawlist)
@@ -487,8 +486,9 @@ cdef class DrawingScale(drawingItem):
         self.context.viewport.scales = cur_scales
         self.context.viewport.shifts = cur_shifts
         self.context.viewport.in_plot = cur_in_plot
-        self.context.viewport.size_multiplier = cur_size_mul
-        self.context.viewport.thickness_multiplier = cur_thick_mul
+        self.context.viewport.coordinate_size_scale = cur_size_scale
+        self.context.viewport.thickness_style_scale = cur_thickness_style
+        self.context.viewport.screen_size_uses_global_scale = cur_screen_uses_global
 
 
 """
@@ -728,7 +728,7 @@ cdef class DrawArc(drawingItem):
 
         cdef float thickness = get_scaled_thickness(self.context, self._thickness)
 
-        cdef float scale = self.context.viewport.size_multiplier
+        cdef float scale = self.context.viewport.coordinate_size_scale
         cdef float radius_x = get_scaled_radius(self.context, self._radius[0])
         cdef float radius_y = get_scaled_radius(self.context, self._radius[1])
         cdef float inner_radius_x = get_scaled_radius(self.context, self._inner_radius[0])
@@ -4532,7 +4532,7 @@ cdef class DrawValue(drawingItem):
         cdef imgui.ImVec2 ip = imgui.ImVec2(p[0], p[1])
         cdef float size = self._size
         if size > 0:
-            size *= self.context.viewport.size_multiplier
+            size *= self.context.viewport.coordinate_size_scale
         else:
             size *= self.context.viewport.global_scale
         size = fabs(size)

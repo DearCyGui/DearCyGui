@@ -362,8 +362,9 @@ cdef class Viewport(baseItem):
     cdef Vec2 parent_size # Content region size (in pixels) of the direct parent
     cdef bint in_plot # Current rendering occurs withing a plot
     cdef bint plot_fit # Current plot is fitting the axes to the data
-    cdef float thickness_multiplier # scale for the thickness of all lines (Draw*)
-    cdef float size_multiplier # scale for the size of all Draw* elements.
+    cdef float coordinate_size_scale # X-derived coordinate size to screen size
+    cdef float thickness_style_scale # dimensionless style factor for stroke thickness
+    cdef bint screen_size_uses_global_scale # apply global scale to screen-space sizes
     cdef bint[6] enabled_axes # <int>implot.ImAxis_COUNT. Enabled plot axes.
     # Temporary scratch space to be accessed during rendering
     # Shouldn't be accessed outside draw()
@@ -796,4 +797,3 @@ cdef class baseTheme(baseItem):
     cdef DCGVector[int32_t] _last_push_size
     cdef void push(self) noexcept nogil
     cdef void pop(self) noexcept nogil
-

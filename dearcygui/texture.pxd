@@ -44,4 +44,4 @@ cdef inline float get_pattern_u(Context context,
         if pattern._screen_space:
             return length * pattern._scale_factor
         else:
-            return length * (pattern._scale_factor * (context.viewport.global_scale / context.viewport.size_multiplier))
+            return length * (pattern._scale_factor * (context.viewport.global_scale / context.viewport.coordinate_size_scale))

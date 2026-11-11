@@ -25,16 +25,23 @@ scales/shifts (double[2]):
     To apply the transform, call viewport.coordinate_to_screen.
     To reverse the transform, call viewport.screen_to_coordinate.
 
-thickness_multiplier (float):
-    Factor to apply to line thicknesses. Already includes global_scale.
-    Multiply any thickness values by this. The helpers DO NOT include
-    this transform.
+coordinate_size_scale (float):
+    X-derived scale for sizes in drawing coordinates. It includes the
+    coordinate-to-screen transform's DPI scaling.
 
-size_multiplier (float): 
-    Factor to apply to object sizes drawn in coordinate space.
-    For coordinate space sizes, multiply radius by this.
-    For screen space sizes, multiply radius by global_scale instead.
-    The helpers DO NOT include this transform.
+thickness_style_scale (float):
+    Dimensionless stroke style factor. In plots, this is the effective
+    ImPlot line weight divided by global_scale; elsewhere it is 1.
+
+screen_size_uses_global_scale (bool):
+    Whether negative radii and thicknesses use global_scale, rather than 1,
+    as their screen-space size scale.
+
+For positive sizes, multiply radii by coordinate_size_scale and thicknesses
+by coordinate_size_scale * thickness_style_scale. For negative sizes, use
+their absolute values and multiply radii by the screen-space size scale and
+thicknesses by that scale * thickness_style_scale. The draw helpers do not
+apply these transforms automatically.
 
 window_pos (Vec2):
     Position of parent window in viewport screen coordinates.
@@ -448,9 +455,11 @@ cdef inline float get_scaled_thickness(Context context, float thickness) noexcep
     Positive thickness: in coordinate space
     Negative thickness: in unscaled screen space
     """
-    thickness *= context.viewport.thickness_multiplier
     if thickness > 0:
-        thickness *= context.viewport.size_multiplier
+        thickness *= context.viewport.coordinate_size_scale
+    elif context.viewport.screen_size_uses_global_scale:
+        thickness *= context.viewport.global_scale
+    thickness *= context.viewport.thickness_style_scale
     return abs(thickness)
 
 cdef inline float get_scaled_radius(Context context, float radius) noexcept nogil:
@@ -467,10 +476,11 @@ cdef inline float get_scaled_radius(Context context, float radius) noexcept nogi
     Negative radius: in unscaled screen space
     """
     if radius < 0:
-        # screen space radius
-        radius = -radius * context.viewport.global_scale
+        radius = -radius
+        if context.viewport.screen_size_uses_global_scale:
+            radius *= context.viewport.global_scale
     else:
-        radius = radius * context.viewport.size_multiplier
+        radius *= context.viewport.coordinate_size_scale
     return radius
 
 # t_draw* variants: Same as above, except all coordinates are in
@@ -1032,4 +1042,3 @@ Args:
 Returns:  
     GlyphInfo struct containing metrics and texture coords
 """
-

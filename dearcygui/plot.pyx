@@ -3313,8 +3313,13 @@ cdef class DrawInPlot(plotElementWithLegend):
         self.context.viewport.shifts = [0., 0.]
         self.context.viewport.in_plot = True
         self.context.viewport.plot_fit = False if self._ignore_fit else implot.FitThisFrame()
-        self.context.viewport.thickness_multiplier = implot.GetStyle().LineWeight
-        self.context.viewport.size_multiplier = implot.GetPlotSize().x / implot.GetPlotLimits(self._axes[0], self._axes[1]).Size().x
+        if self.context.viewport.global_scale != 0.:
+            self.context.viewport.thickness_style_scale = \
+                implot.GetStyle().LineWeight / self.context.viewport.global_scale
+        else:
+            self.context.viewport.thickness_style_scale = 0.
+        self.context.viewport.coordinate_size_scale = implot.GetPlotSize().x / implot.GetPlotLimits(self._axes[0], self._axes[1]).Size().x
+        self.context.viewport.screen_size_uses_global_scale = True
         self.context.viewport.parent_pos = ImVec2Vec2(implot.GetPlotPos())
 
         if render:

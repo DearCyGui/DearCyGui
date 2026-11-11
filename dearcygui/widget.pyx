@@ -374,8 +374,7 @@ cdef class DrawInvisibleButton(drawingItem):
         cdef double[2] cur_scales = self.context.viewport.scales
         cdef double[2] cur_shifts = self.context.viewport.shifts
         cdef bint cur_in_plot = self.context.viewport.in_plot
-        cdef float backup_thickness_multiplier = self.context.viewport.thickness_multiplier
-        cdef float backup_size_multiplier = self.context.viewport.size_multiplier
+        cdef float backup_size_scale = self.context.viewport.coordinate_size_scale
 
         # draw children
         if self.last_drawings_child is not None:
@@ -383,18 +382,14 @@ cdef class DrawInvisibleButton(drawingItem):
             self.context.viewport.shifts[1] = <double>top_left.y
             self.context.viewport.scales = [<double>size.x, <double>size.y]
             self.context.viewport.in_plot = False
-            # TODOV1: Using 1 here for both means "no_global_scale" + "no relative scaling".
-            # Is it what we want ?
-            self.context.viewport.thickness_multiplier = 1.
-            self.context.viewport.size_multiplier = 1.
+            self.context.viewport.coordinate_size_scale = size.x
             draw_drawing_children(self, drawlist)
 
         # restore states
         self.context.viewport.scales = cur_scales
         self.context.viewport.shifts = cur_shifts
         self.context.viewport.in_plot = cur_in_plot
-        self.context.viewport.thickness_multiplier = backup_thickness_multiplier
-        self.context.viewport.size_multiplier = backup_size_multiplier
+        self.context.viewport.coordinate_size_scale = backup_size_scale
 
         cdef bint mouse_down = False
         if (self._button & 1) != 0 and imgui.IsMouseDown(imgui.ImGuiMouseButton_Left):
@@ -647,9 +642,8 @@ cdef class DrawInWindow(uiItem):
         one pixel on the screen, rather than to one scaled pixel (scaled
         to be dpi invariant).
 
-        In additions, outline thickness in screen space (items with negative
-        thickness) will not be scaled when this setting is set. Unlike the
-        previous statement, this also applies when relative is set to True.
+        Screen-space thicknesses and radii (negative values) will not be
+        DPI-scaled when this setting is set, including when relative is True.
         """
         cdef unique_lock[DCGMutex] m
         lock_gil_friendly(m, self.mutex)
@@ -716,8 +710,9 @@ cdef class DrawInWindow(uiItem):
         cdef Vec2 backup_parent_pos = self.context.viewport.parent_pos
         cdef double[2] backup_shifts = [self.context.viewport.shifts[0], self.context.viewport.shifts[1]]
         cdef double[2] backup_scales = [self.context.viewport.scales[0], self.context.viewport.scales[1]]
-        cdef float backup_thickness_multiplier = self.context.viewport.thickness_multiplier
-        cdef float backup_size_multiplier = self.context.viewport.size_multiplier
+        cdef float backup_size_scale = self.context.viewport.coordinate_size_scale
+        cdef float backup_thickness_style = self.context.viewport.thickness_style_scale
+        cdef bint backup_screen_uses_global = self.context.viewport.screen_size_uses_global_scale
 
         # Reset current drawInfo
         self.context.viewport.in_plot = False
@@ -734,8 +729,9 @@ cdef class DrawInWindow(uiItem):
             scale_x = self.scale_x * scale
             scale_y = self.scale_y * scale
         self.context.viewport.scales = [scale_x, scale_y]
-        self.context.viewport.thickness_multiplier = 1. if self._no_global_scale else <double>self.context.viewport.global_scale
-        self.context.viewport.size_multiplier = scale_x #min(scale_x, scale_y) -> scale_x for compatibility with plots
+        self.context.viewport.thickness_style_scale = 1.
+        self.context.viewport.coordinate_size_scale = scale_x # X scale for compatibility with plots
+        self.context.viewport.screen_size_uses_global_scale = not self._no_global_scale
 
         if self.invert_y:
             self.context.viewport.shifts[1] = \
@@ -779,8 +775,9 @@ cdef class DrawInWindow(uiItem):
         self.context.viewport.shifts[1] = backup_shifts[1]
         self.context.viewport.scales[0] = backup_scales[0]
         self.context.viewport.scales[1] = backup_scales[1]
-        self.context.viewport.thickness_multiplier = backup_thickness_multiplier
-        self.context.viewport.size_multiplier = backup_size_multiplier
+        self.context.viewport.coordinate_size_scale = backup_size_scale
+        self.context.viewport.thickness_style_scale = backup_thickness_style
+        self.context.viewport.screen_size_uses_global_scale = backup_screen_uses_global
 
         self.update_current_state()
         if no_frame:

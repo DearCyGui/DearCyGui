@@ -3013,6 +3013,9 @@ cdef class Viewport(baseItem):
         self._scale = 1.
         self._kill_signal = False
         self.global_scale = 1. # non-zero needed for AutoFont.
+        self.coordinate_size_scale = 1.
+        self.thickness_style_scale = 1.
+        self.screen_size_uses_global_scale = True
         self._imgui_context = NULL
         self._implot_context = NULL
         self._platform_external_count.store(0)
@@ -8852,4 +8855,3 @@ cdef class baseTheme(baseItem):
         return
     cdef void pop(self) noexcept nogil:
         return
-

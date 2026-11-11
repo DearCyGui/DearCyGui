@@ -5,7 +5,6 @@ import threading
 from collections.abc import Iterator
 
 import dearcygui as dcg
-import numpy as np
 import pytest
 
 
