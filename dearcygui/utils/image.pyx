@@ -3,15 +3,15 @@
 cimport dearcygui as dcg
 
 from dearcygui.core cimport lock_gil_friendly
-from dearcygui.c_types cimport unique_lock, DCGMutex
-from dearcygui.imgui cimport draw_image_quad, t_draw_image_quad
+from dearcygui.c_types cimport DRect, unique_lock, DCGMutex
+from dearcygui.imgui cimport draw_image_quad, get_coordinate_clip_rect, t_draw_image_quad
 from libc.stdint cimport int32_t, int64_t
 from libcpp.cmath cimport round as cround
 from libc.math cimport floor as cfloor, ceil as cceil
 from libcpp.map cimport map as cpp_map, pair
 from libcpp.set cimport set as cpp_set
 from libcpp.vector cimport vector
-from cython.operator cimport dereference
+from cython.operator cimport dereference, preincrement
 from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 from libcpp.memory cimport unique_ptr
 
@@ -42,6 +42,7 @@ cdef class DrawTiledImage(dcg.drawingItem):
     visible.
 
     The texture management is handled implicitly.
+    Plot fitting only includes tiles submitted within the current clip region.
     """
 
     cdef double margin
@@ -78,11 +79,12 @@ cdef class DrawTiledImage(dcg.drawingItem):
         """
         Get tile information
         """
+        cdef unique_lock[DCGMutex] m
+        lock_gil_friendly(m, self.mutex)
         cdef cpp_map[int64_t, TileData].iterator tile_data = self._tiles.find(uuid)
         cdef pair[int64_t, TileData] tile
         if tile_data != self._tiles.end():
             tile = dereference(tile_data)
-            Py_INCREF(<dcg.Texture>tile.second.texture)
             return {
                 "xmin": tile.second.xmin,
                 "xmax": tile.second.xmax,
@@ -232,31 +234,19 @@ cdef class DrawTiledImage(dcg.drawingItem):
 
     cdef void draw(self, void* drawlist) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        # Retrieve min/max visible area
-
-        cdef double xmin, xmax, ymin, ymax
-        # top left of the drawing area
-        cdef float[2] start, end
-        start[0] = self.context.viewport.parent_pos.x
-        start[1] = self.context.viewport.parent_pos.y
-        end[0] = start[0] + self.context.viewport.parent_size.x
-        end[1] = start[1] + self.context.viewport.parent_size.y
-        cdef double[2] start_coord, end_coord
-        self.context.viewport.screen_to_coordinate(start_coord, start)
-        self.context.viewport.screen_to_coordinate(end_coord, end)
-        # the min/max are because there could be
-        # inversions in the screen to coordinate transform.
-        xmin = min(start_coord[0], end_coord[0])
-        xmax = max(start_coord[0], end_coord[0])
-        ymin = min(start_coord[1], end_coord[1])
-        ymax = max(start_coord[1], end_coord[1])
+        cdef DRect clip = get_coordinate_clip_rect(self.context, drawlist)
 
         # Display each tile already loaded that are visible:
-        cdef pair[int64_t, TileData] tile_data
+        cdef cpp_map[int64_t, TileData].iterator tile_data = self._tiles.begin()
         cdef TileData tile
-        for tile_data in dereference(self._tiles):
-            tile = tile_data.second
-            if tile.xmin < xmax and tile.xmax > xmin and tile.ymin < ymax and tile.ymax > ymin and tile.show:
+        while tile_data != self._tiles.end():
+            tile = dereference(tile_data).second
+            # A zero scale has no inverse, so do not cull along that axis.
+            if tile.show and \
+               (self.context.viewport.scales[0] == 0 or \
+                (min(tile.xmin, tile.xmax) < clip.x2 and max(tile.xmin, tile.xmax) > clip.x1)) and \
+               (self.context.viewport.scales[1] == 0 or \
+                (min(tile.ymin, tile.ymax) < clip.y2 and max(tile.ymin, tile.ymax) > clip.y1)):
                 # Draw the tile
                 draw_image_quad(self.context,
                                 drawlist,
@@ -270,7 +260,8 @@ cdef class DrawTiledImage(dcg.drawingItem):
                                 1., 1.,
                                 0., 1.,
                                 4294967295)
-                tile.last_frame_count = self.context.viewport.frame_count
+                dereference(tile_data).second.last_frame_count = self.context.viewport.frame_count
+            preincrement(tile_data)
         return
 
 

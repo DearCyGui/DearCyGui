@@ -803,11 +803,23 @@ cdef class DraggingHandler(baseHandler):
     It does not have to be a button the item is supposed
     to react to (e.g. left button). However in this case the
     drag will be considered stopped if the mouse no longer hovers
-    the item. This can be workaround by ensuring the item
+    the item. One way to workaround can be by ensuring the item
     follows the mouse cursor during the drag operation.
 
+    To put the above paragraph in different words: for DraggingHandler
+    to perfectly work, you need the item to stay "active" (button held,
+    etc) or "hovered" (item under the mouse cursor) during the drag operation.
+
+    One use case of DraggingHandler is in combination with DrawInvisibleButton,
+    which allows to implement drag operations on draw elements. By default
+    DrawInvisibleButton is "active" with any mouse button, making it perfectly
+    compatible with DraggingHandler. In addition in this combination, the callback
+    field "drag_delta" will be in coordinate space rather than screen space.
+
     See DragDropSourceHandler for an alternative approach for
-    dragging UI items.
+    dragging UI items onto configured receivers.
+    See utils's DraggableBar for an alternative approach with MouseDragHandler,
+    which doesn't suffer from the "active"/"hovered" limitation.
     """
     def __cinit__(self):
         self._button = MouseButton.LEFT

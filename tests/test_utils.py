@@ -7,6 +7,7 @@ from datetime import datetime
 from types import SimpleNamespace
 
 import dearcygui as dcg
+import numpy as np
 import pytest
 
 from dearcygui.utils.handler import (
@@ -16,6 +17,7 @@ from dearcygui.utils.handler import (
     future_from_handlers,
     generator_from_handlers,
 )
+from dearcygui.utils.image import DrawTiledImage
 from dearcygui.utils.window import (
     ItemInspecter,
     MetricsWindow,
@@ -35,6 +37,24 @@ def ctx() -> Generator[dcg.Context, None, None]:
     context.queue.shutdown(wait=True)
     context.viewport.destroy()
     gc.collect()
+
+
+def _render(ctx: dcg.Context, *, count: int = 5) -> None:
+    """Render enough frames for plot layout and limits to stabilize."""
+    for _ in range(count):
+        ctx.viewport.render_frame()
+
+
+def _plot(ctx: dcg.Context) -> dcg.Plot:
+    """Create a plot with fixed linear limits and no left-button panning."""
+    window = dcg.Window(ctx, width=700, height=500)
+    plot = dcg.Plot(ctx, parent=window, width=600, height=400)
+    for axis in (plot.X1, plot.Y1):
+        axis.no_initial_fit = True
+        axis.min = 0
+        axis.max = 30
+    plot.pan_button = dcg.MouseButton.RIGHT
+    return plot
 
 
 # handler.py
@@ -165,6 +185,85 @@ def test_handler_event_adapters_reject_missing_or_invalid_handlers() -> None:
             await async_generator_from_handlers(object()).__anext__()
 
     asyncio.run(reject_invalid_async_handlers())
+
+
+# image.pyx
+
+
+def test_tiled_image_uses_nested_plot_clip(ctx: dcg.Context) -> None:
+    """Cull tiles against the drawing clip after converting to local coordinates."""
+    ctx.viewport.initialize(visible=False, width=800, height=600)
+    plot = _plot(ctx)
+    drawings = dcg.DrawInPlot(ctx, parent=plot)
+    scale = dcg.DrawingScale(ctx, parent=drawings, origin=(10, 20), scales=(2, -3))
+    clip = dcg.DrawingClip(
+        ctx, parent=scale, pmin=(1, 1), pmax=(4, 4), clip_rendering=True
+    )
+    image = DrawTiledImage(ctx, parent=clip)
+    pixels = np.full((2, 2, 4), 255, dtype=np.uint8)
+    inside = image.add_tile(pixels, (2, 2), (3, 3))
+    outside_clip = image.add_tile(pixels, (5, 2), (6, 3))
+    reversed_inside = image.add_tile(pixels, (3, 3), (2, 2))
+    hidden = image.add_tile(pixels, (2, 2), (3, 3), visible=False)
+    _render(ctx)
+    assert image.get_tile_data(inside)["last_frame_count"] > 0
+    assert image.get_tile_data(reversed_inside)["last_frame_count"] > 0
+    assert image.get_tile_data(outside_clip)["last_frame_count"] == 0
+    assert image.get_tile_data(hidden)["last_frame_count"] == 0
+    old_frame = image.get_tile_data(inside)["last_frame_count"]
+    clip.pmin = (5, 1)
+    clip.pmax = (7, 4)
+    _render(ctx)
+    assert image.get_tile_data(outside_clip)["last_frame_count"] > old_frame
+    assert image.get_tile_data(inside)["last_frame_count"] == old_frame
+
+
+def test_tiled_image_uses_nested_window_clip(ctx: dcg.Context) -> None:
+    """Honor nested draw clips outside plots as well."""
+    ctx.viewport.initialize(visible=False, width=800, height=600)
+    window = dcg.Window(ctx, width=500, height=400)
+    drawing = dcg.DrawInWindow(ctx, parent=window, width=300, height=200)
+    scale = dcg.DrawingScale(ctx, parent=drawing, origin=(100, 100), scales=(-5, 5))
+    clip = dcg.DrawingClip(
+        ctx, parent=scale, pmin=(1, 1), pmax=(4, 4), clip_rendering=True, scale_min=-100
+    )
+    image = DrawTiledImage(ctx, parent=clip)
+    pixels = np.full((2, 2, 4), 255, dtype=np.uint8)
+    inside = image.add_tile(pixels, (2, 2), (3, 3))
+    outside = image.add_tile(pixels, (5, 2), (6, 3))
+    _render(ctx)
+    assert image.get_tile_data(inside)["last_frame_count"] > 0
+    assert image.get_tile_data(outside)["last_frame_count"] == 0
+
+
+def test_tiled_image_zero_scale_does_not_cull_on_collapsed_axis(ctx: dcg.Context) -> None:
+    """Avoid inventing inverse bounds for a collapsed coordinate axis."""
+    ctx.viewport.initialize(visible=False, width=800, height=600)
+    plot = _plot(ctx)
+    drawings = dcg.DrawInPlot(ctx, parent=plot)
+    scale = dcg.DrawingScale(ctx, parent=drawings, origin=(10, 10), scales=(0, 1))
+    image = DrawTiledImage(ctx, parent=scale)
+    pixels = np.full((2, 2, 4), 255, dtype=np.uint8)
+    tile = image.add_tile(pixels, (1000, 1), (1001, 2))
+    _render(ctx)
+    assert image.get_tile_data(tile)["last_frame_count"] > 0
+
+
+def test_tiled_image_clip_preserves_double_precision(ctx: dcg.Context) -> None:
+    """Keep distinct clipping bounds for large, closely spaced coordinates."""
+    ctx.viewport.initialize(visible=False, width=800, height=600)
+    plot = _plot(ctx)
+    plot.X1.min = 1_000_000_000
+    plot.X1.max = 1_000_000_020
+    drawings = dcg.DrawInPlot(ctx, parent=plot)
+    image = DrawTiledImage(ctx, parent=drawings)
+    pixels = np.full((2, 2, 4), 255, dtype=np.uint8)
+    inside = image.add_tile(pixels, (1_000_000_005, 1), (1_000_000_010, 2))
+    outside = image.add_tile(pixels, (1_000_000_040, 1), (1_000_000_045, 2))
+    _render(ctx)
+    assert image.get_tile_data(inside)["last_frame_count"] > 0
+    assert image.get_tile_data(outside)["last_frame_count"] == 0
+
 
 
 

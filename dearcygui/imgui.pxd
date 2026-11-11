@@ -18,8 +18,9 @@ global_scale (float):
     transform.
 
 scales/shifts (double[2]):
-    Current coordinate space transform (when not in a plot, else
-    implot handles the transform).
+    Current coordinate space transform parameters (affine transform).
+    Note when in a plot, there is an additional transformation applied
+    by implot, and integrated in the coordinate space transform.
     The helpers already include this transform.
     To apply the transform, call viewport.coordinate_to_screen.
     To reverse the transform, call viewport.screen_to_coordinate.
@@ -80,7 +81,7 @@ from libc.stdint cimport uint32_t, int32_t
 
 from .core cimport Context
 from .texture cimport Texture, Pattern
-from .c_types cimport Vec2, Vec4
+from .c_types cimport Vec2, Vec4, FRect, DRect
 
 ### Drawing helpers ###
 
@@ -868,6 +869,48 @@ cdef void t_draw_polygon_filling_no_aa(Context context,
         indices: Triangulation indices for the polygon (groups of 3 indices per triangle)
         indices_count: Number of indices (should be a multiple of 3)
         fill_color: Color to fill the polygon with (ImU32)
+"""
+
+# Helpers to retrieve the current clip region. This is not used directly
+# by dearcgui itself, but can be used for custom clipping logic in user code.
+cdef FRect get_clip_rect(Context context, void* drawlist_ptr) noexcept nogil
+"""
+    Get the current clipping rectangle for the current window.
+
+    When inside a drawing item, this represents the boundary
+    of the drawing region in screen space. This is what is used
+    underneath for t_item_fully_clipped
+
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: current ImDrawList
+
+    Returns:
+        FRect representing the clipping rectangle (x1, y1, x2, y2)
+        with x1 <= x2 and y1 <= y2
+"""
+
+cdef DRect get_coordinate_clip_rect(Context context, void* drawlist_ptr) noexcept nogil
+"""
+    Get the current clipping rectangle for the current drawing region in coordinates.
+
+    Unlike get_clip_rect, which returns the clipping rectangle in screen space,
+    this function returns the clipping rectangle in the coordinate space
+    of the drawing region.
+
+    Usually it is preferrable to perform clipping in screen space in order to
+    properly account for line thickness and other screen-space effects. User
+    can choose to perform clipping in coordinate space to save computational
+    overhead. For instance an RTree can be used to quickly determine which
+    objects fall within the clipping rectangle in coordinate space.
+
+    Args:
+        context: The DearCyGui context
+        drawlist_ptr: current ImDrawList
+
+    Returns:
+        DRect representing the clipping rectangle (x1, y1, x2, y2)
+        with x1 <= x2 and y1 <= y2
 """
 
 

@@ -4143,6 +4143,49 @@ cdef void draw_text_quad(Context context, void* drawlist,
                      p4[0], p4[1], text, color, font,
                      preserve_ratio)
 
+cdef FRect get_clip_rect(Context context,
+                         void* drawlist_ptr) noexcept nogil:
+    cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
+    cdef imgui.ImVec2 clip_min = draw_list.GetClipRectMin()
+    cdef imgui.ImVec2 clip_max = draw_list.GetClipRectMax()
+    cdef FRect result
+    result.x1 = clip_min.x
+    result.y1 = clip_min.y
+    result.x2 = clip_max.x
+    result.y2 = clip_max.y
+    return result
+
+cdef DRect get_coordinate_clip_rect(Context context,
+                                    void* drawlist_ptr) noexcept nogil:
+    cdef imgui.ImDrawList* draw_list = <imgui.ImDrawList*>drawlist_ptr
+    cdef imgui.ImVec2 clip_min = draw_list.GetClipRectMin()
+    cdef imgui.ImVec2 clip_max = draw_list.GetClipRectMax()
+    cdef DRect result
+
+    # Basically we do screen_to_coordinate on the clipping rectangle
+    # We may allow a fast path in the future for the easy case of
+    # plot without any transformation (it would help preserving accuracy).
+    cdef float[2] clip_min_screen
+    cdef float[2] clip_max_screen
+    clip_min_screen[0] = clip_min.x
+    clip_min_screen[1] = clip_min.y
+    clip_max_screen[0] = clip_max.x
+    clip_max_screen[1] = clip_max.y
+
+    # Project the clipping rectangle from screen space to coordinate space
+    cdef double[2] clip_min_coord
+    cdef double[2] clip_max_coord
+    context.viewport.screen_to_coordinate(clip_min_coord, clip_min_screen)
+    context.viewport.screen_to_coordinate(clip_max_coord, clip_max_screen)
+
+    # scales may be negative, but also plot axes can be.
+    result.x1 = fmin(clip_min_coord[0], clip_max_coord[0])
+    result.y1 = fmin(clip_min_coord[1], clip_max_coord[1])
+    result.x2 = fmax(clip_min_coord[0], clip_max_coord[0])
+    result.y2 = fmax(clip_min_coord[1], clip_max_coord[1])
+
+    return result
+
 cdef void* get_window_drawlist(Context context) noexcept nogil:
     return <void*>imgui.GetWindowDrawList()
 

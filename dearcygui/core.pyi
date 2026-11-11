@@ -10412,14 +10412,14 @@ Callback value for a time watcher event.
     @property
     def viewport_last_t_before_rendering(self) -> int:
         """Last time before rendering in the viewport (in nanoseconds).
-        
+
         It corresponds to the time when viewport
         started rendering items for this frame. It is
         given to prevent the user from having to keep track of the
         viewport metrics (since the callback might be called
         after or before the viewport updated its metrics for this
         frame or another one).
-        
+
         """
         ...
 
@@ -16193,11 +16193,23 @@ class DraggingHandler(baseHandler):
     It does not have to be a button the item is supposed
     to react to (e.g. left button). However in this case the
     drag will be considered stopped if the mouse no longer hovers
-    the item. This can be workaround by ensuring the item
+    the item. One way to workaround can be by ensuring the item
     follows the mouse cursor during the drag operation.
 
+    To put the above paragraph in different words: for DraggingHandler
+    to perfectly work, you need the item to stay "active" (button held,
+    etc) or "hovered" (item under the mouse cursor) during the drag operation.
+
+    One use case of DraggingHandler is in combination with DrawInvisibleButton,
+    which allows to implement drag operations on draw elements. By default
+    DrawInvisibleButton is "active" with any mouse button, making it perfectly
+    compatible with DraggingHandler. In addition in this combination, the callback
+    field "drag_delta" will be in coordinate space rather than screen space.
+
     See DragDropSourceHandler for an alternative approach for
-    dragging UI items.
+    dragging UI items onto configured receivers.
+    See utils's DraggableBar for an alternative approach with MouseDragHandler,
+    which doesn't suffer from the "active"/"hovered" limitation.
 
     """
     def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, DraggingHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, user_data : Any = ...):
@@ -18154,15 +18166,9 @@ class DrawInvisibleButton(drawingItem):
     doesn't hover anymore the item, it will remain active as long
     as the configured buttons are pressed.
 
-    When inside a plot, drag deltas are returned in plot coordinates,
-    that is the deltas correspond to the deltas you must apply
-    to your drawing coordinates compared to their original position
-    to apply the dragging. When not in a plot, the drag deltas are
-    in screen coordinates, and you must convert yourself to drawing
-    coordinates if you are applying matrix transforms to your data.
-    Generally matrix transforms are not well supported by
-    DrawInvisibleButtons, and the shifted position that is updated
-    during dragging might be invalid.
+    Drag deltas are returned in draw coordinates, that is the deltas
+    correspond to the deltas you must apply to your drawing coordinates
+    compared to their original position to apply the dragging.
 
     Dragging handlers will not be triggered if the item is not active
     (unlike normal imgui items).
@@ -25158,10 +25164,12 @@ class MouseDragHandler(baseHandler):
         threshold (float): Movement threshold to trigger drag.
                          Negative means use default.
 
-    Callback receives:
-        - button: The button used for dragging
-        - delta_x: Horizontal drag distance
-        - delta_y: Vertical drag distance
+    NOTE: the handler callback will always receive a single event
+    with data.is_released set to True when a drag ends. It corresponds to
+    the moment the mouse button is released.
+    NOTE2: The state of the handler (in handler conditions) is True
+    while the drag is ongoing, but not when it has ended (unlike for the
+    callback, the frame of the mouse release is not taken into account).
 
     """
     def __init__(self, context : Context, *, attach : Any = ..., before : 'baseHandler' | None = None, button : MouseButton = MouseButton.LEFT, callback : DCGCallable[Self, Any, MouseDragHandlerCallbackValue] | None = None, children : list[Never] = [], enabled : bool = True, next_sibling : 'baseHandler' | None = None, parent : 'baseHandler' | None = None, previous_sibling : 'baseHandler' | None = None, show : bool = True, threshold : float = -1.0, user_data : Any = ...):
@@ -32083,28 +32091,37 @@ Callback value for the DoubleClickedHandler.
 class DraggedHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """
 Callback value for the DraggedHandler.
+
+    When mouse_position is omitted, the constructor derives it by adding
+    drag_delta to click_position. Provide it explicitly when drag_delta
+    is not in screen coordinates.
+
     """
-    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord) -> None:
+    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord, click_position : Coord, mouse_position : Coord | None = None) -> None:
         ...
 
 
     @property
     def drag_delta(self) -> Coord:
-        """Delta between the position when dragging stopped and the initial position.
+        """Delta in screen space between the position when dragging stopped and the initial position.
+
+        NOTE: when attached to a DrawInvisibleButton, the drag_delta is in coordinates space.
+        However click_position and mouse_position are always in screen space.
+
         """
         ...
 
 
     @property
     def click_position(self) -> Coord:
-        """Position where the click occurred.
+        """Position of the mouse in screen space where the click occurred.
         """
         ...
 
 
     @property
     def mouse_position(self) -> Coord:
-        """Current mouse position.
+        """Current mouse position in screen space.
         """
         ...
 
@@ -32114,28 +32131,37 @@ Callback value for the DraggedHandler.
 class DraggingHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """
 Callback value for the DraggingHandler.
+
+    When mouse_position is omitted, the constructor derives it by adding
+    drag_delta to click_position. Provide it explicitly when drag_delta
+    is not in screen coordinates.
+
     """
-    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord) -> None:
+    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord, click_position : Coord, mouse_position : Coord | None = None) -> None:
         ...
 
 
     @property
     def drag_delta(self) -> Coord:
-        """Delta between the position when dragging stopped and the initial position.
+        """Delta in screen space between the position when dragging stopped and the initial position.
+
+        NOTE: when attached to a DrawInvisibleButton, the drag_delta is in coordinates space.
+        However click_position and mouse_position are always in screen space.
+
         """
         ...
 
 
     @property
     def click_position(self) -> Coord:
-        """Position where the click occurred.
+        """Position of the mouse in screen space where the click occurred.
         """
         ...
 
 
     @property
     def mouse_position(self) -> Coord:
-        """Current mouse position.
+        """Current mouse position in screen space.
         """
         ...
 
@@ -32423,7 +32449,7 @@ class MouseDragHandlerCallbackValue(MouseButtonHandlerCallbackValue):
     """
 Callback value for the MouseDragHandler.
     """
-    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord) -> None:
+    def __init__(self, context : Context, button : MouseButton, drag_delta : Coord, click_position : Coord, is_released : bool) -> None:
         ...
 
 

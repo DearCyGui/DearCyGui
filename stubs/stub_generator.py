@@ -1,10 +1,10 @@
 import copy
-import os
-import re
-import dearcygui as dcg
 import enum
 import inspect
-import functools
+import os
+import re
+
+import dearcygui as dcg
 
 level1 = "    "
 level2 = level1 + level1
@@ -1121,14 +1121,13 @@ _CYTHON_ARGUMENT_TYPES = {
 }
 
 
-def parse_callback_value_inits():
-    """Return {class name: [(argument name, type), ...]} for the callback value
-    classes defining their own __init__ in callback_values.pyx."""
+def parse_callback_value_inits() -> dict[str, list[tuple[str, str, str | None]]]:
+    """Return argument names, types and defaults for callback value constructors."""
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         "..", "dearcygui", "callback_values.pyx")
     with open(path) as f:
         source = f.read()
-    inits = {"baseCallbackValue": [("context", "Context")]}
+    inits = {"baseCallbackValue": [("context", "Context", None)]}
     pattern = re.compile(r"^cdef class (\w+)|^    def __init__\((.*?)\):", re.S | re.M)
     current = None
     for match in pattern.finditer(source):
@@ -1137,15 +1136,21 @@ def parse_callback_value_inits():
             continue
         arguments = []
         for argument in match.group(2).split(",")[1:]: # skip self
-            words = argument.split()
+            declaration, separator, default = argument.strip().partition("=")
+            declaration, annotation_separator, annotation = declaration.partition(":")
+            words = declaration.split()
             name = words[-1]
             if name in _CALLBACK_VALUE_INIT_TYPES:
                 tname = _CALLBACK_VALUE_INIT_TYPES[name]
+            elif annotation_separator:
+                tname = annotation.strip()
             elif len(words) > 1:
                 tname = _CYTHON_ARGUMENT_TYPES[words[0]]
             else:
                 tname = _CALLBACK_VALUE_PROPERTY_TYPES[name]
-            arguments.append((name, tname))
+            if separator and default.strip() == "None":
+                tname += " | None"
+            arguments.append((name, tname, default.strip() if separator else None))
         inits[current] = arguments
     return inits
 
@@ -1159,6 +1164,7 @@ def generate_stub_for_callback_value(object_class):
     result = [f"class {object_class.__name__}({parent_name}):"]
     docstring = remove_jumps_start_and_end(object_class.__doc__)
     if docstring is not None:
+        docstring = "\n".join(line.rstrip() for line in docstring.splitlines())
         result += [level1 + '"""', docstring, level1 + '"""']
     members = {
         name: member for name, member in object_class.__dict__.items()
@@ -1173,7 +1179,10 @@ def generate_stub_for_callback_value(object_class):
     arguments = _CALLBACK_VALUE_INITS.get(object_class.__name__)
     if arguments is not None:
         # Needed to build fake callback values in tests
-        signature = ", ".join(f"{name} : {tname}" for name, tname in arguments)
+        signature = ", ".join(
+            f"{name} : {tname}" + (f" = {default}" if default is not None else "")
+            for name, tname, default in arguments
+        )
         result += [f"{level1}def __init__(self, {signature}) -> None:", level2 + "...", "\n"]
     for name, member in members.items():
         if name == "value":
@@ -1183,6 +1192,7 @@ def generate_stub_for_callback_value(object_class):
         result += [level1 + "@property", f"{level1}def {name}(self) -> {tname}:"]
         doc = remove_jumps_start_and_end(member.__doc__)
         if doc is not None:
+            doc = "\n".join(line.rstrip() for line in doc.splitlines())
             result += [level2 + '"""' + doc, level2 + '"""']
         result += [level2 + "...", "\n"]
     if len(result) == 1 or (docstring is not None and len(result) == 4):

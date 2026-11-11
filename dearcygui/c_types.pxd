@@ -22,6 +22,20 @@ cdef extern from * nogil:
         float w;
     };
     typedef struct Vec4 Vec4;
+    struct FRect {
+        float x1;
+        float y1;
+        float x2;
+        float y2;
+    };
+    typedef struct FRect FRect;
+    struct DRect {
+        double x1;
+        double y1;
+        double x2;
+        double y2;
+    };
+    typedef struct DRect DRect;
     struct double2 {
         double p[2];
     };
@@ -37,6 +51,16 @@ cdef extern from * nogil:
         float y
         float z
         float w
+    ctypedef struct FRect:
+        float x1
+        float y1
+        float x2
+        float y2
+    ctypedef struct DRect:
+        double x1
+        double y1
+        double x2
+        double y2
     ctypedef struct double2:
         double[2] p
 

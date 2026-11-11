@@ -69,15 +69,9 @@ cdef class DrawInvisibleButton(drawingItem):
     doesn't hover anymore the item, it will remain active as long
     as the configured buttons are pressed.
 
-    When inside a plot, drag deltas are returned in plot coordinates,
-    that is the deltas correspond to the deltas you must apply
-    to your drawing coordinates compared to their original position
-    to apply the dragging. When not in a plot, the drag deltas are
-    in screen coordinates, and you must convert yourself to drawing
-    coordinates if you are applying matrix transforms to your data.
-    Generally matrix transforms are not well supported by
-    DrawInvisibleButtons, and the shifted position that is updated
-    during dragging might be invalid.
+    Drag deltas are returned in draw coordinates, that is the deltas
+    correspond to the deltas you must apply to your drawing coordinates
+    compared to their original position to apply the dragging.
 
     Dragging handlers will not be triggered if the item is not active
     (unlike normal imgui items).
@@ -380,6 +374,8 @@ cdef class DrawInvisibleButton(drawingItem):
         cdef double[2] cur_scales = self.context.viewport.scales
         cdef double[2] cur_shifts = self.context.viewport.shifts
         cdef bint cur_in_plot = self.context.viewport.in_plot
+        cdef float backup_thickness_multiplier = self.context.viewport.thickness_multiplier
+        cdef float backup_size_multiplier = self.context.viewport.size_multiplier
 
         # draw children
         if self.last_drawings_child is not None:
@@ -387,7 +383,8 @@ cdef class DrawInvisibleButton(drawingItem):
             self.context.viewport.shifts[1] = <double>top_left.y
             self.context.viewport.scales = [<double>size.x, <double>size.y]
             self.context.viewport.in_plot = False
-            # TODO V1: Unsure...
+            # TODOV1: Using 1 here for both means "no_global_scale" + "no relative scaling".
+            # Is it what we want ?
             self.context.viewport.thickness_multiplier = 1.
             self.context.viewport.size_multiplier = 1.
             draw_drawing_children(self, drawlist)
@@ -396,6 +393,8 @@ cdef class DrawInvisibleButton(drawingItem):
         self.context.viewport.scales = cur_scales
         self.context.viewport.shifts = cur_shifts
         self.context.viewport.in_plot = cur_in_plot
+        self.context.viewport.thickness_multiplier = backup_thickness_multiplier
+        self.context.viewport.size_multiplier = backup_size_multiplier
 
         cdef bint mouse_down = False
         if (self._button & 1) != 0 and imgui.IsMouseDown(imgui.ImGuiMouseButton_Left):

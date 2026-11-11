@@ -4599,21 +4599,30 @@ cdef class Viewport(baseItem):
 
         cdef imgui.ImVec2 plot_transformed
         cdef double[2] p
+
+        # Apply the current coordinate transformation
         p[0] = src_p[0] * self.scales[0] + self.shifts[0]
         p[1] = src_p[1] * self.scales[1] + self.shifts[1]
+
+        # If in a plot, apply then the plot transformation
+        # which may be affine, but also non-linear
         if self.in_plot:
+            # If fitting the plot, register the coordinate
             if self.plot_fit:
-                implot.FitPointX(src_p[0])
-                implot.FitPointY(src_p[1])
-            plot_transformed = \
-                implot.PlotToPixels(src_p[0],
-                                    src_p[1],
-                                    -1,
-                                    -1)
+                implot.FitPointX(p[0])
+                implot.FitPointY(p[1])
+            plot_transformed = implot.PlotToPixels(
+                p[0],
+                p[1],
+                implot.IMPLOT_AUTO,
+                implot.IMPLOT_AUTO
+            )
             dst_p[0] = plot_transformed.x
             dst_p[1] = plot_transformed.y
+
+        # Outside the plot, we only need to apply the
+        # current coordinate transformation
         else:
-            # When in a plot, PlotToPixel already handles that.
             dst_p[0] = <float>p[0]
             dst_p[1] = <float>p[1]
 
@@ -4622,20 +4631,31 @@ cdef class Viewport(baseItem):
         Used during rendering as helper to convert pixel coordinates to drawing coordinates
         """
         # assumes imgui + viewport mutex are held
+
         cdef imgui.ImVec2 screen_pos
         cdef implot.ImPlotPoint plot_pos
+        cdef double[2] coord_pos
+
+        # Undo the plot transform if any
         if self.in_plot:
             screen_pos = imgui.ImVec2(src_p[0], src_p[1])
             # IMPLOT_AUTO uses current axes
-            plot_pos = \
-                implot.PixelsToPlot(screen_pos,
-                                    implot.IMPLOT_AUTO,
-                                    implot.IMPLOT_AUTO)
-            dst_p[0] = plot_pos.x
-            dst_p[1] = plot_pos.y
+            plot_pos = implot.PixelsToPlot(
+                screen_pos,
+                implot.IMPLOT_AUTO,
+                implot.IMPLOT_AUTO
+            )
+            coord_pos[0] = plot_pos.x
+            coord_pos[1] = plot_pos.y
         else:
-            dst_p[0] = <double>(src_p[0] - self.shifts[0]) / <double>self.scales[0]
-            dst_p[1] = <double>(src_p[1] - self.shifts[1]) / <double>self.scales[1]
+            coord_pos[0] = <double>src_p[0]
+            coord_pos[1] = <double>src_p[1]
+
+        # Undo the current coordinate transform
+        dst_p[0] = (coord_pos[0] - <double>self.shifts[0])
+        dst_p[1] = (coord_pos[1] - <double>self.shifts[1])
+        dst_p[0] = dst_p[0] / <double>self.scales[0] if <double>self.scales[0] != 0 else dst_p[0]
+        dst_p[1] = dst_p[1] / <double>self.scales[1] if <double>self.scales[1] != 0 else dst_p[1]
 
     def wait_events(self, int32_t timeout_ms=0) -> bool:
         """
@@ -5831,6 +5851,7 @@ cdef void update_current_mouse_states(itemState& state) noexcept nogil:
                 if not state.prev.dragging[i]:
                     if state.cur.hovered:
                         # check if the item was hovered when the mouse was pressed
+                        # TODOV1: seems false, it should also check the mouse was clicked this frame.
                         if state.cur.pos_to_viewport.x > imgui.GetIO().MouseClickedPos[i].x or \
                             state.cur.pos_to_viewport.y > imgui.GetIO().MouseClickedPos[i].y or \
                             (state.cur.pos_to_viewport.x + state.cur.rect_size.x) < imgui.GetIO().MouseClickedPos[i].x or \
