@@ -1146,7 +1146,7 @@ cdef class PlotAxisConfig(baseItem):
             self.state.cur.clicked[i] = self.state.cur.hovered and imgui.IsMouseClicked(i, False)
             self.state.cur.double_clicked[i] = self.state.cur.hovered and imgui.IsMouseDoubleClicked(i)
 
-    cdef void after_plot(self, int32_t axis) noexcept nogil:
+    cdef void after_plot(self, int32_t axis, bint fit_this_frame) noexcept nogil:
         if not(self.context.viewport.enabled_axes[axis]):
             return
         if self._linked_axis is not None:
@@ -1155,8 +1155,11 @@ cdef class PlotAxisConfig(baseItem):
             self._linked_axis._min = self._min
             self._linked_axis._max = self._max
             self._linked_axis.mutex.unlock()
-        # The fit only impacts the next frame
-        if (self._min != self._prev_min or self._max != self._prev_max):
+
+        # The fit has updated the axis range for next frame, however
+        # the user expects the axis to reflect the new fitted
+        # range immediately. Thus we need to redraw without presentation.
+        if fit_this_frame and (self._min != self._prev_min or self._max != self._prev_max):
             self.context.viewport.ask_immediate_redraw()
 
     cdef void set_hidden(self) noexcept nogil:
@@ -2106,6 +2109,7 @@ cdef class Plot(uiItem):
 
     cdef bint draw_item(self) noexcept nogil:
         cdef bint visible
+        cdef bint fit_this_frame
         implot.GetStyle().UseLocalTime = self._use_local_time
         implot.GetStyle().UseISO8601 = self._use_ISO8601
         implot.GetStyle().Use24HourClock = self._use_24hour_clock
@@ -2187,13 +2191,16 @@ cdef class Plot(uiItem):
             # The user can interact with the plot
             # configuration with the mouse
             self._flags = GetPlotConfig()
+            fit_this_frame = implot.FitThisFrame()
             implot.EndPlot()
-            self._X1.after_plot(implot.ImAxis_X1)
-            self._X2.after_plot(implot.ImAxis_X2)
-            self._X3.after_plot(implot.ImAxis_X3)
-            self._Y1.after_plot(implot.ImAxis_Y1)
-            self._Y2.after_plot(implot.ImAxis_Y2)
-            self._Y3.after_plot(implot.ImAxis_Y3)
+
+            # The min/max are updated by EndPlot
+            self._X1.after_plot(implot.ImAxis_X1, fit_this_frame)
+            self._X2.after_plot(implot.ImAxis_X2, fit_this_frame)
+            self._X3.after_plot(implot.ImAxis_X3, fit_this_frame)
+            self._Y1.after_plot(implot.ImAxis_Y1, fit_this_frame)
+            self._Y2.after_plot(implot.ImAxis_Y2, fit_this_frame)
+            self._Y3.after_plot(implot.ImAxis_Y3, fit_this_frame)
 
             # If we show the mouse position text,
             # a mouse motion impacts the visual

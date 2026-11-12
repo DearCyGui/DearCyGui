@@ -40,7 +40,7 @@ cdef class PlotAxisConfig(baseItem):
     cdef PlotAxisConfig _linked_axis
     cdef void setup(self, int32_t) noexcept nogil # implot.ImAxis
     cdef void after_setup(self, int32_t) noexcept nogil # implot.ImAxis
-    cdef void after_plot(self, int32_t) noexcept nogil # implot.ImAxis
+    cdef void after_plot(self, int32_t, bint) noexcept nogil # implot.ImAxis
     cdef void set_hidden(self) noexcept nogil
 
 cdef class PlotLegendConfig(baseItem):
