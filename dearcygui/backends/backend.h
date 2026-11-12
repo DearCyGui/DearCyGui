@@ -18,8 +18,6 @@ typedef void (*on_drop_fun)(void*, int, const char*);
 typedef void (*on_wait_fun)(void*);
 typedef void (*on_wake_fun)(void*);
 
-uint64_t getCurrentTimeNS();
-
 // A class to wrap a GL context, make it current, release it.
 class GLContext
 {
@@ -47,6 +45,7 @@ public:
     virtual bool renderFrame(bool can_skip_presenting) = 0;
     virtual void present() = 0;
     virtual bool checkPrimaryThread() = 0;
+    virtual uint64_t getCurrentTimeNS() noexcept = 0;
     /**
      * Add an icon to the window icon set
      * @param data Pointer to RGBA image data
@@ -272,6 +271,7 @@ public:
     virtual bool renderFrame(bool can_skip_presenting) override;
     virtual void present() override;
     virtual bool checkPrimaryThread() override;
+    virtual uint64_t getCurrentTimeNS() noexcept override;
     virtual void addWindowIcon(void* data, int width, int height, 
                                int rowStride, int colStride, int chanStride) override;
     virtual void wakeRendering(uint64_t delay_ns, bool full_refresh) override;

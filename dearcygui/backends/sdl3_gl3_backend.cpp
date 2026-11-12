@@ -25,10 +25,6 @@ std::mutex SDLViewport::sdlInitMutex;
 std::atomic<int> SDLViewport::viewportCount{0};
 Uint32 UserEventType = SDL_EVENT_USER;
 
-uint64_t getCurrentTimeNS() {
-    return SDL_GetTicksNS();
-}
-
 bool platformViewport::fastActivityCheck() {
     ImGuiContext& g = *GImGui;
 
@@ -1894,6 +1890,10 @@ bool SDLViewport::downloadTexture(void* texture,
 
 bool SDLViewport::checkPrimaryThread() {
     return SDL_GetCurrentThreadID() == sdlMainThreadId;
+}
+    
+uint64_t SDLViewport::getCurrentTimeNS() noexcept {
+    return SDL_GetTicksNS();
 }
 
 void SDLViewport::addWindowIcon(void* data, int width, int height, 

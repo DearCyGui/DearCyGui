@@ -82,9 +82,6 @@ cdef inline void append_obj_vector(DCGVector[PyObject *] &items, item_list) noex
         Py_INCREF(item)
         items.push_back(<PyObject*>item)
 
-# method to get internal monotonic clock in nanoseconds
-cdef uint64_t c_clock_ns() noexcept nogil
-
 """
 Context Thread safety
 =====================
@@ -407,6 +404,7 @@ cdef class Viewport(baseItem):
     cdef void* _implot_context # implot.ImPlotContext
     ### public methods ###
     cpdef void delete_item(self)
+    cdef uint64_t c_clock_ns(self) noexcept nogil
     cdef void coordinate_to_screen(self, float *dst_p, const double[2] src_p) noexcept nogil
     cdef void screen_to_coordinate(self, double *dst_p, const float[2] src_p) noexcept nogil
     cdef void ask_refresh_after_target(self, double monotonic) noexcept nogil # might refresh before, in which case you should call again

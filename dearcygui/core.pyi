@@ -7027,6 +7027,45 @@ class Context(object):
         ...
 
 
+    def clock(self) -> float:
+        """
+        Returns DearCyGui's internal monotonic clock in seconds.
+
+        This is the clock used internally by DearCyGui for timing
+        and scheduling purposes. It is a monotonic clock, but differs
+        from Python's time.monotonic() in terms of starting point
+        and resolution.
+
+        A more precise version exists in nanoseconds via clock_ns().
+        Indeed after a few hours of running time, a Python float
+        may lose precision due to the limitations of floating-point
+        representation.
+
+        NOTE: When two or more contexts co-exist, they share the
+        same clock. If all contexts are destroyed and a new context
+        is created, the clock may jump or reset.
+
+        """
+        ...
+
+
+    def clock_ns(self) -> int:
+        """
+        Returns DearCyGui's internal monotonic clock in nanoseconds.
+
+        This is the clock used internally by DearCyGui for timing
+        and scheduling purposes. It is a monotonic clock, but differs
+        from Python's time.monotonic_ns() in terms of starting point
+        and resolution.
+
+        NOTE: When two or more contexts co-exist, they share the
+        same clock. If all contexts are destroyed and a new context
+        is created, the clock may jump or reset.
+
+        """
+        ...
+
+
     def create_new_shared_gl_context(self, major, minor) -> SharedGLContext:
         """
         Create a new shared OpenGL context with the current context.
