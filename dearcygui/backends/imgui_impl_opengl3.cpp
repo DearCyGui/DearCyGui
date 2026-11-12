@@ -240,8 +240,6 @@ struct ImGui_ImplOpenGL3_Data
     GLuint          AttribLocationVtxUV;
     GLuint          AttribLocationVtxColor;
     unsigned int    VboHandle, ElementsHandle;
-    GLsizeiptr      VertexBufferSize;
-    GLsizeiptr      IndexBufferSize;
     bool            HasPolygonMode;
     bool            HasClipOrigin;
     bool            UseBufferSubData;
@@ -329,7 +327,7 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
         bd->GlProfileIsES3 = true;
 #endif
 
-    bd->UseBufferSubData = false;
+    bd->UseBufferSubData = true; // Set to true for better performance (imgui default is false)
     /*
     // Query vendor to enable glBufferSubData kludge
 #ifdef _WIN32
@@ -594,17 +592,9 @@ void ImGui_ImplOpenGL3_RenderDrawData(SDLViewport* platform, ImDrawData* draw_da
         const GLsizeiptr idx_buffer_size = (GLsizeiptr)draw_list->IdxBuffer.Size * (int)sizeof(ImDrawIdx);
         if (bd->UseBufferSubData)
         {
-            if (bd->VertexBufferSize < vtx_buffer_size)
-            {
-                bd->VertexBufferSize = vtx_buffer_size;
-                GL_CALL(glBufferData(GL_ARRAY_BUFFER, bd->VertexBufferSize, nullptr, GL_STREAM_DRAW));
-            }
-            if (bd->IndexBufferSize < idx_buffer_size)
-            {
-                bd->IndexBufferSize = idx_buffer_size;
-                GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, bd->IndexBufferSize, nullptr, GL_STREAM_DRAW));
-            }
+            GL_CALL(glBufferData(GL_ARRAY_BUFFER, vtx_buffer_size, nullptr, GL_STREAM_DRAW));
             GL_CALL(glBufferSubData(GL_ARRAY_BUFFER, 0, vtx_buffer_size, (const GLvoid*)draw_list->VtxBuffer.Data));
+            GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER,idx_buffer_size, nullptr, GL_STREAM_DRAW));
             GL_CALL(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, idx_buffer_size, (const GLvoid*)draw_list->IdxBuffer.Data));
         }
         else
