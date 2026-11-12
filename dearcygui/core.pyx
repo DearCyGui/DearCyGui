@@ -29,8 +29,7 @@ from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer,
 from cpython.sequence cimport PySequence_Check
 from cpython.exc cimport PyErr_CheckSignals
 
-from .backends.backend cimport SDLViewport, platformViewport, GLContext
-cimport dearcygui.backends.time as ctime
+from .backends.backend cimport SDLViewport, platformViewport, GLContext, getCurrentTimeNS
 from .c_types cimport unique_lock, DCGMutex, mutex, defer_lock_t, string_to_str,\
     set_composite_label, set_uuid_label, string_from_str, Vec2, make_Vec2
 from .callback_values cimport (
@@ -304,6 +303,36 @@ cdef inline void sched_yield():
         # behaviour on non-posix is different
         # thus why we don't use it for posix.
         _python_sleep(0)
+
+cdef uint64_t c_clock_ns() noexcept nogil:
+    return getCurrentTimeNS()
+
+def clock_ns() -> int:
+    """
+    Returns DearCyGui's internal monotonic clock in nanoseconds.
+
+    This is the clock used internally by DearCyGui for timing
+    and scheduling purposes. It is a monotonic clock, but differs
+    from Python's time.monotonic_ns() in terms of starting point
+    and resolution.
+    """
+    return c_clock_ns()
+
+def clock() -> float:
+    """
+    Returns DearCyGui's internal monotonic clock in seconds.
+
+    This is the clock used internally by DearCyGui for timing
+    and scheduling purposes. It is a monotonic clock, but differs
+    from Python's time.monotonic() in terms of starting point
+    and resolution.
+
+    A more precise version exists in nanoseconds via clock_ns().
+    Indeed after a few hours of running time, a Python float
+    may lose precision due to the limitations of floating-point
+    representation.
+    """
+    return <double>c_clock_ns() / 1e9
 
 cdef void internal_resize_callback(void *object) noexcept nogil:
     with gil:
@@ -2997,7 +3026,7 @@ cdef class Viewport(baseItem):
         self.can_have_viewport_drawlist_child = True
         self.can_have_menubar_child = True
         self.can_have_sibling = False
-        self.last_t_before_event_handling = ctime.monotonic_ns()
+        self.last_t_before_event_handling = c_clock_ns()
         self.last_t_before_rendering = self.last_t_before_event_handling
         self.last_t_after_rendering = self.last_t_before_event_handling
         self.last_t_after_swapping = self.last_t_before_event_handling
@@ -4515,7 +4544,7 @@ cdef class Viewport(baseItem):
 
     cdef void __render(self) noexcept nogil:
         cdef bint any_change = False
-        self.last_t_before_rendering = ctime.monotonic_ns()
+        self.last_t_before_rendering = c_clock_ns()
         # Initialize drawing state
         imgui.SetMouseCursor(self._cursor)
         self._cursor = imgui.ImGuiMouseCursor_Arrow
@@ -4574,7 +4603,7 @@ cdef class Viewport(baseItem):
         if self._font is not None:
             self._font.pop()
         self.run_handlers()
-        self.last_t_after_rendering = ctime.monotonic_ns()
+        self.last_t_after_rendering = c_clock_ns()
         if self._redraw_needed:
             (<platformViewport*>self._platform).needsRefresh.store(True)
             (<platformViewport*>self._platform).shouldSkipPresenting = True
@@ -4695,7 +4724,7 @@ cdef class Viewport(baseItem):
         cdef int32_t internal_timeout_ms
         cdef bint is_internal_timeout = False
         with nogil:
-            current_time_s = (<double>ctime.monotonic_ns()) * 1e-9
+            current_time_s = (<double>c_clock_ns()) * 1e-9
             internal_timeout_ms = <int32_t>(ceil((self._target_refresh_time - current_time_s) * 1000.))
             internal_timeout_ms = max(0, internal_timeout_ms)
             timeout_ms = max(0, timeout_ms)
@@ -4759,7 +4788,7 @@ cdef class Viewport(baseItem):
         with nogil:
             lock_im_context(self)
             # Configuring imgui's style. Uses imgui variables and viewport variables
-            self.last_t_before_event_handling = ctime.monotonic_ns()
+            self.last_t_before_event_handling = c_clock_ns()
             gs = self.global_scale
             self.global_scale = (<platformViewport*>self._platform).dpiScale * self._scale
             style = &imgui.GetStyle()
@@ -4839,11 +4868,11 @@ cdef class Viewport(baseItem):
                 unlock_im_context()
 
             # Core rendering
-            #self.last_t_before_rendering = ctime.monotonic_ns()
+            #self.last_t_before_rendering = c_clock_ns()
             
             #imgui.GetMainViewport().DpiScale = self.viewport.dpi
             #imgui.GetIO().FontGlobalScale = self.viewport.dpi
-            current_time_s = (<double>ctime.monotonic_ns()) * 1e-9
+            current_time_s = (<double>c_clock_ns()) * 1e-9
             if current_time_s >= self._target_refresh_time:
                 # Past the target time (timer or heartbeat): present
                 # exactly one frame. No input is involved, thus no
@@ -4857,7 +4886,7 @@ cdef class Viewport(baseItem):
                     (<platformViewport*>self._platform).renderFrame(not(self._always_submit_to_gpu))
             finally:
                 unlock_im_context()
-            #self.last_t_after_rendering = ctime.monotonic_ns()
+            #self.last_t_after_rendering = c_clock_ns()
             # Present doesn't use imgui but can take time (vsync)
             if should_present:
                 if self._retrieve_framebuffer:
@@ -4884,13 +4913,13 @@ cdef class Viewport(baseItem):
                 # Note: doesn't need the imgui context
                 (<platformViewport*>self._platform).present()
                 m.lock()
-        cdef long long current_time = ctime.monotonic_ns()
+        cdef long long current_time = c_clock_ns()
         if not(should_present) and (<platformViewport*>self._platform).hasVSync\
            and (current_time - self.last_t_after_swapping) < 5000000: # 5 ms
             # cap 'cpu' framerate when not presenting
             m.unlock()
             _python_sleep(0.005 - <double>(current_time - self.last_t_after_swapping) * 1e-9)
-            current_time = ctime.monotonic_ns()
+            current_time = c_clock_ns()
             lock_gil_friendly(m, self.mutex)
         self.delta_frame = current_time - self.last_t_after_swapping
         self.last_t_after_swapping = current_time
@@ -4960,7 +4989,7 @@ cdef class Viewport(baseItem):
         should be called again.
         """
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef double monotonic = ctime.monotonic_ns() * 1e-9
+        cdef double monotonic = c_clock_ns() * 1e-9
         self._target_refresh_time = min(self._target_refresh_time, monotonic + delta_monotonic)
 
     cdef void ask_immediate_redraw(self) noexcept nogil:
@@ -7348,9 +7377,9 @@ cdef class TimeWatcher(uiItem):
 
     cdef void draw(self) noexcept nogil:
         cdef unique_lock[DCGMutex] m = unique_lock[DCGMutex](self.mutex)
-        cdef long long time_start = ctime.monotonic_ns()
+        cdef long long time_start = c_clock_ns()
         draw_ui_children(self)
-        cdef long long time_end = ctime.monotonic_ns()
+        cdef long long time_end = c_clock_ns()
         cdef int32_t i
         if not(self._callbacks.empty()):
             with gil:

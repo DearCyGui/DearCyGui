@@ -3,6 +3,7 @@ from libcpp.atomic cimport atomic
 from libcpp.string cimport string
 
 cdef extern from "backend.h" nogil:
+    uint64_t getCurrentTimeNS()
     cdef cppclass GLContext:
         void makeCurrent()
         void release()

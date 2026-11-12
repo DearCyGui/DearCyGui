@@ -82,6 +82,9 @@ cdef inline void append_obj_vector(DCGVector[PyObject *] &items, item_list) noex
         Py_INCREF(item)
         items.push_back(<PyObject*>item)
 
+# method to get internal monotonic clock in nanoseconds
+cdef uint64_t c_clock_ns() noexcept nogil
+
 """
 Context Thread safety
 =====================

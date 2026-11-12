@@ -18,6 +18,7 @@ typedef void (*on_drop_fun)(void*, int, const char*);
 typedef void (*on_wait_fun)(void*);
 typedef void (*on_wake_fun)(void*);
 
+uint64_t getCurrentTimeNS();
 
 // A class to wrap a GL context, make it current, release it.
 class GLContext

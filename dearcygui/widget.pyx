@@ -27,8 +27,6 @@ from cpython.object cimport PyObject
 from cpython.sequence cimport PySequence_Check
 from cython.view cimport array as cython_array
 
-from .backends.time cimport monotonic_ns
-
 from .core cimport baseHandler, drawingItem, uiItem, \
     lock_gil_friendly, \
     draw_drawing_children, draw_menubar_children, \

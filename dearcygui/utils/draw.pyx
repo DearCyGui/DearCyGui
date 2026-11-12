@@ -5,7 +5,6 @@ import dearcygui as dcg
 
 from dearcygui.c_types cimport unique_lock, DCGMutex
 from cpython.ref cimport PyObject
-cimport dearcygui.backends.time as ctime
 from libcpp.map cimport pair
 from libcpp.deque cimport deque
 from libcpp.set cimport set
@@ -30,7 +29,7 @@ cdef class DrawStream(dcg.DrawingList):
     ```python
     stream = DrawStream(context)
     # Add drawing element that will expire after 2 seconds
-    expiration_time = time.monotonic() + 2.0 
+    expiration_time = dcg.clock() + 2.0 
     stream.push(DrawCircle(context),
                 expiration_time)
     ```
@@ -52,7 +51,7 @@ cdef class DrawStream(dcg.DrawingList):
 
     cdef double _get_time_with_modulus(self) noexcept nogil:
         """Applies time_modulus"""
-        cdef double current_time = (<double>ctime.monotonic_ns())*1e-9
+        cdef double current_time = (<double>dcg.c_clock_ns())*1e-9
         if self._time_modulus > 0.:
             return fmod(current_time, self._time_modulus)
         return current_time
@@ -89,7 +88,7 @@ cdef class DrawStream(dcg.DrawingList):
 
     @property
     def time(self):
-        """Return the current time (monotonic clock mod time_modulus) in seconds"""
+        """Return the current time (dcg.clock() mod time_modulus) in seconds"""
         return self._get_time_with_modulus()
 
     @property
@@ -147,9 +146,7 @@ cdef class DrawStream(dcg.DrawingList):
     @property
     def time_modulus(self):
         """
-        If non-zero, the monotonic clock
-        time will be applied this value as
-        modulus, and the queue will loop back.
+        If non-zero, the queue will loop back after reaching the modulus.
         """
         cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
@@ -234,7 +231,7 @@ cdef class DrawStream(dcg.DrawingList):
             child: Drawing element to attach
             expiry_time: Time when child should expire and drawing
                 should move on to the next one in the queue.
-                The time clock corresponds to time.monotonic().
+                The time clock corresponds to dcg.clock().
         """
         cdef unique_lock[DCGMutex] m
         dcg.lock_gil_friendly(m, self.mutex)
@@ -288,7 +285,7 @@ cdef class DrawStream(dcg.DrawingList):
             elif self._time_modulus == 0.:
                 self.context.viewport.ask_refresh_after_target(self._expiry_times[index_to_show].first)
             else:
-                current_time = (<double>ctime.monotonic_ns())*1e-9
+                current_time = (<double>dcg.c_clock_ns())*1e-9
                 time_to_expiration = self._expiry_times[index_to_show].first - self._get_time_with_modulus()
                 if time_to_expiration < 0.:
                     time_to_expiration += self._time_modulus

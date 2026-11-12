@@ -18,13 +18,16 @@
 
 #include <functional>
 #include <mutex>
-#include <chrono>
 
 SDL_ThreadID SDLViewport::sdlMainThreadId = 0;
 std::atomic<bool> SDLViewport::sdlInitialized{false};
 std::mutex SDLViewport::sdlInitMutex;
 std::atomic<int> SDLViewport::viewportCount{0};
 Uint32 UserEventType = SDL_EVENT_USER;
+
+uint64_t getCurrentTimeNS() {
+    return SDL_GetTicksNS();
+}
 
 bool platformViewport::fastActivityCheck() {
     ImGuiContext& g = *GImGui;
@@ -1066,9 +1069,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
     // Activity: input activity. Needs to render to check impact
     // Needs refresh: if the content has likely changed and we must render and present
     SDL_Event event;
-    uint64_t start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            std::chrono::steady_clock::now().time_since_epoch()
-                        ).count();
+    uint64_t start_time = SDL_GetTicksNS();
     uint64_t stop_time = start_time + timeout_ms * 1000000;
     auto remaining_timeout = timeout_ms;
 
@@ -1105,9 +1106,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
             }
             // update the timeout for next iteration
             wakeCallback(callbackData);
-            uint64_t current_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()
-            ).count();
+            uint64_t current_time = SDL_GetTicksNS();
             remaining_timeout = (current_time < stop_time) ?
                 static_cast<int>((stop_time - current_time + 999999) / 1000000) : 0;
             if (!has_event)
@@ -1253,9 +1252,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
                 default:
                     if (event.type == UserEventType) {
                         // wake-up handling
-                        uint64_t current_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            std::chrono::steady_clock::now().time_since_epoch()
-                        ).count();
+                        uint64_t current_time = SDL_GetTicksNS();
                         if (event.user.timestamp <= current_time) {
                             if (event.user.code == 0) {
                                 // User requested a single presented frame
@@ -1310,9 +1307,7 @@ bool SDLViewport::processEvents(int timeout_ms) {
     }
 
     if (time_requested_refresh != UINT64_MAX || time_requested_rendering != UINT64_MAX) {
-        uint64_t current_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()
-            ).count();
+        uint64_t current_time = SDL_GetTicksNS();
         if (current_time >= time_requested_refresh) {
             needsPresent.store(true);
             needsRender.store(true);
@@ -1471,9 +1466,7 @@ void SDLViewport::wakeRendering(uint64_t delay_ns, bool full_refresh) {
     SDL_Event user_event;
     user_event.type = UserEventType;
     user_event.user.windowID = SDL_GetWindowID(windowHandle);
-    auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()
-    ).count();
+    auto timestamp_ns = SDL_GetTicksNS();
     user_event.user.timestamp = timestamp_ns + delay_ns;
     user_event.user.code = full_refresh ? 0 : 1; // 0 for full refresh, 1 for just rendering (may not submit)
     user_event.user.data1 = NULL;
