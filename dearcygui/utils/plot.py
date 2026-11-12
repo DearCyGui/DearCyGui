@@ -56,8 +56,8 @@ class CandleStyle:
         time_formatter: Callback converting a date to a string.
     """
 
-    bull_color: dcg.Color = _DEFAULT_BULL_COLOR
-    bear_color: dcg.Color = _DEFAULT_BEAR_COLOR
+    bull_color: 'dcg.Color' = _DEFAULT_BULL_COLOR
+    bear_color: 'dcg.Color' = _DEFAULT_BEAR_COLOR
     weight: float = 0.25
     tooltip: bool = True
     time_formatter: Callable[[float], str] = field(default=_default_time_formatter)
